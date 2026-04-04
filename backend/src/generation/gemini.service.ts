@@ -23,6 +23,22 @@ export const GENERATION_STYLES: GenerationStyle[] = [
   { id: 'allegro-style', name: 'Styl Allegro', prompt: 'Clean product photo optimized for Allegro marketplace, white background, all product details visible, high resolution' },
 ];
 
+export interface GeneratedImage {
+  base64: string;
+  mimeType: string;
+}
+
+/** Supported inline image MIME types accepted by the Gemini API. */
+type GeminiImageMimeType = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
+
+/**
+ * Extended generation config that includes `responseModalities` which is
+ * supported by Gemini image-generation models but not yet typed in the SDK.
+ */
+interface ImageGenerationConfig {
+  responseModalities: Array<'IMAGE' | 'TEXT'>;
+}
+
 @Injectable()
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
@@ -39,7 +55,7 @@ export class GeminiService {
     const imagePart: Part = {
       inlineData: {
         data: imageBase64,
-        mimeType: mimeType as any,
+        mimeType: mimeType as GeminiImageMimeType,
       },
     };
 
@@ -68,5 +84,47 @@ Create a detailed image generation prompt combining the product details with the
     ]);
 
     return result.response.text();
+  }
+
+  async generateImage(
+    imageBase64: string,
+    imageMimeType: string,
+    prompt: string,
+  ): Promise<GeneratedImage> {
+    const model = this.genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash-preview-image-generation',
+    });
+
+    const imagePart: Part = {
+      inlineData: {
+        data: imageBase64,
+        mimeType: imageMimeType as GeminiImageMimeType,
+      },
+    };
+
+    const generationConfig: ImageGenerationConfig = {
+      responseModalities: ['IMAGE'],
+    };
+
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [imagePart, { text: prompt }] }],
+      generationConfig: generationConfig as Parameters<typeof model.generateContent>[0]['generationConfig'],
+    });
+
+    const candidate = result.response.candidates?.[0];
+    if (!candidate) {
+      throw new Error('Gemini returned no candidates');
+    }
+
+    for (const part of candidate.content.parts) {
+      if (part.inlineData?.data) {
+        return {
+          base64: part.inlineData.data,
+          mimeType: part.inlineData.mimeType ?? 'image/png',
+        };
+      }
+    }
+
+    throw new Error('Gemini response contained no image data');
   }
 }

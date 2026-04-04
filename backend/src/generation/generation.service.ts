@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
 import { GeminiService, GENERATION_STYLES } from './gemini.service';
 import * as https from 'https';
+import * as http from 'http';
 
 @Injectable()
 export class GenerationService {
@@ -49,6 +50,19 @@ export class GenerationService {
   }
 
   private async processGenerations(originalUrl: string, generationIds: string[]) {
+    // Fetch the original image once and reuse across all styles
+    const imageBuffer = await this.fetchImageBuffer(originalUrl);
+    const base64Image = imageBuffer.toString('base64');
+
+    // Detect MIME type from the URL extension, defaulting to JPEG
+    const mimeType = this.detectMimeType(originalUrl);
+
+    // Generate a product description once to inform all style prompts
+    const description = await this.geminiService.generateImageDescription(
+      base64Image,
+      mimeType,
+    );
+
     for (const generationId of generationIds) {
       try {
         await this.prisma.generation.update({
@@ -62,31 +76,34 @@ export class GenerationService {
 
         const style = GENERATION_STYLES.find((s) => s.id === generation.style);
 
-        // Fetch original image
-        const imageBuffer = await this.fetchImageBuffer(originalUrl);
-        const base64Image = imageBuffer.toString('base64');
-
-        // Generate description using Gemini
-        const description = await this.geminiService.generateImageDescription(
-          base64Image,
-          'image/jpeg',
-        );
-
-        // Generate optimized prompt for this style
+        // Build a style-specific image generation prompt
         const optimizedPrompt = await this.geminiService.generatePromptForStyle(
           description,
           style,
         );
 
-        // TODO: Replace with actual image generation API call (e.g. Imagen 3 via Vertex AI
-        // or another image synthesis service) and upload the result to B2 storage.
-        // For now, the optimized prompt is stored and the original image URL is used as placeholder.
+        // Generate the thumbnail image with Gemini
+        const generated = await this.geminiService.generateImage(
+          base64Image,
+          mimeType,
+          optimizedPrompt,
+        );
+
+        // Upload the generated image to Backblaze B2
+        const imageData = Buffer.from(generated.base64, 'base64');
+        const { url } = await this.storageService.uploadFile(
+          imageData,
+          `${style.id}.png`,
+          generated.mimeType,
+          'generated',
+        );
+
         await this.prisma.generation.update({
           where: { id: generationId },
           data: {
             prompt: optimizedPrompt,
             status: 'COMPLETED',
-            url: originalUrl,
+            url,
           },
         });
       } catch (error) {
@@ -99,9 +116,23 @@ export class GenerationService {
     }
   }
 
+  private detectMimeType(url: string): string {
+    try {
+      const { pathname } = new URL(url);
+      const ext = pathname.split('.').pop()?.toLowerCase();
+      if (ext === 'png') return 'image/png';
+      if (ext === 'webp') return 'image/webp';
+      if (ext === 'gif') return 'image/gif';
+    } catch {
+      // fall through to default
+    }
+    return 'image/jpeg';
+  }
+
   private fetchImageBuffer(url: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
-      https.get(url, (response) => {
+      const client = url.startsWith('https') ? https : http;
+      client.get(url, (response) => {
         const chunks: Buffer[] = [];
         response.on('data', (chunk) => chunks.push(chunk));
         response.on('end', () => resolve(Buffer.concat(chunks)));

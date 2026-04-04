@@ -50,18 +50,6 @@ model Generation {
   @@map("generations")
 }
 
-model BlogPost {
-  id          String    @id @default(cuid())
-  title       String
-  slug        String    @unique
-  content     String
-  excerpt     String?
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-
-  @@map("blog_posts")
-}
-
 enum GenerationStatus {
   PENDING
   PROCESSING
