@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { imagesApi, generationApi } from '../services/api'
 import toast from 'react-hot-toast'
@@ -24,11 +24,13 @@ export default function Generate() {
   const [generations, setGenerations] = useState<any[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [pollInterval, setPollInterval] = useState<number | null>(null)
+  const pollIntervalRef = useRef<number | null>(null)
 
   useEffect(() => {
     loadData()
-    return () => { if (pollInterval) clearInterval(pollInterval) }
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+    }
   }, [imageId])
 
   const loadData = async () => {
@@ -64,12 +66,12 @@ export default function Generate() {
       )
       if (allDone) {
         clearInterval(interval)
-        setPollInterval(null)
+        pollIntervalRef.current = null
         setIsGenerating(false)
         toast.success('Generowanie zakończone!')
       }
     }, 3000)
-    setPollInterval(interval)
+    pollIntervalRef.current = interval
   }
 
   const downloadImage = async (url: string, styleName: string) => {
