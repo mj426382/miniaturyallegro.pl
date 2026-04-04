@@ -39,8 +39,12 @@ export class GenerationController {
 
   @Post(':imageId/start')
   @ApiOperation({ summary: 'Start generating 12 image variants' })
-  async startGeneration(@Param('imageId') imageId: string, @Request() req: any) {
-    return this.generationService.startGeneration(imageId, req.user.userId);
+  async startGeneration(
+    @Param('imageId') imageId: string,
+    @Body('basePrompt') basePrompt: string | undefined,
+    @Request() req: any,
+  ) {
+    return this.generationService.startGeneration(imageId, req.user.userId, basePrompt || undefined);
   }
 
   @Post(':imageId/custom')

@@ -70,17 +70,22 @@ export class GeminiService {
   async generatePromptForStyle(
     productDescription: string,
     style: GenerationStyle,
+    basePrompt?: string,
   ): Promise<string> {
     const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const basePromptSection = basePrompt
+      ? `User base instruction (apply to ALL styles): ${basePrompt}\n`
+      : '';
 
     const result = await model.generateContent([
       `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
       
 Product description: ${productDescription}
-Style: ${style.name}
+${basePromptSection}Style: ${style.name}
 Base style prompt: ${style.prompt}
 
-Create a detailed image generation prompt combining the product details with the style. The prompt should be suitable for creating a professional Allegro thumbnail.
+Create a detailed image generation prompt combining the product details with the style${basePrompt ? ` and the user\'s base instruction` : ''}. The prompt should be suitable for creating a professional Allegro thumbnail.
 
 CRITICAL RULES - include these explicitly in the prompt:
 - The product must remain IDENTICAL to the original photo: same shape, same colors, same design, same branding, same proportions

@@ -24,6 +24,7 @@ export default function Generate() {
   const [generations, setGenerations] = useState<any[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [basePrompt, setBasePrompt] = useState('')
   const [customPrompt, setCustomPrompt] = useState('')
   const [isCustomGenerating, setIsCustomGenerating] = useState(false)
   const [referenceFile, setReferenceFile] = useState<File | null>(null)
@@ -53,7 +54,7 @@ export default function Generate() {
   const startGeneration = async () => {
     setIsGenerating(true)
     try {
-      await generationApi.startGeneration(imageId!)
+      await generationApi.startGeneration(imageId!, basePrompt.trim() || undefined)
       toast.success('Generowanie rozpoczęte! To może potrwać kilka minut.')
       startPolling()
     } catch (err: any) {
@@ -205,14 +206,32 @@ export default function Generate() {
               </span>
             </div>
           ) : (
-            <button
-              onClick={startGeneration}
-              disabled={isGenerating}
-              className="mt-4 btn-primary flex items-center gap-2"
-            >
-              <SparklesIcon className="h-5 w-5" />
-              {isGenerating ? 'Generowanie...' : 'Generuj 12 miniaturek'}
-            </button>
+            <div className="mt-4 space-y-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Bazowy prompt dla wszystkich 12 stylów <span className="text-gray-400 font-normal">(opcjonalnie)</span>
+                </label>
+                <textarea
+                  value={basePrompt}
+                  onChange={(e) => setBasePrompt(e.target.value)}
+                  placeholder="np. 'zdjęcie na jasnym tle, produkt w centrum kadru, elegancki wygląd'"
+                  rows={2}
+                  maxLength={400}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+                {basePrompt.trim() && (
+                  <p className="text-xs text-blue-600 mt-1">Ten opis zostanie dołączony do każdego z 12 stylów generacji.</p>
+                )}
+              </div>
+              <button
+                onClick={startGeneration}
+                disabled={isGenerating}
+                className="btn-primary flex items-center gap-2"
+              >
+                <SparklesIcon className="h-5 w-5" />
+                {isGenerating ? 'Generowanie...' : 'Generuj 12 miniaturek'}
+              </button>
+            </div>
           )}
         </div>
       </div>

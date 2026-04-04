@@ -63,8 +63,8 @@ export const imagesApi = {
 // Generation
 export const generationApi = {
   getStyles: () => api.get('/generation/styles'),
-  startGeneration: (imageId: string) =>
-    api.post(`/generation/${imageId}/start`),
+  startGeneration: (imageId: string, basePrompt?: string) =>
+    api.post(`/generation/${imageId}/start`, basePrompt ? { basePrompt } : {}),
   startCustomGeneration: (imageId: string, userPrompt: string, referenceFile?: File) => {
     const formData = new FormData()
     formData.append('userPrompt', userPrompt)

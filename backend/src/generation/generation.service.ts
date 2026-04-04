@@ -19,7 +19,7 @@ export class GenerationService {
     private storageService: StorageService,
   ) {}
 
-  async startGeneration(imageId: string, userId: string) {
+  async startGeneration(imageId: string, userId: string, basePrompt?: string) {
     const image = await this.prisma.image.findUnique({
       where: { id: imageId },
     });
@@ -43,7 +43,7 @@ export class GenerationService {
 
     // Process generations asynchronously
     const originalUrlSigned = this.storageService.getSignedUrl(image.originalUrl);
-    this.processGenerations(originalUrlSigned, generations.map((g) => g.id)).catch(
+    this.processGenerations(originalUrlSigned, generations.map((g) => g.id), basePrompt).catch(
       (err) => this.logger.error('Generation processing failed', err),
     );
 
@@ -54,7 +54,7 @@ export class GenerationService {
     };
   }
 
-  private async processGenerations(originalUrl: string, generationIds: string[]) {
+  private async processGenerations(originalUrl: string, generationIds: string[], basePrompt?: string) {
     // Fetch the original image once and reuse across all styles
     const imageBuffer = await this.fetchImageBuffer(originalUrl);
     const base64Image = imageBuffer.toString('base64');
@@ -85,6 +85,7 @@ export class GenerationService {
         const optimizedPrompt = await this.geminiService.generatePromptForStyle(
           description,
           style,
+          basePrompt,
         );
 
         // Generate the thumbnail image with Gemini
