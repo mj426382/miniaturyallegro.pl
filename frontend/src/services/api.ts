@@ -65,6 +65,14 @@ export const generationApi = {
   getStyles: () => api.get('/generation/styles'),
   startGeneration: (imageId: string) =>
     api.post(`/generation/${imageId}/start`),
+  startCustomGeneration: (imageId: string, userPrompt: string, referenceFile?: File) => {
+    const formData = new FormData()
+    formData.append('userPrompt', userPrompt)
+    if (referenceFile) formData.append('reference', referenceFile)
+    return api.post(`/generation/${imageId}/custom`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
   getResults: (imageId: string) =>
     api.get(`/generation/${imageId}/results`),
   getById: (id: string) => api.get(`/generation/result/${id}`),

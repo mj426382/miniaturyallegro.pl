@@ -50,7 +50,7 @@ export class GeminiService {
   }
 
   async generateImageDescription(imageBase64: string, mimeType: string): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const imagePart: Part = {
       inlineData: {
@@ -71,7 +71,7 @@ export class GeminiService {
     productDescription: string,
     style: GenerationStyle,
   ): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const result = await model.generateContent([
       `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
@@ -80,7 +80,40 @@ Product description: ${productDescription}
 Style: ${style.name}
 Base style prompt: ${style.prompt}
 
-Create a detailed image generation prompt combining the product details with the style. The prompt should be suitable for creating a professional Allegro thumbnail. Return only the prompt, no explanations.`,
+Create a detailed image generation prompt combining the product details with the style. The prompt should be suitable for creating a professional Allegro thumbnail.
+
+CRITICAL RULES - include these explicitly in the prompt:
+- The product must remain IDENTICAL to the original photo: same shape, same colors, same design, same branding, same proportions
+- Do NOT alter, redesign or stylize the product itself in any way
+- Only change the background and lighting to match the style
+- The product must look like a faithful photographic reproduction
+
+Return only the prompt, no explanations.`,
+    ]);
+
+    return result.response.text();
+  }
+
+  async generateCustomPrompt(
+    productDescription: string,
+    userPrompt: string,
+  ): Promise<string> {
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const result = await model.generateContent([
+      `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
+
+Product description: ${productDescription}
+User request: ${userPrompt}
+
+Create a detailed, professional image generation prompt based on the user's request and the product description. The prompt should be suitable for creating a professional Allegro thumbnail.
+
+CRITICAL RULES - include these explicitly in the prompt:
+- The product must remain IDENTICAL to the original photo: same shape, same colors, same design, same branding, same proportions
+- Do NOT alter, redesign or stylize the product itself in any way
+- Only change the background, lighting and environment as the user requested
+
+Return only the prompt, no explanations.`,
     ]);
 
     return result.response.text();
@@ -90,9 +123,11 @@ Create a detailed image generation prompt combining the product details with the
     imageBase64: string,
     imageMimeType: string,
     prompt: string,
+    referenceImageBase64?: string,
+    referenceImageMimeType?: string,
   ): Promise<GeneratedImage> {
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-preview-image-generation',
+      model: 'gemini-2.5-flash-image',
     });
 
     const imagePart: Part = {
@@ -102,13 +137,27 @@ Create a detailed image generation prompt combining the product details with the
       },
     };
 
+    const parts: Part[] = [imagePart];
+
+    if (referenceImageBase64 && referenceImageMimeType) {
+      parts.push({
+        inlineData: {
+          data: referenceImageBase64,
+          mimeType: referenceImageMimeType as GeminiImageMimeType,
+        },
+      });
+      parts.push({ text: 'The second image above is a REFERENCE image showing the desired style, background or composition. Use it only as visual inspiration for the environment/background — do NOT copy any products or objects from it.' });
+    }
+
+    parts.push({ text: `${prompt}\n\nIMPORTANT: Keep the product from the FIRST provided photo EXACTLY as it is — same shape, colors, design, branding, text and proportions. Do NOT modify, stylize or redesign the product itself. Only change the background and lighting environment.` });
+
     const generationConfig: ImageGenerationConfig = {
       responseModalities: ['IMAGE'],
     };
 
     const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [imagePart, { text: prompt }] }],
-      generationConfig: generationConfig as Parameters<typeof model.generateContent>[0]['generationConfig'],
+      contents: [{ role: 'user', parts }],
+      generationConfig: generationConfig as any,
     });
 
     const candidate = result.response.candidates?.[0];

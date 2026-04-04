@@ -6,11 +6,13 @@ import {
   ArrowUpTrayIcon,
   Squares2X2Icon,
   ArrowRightOnRectangleIcon,
+  RectangleStackIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Prześlij zdjęcie', href: '/upload', icon: ArrowUpTrayIcon },
+  { name: 'Masowe przesyłanie', href: '/bulk-upload', icon: RectangleStackIcon },
   { name: 'Galeria', href: '/gallery', icon: Squares2X2Icon },
 ]
 

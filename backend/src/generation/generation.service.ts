@@ -9,6 +9,10 @@ import * as http from 'http';
 export class GenerationService {
   private readonly logger = new Logger(GenerationService.name);
 
+  /** Short-lived buffer cache to avoid re-downloading from B2 within the same session */
+  private readonly bufferCache = new Map<string, { buffer: Buffer; expiresAt: number }>();
+  private readonly BUFFER_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
   constructor(
     private prisma: PrismaService,
     private geminiService: GeminiService,
@@ -38,7 +42,8 @@ export class GenerationService {
     );
 
     // Process generations asynchronously
-    this.processGenerations(image.originalUrl, generations.map((g) => g.id)).catch(
+    const originalUrlSigned = this.storageService.getSignedUrl(image.originalUrl);
+    this.processGenerations(originalUrlSigned, generations.map((g) => g.id)).catch(
       (err) => this.logger.error('Generation processing failed', err),
     );
 
@@ -129,7 +134,22 @@ export class GenerationService {
     return 'image/jpeg';
   }
 
-  private fetchImageBuffer(url: string): Promise<Buffer> {
+  private async fetchImageBuffer(url: string): Promise<Buffer> {
+    // Use signed URL as cache key base: strip query string so key is stable per file
+    const cacheKey = url.split('?')[0];
+    const now = Date.now();
+    const cached = this.bufferCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      this.logger.debug(`Buffer cache hit: ${cacheKey}`);
+      return cached.buffer;
+    }
+
+    const buffer = await this._fetchBufferFromUrl(url);
+    this.bufferCache.set(cacheKey, { buffer, expiresAt: now + this.BUFFER_TTL_MS });
+    return buffer;
+  }
+
+  private _fetchBufferFromUrl(url: string): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const client = url.startsWith('https') ? https : http;
       client.get(url, (response) => {
@@ -141,6 +161,80 @@ export class GenerationService {
     });
   }
 
+  async startCustomGeneration(
+    imageId: string,
+    userId: string,
+    userPrompt: string,
+    referenceBuffer?: Buffer,
+    referenceMimeType?: string,
+  ) {
+    const image = await this.prisma.image.findUnique({ where: { id: imageId } });
+    if (!image) throw new NotFoundException('Image not found');
+    if (image.userId !== userId) throw new ForbiddenException('Access denied');
+
+    const generation = await this.prisma.generation.create({
+      data: {
+        imageId,
+        style: 'custom',
+        prompt: userPrompt,
+        status: 'PENDING',
+      },
+    });
+
+    const originalUrlSigned = this.storageService.getSignedUrl(image.originalUrl);
+    this.processCustomGeneration(originalUrlSigned, generation.id, userPrompt, referenceBuffer, referenceMimeType).catch(
+      (err) => this.logger.error('Custom generation failed', err),
+    );
+
+    return { generationId: generation.id };
+  }
+
+  private async processCustomGeneration(
+    originalUrl: string,
+    generationId: string,
+    userPrompt: string,
+    referenceBuffer?: Buffer,
+    referenceMimeType?: string,
+  ) {
+    try {
+      await this.prisma.generation.update({
+        where: { id: generationId },
+        data: { status: 'PROCESSING' },
+      });
+
+      const imageBuffer = await this.fetchImageBuffer(originalUrl);
+      const base64Image = imageBuffer.toString('base64');
+      const mimeType = this.detectMimeType(originalUrl);
+
+      const description = await this.geminiService.generateImageDescription(base64Image, mimeType);
+      const optimizedPrompt = await this.geminiService.generateCustomPrompt(description, userPrompt);
+
+      const refBase64 = referenceBuffer ? referenceBuffer.toString('base64') : undefined;
+
+      const generated = await this.geminiService.generateImage(
+        base64Image,
+        mimeType,
+        optimizedPrompt,
+        refBase64,
+        referenceMimeType,
+      );
+
+      const imageData = Buffer.from(generated.base64, 'base64');
+      const { url } = await this.storageService.uploadFile(imageData, 'custom.png', generated.mimeType, 'generated');
+
+      await this.prisma.generation.update({
+        where: { id: generationId },
+        data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
+      });
+    } catch (error) {
+      this.logger.error(`Custom generation ${generationId} failed`, error);
+      await this.prisma.generation.update({
+        where: { id: generationId },
+        data: { status: 'FAILED' },
+      });
+    }
+  }
+
   async getGenerations(imageId: string, userId: string) {
     const image = await this.prisma.image.findUnique({
       where: { id: imageId },
@@ -149,10 +243,15 @@ export class GenerationService {
     if (!image) throw new NotFoundException('Image not found');
     if (image.userId !== userId) throw new ForbiddenException('Access denied');
 
-    return this.prisma.generation.findMany({
+    const generations = await this.prisma.generation.findMany({
       where: { imageId },
       orderBy: { createdAt: 'asc' },
     });
+
+    return generations.map((g) => ({
+      ...g,
+      url: g.url ? this.storageService.getSignedUrl(g.url) : null,
+    }));
   }
 
   async getGenerationById(id: string, userId: string) {
@@ -164,7 +263,10 @@ export class GenerationService {
     if (!generation) throw new NotFoundException('Generation not found');
     if (generation.image.userId !== userId) throw new ForbiddenException('Access denied');
 
-    return generation;
+    return {
+      ...generation,
+      url: generation.url ? this.storageService.getSignedUrl(generation.url) : null,
+    };
   }
 
   async getStyles() {

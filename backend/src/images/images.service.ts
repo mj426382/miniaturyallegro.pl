@@ -13,7 +13,7 @@ export class ImagesService {
     private storageService: StorageService,
   ) {}
 
-  async uploadImage(userId: string, file: Express.Multer.File) {
+  async uploadImage(userId: string, file: any) {
     const { url, filename } = await this.storageService.uploadFile(
       file.buffer,
       file.originalname,
@@ -32,7 +32,7 @@ export class ImagesService {
       },
     });
 
-    return image;
+    return this.withSignedUrls(image);
   }
 
   async getUserImages(userId: string, page = 1, limit = 20) {
@@ -55,7 +55,7 @@ export class ImagesService {
     ]);
 
     return {
-      images,
+      images: images.map((img) => this.withSignedUrls(img)),
       pagination: {
         page,
         limit,
@@ -83,7 +83,7 @@ export class ImagesService {
       throw new ForbiddenException('Access denied');
     }
 
-    return image;
+    return this.withSignedUrls(image);
   }
 
   async deleteImage(id: string, userId: string) {
@@ -93,5 +93,16 @@ export class ImagesService {
     await this.prisma.image.delete({ where: { id } });
 
     return { message: 'Image deleted successfully' };
+  }
+
+  private withSignedUrls(image: any): any {
+    return {
+      ...image,
+      originalUrl: this.storageService.getSignedUrl(image.originalUrl),
+      generations: (image.generations ?? []).map((g: any) => ({
+        ...g,
+        url: g.url ? this.storageService.getSignedUrl(g.url) : null,
+      })),
+    };
   }
 }

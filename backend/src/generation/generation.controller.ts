@@ -3,12 +3,26 @@ import {
   Post,
   Get,
   Param,
+  Body,
   Request,
+  Response,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GenerationService } from './generation.service';
+import { IsString, MinLength, MaxLength } from 'class-validator';
+import { memoryStorage } from 'multer';
+
+export class CustomGenerationDto {
+  @IsString()
+  @MinLength(3)
+  @MaxLength(500)
+  userPrompt: string;
+}
 
 @ApiTags('generation')
 @ApiBearerAuth()
@@ -29,15 +43,63 @@ export class GenerationController {
     return this.generationService.startGeneration(imageId, req.user.userId);
   }
 
+  @Post(':imageId/custom')
+  @ApiOperation({ summary: 'Generate a single custom image from user prompt + optional reference image' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('reference', {
+    storage: memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+        return cb(new Error('Only image files are allowed'), false);
+      }
+      cb(null, true);
+    },
+  }))
+  async startCustomGeneration(
+    @Param('imageId') imageId: string,
+    @Body('userPrompt') userPrompt: string,
+    @UploadedFile() referenceFile: any,
+    @Request() req: any,
+  ) {
+    return this.generationService.startCustomGeneration(
+      imageId,
+      req.user.userId,
+      userPrompt,
+      referenceFile ? referenceFile.buffer : undefined,
+      referenceFile ? referenceFile.mimetype : undefined,
+    );
+  }
+
   @Get(':imageId/results')
   @ApiOperation({ summary: 'Get generation results for an image' })
-  async getGenerations(@Param('imageId') imageId: string, @Request() req: any) {
-    return this.generationService.getGenerations(imageId, req.user.userId);
+  async getGenerations(
+    @Param('imageId') imageId: string,
+    @Request() req: any,
+    @Response({ passthrough: true }) res: any,
+  ) {
+    const results = await this.generationService.getGenerations(imageId, req.user.userId);
+    const allDone = Array.isArray(results) && results.length > 0 &&
+      results.every((g: any) => g.status === 'COMPLETED' || g.status === 'FAILED');
+    // If still processing - short cache (5s). If all done - longer (5min)
+    res.setHeader('Cache-Control', allDone
+      ? 'private, max-age=300, stale-while-revalidate=600'
+      : 'private, max-age=5');
+    return results;
   }
 
   @Get('result/:id')
   @ApiOperation({ summary: 'Get a single generation result' })
-  async getGeneration(@Param('id') id: string, @Request() req: any) {
-    return this.generationService.getGenerationById(id, req.user.userId);
+  async getGeneration(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Response({ passthrough: true }) res: any,
+  ) {
+    const result = await this.generationService.getGenerationById(id, req.user.userId);
+    const done = result?.status === 'COMPLETED' || result?.status === 'FAILED';
+    res.setHeader('Cache-Control', done
+      ? 'private, max-age=300'
+      : 'private, max-age=5');
+    return result;
   }
 }

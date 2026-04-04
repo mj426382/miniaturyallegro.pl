@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { imagesApi, generationApi } from '../services/api'
 import toast from 'react-hot-toast'
-import { SparklesIcon, ArrowDownTrayIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { SparklesIcon, ArrowDownTrayIcon, CheckCircleIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline'
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: 'Oczekuje',
@@ -24,6 +24,11 @@ export default function Generate() {
   const [generations, setGenerations] = useState<any[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [customPrompt, setCustomPrompt] = useState('')
+  const [isCustomGenerating, setIsCustomGenerating] = useState(false)
+  const [referenceFile, setReferenceFile] = useState<File | null>(null)
+  const [referencePreview, setReferencePreview] = useState<string | null>(null)
+  const referenceInputRef = useRef<HTMLInputElement>(null)
   const pollIntervalRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -57,7 +62,37 @@ export default function Generate() {
     }
   }
 
+  const handleReferenceFile = (file: File | null) => {
+    if (!file) {
+      setReferenceFile(null)
+      setReferencePreview(null)
+      return
+    }
+    setReferenceFile(file)
+    const reader = new FileReader()
+    reader.onload = (e) => setReferencePreview(e.target?.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  const startCustomGeneration = async () => {
+    if (!customPrompt.trim()) return
+    setIsCustomGenerating(true)
+    try {
+      await generationApi.startCustomGeneration(imageId!, customPrompt, referenceFile || undefined)
+      toast.success('Generowanie własnego zdjęcia rozpoczęte!')
+      setCustomPrompt('')
+      setReferenceFile(null)
+      setReferencePreview(null)
+      startPolling()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Błąd generowania')
+    } finally {
+      setIsCustomGenerating(false)
+    }
+  }
+
   const startPolling = () => {
+    if (pollIntervalRef.current) return // already polling
     const interval = window.setInterval(async () => {
       const { data } = await generationApi.getResults(imageId!)
       setGenerations(data)
@@ -108,6 +143,60 @@ export default function Generate() {
             Wygeneruj 12 profesjonalnych wariantów miniaturek dla Allegro
           </p>
 
+          {/* Custom prompt */}
+          <div className="mt-4 space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && startCustomGeneration()}
+                placeholder="Opisz własny styl, np. 'na drewnianym stole w lesie'"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                maxLength={500}
+              />
+              <button
+                onClick={startCustomGeneration}
+                disabled={isCustomGenerating || !customPrompt.trim()}
+                className="btn-primary flex items-center gap-1 whitespace-nowrap"
+              >
+                <SparklesIcon className="h-4 w-4" />
+                {isCustomGenerating ? 'Generowanie...' : 'Generuj własne'}
+              </button>
+            </div>
+
+            {/* Reference image picker */}
+            <div className="flex items-center gap-3">
+              <input
+                ref={referenceInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => handleReferenceFile(e.target.files?.[0] ?? null)}
+              />
+              {referencePreview ? (
+                <div className="relative inline-flex items-center gap-2">
+                  <img src={referencePreview} alt="Referencja" className="h-12 w-12 object-cover rounded-lg border border-gray-300" />
+                  <span className="text-xs text-gray-500">Zdjęcie referencyjne</span>
+                  <button
+                    onClick={() => { handleReferenceFile(null); if (referenceInputRef.current) referenceInputRef.current.value = '' }}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => referenceInputRef.current?.click()}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-600 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 hover:border-blue-400 transition-colors"
+                >
+                  <PhotoIcon className="h-4 w-4" />
+                  Dodaj zdjęcie referencyjne (opcjonalnie)
+                </button>
+              )}
+            </div>
+          </div>
+
           {hasResults ? (
             <div className="mt-3 flex items-center gap-2">
               <CheckCircleIcon className="h-5 w-5 text-green-500" />
@@ -152,7 +241,7 @@ export default function Generate() {
 
               <div className="p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-700">{gen.style}</span>
+                  <span className="text-xs font-medium text-gray-700">{gen.style === 'custom' ? '✨ Własny styl' : gen.style}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[gen.status]}`}>
                     {STATUS_LABELS[gen.status]}
                   </span>

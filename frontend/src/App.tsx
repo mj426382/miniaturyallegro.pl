@@ -5,6 +5,7 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
+import BulkUpload from './pages/BulkUpload'
 import Generate from './pages/Generate'
 import Gallery from './pages/Gallery'
 import Layout from './components/Layout'
@@ -42,6 +43,7 @@ export default function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="upload" element={<Upload />} />
+            <Route path="bulk-upload" element={<BulkUpload />} />
             <Route path="generate/:imageId" element={<Generate />} />
             <Route path="gallery" element={<Gallery />} />
           </Route>
