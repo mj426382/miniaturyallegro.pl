@@ -78,14 +78,15 @@ export class GenerationService {
           style,
         );
 
+        // TODO: Replace with actual image generation API call (e.g. Imagen 3 via Vertex AI
+        // or another image synthesis service) and upload the result to B2 storage.
+        // For now, the optimized prompt is stored and the original image URL is used as placeholder.
         await this.prisma.generation.update({
           where: { id: generationId },
           data: {
             prompt: optimizedPrompt,
             status: 'COMPLETED',
-            // In production, you'd call an image generation API here
-            // and store the resulting image URL
-            url: originalUrl, // placeholder - would be generated image URL
+            url: originalUrl,
           },
         });
       } catch (error) {
