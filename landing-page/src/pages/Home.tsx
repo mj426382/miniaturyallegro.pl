@@ -61,27 +61,33 @@ const testimonials = [
 
 const pricingPlans = [
   {
-    name: 'Starter',
-    price: '0',
-    period: 'za darmo',
-    features: ['10 generacji miesięcznie', '12 stylów na generację', 'Przechowywanie 30 dni', 'Podstawowe wsparcie'],
-    cta: 'Zacznij za darmo',
+    name: 'Pakiet Startowy',
+    credits: 5,
+    price: '10',
+    pricePerCredit: '2,00 zł / generację',
+    saving: null,
+    features: ['5 generacji miniaturek', '12 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu'],
+    cta: 'Kup 5 kredytów',
     highlighted: false,
   },
   {
-    name: 'Pro',
-    price: '49',
-    period: 'miesięcznie',
-    features: ['200 generacji miesięcznie', '12 stylów na generację', 'Nieograniczone przechowywanie', 'Priorytetowe wsparcie', 'API dostęp'],
-    cta: 'Wybierz Pro',
+    name: 'Pakiet Popularny',
+    credits: 15,
+    price: '28',
+    pricePerCredit: '1,87 zł / generację',
+    saving: 'Oszczędzasz 2 zł',
+    features: ['15 generacji miniaturek', '12 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Taniej o 7% vs. pakiet startowy'],
+    cta: 'Kup 15 kredytów',
     highlighted: true,
   },
   {
-    name: 'Business',
-    price: '149',
-    period: 'miesięcznie',
-    features: ['Nieograniczone generacje', '12 stylów na generację', 'Nieograniczone przechowywanie', '24/7 wsparcie', 'API dostęp', 'Własny branding'],
-    cta: 'Wybierz Business',
+    name: 'Pakiet Pro',
+    credits: 40,
+    price: '70',
+    pricePerCredit: '1,75 zł / generację',
+    saving: 'Oszczędzasz 10 zł',
+    features: ['40 generacji miniaturek', '12 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Najtańsza opcja — 12,5% oszczędności'],
+    cta: 'Kup 40 kredytów',
     highlighted: false,
   },
 ]
@@ -231,7 +237,10 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Prosty i przejrzysty <span className="text-blue-600">cennik</span>
               </h2>
-              <p className="text-gray-500 mt-4">Zacznij za darmo, skaluj kiedy potrzebujesz</p>
+              <p className="text-gray-500 mt-4">
+                Płać tylko za generacje — bez abonamentu.{' '}
+                <span className="font-medium text-blue-600">Pierwsze 10 generacji za darmo po rejestracji!</span>
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {pricingPlans.map((plan) => (
@@ -243,19 +252,29 @@ export default function Home() {
                       : 'bg-white border border-gray-200'
                   }`}
                 >
-                  <h3 className={`text-xl font-bold mb-2 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                    {plan.name}
-                  </h3>
-                  <div className="mb-6">
-                    <span className={`text-4xl font-extrabold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.price === '0' ? 'Gratis' : `${plan.price} zł`}
-                    </span>
-                    {plan.price !== '0' && (
-                      <span className={`text-sm ml-1 ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
-                        /{plan.period}
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className={`text-xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                      {plan.name}
+                    </h3>
+                    {plan.saving && (
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                        plan.highlighted ? 'bg-yellow-300 text-gray-900' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {plan.saving}
                       </span>
                     )}
                   </div>
+                  <div className="mb-1">
+                    <span className={`text-4xl font-extrabold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                      {plan.price} zł
+                    </span>
+                    <span className={`text-sm ml-2 font-medium ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
+                      za {plan.credits} kredytów
+                    </span>
+                  </div>
+                  <p className={`text-xs mb-6 ${plan.highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
+                    {plan.pricePerCredit}
+                  </p>
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((f) => (
                       <li key={f} className={`flex items-center gap-2 text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>
@@ -265,7 +284,7 @@ export default function Home() {
                     ))}
                   </ul>
                   <a
-                    href="https://app.allgrafika.pl/register"
+                    href="https://app.allgrafika.pl/credits"
                     className={`block text-center py-3 px-6 rounded-xl font-semibold transition-colors ${
                       plan.highlighted
                         ? 'bg-white text-blue-600 hover:bg-blue-50'
@@ -277,6 +296,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            <p className="text-center text-sm text-gray-400 mt-6">
+              Kredyty nie wygasają · Jednorazowa płatność · Bezpieczne przelewy przez Stripe
+            </p>
           </div>
         </section>
 

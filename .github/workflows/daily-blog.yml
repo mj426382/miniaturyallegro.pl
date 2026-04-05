@@ -1,0 +1,307 @@
+name: 📝 Daily blog post (GPT) — AllGrafika.pl
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"   # codziennie 06:00 UTC
+
+jobs:
+  generate-blog:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate blog post, update registry and create PR
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          pip install requests -q
+          python3 << 'PYEOF'
+          import os, json, requests, re, sys, subprocess, time
+          from datetime import datetime
+          from pathlib import Path
+
+          def run(cmd):
+              result = subprocess.run(
+                  cmd, shell=isinstance(cmd, str),
+                  check=True, capture_output=True, text=True
+              )
+              if result.stdout:
+                  print(result.stdout)
+              return result.stdout.strip()
+
+          # ── Gather existing articles ────────────────────────────────────────
+          articles_dir = Path("landing-page/src/data/blogPosts")
+          existing = []
+          for ts_file in sorted(articles_dir.glob("*.ts")):
+              text = ts_file.read_text(encoding="utf-8")
+              title_m = re.search(r"title:\s*'([^']+)'", text)
+              if not title_m:
+                  title_m = re.search(r'title:\s*"([^"]+)"', text)
+              slug_m = re.search(r"slug:\s*'([^']+)'", text)
+              if not slug_m:
+                  slug_m = re.search(r'slug:\s*"([^"]+)"', text)
+              if title_m:
+                  existing.append({
+                      "title": title_m.group(1),
+                      "slug": slug_m.group(1) if slug_m else "",
+                  })
+
+          existing_count = len(existing)
+          next_id = str(existing_count + 1)
+
+          now = datetime.now()
+          date_iso = now.strftime("%Y-%m-%d")
+          existing_str = "\n".join(f"- {e['title']} (slug: {e['slug']})" for e in existing)
+
+          # ── Prompts ─────────────────────────────────────────────────────────
+          SYSTEM_PROMPT = (
+              "Jesteś doświadczonym copywriterem SEO i strategiem contentu dla AllGrafika.pl "
+              "— polskiego narzędzia AI do automatycznego generowania profesjonalnych miniaturek "
+              "i zdjęć produktowych dla sprzedawców na Allegro.\n\n"
+              "CZYM JEST ALLGRAFIKA.PL:\n"
+              "Aplikacja webowa, która:\n"
+              "- Przyjmuje zdjęcie produktu (JPG, PNG, WebP) od sprzedawcy\n"
+              "- Automatycznie generuje 12 wariantów profesjonalnych miniaturek w różnych stylach\n"
+              "- Używa Google Gemini AI do analizy produktu i tworzenia optymalnych opisów\n"
+              "- Przechowuje wygenerowane grafiki bezpiecznie w chmurze\n"
+              "- Kosztuje ok. 1 zł za generację, pierwsze 10 miniaturek jest bezpłatnych\n"
+              "- Oszczędza czas i pieniądze vs. tradycyjna sesja fotograficzna (200-500 zł za produkt)\n\n"
+              "DOSTĘPNE STYLE MINIATUREK (naturalnie wplataj — max 3-4 wzmianki):\n"
+              "- Białe tło (White Background) — wymagane przez Allegro, profesjonalne\n"
+              "- Lifestyle — produkt w naturalnym otoczeniu użytkowania\n"
+              "- Dark luxury — ciemne tło z dramatycznym oświetleniem (biżuteria, zegarki, perfumy)\n"
+              "- Minimalistyczny — dużo pustej przestrzeni, czyste linie\n"
+              "- Flat lay — widok z góry z komplementarnymi elementami\n"
+              "- Studio — neutralne tło gradientowe, miękkie naturalne cienie\n\n"
+              "GŁÓWNE OBSZARY POZYCJONOWANIA (priorytetowe tematy):\n"
+              "- Jak tworzyć miniaturki Allegro zwiększające sprzedaż i CTR\n"
+              "- Wymagania techniczne Allegro dla zdjęć produktowych — rozmiar, format, tło\n"
+              "- Psychologia kolorów i kompozycji w fotografii produktowej\n"
+              "- AI i automatyzacja w fotografii produktowej dla e-commerce\n"
+              "- Optymalizacja listingów Allegro przez lepsze zdjęcia\n"
+              "- Poradniki dla sprzedawców Allegro dla konkretnych kategorii produktowych\n"
+              "- Porównanie narzędzi do tworzenia zdjęć produktowych (AI vs. studio vs. DIY)\n"
+              "- Mobile photography dla sprzedawców — jak fotografować produkty telefonem\n"
+              "- A/B testowanie miniaturek i analiza CTR na Allegro\n"
+              "- Batch processing i automatyzacja dla dużych katalogów produktów\n"
+              "- SEO grafik produktowych — nazwy plików, alt text, metadane obrazków\n"
+              "- Budowanie spójnej identyfikacji wizualnej sklepu na Allegro\n"
+              "- Algorytm Allegro a jakość zdjęć — wpływ na pozycję w wynikach\n\n"
+              "ZASADY PISANIA ARTYKUŁÓW:\n"
+              "1. Język: profesjonalny, ale przystępny polski. Bez korporacyjnego żargonu.\n"
+              "2. Styl: bezpośredni — zwracaj się do czytelnika 'Ty', 'Twoje produkty', 'Twój sklep'.\n"
+              "3. Struktura: wciągający wstęp (problem lub pytanie retoryczne) → 4-6 sekcji H2 "
+              "z opcjonalnymi H3 → podsumowanie z CTA.\n"
+              "4. SEO On-Page: główna fraza kluczowa w tytule, excercie i pierwszym H2. "
+              "Frazy LSI rozsiane naturalnie w treści.\n"
+              "5. Długość: 500-700 słów treści (pole 'content').\n"
+              "6. FORMAT pola 'content' — WYŁĄCZNIE liniowy Markdown bez HTML:\n"
+              "   - Nagłówek H2: linia zaczynająca się od '## ' (dwa hashe i spacja)\n"
+              "   - Nagłówek H3: linia zaczynająca się od '### ' (trzy hashe i spacja)\n"
+              "   - Element listy: linia zaczynająca się od '- ' (myślnik i spacja)\n"
+              "   - Pogrubienie: **tekst** (dwie gwiazdki z każdej strony)\n"
+              "   - Akapit: zwykła linia tekstu\n"
+              "   - Odstęp między sekcjami: pusta linia\n"
+              "   - BEZ tagów HTML, BEZ numerowanych list (zamiast 1. 2. 3. używaj - )\n"
+              "7. Zakończ artykuł akapitem CTA:\n"
+              "   'Gotowy? Wypróbuj **AllGrafika.pl** za darmo — "
+              "pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!'\n"
+              "8. slug: tylko małe litery ASCII (a-z), myślniki zamiast spacji, "
+              "bez polskich znaków diakrytycznych, max 60 znaków, "
+              "ZAWSZE zaczyna się od litery (nie cyfry).\n"
+              "9. category: jedna z: Poradniki / Technologia / Styl i design / E-commerce / Optymalizacja.\n"
+              "10. readTime: liczba całkowita (szacowane minuty czytania, ok. 200 słów/min).\n"
+              "11. NIGDY nie powtarzaj tematów z listy istniejących artykułów."
+          )
+
+          USER_PROMPT = (
+              f"Data publikacji: {date_iso}\n\n"
+              f"Istniejące artykuły na blogu (NIE powtarzaj tych tematów):\n"
+              f"{existing_str}\n\n"
+              "Napisz nowy artykuł SEO dla AllGrafika.pl. Priorytetowo wybieraj tematy:\n"
+              "- jak stworzyć idealną miniaturkę dla konkretnej kategorii Allegro "
+              "(np. elektronika, odzież, dom i ogród, sport, uroda, motoryzacja)\n"
+              "- wymagania techniczne Allegro dla zdjęć produktowych 2025/2026 — rozmiar, format, tło\n"
+              "- jak zwiększyć CTR (współczynnik klikalności) na Allegro przez lepsze miniaturki\n"
+              "- psychologia percepcji wizualnej w e-commerce — co przyciąga wzrok kupującego\n"
+              "- A/B testowanie miniaturek — jak mierzyć i interpretować skuteczność zdjęć\n"
+              "- mobile photography dla sprzedawców — jak robić profesjonalne zdjęcia telefonem\n"
+              "- jak Google Gemini AI generuje opisy i dobiera style dla różnych produktów\n"
+              "- białe tło w fotografii produktowej — techniki DIY vs. automatyczne AI\n"
+              "- batch processing — jak szybko przygotować zdjęcia dla 100+ produktów naraz\n"
+              "- SEO zdjęć produktowych — nazwy plików, alt text, metadane pod algorytm Allegro\n"
+              "- dobór stylu miniaturki (lifestyle vs. białe tło vs. dark luxury) do kategorii i ceny\n"
+              "- jak zbudować spójną identyfikację wizualną sklepu na Allegro\n"
+              "- wpływ jakości i stylu zdjęć na pozycję w wynikach wyszukiwania Allegro\n"
+              "- koszty fotografii produktowej: studio vs. freelancer vs. AI — kalkulacja ROI\n"
+              "- flat lay — jak tworzyć estetyczne układy produktów krok po kroku\n"
+              "- oświetlenie DIY dla sprzedawców — lampy, dyfuzory, softboxy za 100-300 zł\n"
+              "- jak fotografia produktowa wpływa na zwroty i reklamacje klientów\n"
+              "— cokolwiek jeszcze NIE było omówione, związanego z miniaturkami produktowymi, "
+              "zdjęciami na Allegro, sprzedażą online lub AI w e-commerce.\n\n"
+              "Zwróć WYŁĄCZNIE surowy obiekt JSON (zero markdown, zero ```, zero komentarzy przed/po), "
+              "w DOKŁADNIE tym formacie:\n"
+              "{\n"
+              '  "slug": "slug-bez-polskich-znakow-zaczyna-sie-od-litery-max-60-znakow",\n'
+              '  "title": "Tytuł SEO 60-70 znaków z główną frazą kluczową",\n'
+              '  "excerpt": "Opis 150-180 znaków z główną frazą SEO. Zachęca do przeczytania artykułu.",\n'
+              '  "category": "jedna z: Poradniki / Technologia / Styl i design / E-commerce / Optymalizacja",\n'
+              '  "readTime": 6,\n'
+              '  "content": "## Nagłówek sekcji\\n\\nTekst akapitu z **pogrubieniem**.\\n\\n## Kolejna sekcja..."\n'
+              "}"
+          )
+
+          # ── Call GitHub Models API ──────────────────────────────────────────
+          token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+          if not token:
+              print("ERROR: GH_TOKEN not set"); sys.exit(1)
+
+          resp = requests.post(
+              "https://models.inference.ai.azure.com/chat/completions",
+              headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+              json={
+                  "model": "gpt-4o",
+                  "messages": [
+                      {"role": "system", "content": SYSTEM_PROMPT},
+                      {"role": "user",   "content": USER_PROMPT},
+                  ],
+                  "max_tokens": 3000,
+                  "temperature": 0.75,
+                  "response_format": {"type": "json_object"},
+              },
+              timeout=180,
+          )
+          print(f"API status: {resp.status_code}")
+          if resp.status_code != 200:
+              print(resp.text); sys.exit(1)
+
+          raw = resp.json()["choices"][0]["message"]["content"].strip()
+          raw = re.sub(r"^```\w*\n?", "", raw)
+          raw = re.sub(r"\n?```$",    "", raw)
+
+          try:
+              article = json.loads(raw.strip())
+          except json.JSONDecodeError as e:
+              print(f"JSON parse error: {e}\nRaw: {raw[:500]}"); sys.exit(1)
+
+          slug = article["slug"]
+
+          # ── Write TS article file ───────────────────────────────────────────
+          def esc_sq(s):
+              """Escape for TypeScript single-quoted string."""
+              return str(s).replace("\\", "\\\\").replace("'", "\\'")
+
+          def esc_tl(s):
+              """Escape for TypeScript template literal (backtick string)."""
+              return str(s).replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+
+          ts_content = (
+              "import type { BlogPostData } from '../blogPosts'\n\n"
+              "const post: BlogPostData = {\n"
+              f"  id: '{esc_sq(next_id)}',\n"
+              f"  slug: '{esc_sq(slug)}',\n"
+              f"  title: '{esc_sq(article['title'])}',\n"
+              f"  excerpt: '{esc_sq(article['excerpt'])}',\n"
+              "  content: `\n"
+              f"{esc_tl(article['content'])}\n"
+              "  `,\n"
+              f"  publishedAt: '{date_iso}',\n"
+              f"  readTime: {int(article['readTime'])},\n"
+              f"  category: '{esc_sq(article['category'])}',\n"
+              "}\n\n"
+              "export default post\n"
+          )
+
+          out_file = articles_dir / f"{slug}.ts"
+          out_file.write_text(ts_content, encoding="utf-8")
+          print(f"Saved: {out_file}")
+
+          # ── Update blogPosts.ts registry ────────────────────────────────────
+          # Build camelCase variable name from slug
+          parts    = slug.split("-")
+          var_name = parts[0] + "".join(p.capitalize() for p in parts[1:])
+          # JS identifiers cannot start with a digit
+          if var_name and var_name[0].isdigit():
+              var_name = "post" + var_name[0].upper() + var_name[1:]
+
+          index_path = Path("landing-page/src/data/blogPosts.ts")
+          idx = index_path.read_text(encoding="utf-8")
+
+          new_import = f"import {var_name} from './blogPosts/{slug}'"
+
+          # Insert new import right before the blank line + "export interface"
+          idx = re.sub(
+              r"(import \w+ from '\./blogPosts/[^']+'\n)(\nexport interface)",
+              lambda m: m.group(1) + new_import + "\n" + m.group(2),
+              idx,
+              count=1,
+          )
+
+          # Append new variable to named export { ... }
+          idx = re.sub(
+              r"(export \{)([^}]+)(\})",
+              lambda m: m.group(1) + m.group(2).rstrip() + f", {var_name} " + m.group(3),
+              idx,
+              count=1,
+          )
+
+          # Insert as first element of blogPosts array (newest first)
+          idx = re.sub(
+              r"(export const blogPosts: BlogPostData\[\] = \[)",
+              lambda m: m.group(1) + f"{var_name}, ",
+              idx,
+              count=1,
+          )
+
+          index_path.write_text(idx, encoding="utf-8")
+          print(f"blogPosts.ts updated — added: {var_name}")
+
+          # ── Git & PR ────────────────────────────────────────────────────────
+          branch     = f"blog/seo-{int(time.time())}"
+          commit_msg = f"feat(blog): {article['title']} ({date_iso})"
+
+          run("git config user.name 'github-actions[bot]'")
+          run("git config user.email 'github-actions[bot]@users.noreply.github.com'")
+          run(f"git checkout -b {branch}")
+          run("git add landing-page/src/data/")
+          run(["git", "commit", "-m", commit_msg])
+          run(["git", "push", "origin", branch])
+
+          pr_body = (
+              f"## Automatycznie wygenerowany artykuł SEO — AllGrafika.pl\n\n"
+              f"**Data:** {date_iso}\n"
+              f"**ID artykułu:** `{next_id}`\n"
+              f"**Slug:** `{slug}`\n"
+              f"**Kategoria:** {article.get('category', '')}\n"
+              f"**Czas czytania:** {article.get('readTime', '')} min\n\n"
+              f"Artykuł wygenerowany przez GitHub Actions + GitHub Models API (gpt-4o).\n\n"
+              f"**Nowy plik:** `landing-page/src/data/blogPosts/{slug}.ts`\n"
+              f"**Zaktualizowany rejestr:** `landing-page/src/data/blogPosts.ts`"
+          )
+          with open("/tmp/pr_body.txt", "w") as f:
+              f.write(pr_body)
+
+          pr_url = run([
+              "gh", "pr", "create",
+              "--title", f"🤖 SEO Blog: {article['title']}",
+              "--body-file", "/tmp/pr_body.txt",
+              "--base", "main",
+              "--head", branch,
+          ])
+          print(f"PR created: {pr_url}")
+
+          run([
+              "gh", "pr", "merge", pr_url,
+              "--squash", "--delete-branch",
+              "--subject", commit_msg,
+              "--body", "",
+          ])
+          print("✅ PR merged into main.")
+          PYEOF
