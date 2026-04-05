@@ -1,4 +1,4 @@
-# miniaturyallegro.pl
+# AllGrafika.pl
 
 SaaS application for generating professional Allegro product thumbnails using AI (Google Gemini).
 

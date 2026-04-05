@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-2">
             <Link to="/" className="text-white font-bold text-xl">
-              MiniaturyAllegro.pl
+              AllGrafika.pl
             </Link>
             <p className="mt-3 text-sm leading-relaxed">
               Profesjonalne miniaturki produktowe dla sprzedawców Allegro.
@@ -36,7 +36,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 pt-8 text-sm text-center">
-          <p>© {new Date().getFullYear()} MiniaturyAllegro.pl · Wszelkie prawa zastrzeżone</p>
+          <p>© {new Date().getFullYear()} AllGrafika.pl · Wszelkie prawa zastrzeżone</p>
         </div>
       </div>
     </footer>

@@ -41,11 +41,11 @@ export default function BlogPostPage() {
   return (
     <>
       <Helmet>
-        <title>{post.title} | MiniaturyAllegro.pl</title>
+        <title>{post.title} | AllGrafika.pl</title>
         <meta name="description" content={post.excerpt} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.excerpt} />
-        <link rel="canonical" href={`https://miniaturyallegro.pl/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://allgrafika.pl/blog/${post.slug}`} />
       </Helmet>
 
       <div className="min-h-screen bg-white">
@@ -94,10 +94,10 @@ export default function BlogPostPage() {
               Gotowy na profesjonalne miniaturki Allegro?
             </h3>
             <p className="text-blue-100 mb-6">
-              Wypróbuj MiniaturyAllegro.pl za darmo – 10 generacji gratis, bez karty kredytowej.
+              Wypróbuj AllGrafika.pl za darmo – 10 generacji gratis, bez karty kredytowej.
             </p>
             <a
-              href="https://app.miniaturyallegro.pl/register"
+              href="https://app.allgrafika.pl/register"
               className="inline-block bg-yellow-400 text-gray-900 font-bold px-8 py-3 rounded-xl hover:bg-yellow-300 transition-colors"
             >
               Zacznij za darmo →

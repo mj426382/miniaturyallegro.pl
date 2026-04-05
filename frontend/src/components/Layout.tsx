@@ -7,6 +7,7 @@ import {
   Squares2X2Icon,
   ArrowRightOnRectangleIcon,
   RectangleStackIcon,
+  CreditCardIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -14,7 +15,10 @@ const navigation = [
   { name: 'Prześlij zdjęcie', href: '/upload', icon: ArrowUpTrayIcon },
   { name: 'Masowe przesyłanie', href: '/bulk-upload', icon: RectangleStackIcon },
   { name: 'Galeria', href: '/gallery', icon: Squares2X2Icon },
+  { name: 'Kredyty', href: '/credits', icon: CreditCardIcon },
 ]
+
+const FREE_LIMIT = 10
 
 export default function Layout() {
   const { user, logout } = useAuth()
@@ -58,6 +62,24 @@ export default function Layout() {
         </nav>
 
         <div className="p-4 border-t border-gray-200">
+          {/* Credits badge */}
+          {user && (
+            <Link to="/credits" className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+              <CreditCardIcon className="h-4 w-4 text-blue-600 shrink-0" />
+              <div className="flex-1 min-w-0">
+                {(user.freeCreditsUsed ?? 0) < FREE_LIMIT ? (
+                  <p className="text-xs text-blue-700 font-medium">
+                    Darmowe: {FREE_LIMIT - (user.freeCreditsUsed ?? 0)} / {FREE_LIMIT}
+                  </p>
+                ) : (
+                  <p className="text-xs text-blue-700 font-medium">
+                    Kredyty: <span className="font-bold">{user.credits ?? 0}</span>
+                  </p>
+                )}
+              </div>
+            </Link>
+          )}
+
           <div className="flex items-center gap-3 mb-3">
             <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-blue-700 font-semibold text-sm">

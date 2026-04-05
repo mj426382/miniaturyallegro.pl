@@ -6,7 +6,7 @@ import { AppModule } from './app.module';
 import * as path from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   app.useStaticAssets('/app/uploads', { prefix: '/api/uploads' });
 
   app.useGlobalPipes(
@@ -25,8 +25,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
-    .setTitle('Miniatury Allegro API')
-    .setDescription('API for generating Allegro product thumbnails')
+    .setTitle('AllGrafika API')
+    .setDescription('API for generating product graphics')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

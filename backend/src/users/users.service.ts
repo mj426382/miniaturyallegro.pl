@@ -12,6 +12,8 @@ export class UsersService {
         id: true,
         email: true,
         name: true,
+        credits: true,
+        freeCreditsUsed: true,
         createdAt: true,
         updatedAt: true,
         _count: {

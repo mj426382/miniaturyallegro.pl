@@ -14,12 +14,6 @@ export const GENERATION_STYLES: GenerationStyle[] = [
   { id: 'lifestyle-home', name: 'Styl życia - dom', prompt: 'Lifestyle product photo in a modern home setting, natural light, aspirational feel' },
   { id: 'minimal', name: 'Minimalistyczny', prompt: 'Minimalist product photo, clean lines, lots of white space, Scandinavian aesthetic' },
   { id: 'dark-luxury', name: 'Ciemny luksus', prompt: 'Luxury product photo on dark background, dramatic lighting, premium feel, high contrast' },
-  { id: 'natural', name: 'Naturalny', prompt: 'Natural product photo with wooden surfaces and plant elements, warm organic feel' },
-  { id: 'tech', name: 'Technologiczny', prompt: 'High-tech product photo with dark background and blue LED accents, futuristic look' },
-  { id: 'pastel', name: 'Pastelowy', prompt: 'Soft pastel background product photo, playful and friendly mood, Instagram style' },
-  { id: 'outdoor', name: 'Plenerowy', prompt: 'Product photo in outdoor natural setting with bokeh background, lifestyle feel' },
-  { id: 'flat-lay', name: 'Płaskie ułożenie', prompt: 'Flat lay product photo from above, styled with complementary props on clean surface' },
-  { id: 'close-up', name: 'Zbliżenie', prompt: 'Close-up product detail shot emphasizing texture and quality, macro photography style' },
   { id: 'allegro-style', name: 'Styl Allegro', prompt: 'Clean product photo optimized for Allegro marketplace, white background, all product details visible, high resolution' },
 ];
 

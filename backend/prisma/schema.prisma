@@ -11,14 +11,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  email            String   @unique
+  password         String
+  name             String?
+  credits          Int      @default(0)
+  freeCreditsUsed  Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  images Image[]
+  images       Image[]
+  transactions PaymentTransaction[]
 
   @@map("users")
 }
@@ -55,4 +58,18 @@ enum GenerationStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+model PaymentTransaction {
+  id              String   @id @default(cuid())
+  userId          String
+  stripeSessionId String   @unique
+  amountPln       Int      // grosze (np. 1000 = 10 zł)
+  creditsAdded    Int
+  status          String   @default("pending") // pending | completed | failed
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_transactions")
 }

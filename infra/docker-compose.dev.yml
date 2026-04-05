@@ -3,12 +3,12 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: miniaturyallegro_postgres_dev
+    container_name: AllGrafika_postgres_dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: miniaturyallegro
+      POSTGRES_DB: AllGrafika
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     ports:
@@ -24,7 +24,7 @@ services:
       context: ../backend
       dockerfile: Dockerfile
       target: builder
-    container_name: miniaturyallegro_backend_dev
+    container_name: AllGrafika_backend_dev
     restart: unless-stopped
     depends_on:
       postgres:
@@ -32,7 +32,7 @@ services:
     env_file:
       - ../backend/.env
     environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/miniaturyallegro?schema=public
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/AllGrafika?schema=public
       PORT: 3000
       NODE_ENV: development
       FRONTEND_URL: http://localhost:5173

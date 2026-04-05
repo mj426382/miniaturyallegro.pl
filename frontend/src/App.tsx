@@ -8,6 +8,7 @@ import Upload from './pages/Upload'
 import BulkUpload from './pages/BulkUpload'
 import Generate from './pages/Generate'
 import Gallery from './pages/Gallery'
+import Credits from './pages/Credits'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="bulk-upload" element={<BulkUpload />} />
             <Route path="generate/:imageId" element={<Generate />} />
             <Route path="gallery" element={<Gallery />} />
+            <Route path="credits" element={<Credits />} />
           </Route>
         </Routes>
       </BrowserRouter>

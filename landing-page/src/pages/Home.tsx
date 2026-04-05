@@ -90,12 +90,12 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>Miniatury Allegro - Generator miniaturek produktowych AI | MiniaturyAllegro.pl</title>
+        <title>AllGrafika - Generator grafik produktowych AI | AllGrafika.pl</title>
         <meta name="description" content="Generuj profesjonalne miniaturki Allegro w kilka sekund. 12 stylów na każdy produkt. Zwiększ CTR i sprzedaż dzięki AI. Wypróbuj za darmo!" />
         <meta name="keywords" content="miniaturki allegro, zdjęcia allegro, zdjęcia produktowe allegro, generator miniaturek allegro, AI miniaturki" />
-        <meta property="og:title" content="Miniatury Allegro - Generator miniaturek produktowych AI" />
+        <meta property="og:title" content="AllGrafika - Generator grafik produktowych AI" />
         <meta property="og:description" content="Generuj profesjonalne miniaturki Allegro w kilka sekund dzięki AI. 12 różnych stylów dla każdego produktu." />
-        <link rel="canonical" href="https://miniaturyallegro.pl" />
+        <link rel="canonical" href="https://allgrafika.pl" />
       </Helmet>
 
       <div className="min-h-screen bg-white">
@@ -122,7 +122,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="https://app.miniaturyallegro.pl/register"
+                href="https://app.allgrafika.pl/register"
                 className="bg-yellow-400 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
               >
                 Wypróbuj za darmo →
@@ -265,7 +265,7 @@ export default function Home() {
                     ))}
                   </ul>
                   <a
-                    href="https://app.miniaturyallegro.pl/register"
+                    href="https://app.allgrafika.pl/register"
                     className={`block text-center py-3 px-6 rounded-xl font-semibold transition-colors ${
                       plan.highlighted
                         ? 'bg-white text-blue-600 hover:bg-blue-50'
@@ -290,7 +290,7 @@ export default function Home() {
               Dołącz do tysięcy sprzedawców którzy zwiększyli swoją sprzedaż dzięki profesjonalnym zdjęciom produktowym.
             </p>
             <a
-              href="https://app.miniaturyallegro.pl/register"
+              href="https://app.allgrafika.pl/register"
               className="inline-block bg-yellow-400 text-gray-900 font-bold px-10 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
             >
               Wypróbuj za darmo – 10 generacji gratis →

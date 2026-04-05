@@ -5,6 +5,8 @@ interface User {
   id: string
   email: string
   name?: string
+  credits: number
+  freeCreditsUsed: number
   createdAt: string
 }
 

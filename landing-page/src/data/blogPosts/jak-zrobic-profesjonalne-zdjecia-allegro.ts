@@ -36,7 +36,7 @@ Jeśli sprzedajesz wiele produktów, warto trzymać się jednego stylu wizualneg
 
 ## Jak AI może pomóc w tworzeniu miniaturek?
 
-Narzędzia takie jak **MiniaturyAllegro.pl** używają sztucznej inteligencji (Google Gemini) do automatycznego generowania profesjonalnych miniaturek. Wystarczy wgrać zdjęcie produktu, a system wygeneruje **12 wariantów** w różnych stylach dostosowanych do Allegro.
+Narzędzia takie jak **AllGrafika.pl** używają sztucznej inteligencji (Google Gemini) do automatycznego generowania profesjonalnych miniaturek. Wystarczy wgrać zdjęcie produktu, a system wygeneruje **12 wariantów** w różnych stylach dostosowanych do Allegro.
 
 ## Podsumowanie
 

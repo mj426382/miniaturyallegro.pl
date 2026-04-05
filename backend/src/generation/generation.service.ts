@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
 import { GeminiService, GENERATION_STYLES } from './gemini.service';
@@ -27,7 +27,12 @@ export class GenerationService {
     if (!image) throw new NotFoundException('Image not found');
     if (image.userId !== userId) throw new ForbiddenException('Access denied');
 
-    // Create 12 generation records (one per style)
+    const count = GENERATION_STYLES.length;
+
+    // Check and deduct credits before starting (synchronous, before async processing)
+    await this.deductCredits(userId, count);
+
+    // Create generation records (one per style)
     const generations = await Promise.all(
       GENERATION_STYLES.map((style) =>
         this.prisma.generation.create({
@@ -173,6 +178,9 @@ export class GenerationService {
     if (!image) throw new NotFoundException('Image not found');
     if (image.userId !== userId) throw new ForbiddenException('Access denied');
 
+    // Check and deduct 1 credit for custom generation
+    await this.deductCredits(userId, 1);
+
     const generation = await this.prisma.generation.create({
       data: {
         imageId,
@@ -272,5 +280,42 @@ export class GenerationService {
 
   async getStyles() {
     return GENERATION_STYLES;
+  }
+
+  /** FREE_LIMIT: first 10 thumbnails are free, then 1 credit = 1 thumbnail */
+  private readonly FREE_LIMIT = 10;
+
+  private async deductCredits(userId: string, count: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { credits: true, freeCreditsUsed: true },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const freeLeft = Math.max(0, this.FREE_LIMIT - user.freeCreditsUsed);
+    const freeToUse = Math.min(count, freeLeft);
+    const paidToUse = count - freeToUse;
+
+    if (paidToUse > 0 && user.credits < paidToUse) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.PAYMENT_REQUIRED,
+          error: 'Payment Required',
+          message: `Niewystarczające kredyty. Potrzebujesz ${paidToUse} kredyt${paidToUse > 1 ? 'ów' : 'u'}, masz ${user.credits}. Doładuj konto na stronie Kredyty.`,
+          creditsRequired: paidToUse,
+          creditsAvailable: user.credits,
+        },
+        HttpStatus.PAYMENT_REQUIRED,
+      );
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        freeCreditsUsed: { increment: freeToUse },
+        credits: { decrement: paidToUse },
+      },
+    });
   }
 }

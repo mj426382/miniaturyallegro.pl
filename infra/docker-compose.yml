@@ -3,12 +3,12 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: miniaturyallegro_postgres
+    container_name: AllGrafika_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_DB:-miniaturyallegro}
+      POSTGRES_DB: ${POSTGRES_DB:-AllGrafika}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -23,13 +23,13 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: miniaturyallegro_backend
+    container_name: AllGrafika_backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-miniaturyallegro}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-AllGrafika}?schema=public
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       B2_ENDPOINT: ${B2_ENDPOINT}
@@ -41,7 +41,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       PORT: 3000
       NODE_ENV: production
-      FRONTEND_URL: ${FRONTEND_URL:-https://app.miniaturyallegro.pl}
+      FRONTEND_URL: ${FRONTEND_URL:-https://app.AllGrafika.pl}
     ports:
       - "3000:3000"
     command: sh -c "npx prisma migrate deploy && node dist/main"

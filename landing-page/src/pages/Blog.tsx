@@ -8,13 +8,13 @@ export default function Blog() {
   return (
     <>
       <Helmet>
-        <title>Blog – Miniaturki Allegro, Zdjęcia Produktowe | MiniaturyAllegro.pl</title>
+        <title>Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl</title>
         <meta
           name="description"
           content="Porady dotyczące miniaturek Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro."
         />
         <meta name="keywords" content="blog miniaturki allegro, zdjęcia produktowe allegro, porady sprzedaż allegro" />
-        <link rel="canonical" href="https://miniaturyallegro.pl/blog" />
+        <link rel="canonical" href="https://allgrafika.pl/blog" />
       </Helmet>
 
       <div className="min-h-screen bg-white">

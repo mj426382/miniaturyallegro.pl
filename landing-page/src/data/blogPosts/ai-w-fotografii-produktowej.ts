@@ -11,7 +11,7 @@ Sztuczna inteligencja coraz mocniej wkracza w świat e-commerce. Jednym z najbar
 
 ## Jak działa AI do generowania miniaturek?
 
-Systemy takie jak MiniaturyAllegro.pl łączą kilka technologii:
+Systemy takie jak AllGrafika.pl łączą kilka technologii:
 
 1. **Computer Vision** – analiza przesłanego zdjęcia produktu
 2. **Large Language Models (LLM)** – generowanie opisu produktu i promptów
@@ -19,7 +19,7 @@ Systemy takie jak MiniaturyAllegro.pl łączą kilka technologii:
 
 ### Google Gemini w służbie e-commerce
 
-MiniaturyAllegro.pl wykorzystuje **Google Gemini**, jeden z najbardziej zaawansowanych modeli AI. Gemini potrafi rozpoznać typ produktu, zidentyfikować kluczowe cechy wizualne i wygenerować opisy dostosowane do każdego stylu.
+AllGrafika.pl wykorzystuje **Google Gemini**, jeden z najbardziej zaawansowanych modeli AI. Gemini potrafi rozpoznać typ produktu, zidentyfikować kluczowe cechy wizualne i wygenerować opisy dostosowane do każdego stylu.
 
 ## Korzyści dla sprzedawców Allegro
 
@@ -27,7 +27,7 @@ Tradycyjna fotografia kosztuje 200-500 zł za produkt i wymaga 2-5 dni. AI minia
 
 ## Zacznij już dziś
 
-Wypróbuj **MiniaturyAllegro.pl** za darmo – pierwsze 10 generacji jest bezpłatnych.`,
+Wypróbuj **AllGrafika.pl** za darmo – pierwsze 10 generacji jest bezpłatnych.`,
   publishedAt: '2024-02-01',
   readTime: 7,
   category: 'Technologia',

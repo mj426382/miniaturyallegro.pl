@@ -77,3 +77,10 @@ export const generationApi = {
     api.get(`/generation/${imageId}/results`),
   getById: (id: string) => api.get(`/generation/result/${id}`),
 }
+
+// Payments
+export const paymentsApi = {
+  getPackages: () => api.get('/payments/packages'),
+  createCheckout: (packageId: string) => api.post('/payments/checkout', { packageId }),
+  getHistory: () => api.get('/payments/history'),
+}

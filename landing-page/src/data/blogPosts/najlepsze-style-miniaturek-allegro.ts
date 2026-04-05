@@ -31,7 +31,7 @@ Widok z góry z komplementarnymi elementami. **Idealny dla:** odzieży, akcesori
 
 ## Który styl wybrać?
 
-Dzięki **MiniaturyAllegro.pl** możesz wygenerować wszystkie 12 stylów jednocześnie i testować, który przynosi najlepsze wyniki.`,
+Dzięki **AllGrafika.pl** możesz wygenerować wszystkie 12 stylów jednocześnie i testować, który przynosi najlepsze wyniki.`,
   publishedAt: '2024-01-22',
   readTime: 8,
   category: 'Styl i design',
