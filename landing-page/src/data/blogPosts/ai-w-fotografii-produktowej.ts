@@ -23,7 +23,7 @@ AllGrafika.pl wykorzystuje **Google Gemini**, jeden z najbardziej zaawansowanych
 
 ## Korzyści dla sprzedawców Allegro
 
-Tradycyjna fotografia kosztuje 200-500 zł za produkt i wymaga 2-5 dni. Grafiki produktowe AI kosztują ~1 zł i są gotowe w 60 sekund.
+Tradycyjna fotografia kosztuje 200-500 zł za produkt i wymaga 2-5 dni. Grafiki produktowe AI kosztują ~2 zł i są gotowe w kilka minut.
 
 ## Zacznij już dziś
 

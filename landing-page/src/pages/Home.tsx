@@ -4,41 +4,41 @@ import Footer from '../components/Footer'
 
 const features = [
   {
-    icon: '⚡',
-    title: '6 wariantów w minutę',
-    desc: 'Generuj 6 różnych stylów grafik dla każdego produktu jednym kliknięciem.',
+    icon: '🎨',
+    title: '6 stylów automatycznie',
+    desc: 'Jednym kliknięciem wygenerujesz 6 wariantów: białe tło, gradient, lifestyle, minimalistyczny, dark luxury i styl Allegro.',
   },
   {
-    icon: '🎨',
-    title: 'Profesjonalne style',
-    desc: 'Białe tło, lifestyle, luksusowe, minimalistyczne i wiele więcej dopasowanych do Allegro.',
+    icon: '✏️',
+    title: 'Własny styl z promptem',
+    desc: 'Opisz dokładnie jak ma wyglądać grafika. Możesz dołączyć zdjęcie referencyjne stylu — AI odwzoruje klimat.',
   },
   {
     icon: '🤖',
-    title: 'Technologia AI (Gemini)',
-    desc: 'Google Gemini AI analizuje Twój produkt i tworzy optymalne grafiki dla każdego stylu.',
+    title: 'Google Gemini 2.5 AI',
+    desc: 'Model Gemini 2.5 Flash Image analizuje produkt, generuje opis i tworzy grafiki. Produkt zostaje identyczny — zmienia się tylko tło i oświetlenie.',
+  },
+  {
+    icon: '📦',
+    title: 'Hurtem do 50 zdjęć',
+    desc: 'Prześlij do 50 zdjęć na raz — system wygeneruje grafiki dla każdego produktu automatycznie w kolejce.',
+  },
+  {
+    icon: '🔄',
+    title: 'Przeróbka i iteracja',
+    desc: 'Nie podoba Ci się wynik? Kliknij „Przeróbka”, dodaj własny opis i wygeneruj ulepszoną wersję — bez ponownego przesyłania.',
   },
   {
     icon: '☁️',
-    title: 'Bezpieczne przechowywanie',
-    desc: 'Wszystkie grafiki przechowywane w chmurze. Dostępne zawsze i wszędzie.',
-  },
-  {
-    icon: '📱',
-    title: 'Prosty w obsłudze',
-    desc: 'Prześlij zdjęcie, wybierz styl, pobierz gotową grafikę. Tak proste!',
-  },
-  {
-    icon: '📈',
-    title: 'Zwiększ sprzedaż',
-    desc: 'Lepsze grafiki = więcej kliknięć = więcej sprzedaży na Allegro.',
+    title: 'Chmura Backblaze B2',
+    desc: 'Oryginalne i wygenerowane grafiki są bezpiecznie przechowywane. Dostępne z każdego urządzenia, bez limitu czasu.',
   },
 ]
 
 const steps = [
-  { number: '1', title: 'Prześlij zdjęcie', desc: 'Załaduj zdjęcie swojego produktu (JPG, PNG, WebP)' },
-  { number: '2', title: 'AI generuje warianty', desc: 'Nasz algorytm tworzy 6 profesjonalnych grafik produktowych w różnych stylach' },
-  { number: '3', title: 'Pobierz i publikuj', desc: 'Wybierz najlepszą grafikę i wylistuj produkt na Allegro' },
+  { number: '1', title: 'Prześlij zdjęcie', desc: 'Załaduj zdjęcie produktu (JPG, PNG, WebP, maks. 10 MB). Możesz przesłać pojedynczo lub hurtem do 50 zdjęć.' },
+  { number: '2', title: 'AI generuje grafiki', desc: 'Gemini AI analizuje produkt i generuje 6 wariantów w różnych stylach. Produkt zostaje identyczny — zmienia się tło. Chcesz inaczej? Opisz własny styl.' },
+  { number: '3', title: 'Pobierz i publikuj', desc: 'Wybierz najlepszą grafikę i wstaw na list na Allegro. Nie pasuje? Skorzystaj z „Przeróbki”.' },
 ]
 
 const testimonials = [
@@ -64,9 +64,9 @@ const pricingPlans = [
     name: 'Pakiet Startowy',
     credits: 5,
     price: '10',
-    pricePerCredit: '2,00 zł / generację',
+    pricePerCredit: '2,00 zł / grafikę',
     saving: null,
-    features: ['5 generacji grafik', '6 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu'],
+    features: ['5 kredytów AI', '1 kredyt = 1 grafika (auto lub własna)', 'Sesja auto 6 stylów = 6 kredytów', 'Przechowywanie w chmurze', 'Bez abonamentu'],
     cta: 'Kup 5 kredytów',
     highlighted: false,
   },
@@ -74,9 +74,9 @@ const pricingPlans = [
     name: 'Pakiet Popularny',
     credits: 15,
     price: '28',
-    pricePerCredit: '1,87 zł / generację',
+    pricePerCredit: '1,87 zł / grafikę',
     saving: 'Oszczędzasz 2 zł',
-    features: ['15 generacji grafik', '6 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Taniej o 7% vs. pakiet startowy'],
+    features: ['15 kredytów AI', '1 kredyt = 1 grafika (auto lub własna)', 'Sesja auto 6 stylów = 6 kredytów', 'Przechowywanie w chmurze', 'Bez abonamentu'],
     cta: 'Kup 15 kredytów',
     highlighted: true,
   },
@@ -84,9 +84,9 @@ const pricingPlans = [
     name: 'Pakiet Pro',
     credits: 40,
     price: '70',
-    pricePerCredit: '1,75 zł / generację',
+    pricePerCredit: '1,75 zł / grafikę',
     saving: 'Oszczędzasz 10 zł',
-    features: ['40 generacji grafik', '6 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Najtańsza opcja — 12,5% oszczędności'],
+    features: ['40 kredytów AI', '1 kredyt = 1 grafika (auto lub własna)', 'Sesja auto 6 stylów = 6 kredytów', 'Przechowywanie w chmurze', 'Bez abonamentu'],
     cta: 'Kup 40 kredytów',
     highlighted: false,
   },
@@ -97,7 +97,7 @@ export default function Home() {
     <>
       <Helmet>
         <title>AllGrafika – Generator grafik produktowych AI dla Allegro | AllGrafika.pl</title>
-        <meta name="description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund. 12 stylów na każdy produkt. Zwiększ CTR i sprzedaż dzięki AI. Wypróbuj za darmo!" />
+        <meta name="description" content="Generuj profesjonalne grafiki produktowe Allegro dzięki Google Gemini AI. 6 stylów automatycznie + własny prompt z referencją. Pierwsze 10 grafik za darmo!" />
         <meta name="keywords" content="grafiki allegro, zdjęcia produktowe allegro, generator grafik allegro, AI grafiki allegro, allgrafika" />
         <meta property="og:title" content="AllGrafika – Generator grafik produktowych AI dla Allegro" />
         <meta property="og:description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund dzięki AI. 6 różnych stylów dla każdego produktu." />
@@ -119,12 +119,11 @@ export default function Home() {
             </span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
               Profesjonalne<br />
-              <span className="text-yellow-300">grafiki Allegro</span><br />
-              w kilka sekund
+              <span className="text-yellow-300">grafiki produktowe</span><br />
+              generowane przez AI
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-              Prześlij zdjęcie produktu i wygeneruj <strong className="text-white">12 wariantów grafik produktowych</strong> w różnych stylach.
-              Zwiększ CTR nawet o 40% i sprzedawaj więcej na Allegro.
+              Prześlij zdjęcie produktu i wygeneruj <strong className="text-white">6 wariantów grafik</strong> w różnych stylach — lub opisz dokładnie jak ma wyglądać i dodaj zdjęcie referencyjne.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
@@ -141,7 +140,7 @@ export default function Home() {
               </a>
             </div>
             <p className="mt-6 text-blue-200 text-sm">
-              Bez karty kredytowej • 10 generacji za darmo • Gotowe w 60 sekund
+              Bez karty kredytowej • Pierwsze 10 grafik za darmo • Czas generacji: kilka minut
             </p>
           </div>
         </section>
@@ -150,13 +149,13 @@ export default function Home() {
         <section className="bg-gray-50 border-b border-gray-100 py-6">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-500">
-              <span>⭐ 4.9/5 ocena</span>
+              <span>🤖 Google Gemini 2.5 Flash Image</span>
               <span>•</span>
-              <span>🛍️ 2,400+ sprzedawców Allegro</span>
+              <span>🎨 6 stylów auto + własny prompt</span>
               <span>•</span>
-              <span>🖼️ 180,000+ wygenerowanych grafik</span>
+              <span>📦 Bulk upload do 50 zdjęć</span>
               <span>•</span>
-              <span>📈 Średni wzrost CTR: 38%</span>
+              <span>💳 Bez abonamentu — płacisz tylko za użycie</span>
             </div>
           </div>
         </section>
@@ -239,7 +238,7 @@ export default function Home() {
               </h2>
               <p className="text-gray-500 mt-4">
                 Płać tylko za generacje — bez abonamentu.{' '}
-                <span className="font-medium text-blue-600">Pierwsze 10 generacji za darmo po rejestracji!</span>
+                <span className="font-medium text-blue-600">Pierwsze 10 grafik za darmo po rejestracji!</span>
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -306,16 +305,16 @@ export default function Home() {
         <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Zacznij generować grafiki Allegro już dziś
+              Zacznij tworzyć grafiki produktowe AI już dziś
             </h2>
             <p className="text-blue-100 text-lg mb-8">
-              Dołącz do tysięcy sprzedawców którzy zwiększyli swoją sprzedaż dzięki profesjonalnym grafikom produktowym.
+              Prześlij pierwsze zdjęcie, a AI wygeneruje 6 wariantów grafik. Pierwsze 10 grafik jest całkowicie bezpłatnych — bez podawania karty.
             </p>
             <a
               href="https://app.allgrafika.pl/register"
               className="inline-block bg-yellow-400 text-gray-900 font-bold px-10 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
             >
-              Wypróbuj za darmo – 10 generacji gratis →
+              Rejestracja za darmo — 10 pierwszych grafik gratis →
             </a>
           </div>
         </section>
