@@ -4,12 +4,12 @@ const post: BlogPostData = {
   id: '3',
   slug: 'ai-w-fotografii-produktowej',
   title: 'AI w fotografii produktowej – rewolucja dla sprzedawców Allegro',
-  excerpt: 'Sztuczna inteligencja zmienia sposób, w jaki tworzy się zdjęcia produktowe. Dowiedz się jak wykorzystać AI do generowania miniaturek Allegro.',
+  excerpt: 'Sztuczna inteligencja zmienia sposób, w jaki tworzy się zdjęcia produktowe. Dowiedz się jak wykorzystać AI do generowania grafik produktowych na Allegro.',
   content: `## Rewolucja AI w e-commerce
 
-Sztuczna inteligencja coraz mocniej wkracza w świat e-commerce. Jednym z najbardziej praktycznych zastosowań jest **generowanie zdjęć produktowych**.
+Sztuczna inteligencja coraz mocniej wkracza w świat e-commerce. Jednym z najbardziej praktycznych zastosowań jest **generowanie grafik produktowych**.
 
-## Jak działa AI do generowania miniaturek?
+## Jak działa AI do generowania grafik?
 
 Systemy takie jak AllGrafika.pl łączą kilka technologii:
 
@@ -23,7 +23,7 @@ AllGrafika.pl wykorzystuje **Google Gemini**, jeden z najbardziej zaawansowanych
 
 ## Korzyści dla sprzedawców Allegro
 
-Tradycyjna fotografia kosztuje 200-500 zł za produkt i wymaga 2-5 dni. AI miniaturki kosztują ~1 zł i są gotowe w 60 sekund.
+Tradycyjna fotografia kosztuje 200-500 zł za produkt i wymaga 2-5 dni. Grafiki produktowe AI kosztują ~1 zł i są gotowe w 60 sekund.
 
 ## Zacznij już dziś
 

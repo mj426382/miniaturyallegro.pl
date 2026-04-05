@@ -11,9 +11,9 @@ export default function Blog() {
         <title>Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl</title>
         <meta
           name="description"
-          content="Porady dotyczące miniaturek Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro."
+          content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro."
         />
-        <meta name="keywords" content="blog miniaturki allegro, zdjęcia produktowe allegro, porady sprzedaż allegro" />
+        <meta name="keywords" content="blog grafiki allegro, zdjęcia produktowe allegro, generator grafik allegro, porady sprzedaż allegro" />
         <link rel="canonical" href="https://allgrafika.pl/blog" />
       </Helmet>
 
@@ -23,7 +23,7 @@ export default function Blog() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16">
           <div className="text-center mb-16">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Blog o miniaturkach Allegro
+              Blog AllGrafika – grafiki i sprzedaż na Allegro
             </h1>
             <p className="text-lg text-gray-500">
               Porady, wskazówki i strategie dla sprzedawców Allegro

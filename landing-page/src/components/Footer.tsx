@@ -10,8 +10,8 @@ export default function Footer() {
               AllGrafika.pl
             </Link>
             <p className="mt-3 text-sm leading-relaxed">
-              Profesjonalne miniaturki produktowe dla sprzedawców Allegro.
-              Generuj dziesiątki wariantów zdjęć w kilka sekund dzięki AI.
+              Profesjonalne grafiki produktowe dla sprzedawców Allegro.
+              Generuj dziesiątki wariantów w kilka sekund dzięki AI.
             </p>
           </div>
 

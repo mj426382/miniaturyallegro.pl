@@ -5,8 +5,8 @@ import Footer from '../components/Footer'
 const features = [
   {
     icon: '⚡',
-    title: '12 wariantów w minutę',
-    desc: 'Generuj 12 różnych stylów miniaturek dla każdego produktu jednym kliknięciem.',
+    title: '6 wariantów w minutę',
+    desc: 'Generuj 6 różnych stylów grafik dla każdego produktu jednym kliknięciem.',
   },
   {
     icon: '🎨',
@@ -16,46 +16,46 @@ const features = [
   {
     icon: '🤖',
     title: 'Technologia AI (Gemini)',
-    desc: 'Google Gemini AI analizuje Twój produkt i tworzy optymalne opisy dla każdego stylu.',
+    desc: 'Google Gemini AI analizuje Twój produkt i tworzy optymalne grafiki dla każdego stylu.',
   },
   {
     icon: '☁️',
     title: 'Bezpieczne przechowywanie',
-    desc: 'Wszystkie zdjęcia przechowywane w chmurze. Dostępne zawsze i wszędzie.',
+    desc: 'Wszystkie grafiki przechowywane w chmurze. Dostępne zawsze i wszędzie.',
   },
   {
     icon: '📱',
     title: 'Prosty w obsłudze',
-    desc: 'Prześlij zdjęcie, wybierz styl, pobierz miniaturkę. Tak proste!',
+    desc: 'Prześlij zdjęcie, wybierz styl, pobierz gotową grafikę. Tak proste!',
   },
   {
     icon: '📈',
     title: 'Zwiększ sprzedaż',
-    desc: 'Lepsze zdjęcia = więcej kliknięć = więcej sprzedaży na Allegro.',
+    desc: 'Lepsze grafiki = więcej kliknięć = więcej sprzedaży na Allegro.',
   },
 ]
 
 const steps = [
   { number: '1', title: 'Prześlij zdjęcie', desc: 'Załaduj zdjęcie swojego produktu (JPG, PNG, WebP)' },
-  { number: '2', title: 'AI generuje warianty', desc: 'Nasz algorytm tworzy 12 profesjonalnych miniaturek w różnych stylach' },
-  { number: '3', title: 'Pobierz i publikuj', desc: 'Wybierz najlepszą miniaturkę i wylistuj produkt na Allegro' },
+  { number: '2', title: 'AI generuje warianty', desc: 'Nasz algorytm tworzy 6 profesjonalnych grafik produktowych w różnych stylach' },
+  { number: '3', title: 'Pobierz i publikuj', desc: 'Wybierz najlepszą grafikę i wylistuj produkt na Allegro' },
 ]
 
 const testimonials = [
   {
     name: 'Katarzyna M.',
     role: 'Sprzedawca Allegro • Elektronika',
-    text: 'Po zmianie miniaturek moja sprzedaż wzrosła o 40%. Narzędzie jest niesamowite, oszczędza mnóstwo czasu i pieniędzy.',
+    text: 'Po zmianie grafik produktowych moja sprzedaż wzrosła o 40%. Narzędzie jest niesamowite, oszczędza mnóstwo czasu i pieniędzy.',
   },
   {
     name: 'Piotr K.',
     role: 'Sprzedawca Allegro • Odzież',
-    text: 'Generuję miniaturki dla 50 produktów dziennie. Bez tego narzędzia nie wyobrażam sobie pracy.',
+    text: 'Generuję grafiki dla 50 produktów dziennie. Bez AllGrafika nie wyobrażam sobie pracy.',
   },
   {
     name: 'Anna W.',
     role: 'Sprzedawca Allegro • Dom i ogród',
-    text: 'Profesjonalne zdjęcia produktowe kosztowały mnie 200 zł za sztukę. Teraz mam je w sekundy za ułamek ceny!',
+    text: 'Profesjonalne zdjęcia produktowe kosztowały mnie 200 zł za sztukę. Teraz mam gotowe grafiki w sekundy za ułamek ceny!',
   },
 ]
 
@@ -66,7 +66,7 @@ const pricingPlans = [
     price: '10',
     pricePerCredit: '2,00 zł / generację',
     saving: null,
-    features: ['5 generacji miniaturek', '12 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu'],
+    features: ['5 generacji grafik', '6 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu'],
     cta: 'Kup 5 kredytów',
     highlighted: false,
   },
@@ -76,7 +76,7 @@ const pricingPlans = [
     price: '28',
     pricePerCredit: '1,87 zł / generację',
     saving: 'Oszczędzasz 2 zł',
-    features: ['15 generacji miniaturek', '12 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Taniej o 7% vs. pakiet startowy'],
+    features: ['15 generacji grafik', '6 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Taniej o 7% vs. pakiet startowy'],
     cta: 'Kup 15 kredytów',
     highlighted: true,
   },
@@ -86,7 +86,7 @@ const pricingPlans = [
     price: '70',
     pricePerCredit: '1,75 zł / generację',
     saving: 'Oszczędzasz 10 zł',
-    features: ['40 generacji miniaturek', '12 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Najtańsza opcja — 12,5% oszczędności'],
+    features: ['40 generacji grafik', '6 stylów na każdą generację', 'Przechowywanie w chmurze', 'Bez abonamentu', 'Najtańsza opcja — 12,5% oszczędności'],
     cta: 'Kup 40 kredytów',
     highlighted: false,
   },
@@ -96,11 +96,11 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>AllGrafika - Generator grafik produktowych AI | AllGrafika.pl</title>
-        <meta name="description" content="Generuj profesjonalne miniaturki Allegro w kilka sekund. 12 stylów na każdy produkt. Zwiększ CTR i sprzedaż dzięki AI. Wypróbuj za darmo!" />
-        <meta name="keywords" content="miniaturki allegro, zdjęcia allegro, zdjęcia produktowe allegro, generator miniaturek allegro, AI miniaturki" />
-        <meta property="og:title" content="AllGrafika - Generator grafik produktowych AI" />
-        <meta property="og:description" content="Generuj profesjonalne miniaturki Allegro w kilka sekund dzięki AI. 12 różnych stylów dla każdego produktu." />
+        <title>AllGrafika – Generator grafik produktowych AI dla Allegro | AllGrafika.pl</title>
+        <meta name="description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund. 12 stylów na każdy produkt. Zwiększ CTR i sprzedaż dzięki AI. Wypróbuj za darmo!" />
+        <meta name="keywords" content="grafiki allegro, zdjęcia produktowe allegro, generator grafik allegro, AI grafiki allegro, allgrafika" />
+        <meta property="og:title" content="AllGrafika – Generator grafik produktowych AI dla Allegro" />
+        <meta property="og:description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund dzięki AI. 6 różnych stylów dla każdego produktu." />
         <link rel="canonical" href="https://allgrafika.pl" />
       </Helmet>
 
@@ -119,11 +119,11 @@ export default function Home() {
             </span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
               Profesjonalne<br />
-              <span className="text-yellow-300">miniaturki Allegro</span><br />
+              <span className="text-yellow-300">grafiki Allegro</span><br />
               w kilka sekund
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-              Prześlij zdjęcie produktu i wygeneruj <strong className="text-white">12 wariantów miniaturek</strong> w różnych stylach.
+              Prześlij zdjęcie produktu i wygeneruj <strong className="text-white">12 wariantów grafik produktowych</strong> w różnych stylach.
               Zwiększ CTR nawet o 40% i sprzedawaj więcej na Allegro.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -154,7 +154,7 @@ export default function Home() {
               <span>•</span>
               <span>🛍️ 2,400+ sprzedawców Allegro</span>
               <span>•</span>
-              <span>🖼️ 180,000+ wygenerowanych miniaturek</span>
+              <span>🖼️ 180,000+ wygenerowanych grafik</span>
               <span>•</span>
               <span>📈 Średni wzrost CTR: 38%</span>
             </div>
@@ -165,10 +165,10 @@ export default function Home() {
         <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Jak działają <span className="text-blue-600">miniaturki Allegro AI</span>?
+              Jak działa <span className="text-blue-600">AllGrafika AI</span>?
             </h2>
             <p className="text-gray-500 mt-4 text-lg">
-              Trzy proste kroki do profesjonalnych zdjęć produktowych
+              Trzy proste kroki do profesjonalnych grafik produktowych
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -190,7 +190,7 @@ export default function Home() {
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Wszystko czego potrzebujesz do<br />
-                <span className="text-blue-600">zdjęć produktowych na Allegro</span>
+                <span className="text-blue-600">grafik produktowych na Allegro</span>
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -306,10 +306,10 @@ export default function Home() {
         <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Zacznij generować miniaturki Allegro już dziś
+              Zacznij generować grafiki Allegro już dziś
             </h2>
             <p className="text-blue-100 text-lg mb-8">
-              Dołącz do tysięcy sprzedawców którzy zwiększyli swoją sprzedaż dzięki profesjonalnym zdjęciom produktowym.
+              Dołącz do tysięcy sprzedawców którzy zwiększyli swoją sprzedaż dzięki profesjonalnym grafikom produktowym.
             </p>
             <a
               href="https://app.allgrafika.pl/register"
