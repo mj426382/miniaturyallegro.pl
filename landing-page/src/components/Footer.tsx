@@ -35,8 +35,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 text-sm text-center">
+        <div className="border-t border-gray-800 pt-8 text-sm text-center space-y-2">
           <p>© {new Date().getFullYear()} AllGrafika.pl · Wszelkie prawa zastrzeżone</p>
+          <p>Powered by <a href="https://jan-mat.pl" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">jan-mat.pl</a></p>
         </div>
       </div>
     </footer>

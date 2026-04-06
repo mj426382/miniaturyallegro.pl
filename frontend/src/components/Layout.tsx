@@ -2,7 +2,6 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import {
   HomeIcon,
-  PhotoIcon,
   ArrowUpTrayIcon,
   Squares2X2Icon,
   ArrowRightOnRectangleIcon,
@@ -36,8 +35,7 @@ export default function Layout() {
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
           <Link to="/" className="flex items-center gap-2">
-            <PhotoIcon className="h-8 w-8 text-blue-600" />
-            <span className="font-bold text-xl text-gray-900">Miniatury</span>
+            <img src="/logo.webp" alt="AllGrafika.pl" className="h-9 w-auto" />
           </Link>
         </div>
 
