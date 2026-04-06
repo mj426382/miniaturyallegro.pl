@@ -34,8 +34,9 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.webp" alt="AllGrafika.pl" className="h-9 w-auto" />
+          <Link to="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
+            <img src="/logo.webp" alt="AllGrafika.pl" className="h-9 w-auto mix-blend-multiply" />
+            <span>AllGrafika.pl</span>
           </Link>
         </div>
 
