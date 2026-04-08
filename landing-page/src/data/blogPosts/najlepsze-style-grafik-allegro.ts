@@ -32,7 +32,7 @@ Widok z góry z komplementarnymi elementami. **Idealny dla:** odzieży, akcesori
 ## Który styl wybrać?
 
 Dzięki **AllGrafika.pl** możesz wygenerować wszystkie 6 stylów jednocześnie i testować, który przynosi najlepsze wyniki.`,
-  publishedAt: '2024-01-22',
+  publishedAt: '2026-01-22',
   readTime: 8,
   category: 'Styl i design',
 }

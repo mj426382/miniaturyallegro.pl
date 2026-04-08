@@ -41,7 +41,7 @@ Narzędzia takie jak **AllGrafika.pl** używają sztucznej inteligencji (Google 
 ## Podsumowanie
 
 Dobra grafika produktowa Allegro to inwestycja, która zwraca się wielokrotnie.`,
-  publishedAt: '2024-01-15',
+  publishedAt: '2026-01-15',
   readTime: 6,
   category: 'Poradniki',
 }

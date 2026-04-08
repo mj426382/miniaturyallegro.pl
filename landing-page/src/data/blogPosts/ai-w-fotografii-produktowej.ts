@@ -28,7 +28,7 @@ Tradycyjna fotografia kosztuje 200-500 zł za produkt i wymaga 2-5 dni. Grafiki 
 ## Zacznij już dziś
 
 Wypróbuj **AllGrafika.pl** za darmo – pierwsze 10 generacji jest bezpłatnych.`,
-  publishedAt: '2024-02-01',
+  publishedAt: '2026-02-01',
   readTime: 7,
   category: 'Technologia',
 }
