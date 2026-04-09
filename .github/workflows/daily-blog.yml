@@ -297,11 +297,10 @@ jobs:
           ])
           print(f"PR created: {pr_url}")
 
+          time.sleep(5)
           run([
               "gh", "pr", "merge", pr_url,
-              "--squash", "--delete-branch",
-              "--subject", commit_msg,
-              "--body", "",
+              "--squash", "--delete-branch", "--admin",
           ])
           print("✅ PR merged into main.")
           PYEOF
