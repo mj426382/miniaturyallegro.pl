@@ -9,12 +9,12 @@ export interface GenerationStyle {
 }
 
 export const GENERATION_STYLES: GenerationStyle[] = [
-  { id: 'white-bg', name: 'Białe tło', prompt: 'Professional product photo on pure white background, studio lighting, sharp focus, commercial photography style' },
-  { id: 'gradient-bg', name: 'Gradient tło', prompt: 'Professional product photo with elegant gradient background, soft lighting, modern e-commerce style' },
-  { id: 'lifestyle-home', name: 'Styl życia - dom', prompt: 'Lifestyle product photo in a modern home setting, natural light, aspirational feel' },
-  { id: 'in-action', name: 'Produkt w akcji', prompt: 'Show the product being actively used by a person in a realistic everyday scenario. Hands interacting with the product, natural environment, dynamic composition that demonstrates the product functionality and purpose. Photorealistic lifestyle photography.' },
-  { id: 'dark-luxury', name: 'Ciemny luksus', prompt: 'Luxury product photo on dark background, dramatic lighting, premium feel, high contrast' },
-  { id: 'multi-angle', name: 'Wiele perspektyw', prompt: 'Create a professional composite image showing the product from 3-4 different angles arranged in a clean grid or collage layout: front view, side view, top/detail view, and a close-up of key features. White or light grey background, consistent studio lighting across all angles. E-commerce product showcase style.' },
+  { id: 'white-bg', name: 'Białe tło', prompt: 'Profesjonalne zdjęcie produktowe na czystym białym tle, oświetlenie studyjne, ostry fokus, styl fotografii komercyjnej' },
+  { id: 'gradient-bg', name: 'Gradient tło', prompt: 'Profesjonalne zdjęcie produktowe z eleganckim gradientowym tłem, miękkie oświetlenie, nowoczesny styl e-commerce' },
+  { id: 'lifestyle-home', name: 'Styl życia - dom', prompt: 'Zdjęcie produktowe w stylu lifestyle w nowoczesnym wnętrzu domowym, naturalne światło, aspiracyjny klimat' },
+  { id: 'in-action', name: 'Produkt w akcji', prompt: 'Pokaż produkt aktywnie używany przez osobę w realistycznym codziennym scenariuszu. Ręce trzymające produkt, naturalne otoczenie, dynamiczna kompozycja pokazująca funkcjonalność i przeznaczenie produktu. Fotorealistyczna fotografia lifestyle.' },
+  { id: 'dark-luxury', name: 'Ciemny luksus', prompt: 'Luksusowe zdjęcie produktowe na ciemnym tle, dramatyczne oświetlenie, premium klimat, wysoki kontrast' },
+  { id: 'multi-angle', name: 'Wiele perspektyw', prompt: 'Stwórz profesjonalny kolaż pokazujący produkt z 3-4 różnych kątów w przejrzystym układzie siatki: widok z przodu, z boku, z góry/detal i zbliżenie na kluczowe cechy. Białe lub jasnoszare tło, spójne oświetlenie studyjne we wszystkich ujęciach. Styl prezentacji produktu e-commerce.' },
 ];
 
 export interface GeneratedImage {
@@ -90,7 +90,7 @@ export class GeminiService {
 
       const result = await model.generateContent([
         imagePart,
-        'Describe this product in precise detail for use in AI image generation that must preserve the product exactly. Include: product type, exact shape and proportions (aspect ratio, straight/curved edges, symmetry), all colours and gradients, surface textures and materials, logos/labels/text, notable features (buttons, ports, stitching, etc.), and intended use. Be concise but thorough (3-4 sentences).',
+        'Opisz ten produkt szczegółowo na potrzeby generowania obrazów AI, które musi zachować produkt dokładnie w oryginalnej formie. Uwzględnij: typ produktu, dokładny kształt i proporcje (stosunek boków, proste/zakrzywione krawędzie, symetrię), wszystkie kolory i gradienty, tekstury powierzchni i materiały, loga/etykiety/napisy, charakterystyczne cechy (przyciski, porty, szwy itp.) oraz przeznaczenie. Bądź zwięzły, ale dokładny (3-4 zdania). Odpowiedz po polsku.',
       ]);
 
       return result.response.text();
@@ -105,28 +105,28 @@ export class GeminiService {
     const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const basePromptSection = basePrompt
-      ? `User base instruction (apply to ALL styles): ${basePrompt}\n`
+      ? `Dodatkowe wskazówki użytkownika (zastosuj do WSZYSTKICH stylów): ${basePrompt}\n`
       : '';
 
     return this.withRetry('generatePromptForStyle', async () => {
       const result = await model.generateContent([
-        `You are a world-class prompt engineer specialising in photorealistic e-commerce product thumbnails.
+        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
 
-Product description: ${productDescription}
-${basePromptSection}Style: ${style.name}
-Base style prompt: ${style.prompt}
+Opis produktu: ${productDescription}
+${basePromptSection}Styl: ${style.name}
+Bazowy prompt stylu: ${style.prompt}
 
-Create a detailed image-generation prompt that combines the product with the requested style.
+Stwórz szczegółowy prompt do generowania obrazu, który łączy produkt z żądanym stylem.
 
-=== ABSOLUTE PRODUCT-INTEGRITY RULES (embed ALL of these in the output prompt) ===
-1. PIXEL-PERFECT PRODUCT REPRODUCTION — the product must be an exact, undistorted copy of the source photo: identical geometry, proportions, aspect ratio, curvature, edges, corners, and silhouette. No stretching, squishing, warping, bending, skewing, or perspective changes.
-2. PRESERVE EVERY VISUAL DETAIL — same colours, textures, surface finish, reflections, logos, labels, text, stitching, buttons, ports, patterns, and materials. Nothing added, nothing removed.
-3. NO CREATIVE REINTERPRETATION — do NOT redesign, stylize, cartoonify, simplify, or artistically alter the product in any way. Treat it as a sacred, untouchable element.
-4. CHANGE ONLY THE ENVIRONMENT — background, scene, lighting, shadows, and reflections on surrounding surfaces may change to match the style. The product itself is a locked layer.
-5. NATURAL PLACEMENT — the product must sit naturally in the scene with physically correct shadows and reflections, but its shape must not adapt to the environment (no bending to fit a surface, no fisheye, no artificial tilt).
-6. PHOTOREALISTIC OUTPUT — the final image must look like a real high-end product photograph, not a render or illustration.
+=== BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść WSZYSTKIE w wygenerowanym prompcie) ===
+1. WIERNA REPRODUKCJA PRODUKTU — produkt musi być dokładną, niezniekształconą kopią zdjęcia źródłowego: identyczna geometria, proporcje, stosunek boków, krzywizny, krawędzie, narożniki i sylwetka. Żadnego rozciągania, ściskania, wyginania, skręcania, pochylania ani zmiany perspektywy.
+2. ZACHOWAJ KAŻDY DETAL WIZUALNY — te same kolory, tekstury, wykończenie powierzchni, odbicia, loga, etykiety, napisy, szwy, przyciski, porty, wzory i materiały. Nic nie dodawaj, nic nie usuwaj.
+3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — NIE przeprojektowuj, nie stylizuj, nie rób kreskówki, nie upraszczaj ani nie zmieniaj artystycznie produktu w żaden sposób. Traktuj go jako święty, nietykalny element.
+4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, oświetlenie, cienie i odbicia na otaczających powierzchniach mogą się zmieniać zgodnie ze stylem. Sam produkt to zablokowana warstwa.
+5. NATURALNE UMIEJSCOWIENIE — produkt musi naturalnie wyglądać w scenie z fizycznie poprawnymi cieniami i odbiciami, ale jego kształt NIE może się dostosowywać do otoczenia (bez wyginania do powierzchni, bez rybiego oka, bez sztucznego pochylenia).
+6. FOTOREALISTYCZNY REZULTAT — końcowy obraz musi wyglądać jak prawdziwe, profesjonalne zdjęcie produktowe, nie render ani ilustracja.
 
-Return ONLY the prompt text, no commentary.`,
+Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
       ]);
 
       return result.response.text();
@@ -141,22 +141,22 @@ Return ONLY the prompt text, no commentary.`,
 
     return this.withRetry('generateCustomPrompt', async () => {
       const result = await model.generateContent([
-        `You are a world-class prompt engineer specialising in photorealistic e-commerce product thumbnails.
+        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
 
-Product description: ${productDescription}
-User creative request: ${userPrompt}
+Opis produktu: ${productDescription}
+Życzenie użytkownika: ${userPrompt}
 
-Create a detailed image-generation prompt that places the product in the scene/style the user described.
+Stwórz szczegółowy prompt do generowania obrazu, który umieszcza produkt w scenie/stylu opisanym przez użytkownika.
 
-=== ABSOLUTE PRODUCT-INTEGRITY RULES (embed ALL of these in the output prompt) ===
-1. PIXEL-PERFECT PRODUCT REPRODUCTION — the product must be an exact, undistorted copy of the source photo: identical geometry, proportions, aspect ratio, curvature, edges, corners, and silhouette. No stretching, squishing, warping, bending, skewing, or perspective changes.
-2. PRESERVE EVERY VISUAL DETAIL — same colours, textures, surface finish, reflections, logos, labels, text, stitching, buttons, ports, patterns, and materials. Nothing added, nothing removed.
-3. NO CREATIVE REINTERPRETATION — do NOT redesign, stylize, cartoonify, simplify, or artistically alter the product in any way.
-4. CHANGE ONLY THE ENVIRONMENT — background, scene, props, lighting, shadows, and ambient reflections may change per the user's request. The product itself is a locked, untouchable element.
-5. NATURAL PLACEMENT — the product must sit naturally with physically correct shadows, but its shape must NOT adapt or deform to fit the environment.
-6. PHOTOREALISTIC OUTPUT — the final image must look like a real product photograph.
+=== BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść WSZYSTKIE w wygenerowanym prompcie) ===
+1. WIERNA REPRODUKCJA PRODUKTU — produkt musi być dokładną, niezniekształconą kopią zdjęcia źródłowego: identyczna geometria, proporcje, stosunek boków, krzywizny, krawędzie, narożniki i sylwetka. Żadnego rozciągania, ściskania, wyginania, skręcania, pochylania ani zmiany perspektywy.
+2. ZACHOWAJ KAŻDY DETAL WIZUALNY — te same kolory, tekstury, wykończenie powierzchni, odbicia, loga, etykiety, napisy, szwy, przyciski, porty, wzory i materiały. Nic nie dodawaj, nic nie usuwaj.
+3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — NIE przeprojektowuj, nie stylizuj, nie rób kreskówki, nie upraszczaj ani nie zmieniaj artystycznie produktu.
+4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, rekwizyty, oświetlenie, cienie i odbicia otoczenia mogą się zmieniać zgodnie z życzeniem użytkownika. Sam produkt to zablokowany, nietykalny element.
+5. NATURALNE UMIEJSCOWIENIE — produkt musi naturalnie wyglądać w scenie z fizycznie poprawnymi cieniami, ale jego kształt NIE może się dostosowywać ani deformować.
+6. FOTOREALISTYCZNY REZULTAT — końcowy obraz musi wyglądać jak prawdziwe zdjęcie produktowe.
 
-Return ONLY the prompt text, no commentary.`,
+Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
       ]);
 
       return result.response.text();
@@ -171,23 +171,23 @@ Return ONLY the prompt text, no commentary.`,
 
     return this.withRetry('generateReworkPrompt', async () => {
       const result = await model.generateContent([
-        `You are a world-class prompt engineer specialising in photorealistic e-commerce product thumbnails.
+        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
 
-Product description: ${productDescription}
-User modification request: ${userPrompt}
+Opis produktu: ${productDescription}
+Żądana modyfikacja: ${userPrompt}
 
-The user wants to MODIFY an already-generated thumbnail. The FIRST image will be the existing thumbnail to refine.
-Create a detailed prompt that instructs the AI to apply ONLY the requested changes.
+Użytkownik chce ZMODYFIKOWAĆ już wygenerowaną miniaturkę. PIERWSZY obraz to istniejąca miniaturka do poprawy.
+Stwórz szczegółowy prompt, który instruuje AI, aby zastosowało TYLKO żądane zmiany.
 
-=== ABSOLUTE PRODUCT-INTEGRITY RULES (embed ALL of these in the output prompt) ===
-1. START FROM THE PROVIDED IMAGE — this is an edit/refinement, NOT a new generation. Use the existing thumbnail as the starting canvas.
-2. PIXEL-PERFECT PRODUCT SHAPE — the product's geometry, proportions, aspect ratio, curvature, edges, corners, and silhouette must remain 100 % identical. No stretching, squishing, warping, bending, skewing, or perspective changes whatsoever.
-3. PRESERVE EVERY VISUAL DETAIL — same colours, textures, surface finish, reflections, logos, labels, text, stitching, buttons, ports, patterns, and materials. Nothing added to or removed from the product.
-4. NO CREATIVE REINTERPRETATION — do NOT redesign, stylize, cartoonify, simplify, or artistically alter the product.
-5. MINIMAL CHANGE PRINCIPLE — modify ONLY what the user explicitly requested. Everything else (composition, product placement, product appearance) stays identical to the input.
-6. PHOTOREALISTIC OUTPUT — the final image must look like a real product photograph.
+=== BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść WSZYSTKIE w wygenerowanym prompcie) ===
+1. ZACZNIJ OD DOSTARCZONEGO OBRAZU — to jest edycja/poprawka, NIE nowa generacja. Użyj istniejącej miniaturki jako płótna startowego.
+2. IDEALNY KSZTAŁT PRODUKTU — geometria, proporcje, stosunek boków, krzywizny, krawędzie, narożniki i sylwetka produktu muszą pozostać w 100% identyczne. Żadnego rozciągania, ściskania, wyginania, skręcania, pochylania ani jakichkolwiek zmian perspektywy.
+3. ZACHOWAJ KAŻDY DETAL WIZUALNY — te same kolory, tekstury, wykończenie powierzchni, odbicia, loga, etykiety, napisy, szwy, przyciski, porty, wzory i materiały. Nic nie dodawaj ani nie usuwaj z produktu.
+4. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — NIE przeprojektowuj, nie stylizuj, nie rób kreskówki, nie upraszczaj ani nie zmieniaj artystycznie produktu.
+5. ZASADA MINIMALNEJ ZMIANY — modyfikuj TYLKO to, o co użytkownik wyraźnie poprosił. Wszystko inne (kompozycja, umiejscowienie produktu, wygląd produktu) pozostaje identyczne z wejściem.
+6. FOTOREALISTYCZNY REZULTAT — końcowy obraz musi wyglądać jak prawdziwe zdjęcie produktowe.
 
-Return ONLY the prompt text, no commentary.`,
+Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
       ]);
 
       return result.response.text();
@@ -221,10 +221,10 @@ Return ONLY the prompt text, no commentary.`,
           mimeType: referenceImageMimeType as GeminiImageMimeType,
         },
       });
-      parts.push({ text: 'The second image above is a REFERENCE for style/background/composition ONLY. Use it as visual inspiration for the environment and lighting — do NOT copy, morph, or blend any products or objects from it into the output. The product from the FIRST image must remain geometrically and visually untouched.' });
+      parts.push({ text: 'Drugi obraz powyżej to REFERENCJA wyłącznie dla stylu/tła/kompozycji. Użyj go jako wizualnej inspiracji dla otoczenia i oświetlenia — NIE kopiuj, nie przenoś ani nie łącz żadnych produktów ani obiektów z niego do wyniku. Produkt z PIERWSZEGO obrazu musi pozostać geometrycznie i wizualnie nienaruszony.' });
     }
 
-    parts.push({ text: `${prompt}\n\n=== MANDATORY PRODUCT-INTEGRITY CONSTRAINT ===\nThe product visible in the FIRST photo is LOCKED. You MUST reproduce it with:\n• Identical geometry, silhouette, proportions, and aspect ratio — NO stretching, squishing, warping, bending, skewing, rounding of corners, or any spatial distortion.\n• Identical colours, textures, logos, labels, text, surface finish, reflections, stitching, buttons, ports, and patterns — pixel-level fidelity.\n• NO redesign, simplification, stylization, cartoon effects, or artistic reinterpretation of the product.\n• The product is an untouchable, sacred element — treat it as a cut-out pasted onto the new scene.\n• You may ONLY change: background, environment, scene lighting, ambient shadows, and reflections on surrounding surfaces.\n• Output must be photorealistic, high-resolution, suitable as a professional e-commerce thumbnail.` });
+    parts.push({ text: `${prompt}\n\n=== OBOWIĄZKOWE OGRANICZENIE INTEGRALNOŚCI PRODUKTU ===\nProdukt widoczny na PIERWSZYM zdjęciu jest ZABLOKOWANY. MUSISZ go odwzorować z:\n• Identyczną geometrią, sylwetką, proporcjami i stosunkiem boków — ŻADNEGO rozciągania, ściskania, wyginania, skręcania, pochylania, zaokrąglania narożników ani jakiejkolwiek deformacji przestrzennej.\n• Identycznymi kolorami, teksturami, logami, etykietami, napisami, wykończeniem powierzchni, odbiciami, szwami, przyciskami, portami i wzorami — wierność na poziomie pikseli.\n• ŻADNEGO przeprojektowywania, upraszczania, stylizacji, efektów kreskówkowych ani artystycznej reinterpretacji produktu.\n• Produkt to nietykalny, święty element — traktuj go jak wycięty i wklejony na nową scenę.\n• Możesz JEDYNIE zmieniać: tło, otoczenie, oświetlenie sceny, cienie otoczenia i odbicia na okolicznych powierzchniach.\n• Wynik musi być fotorealistyczny, w wysokiej rozdzielczości, odpowiedni jako profesjonalna miniaturka e-commerce.` });
 
     const generationConfig: ImageGenerationConfig = {
       responseModalities: ['IMAGE'],
