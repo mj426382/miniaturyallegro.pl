@@ -12,9 +12,9 @@ export const GENERATION_STYLES: GenerationStyle[] = [
   { id: 'white-bg', name: 'Białe tło', prompt: 'Professional product photo on pure white background, studio lighting, sharp focus, commercial photography style' },
   { id: 'gradient-bg', name: 'Gradient tło', prompt: 'Professional product photo with elegant gradient background, soft lighting, modern e-commerce style' },
   { id: 'lifestyle-home', name: 'Styl życia - dom', prompt: 'Lifestyle product photo in a modern home setting, natural light, aspirational feel' },
-  { id: 'minimal', name: 'Minimalistyczny', prompt: 'Minimalist product photo, clean lines, lots of white space, Scandinavian aesthetic' },
+  { id: 'in-action', name: 'Produkt w akcji', prompt: 'Show the product being actively used by a person in a realistic everyday scenario. Hands interacting with the product, natural environment, dynamic composition that demonstrates the product functionality and purpose. Photorealistic lifestyle photography.' },
   { id: 'dark-luxury', name: 'Ciemny luksus', prompt: 'Luxury product photo on dark background, dramatic lighting, premium feel, high contrast' },
-  { id: 'allegro-style', name: 'Styl Allegro', prompt: 'Clean product photo optimized for Allegro marketplace, white background, all product details visible, high resolution' },
+  { id: 'multi-angle', name: 'Wiele perspektyw', prompt: 'Create a professional composite image showing the product from 3-4 different angles arranged in a clean grid or collage layout: front view, side view, top/detail view, and a close-up of key features. White or light grey background, consistent studio lighting across all angles. E-commerce product showcase style.' },
 ];
 
 export interface GeneratedImage {
