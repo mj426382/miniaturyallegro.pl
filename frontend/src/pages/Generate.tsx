@@ -230,7 +230,7 @@ export default function Generate() {
         {activeTab === 'auto' && (
           <div className="p-5">
             <p className="text-sm text-gray-500 mb-4">
-              AI wygeneruje 6 profesjonalnych wariantów Twojego produktu: białe tło, gradient, lifestyle, minimalistyczny, dark luxury, styl Allegro.
+              AI wygeneruje 6 profesjonalnych wariantów Twojego produktu: białe tło, gradient, lifestyle, produkt w akcji, dark luxury, wiele perspektyw.
             </p>
 
             {hasResults ? (
@@ -381,7 +381,15 @@ export default function Generate() {
               <div className="p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-gray-700">
-                    {gen.style === 'custom' ? '✨ Własny styl' : gen.style}
+                    {{
+                      'white-bg': 'Białe tło',
+                      'gradient-bg': 'Gradient tło',
+                      'lifestyle-home': 'Styl życia - dom',
+                      'in-action': 'Produkt w akcji',
+                      'dark-luxury': 'Ciemny luksus',
+                      'multi-angle': 'Wiele perspektyw',
+                      'custom': '✨ Własny styl',
+                    }[gen.style] || gen.style}
                   </span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[gen.status]}`}>
                     {STATUS_LABELS[gen.status]}
