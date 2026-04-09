@@ -87,7 +87,6 @@ export class GenerationController {
     const { buffer, contentType, style } = await this.generationService.getGenerationForDownload(id, req.user.userId);
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="miniaturka-${style}.png"`);
-    res.setHeader('Cache-Control', 'private, max-age=3600');
     res.send(buffer);
   }
 
@@ -96,16 +95,8 @@ export class GenerationController {
   async getGenerations(
     @Param('imageId') imageId: string,
     @Request() req: any,
-    @Response({ passthrough: true }) res: any,
   ) {
-    const results = await this.generationService.getGenerations(imageId, req.user.userId);
-    const allDone = Array.isArray(results) && results.length > 0 &&
-      results.every((g: any) => g.status === 'COMPLETED' || g.status === 'FAILED');
-    // If still processing - short cache (5s). If all done - longer (5min)
-    res.setHeader('Cache-Control', allDone
-      ? 'private, max-age=300, stale-while-revalidate=600'
-      : 'private, max-age=5');
-    return results;
+    return this.generationService.getGenerations(imageId, req.user.userId);
   }
 
   @Get('result/:id')
@@ -113,13 +104,7 @@ export class GenerationController {
   async getGeneration(
     @Param('id') id: string,
     @Request() req: any,
-    @Response({ passthrough: true }) res: any,
   ) {
-    const result = await this.generationService.getGenerationById(id, req.user.userId);
-    const done = result?.status === 'COMPLETED' || result?.status === 'FAILED';
-    res.setHeader('Cache-Control', done
-      ? 'private, max-age=300'
-      : 'private, max-age=5');
-    return result;
+    return this.generationService.getGenerationById(id, req.user.userId);
   }
 }

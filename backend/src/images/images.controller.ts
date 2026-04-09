@@ -6,7 +6,6 @@ import {
   Param,
   Query,
   Request,
-  Response,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -53,11 +52,9 @@ export class ImagesController {
   @ApiOperation({ summary: 'Get user images' })
   async getUserImages(
     @Request() req: any,
-    @Response({ passthrough: true }) res: any,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
-    res.setHeader('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
     return this.imagesService.getUserImages(req.user.userId, page, limit);
   }
 
@@ -66,9 +63,7 @@ export class ImagesController {
   async getImage(
     @Param('id') id: string,
     @Request() req: any,
-    @Response({ passthrough: true }) res: any,
   ) {
-    res.setHeader('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
     return this.imagesService.getImageById(id, req.user.userId);
   }
 

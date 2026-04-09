@@ -138,8 +138,17 @@ export default function Generate() {
   }
 
   const startPolling = () => {
-    // Do an immediate fetch so new items appear instantly
-    generationApi.getResults(imageId!).then(({ data }) => setGenerations(data)).catch(() => {})
+    // Do an immediate fetch so new items appear instantly.
+    // Merge with existing placeholders so they don't disappear.
+    generationApi.getResults(imageId!).then(({ data }) => {
+      setGenerations((prev: any[]) => {
+        // Build a map of server results keyed by id
+        const serverMap = new Map(data.map((g: any) => [g.id, g]))
+        // Keep placeholders that the server doesn't know about yet
+        const extras = prev.filter((g: any) => !serverMap.has(g.id))
+        return [...data, ...extras]
+      })
+    }).catch(() => {})
 
     // If already polling, don't start another interval
     if (pollIntervalRef.current) return
