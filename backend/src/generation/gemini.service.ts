@@ -38,27 +38,63 @@ export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private readonly logger = new Logger(GeminiService.name);
 
+  private readonly MAX_RETRIES = 4;
+  private readonly BASE_DELAY_MS = 2000;
+
   constructor(private configService: ConfigService) {
     const apiKey = configService.get<string>('GEMINI_API_KEY');
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
+  /**
+   * Retry a function with exponential backoff on transient errors (503, 429, etc.)
+   */
+  private async withRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
+    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        const message = error?.message ?? '';
+        const isRetryable =
+          message.includes('503') ||
+          message.includes('429') ||
+          message.includes('Service Unavailable') ||
+          message.includes('high demand') ||
+          message.includes('RESOURCE_EXHAUSTED') ||
+          message.includes('overloaded');
+
+        if (!isRetryable || attempt === this.MAX_RETRIES) {
+          throw error;
+        }
+
+        const delay = this.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
+        this.logger.warn(
+          `[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} failed (retryable). Retrying in ${Math.round(delay)}ms...`,
+        );
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+    throw new Error(`[${label}] All retries exhausted`);
+  }
+
   async generateImageDescription(imageBase64: string, mimeType: string): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    return this.withRetry('generateImageDescription', async () => {
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    const imagePart: Part = {
-      inlineData: {
-        data: imageBase64,
-        mimeType: mimeType as GeminiImageMimeType,
-      },
-    };
+      const imagePart: Part = {
+        inlineData: {
+          data: imageBase64,
+          mimeType: mimeType as GeminiImageMimeType,
+        },
+      };
 
-    const result = await model.generateContent([
-      imagePart,
-      'Describe this product in detail for use in generating marketing thumbnail images. Focus on the product type, key visual features, colors, and intended use. Keep the description concise (2-3 sentences).',
-    ]);
+      const result = await model.generateContent([
+        imagePart,
+        'Describe this product in detail for use in generating marketing thumbnail images. Focus on the product type, key visual features, colors, and intended use. Keep the description concise (2-3 sentences).',
+      ]);
 
-    return result.response.text();
+      return result.response.text();
+    });
   }
 
   async generatePromptForStyle(
@@ -72,8 +108,9 @@ export class GeminiService {
       ? `User base instruction (apply to ALL styles): ${basePrompt}\n`
       : '';
 
-    const result = await model.generateContent([
-      `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
+    return this.withRetry('generatePromptForStyle', async () => {
+      const result = await model.generateContent([
+        `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
       
 Product description: ${productDescription}
 ${basePromptSection}Style: ${style.name}
@@ -88,9 +125,10 @@ CRITICAL RULES - include these explicitly in the prompt:
 - The product must look like a faithful photographic reproduction
 
 Return only the prompt, no explanations.`,
-    ]);
+      ]);
 
-    return result.response.text();
+      return result.response.text();
+    });
   }
 
   async generateCustomPrompt(
@@ -99,8 +137,9 @@ Return only the prompt, no explanations.`,
   ): Promise<string> {
     const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    const result = await model.generateContent([
-      `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
+    return this.withRetry('generateCustomPrompt', async () => {
+      const result = await model.generateContent([
+        `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
 
 Product description: ${productDescription}
 User request: ${userPrompt}
@@ -113,9 +152,10 @@ CRITICAL RULES - include these explicitly in the prompt:
 - Only change the background, lighting and environment as the user requested
 
 Return only the prompt, no explanations.`,
-    ]);
+      ]);
 
-    return result.response.text();
+      return result.response.text();
+    });
   }
 
   async generateImage(
@@ -154,25 +194,27 @@ Return only the prompt, no explanations.`,
       responseModalities: ['IMAGE'],
     };
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts }],
-      generationConfig: generationConfig as any,
-    });
+    return this.withRetry('generateImage', async () => {
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts }],
+        generationConfig: generationConfig as any,
+      });
 
-    const candidate = result.response.candidates?.[0];
-    if (!candidate) {
-      throw new Error('Gemini returned no candidates');
-    }
-
-    for (const part of candidate.content.parts) {
-      if (part.inlineData?.data) {
-        return {
-          base64: part.inlineData.data,
-          mimeType: part.inlineData.mimeType ?? 'image/png',
-        };
+      const candidate = result.response.candidates?.[0];
+      if (!candidate) {
+        throw new Error('Gemini returned no candidates');
       }
-    }
 
-    throw new Error('Gemini response contained no image data');
+      for (const part of candidate.content.parts) {
+        if (part.inlineData?.data) {
+          return {
+            base64: part.inlineData.data,
+            mimeType: part.inlineData.mimeType ?? 'image/png',
+          };
+        }
+      }
+
+      throw new Error('Gemini response contained no image data');
+    });
   }
 }
