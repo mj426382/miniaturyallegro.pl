@@ -172,6 +172,25 @@ export default function Generate() {
     pollIntervalRef.current = interval
   }
 
+  const retryFailed = async (genId: string) => {
+    try {
+      await generationApi.retryGeneration(genId)
+      toast.success('Ponowienie generowania rozpoczęte!')
+      // Update the card to PENDING immediately
+      setGenerations((prev: any[]) =>
+        prev.map((g: any) => g.id === genId ? { ...g, status: 'PENDING' } : g),
+      )
+      startPolling()
+    } catch (err: any) {
+      if (err.response?.status === 402) {
+        toast.error(err.response.data?.message || 'Brak kredytów', { duration: 6000 })
+        navigate('/credits')
+      } else {
+        toast.error('Nie udało się ponowić generowania')
+      }
+    }
+  }
+
   const downloadImage = async (genId: string, styleName: string) => {
     try {
       const { data } = await generationApi.downloadGeneration(genId)
@@ -451,6 +470,15 @@ export default function Generate() {
                       Przeróbka
                     </button>
                   </div>
+                )}
+                {gen.status === 'FAILED' && (
+                  <button
+                    onClick={() => retryFailed(gen.id)}
+                    className="flex items-center justify-center gap-1 w-full text-xs text-red-600 hover:text-red-700 py-1.5 rounded hover:bg-red-50 transition-colors mt-1"
+                  >
+                    <ArrowPathIcon className="h-3.5 w-3.5" />
+                    Ponów generowanie
+                  </button>
                 )}
               </div>
             </div>

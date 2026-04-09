@@ -77,6 +77,15 @@ export class GenerationController {
     );
   }
 
+  @Post('retry/:id')
+  @ApiOperation({ summary: 'Retry a failed generation' })
+  async retryGeneration(
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    return this.generationService.retryGeneration(id, req.user.userId);
+  }
+
   @Get('download/:id')
   @ApiOperation({ summary: 'Download a generated image (proxy to avoid CORS)' })
   async downloadGeneration(

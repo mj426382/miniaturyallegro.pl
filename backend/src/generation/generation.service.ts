@@ -123,6 +123,9 @@ export class GenerationService {
           where: { id: generationId },
           data: { status: 'FAILED' },
         });
+        // Refund 1 credit for this failed generation
+        const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
+        if (gen) await this.refundCredits(gen.image.userId, 1);
       }
     }
   }
@@ -263,6 +266,9 @@ export class GenerationService {
         where: { id: generationId },
         data: { status: 'FAILED' },
       });
+      // Refund 1 credit for this failed generation
+      const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
+      if (gen) await this.refundCredits(gen.image.userId, 1);
     }
   }
 
@@ -316,6 +322,107 @@ export class GenerationService {
 
   async getStyles() {
     return GENERATION_STYLES;
+  }
+
+  async retryGeneration(generationId: string, userId: string) {
+    const generation = await this.prisma.generation.findUnique({
+      where: { id: generationId },
+      include: { image: true },
+    });
+
+    if (!generation) throw new NotFoundException('Generation not found');
+    if (generation.image.userId !== userId) throw new ForbiddenException('Access denied');
+    if (generation.status !== 'FAILED') {
+      throw new HttpException('Only failed generations can be retried', HttpStatus.BAD_REQUEST);
+    }
+
+    // Deduct credits again for retry
+    await this.deductCredits(userId, 1);
+
+    await this.prisma.generation.update({
+      where: { id: generationId },
+      data: { status: 'PENDING' },
+    });
+
+    const originalUrlSigned = this.storageService.getSignedUrl(generation.image.originalUrl);
+
+    if (generation.style === 'custom') {
+      this.processCustomGeneration(
+        originalUrlSigned,
+        generationId,
+        generation.prompt || '',
+      ).catch((err) => this.logger.error('Retry custom generation failed', err));
+    } else {
+      // Re-process single auto style
+      this.reprocessSingleGeneration(originalUrlSigned, generationId).catch(
+        (err) => this.logger.error('Retry generation failed', err),
+      );
+    }
+
+    return { message: 'Ponowienie rozpoczęte', generationId };
+  }
+
+  private async reprocessSingleGeneration(originalUrl: string, generationId: string) {
+    try {
+      await this.prisma.generation.update({
+        where: { id: generationId },
+        data: { status: 'PROCESSING' },
+      });
+
+      const generation = await this.prisma.generation.findUnique({ where: { id: generationId } });
+      const style = GENERATION_STYLES.find((s) => s.id === generation.style);
+
+      const imageBuffer = await this.fetchImageBuffer(originalUrl);
+      const base64Image = imageBuffer.toString('base64');
+      const mimeType = this.detectMimeType(originalUrl);
+
+      const description = await this.geminiService.generateImageDescription(base64Image, mimeType);
+      const optimizedPrompt = await this.geminiService.generatePromptForStyle(description, style);
+
+      const generated = await this.geminiService.generateImage(base64Image, mimeType, optimizedPrompt);
+
+      const imageData = Buffer.from(generated.base64, 'base64');
+      const { url } = await this.storageService.uploadFile(imageData, `${style.id}.png`, generated.mimeType, 'generated');
+
+      await this.prisma.generation.update({
+        where: { id: generationId },
+        data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
+      });
+    } catch (error) {
+      this.logger.error(`Retry generation ${generationId} failed`, error);
+      await this.prisma.generation.update({
+        where: { id: generationId },
+        data: { status: 'FAILED' },
+      });
+      const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
+      if (gen) await this.refundCredits(gen.image.userId, 1);
+    }
+  }
+
+  /** Refund credits back to user (reverse of deductCredits). */
+  private async refundCredits(userId: string, count: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { freeCreditsUsed: true },
+      });
+      if (!user) return;
+
+      // If user still has free credits used, refund to free pool first
+      const freeToRefund = Math.min(count, user.freeCreditsUsed);
+      const paidToRefund = count - freeToRefund;
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          freeCreditsUsed: { decrement: freeToRefund },
+          credits: { increment: paidToRefund },
+        },
+      });
+      this.logger.log(`Refunded ${count} credit(s) to user ${userId} (free: ${freeToRefund}, paid: ${paidToRefund})`);
+    } catch (err) {
+      this.logger.error(`Failed to refund credits for user ${userId}`, err);
+    }
   }
 
   /** FREE_LIMIT: first 10 thumbnails are free, then 1 credit = 1 thumbnail */

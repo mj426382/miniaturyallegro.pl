@@ -38,8 +38,8 @@ export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private readonly logger = new Logger(GeminiService.name);
 
-  private readonly MAX_RETRIES = 4;
-  private readonly BASE_DELAY_MS = 2000;
+  private readonly MAX_RETRIES = 6;
+  private readonly BASE_DELAY_MS = 3000;
 
   constructor(private configService: ConfigService) {
     const apiKey = configService.get<string>('GEMINI_API_KEY');
