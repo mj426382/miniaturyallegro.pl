@@ -75,6 +75,20 @@ export class GenerationController {
     );
   }
 
+  @Get('download/:id')
+  @ApiOperation({ summary: 'Download a generated image (proxy to avoid CORS)' })
+  async downloadGeneration(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Response() res: any,
+  ) {
+    const { buffer, contentType, style } = await this.generationService.getGenerationForDownload(id, req.user.userId);
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="miniaturka-${style}.png"`);
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.send(buffer);
+  }
+
   @Get(':imageId/results')
   @ApiOperation({ summary: 'Get generation results for an image' })
   async getGenerations(

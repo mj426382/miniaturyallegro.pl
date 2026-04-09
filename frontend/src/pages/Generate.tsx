@@ -135,11 +135,10 @@ export default function Generate() {
     pollIntervalRef.current = interval
   }
 
-  const downloadImage = async (url: string, styleName: string) => {
+  const downloadImage = async (genId: string, styleName: string) => {
     try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      const objectUrl = URL.createObjectURL(blob)
+      const { data } = await generationApi.downloadGeneration(genId)
+      const objectUrl = URL.createObjectURL(data)
       const link = document.createElement('a')
       link.href = objectUrl
       link.download = `miniaturka-${styleName}.png`
@@ -155,9 +154,8 @@ export default function Generate() {
   const startRework = async (gen: any) => {
     setReworkingId(gen.id)
     try {
-      const response = await fetch(gen.url)
-      const blob = await response.blob()
-      const file = new File([blob], `generated-${gen.style}.png`, { type: blob.type || 'image/png' })
+      const { data } = await generationApi.downloadGeneration(gen.id)
+      const file = new File([data], `generated-${gen.style}.png`, { type: data.type || 'image/png' })
       handleReferenceFile(file)
       setActiveTab('custom')
       setCustomPrompt('')
@@ -398,7 +396,7 @@ export default function Generate() {
                 {gen.status === 'COMPLETED' && gen.url && (
                   <div className="flex gap-1 mt-1">
                     <button
-                      onClick={() => downloadImage(gen.url, gen.style)}
+                      onClick={() => downloadImage(gen.id, gen.style)}
                       className="flex-1 flex items-center justify-center gap-1 text-xs text-blue-600 hover:text-blue-700 py-1.5 rounded hover:bg-blue-50 transition-colors"
                     >
                       <ArrowDownTrayIcon className="h-3.5 w-3.5" />

@@ -278,6 +278,20 @@ export class GenerationService {
     };
   }
 
+  async getGenerationForDownload(id: string, userId: string): Promise<{ buffer: Buffer; contentType: string; style: string }> {
+    const generation = await this.prisma.generation.findUnique({
+      where: { id },
+      include: { image: true },
+    });
+
+    if (!generation) throw new NotFoundException('Generation not found');
+    if (generation.image.userId !== userId) throw new ForbiddenException('Access denied');
+    if (!generation.url) throw new NotFoundException('Generation file not available');
+
+    const { buffer, contentType } = await this.storageService.getFileBuffer(generation.url);
+    return { buffer, contentType, style: generation.style };
+  }
+
   async getStyles() {
     return GENERATION_STYLES;
   }

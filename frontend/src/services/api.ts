@@ -76,6 +76,8 @@ export const generationApi = {
   getResults: (imageId: string) =>
     api.get(`/generation/${imageId}/results`),
   getById: (id: string) => api.get(`/generation/result/${id}`),
+  downloadGeneration: (id: string) =>
+    api.get(`/generation/download/${id}`, { responseType: 'blob' }),
 }
 
 // Payments

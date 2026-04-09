@@ -104,6 +104,27 @@ export class StorageService {
     return url;
   }
 
+  /** Fetch file content as a Buffer directly from B2 (or local disk). */
+  async getFileBuffer(key: string): Promise<{ buffer: Buffer; contentType: string }> {
+    if (this.useLocal || key.startsWith('/')) {
+      const filePath = key.startsWith('/') ? key.replace(/^\/api\/uploads\//, this.localUploadDir + '/') : path.join(this.localUploadDir, key);
+      const buffer = fs.readFileSync(filePath);
+      const ext = path.extname(filePath).toLowerCase();
+      const ct = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+      return { buffer, contentType: ct };
+    }
+
+    const result = await this.s3!.getObject({
+      Bucket: this.bucketName,
+      Key: key,
+    }).promise();
+
+    return {
+      buffer: result.Body as Buffer,
+      contentType: result.ContentType || 'application/octet-stream',
+    };
+  }
+
   /** Invalidate cached URL for a key (call after delete) */
   invalidateCachedUrl(key: string): void {
     this.urlCache.delete(key);
