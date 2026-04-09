@@ -38,53 +38,92 @@ export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private readonly logger = new Logger(GeminiService.name);
 
-  /** Cheap model for text-only tasks (descriptions, prompt engineering) */
-  private readonly TEXT_MODEL = 'gemini-2.5-flash';
+  /** Text model fallback chain — tries each model in order on persistent failures */
+  private readonly TEXT_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-preview-04-17', 'gemini-2.5-pro'];
+  /** Currently active text model index */
+  private activeTextModelIdx = 0;
   /** Image generation model */
   private readonly IMAGE_MODEL = 'gemini-2.5-flash-preview-04-17';
 
-  private readonly MAX_RETRIES = 6;
-  private readonly BASE_DELAY_MS = 3000;
+  private readonly MAX_RETRIES = 4;
+  private readonly BASE_DELAY_MS = 2000;
 
   constructor(private configService: ConfigService) {
     const apiKey = configService.get<string>('GEMINI_API_KEY');
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
+  /** Get the currently active text model name */
+  private get TEXT_MODEL(): string {
+    return this.TEXT_MODELS[this.activeTextModelIdx];
+  }
+
   /**
-   * Retry a function with exponential backoff on transient errors (503, 429, etc.)
+   * Retry with exponential backoff. On persistent 503/429, tries fallback text models.
    */
-  private async withRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
-    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
-      try {
-        return await fn();
-      } catch (error: any) {
-        const message = error?.message ?? '';
-        const isRetryable =
-          message.includes('503') ||
-          message.includes('429') ||
-          message.includes('Service Unavailable') ||
-          message.includes('high demand') ||
-          message.includes('RESOURCE_EXHAUSTED') ||
-          message.includes('overloaded');
+  private async withRetry<T>(label: string, fn: (textModel: string) => Promise<T>): Promise<T> {
+    // Try each model in the fallback chain
+    const startModelIdx = this.activeTextModelIdx;
 
-        if (!isRetryable || attempt === this.MAX_RETRIES) {
-          throw error;
+    for (let modelAttempt = 0; modelAttempt < this.TEXT_MODELS.length; modelAttempt++) {
+      const modelIdx = (startModelIdx + modelAttempt) % this.TEXT_MODELS.length;
+      const modelName = this.TEXT_MODELS[modelIdx];
+
+      for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+        try {
+          return await fn(modelName);
+        } catch (error: any) {
+          const message = error?.message ?? '';
+          const is503 =
+            message.includes('503') ||
+            message.includes('Service Unavailable') ||
+            message.includes('high demand') ||
+            message.includes('overloaded');
+          const is429 =
+            message.includes('429') ||
+            message.includes('RESOURCE_EXHAUSTED');
+          const is404 =
+            message.includes('404') ||
+            message.includes('not found') ||
+            message.includes('is not found');
+          const isRetryable = is503 || is429;
+
+          // Model doesn't exist — skip to next fallback immediately
+          if (is404) {
+            this.logger.warn(`[${label}] Model "${modelName}" not available (404), trying next fallback...`);
+            break;
+          }
+
+          if (!isRetryable || attempt === this.MAX_RETRIES) {
+            // If all retries exhausted for this model, try next fallback
+            if (isRetryable && modelAttempt < this.TEXT_MODELS.length - 1) {
+              this.logger.warn(`[${label}] All retries exhausted for "${modelName}", trying next fallback...`);
+              break;
+            }
+            throw error;
+          }
+
+          const delay = this.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
+          this.logger.warn(
+            `[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} on "${modelName}" failed: ${message.substring(0, 200)}. Retrying in ${Math.round(delay)}ms...`,
+          );
+          await new Promise((r) => setTimeout(r, delay));
         }
+      }
 
-        const delay = this.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
-        this.logger.warn(
-          `[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} failed (retryable). Retrying in ${Math.round(delay)}ms...`,
-        );
-        await new Promise((r) => setTimeout(r, delay));
+      // If we got here, the current model failed — switch active model for future calls
+      if (modelAttempt < this.TEXT_MODELS.length - 1) {
+        const nextIdx = (startModelIdx + modelAttempt + 1) % this.TEXT_MODELS.length;
+        this.activeTextModelIdx = nextIdx;
+        this.logger.log(`[${label}] Switched active text model to "${this.TEXT_MODELS[nextIdx]}"`);
       }
     }
-    throw new Error(`[${label}] All retries exhausted`);
+    throw new Error(`[${label}] All models and retries exhausted`);
   }
 
   async generateImageDescription(imageBase64: string, mimeType: string): Promise<string> {
-    return this.withRetry('generateImageDescription', async () => {
-      const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
+    return this.withRetry('generateImageDescription', async (textModel) => {
+      const model = this.genAI.getGenerativeModel({ model: textModel });
 
       const imagePart: Part = {
         inlineData: {
@@ -107,13 +146,12 @@ export class GeminiService {
     style: GenerationStyle,
     basePrompt?: string,
   ): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
-
     const basePromptSection = basePrompt
       ? `Dodatkowe wskazówki użytkownika (zastosuj do WSZYSTKICH stylów): ${basePrompt}\n`
       : '';
 
-    return this.withRetry('generatePromptForStyle', async () => {
+    return this.withRetry('generatePromptForStyle', async (textModel) => {
+      const model = this.genAI.getGenerativeModel({ model: textModel });
       const result = await model.generateContent([
         `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
 
@@ -142,9 +180,8 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
     productDescription: string,
     userPrompt: string,
   ): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
-
-    return this.withRetry('generateCustomPrompt', async () => {
+    return this.withRetry('generateCustomPrompt', async (textModel) => {
+      const model = this.genAI.getGenerativeModel({ model: textModel });
       const result = await model.generateContent([
         `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
 
@@ -172,9 +209,8 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
     productDescription: string,
     userPrompt: string,
   ): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
-
-    return this.withRetry('generateReworkPrompt', async () => {
+    return this.withRetry('generateReworkPrompt', async (textModel) => {
+      const model = this.genAI.getGenerativeModel({ model: textModel });
       const result = await model.generateContent([
         `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
 
@@ -208,15 +244,14 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
     styles: GenerationStyle[],
     basePrompt?: string,
   ): Promise<Map<string, string>> {
-    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
-
     const basePromptSection = basePrompt
       ? `Dodatkowe wskazówki użytkownika (zastosuj do WSZYSTKICH stylów): ${basePrompt}\n`
       : '';
 
     const stylesListText = styles.map((s, i) => `${i + 1}. ID: "${s.id}" | Nazwa: "${s.name}" | Bazowy prompt: "${s.prompt}"`).join('\n');
 
-    return this.withRetry('generateAllStylePrompts', async () => {
+    return this.withRetry('generateAllStylePrompts', async (textModel) => {
+      const model = this.genAI.getGenerativeModel({ model: textModel });
       const result = await model.generateContent([
         `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
 
@@ -302,7 +337,7 @@ Eleganckie zdjęcie z gradientem...
       responseModalities: ['IMAGE'],
     };
 
-    return this.withRetry('generateImage', async () => {
+    return this.withRetry('generateImage', async (_textModel) => {
       const result = await model.generateContent({
         contents: [{ role: 'user', parts }],
         generationConfig: generationConfig as any,

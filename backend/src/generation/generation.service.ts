@@ -88,7 +88,15 @@ export class GenerationService {
       }
 
       const compressed = await pipeline.toBuffer();
-      this.logger.debug(`Image compressed: ${buffer.length} -> ${compressed.length} bytes (${Math.round(compressed.length / buffer.length * 100)}%)`);
+      const ratio = Math.round(compressed.length / buffer.length * 100);
+      this.logger.debug(`Image compressed: ${buffer.length} -> ${compressed.length} bytes (${ratio}%)`);
+
+      // Only use compressed version if it's actually smaller
+      if (compressed.length >= buffer.length) {
+        this.logger.debug('Compressed image is larger than original, keeping original');
+        return { buffer, mimeType };
+      }
+
       return { buffer: compressed, mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg' };
     } catch (err) {
       this.logger.warn('Image compression failed, using original', err);
