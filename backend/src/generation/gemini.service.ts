@@ -158,6 +158,36 @@ Return only the prompt, no explanations.`,
     });
   }
 
+  async generateReworkPrompt(
+    productDescription: string,
+    userPrompt: string,
+  ): Promise<string> {
+    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    return this.withRetry('generateReworkPrompt', async () => {
+      const result = await model.generateContent([
+        `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
+
+Product description: ${productDescription}
+User modification request: ${userPrompt}
+
+The user wants to MODIFY an already-generated product thumbnail. The first image provided will be the EXISTING thumbnail that needs modification.
+Create a detailed prompt that instructs the AI to take that existing thumbnail and apply ONLY the requested changes while preserving everything else.
+
+CRITICAL RULES - include these explicitly in the prompt:
+- Start from the PROVIDED image (the existing thumbnail) and modify it
+- The product must remain IDENTICAL: same shape, same colors, same design, same branding, same proportions
+- Apply ONLY the changes the user requested
+- Preserve the overall composition and layout unless the user asks to change it
+- The result should look like a refined version of the input, not a completely new image
+
+Return only the prompt, no explanations.`,
+      ]);
+
+      return result.response.text();
+    });
+  }
+
   async generateImage(
     imageBase64: string,
     imageMimeType: string,

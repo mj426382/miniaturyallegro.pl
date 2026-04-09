@@ -63,6 +63,7 @@ export class GenerationController {
   async startCustomGeneration(
     @Param('imageId') imageId: string,
     @Body('userPrompt') userPrompt: string,
+    @Body('isRework') isRework: string,
     @UploadedFile() referenceFile: any,
     @Request() req: any,
   ) {
@@ -72,6 +73,7 @@ export class GenerationController {
       userPrompt,
       referenceFile ? referenceFile.buffer : undefined,
       referenceFile ? referenceFile.mimetype : undefined,
+      isRework === 'true',
     );
   }
 

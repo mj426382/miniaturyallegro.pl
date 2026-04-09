@@ -44,6 +44,7 @@ export default function Generate() {
   const [referenceFile, setReferenceFile] = useState<File | null>(null)
   const [referencePreview, setReferencePreview] = useState<string | null>(null)
   const [reworkingId, setReworkingId] = useState<string | null>(null)
+  const [isRework, setIsRework] = useState(false)
   const referenceInputRef = useRef<HTMLInputElement>(null)
   const pollIntervalRef = useRef<number | null>(null)
 
@@ -87,6 +88,7 @@ export default function Generate() {
     if (!file) {
       setReferenceFile(null)
       setReferencePreview(null)
+      setIsRework(false)
       return
     }
     setReferenceFile(file)
@@ -99,11 +101,12 @@ export default function Generate() {
     if (!customPrompt.trim()) return
     setIsCustomGenerating(true)
     try {
-      await generationApi.startCustomGeneration(imageId!, customPrompt, referenceFile || undefined)
+      await generationApi.startCustomGeneration(imageId!, customPrompt, referenceFile || undefined, isRework)
       toast.success('Generowanie własnego zdjęcia rozpoczęte!')
       setCustomPrompt('')
       setReferenceFile(null)
       setReferencePreview(null)
+      setIsRework(false)
       startPolling()
     } catch (err: any) {
       if (err.response?.status === 402) {
@@ -157,10 +160,11 @@ export default function Generate() {
       const { data } = await generationApi.downloadGeneration(gen.id)
       const file = new File([data], `generated-${gen.style}.png`, { type: data.type || 'image/png' })
       handleReferenceFile(file)
+      setIsRework(true)
       setActiveTab('custom')
       setCustomPrompt('')
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      toast.success('Załadowano jako referencję. Opisz jak chcesz przerobić zdjęcie.')
+      toast.success('Załadowano jako bazę do przeróbki. Opisz jak chcesz przerobić zdjęcie.')
     } catch {
       toast.error('Nie udało się załadować zdjęcia do przeróbki')
     } finally {

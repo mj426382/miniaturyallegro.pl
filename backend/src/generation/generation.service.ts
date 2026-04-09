@@ -173,6 +173,7 @@ export class GenerationService {
     userPrompt: string,
     referenceBuffer?: Buffer,
     referenceMimeType?: string,
+    isRework = false,
   ) {
     const image = await this.prisma.image.findUnique({ where: { id: imageId } });
     if (!image) throw new NotFoundException('Image not found');
@@ -191,7 +192,7 @@ export class GenerationService {
     });
 
     const originalUrlSigned = this.storageService.getSignedUrl(image.originalUrl);
-    this.processCustomGeneration(originalUrlSigned, generation.id, userPrompt, referenceBuffer, referenceMimeType).catch(
+    this.processCustomGeneration(originalUrlSigned, generation.id, userPrompt, referenceBuffer, referenceMimeType, isRework).catch(
       (err) => this.logger.error('Custom generation failed', err),
     );
 
@@ -204,6 +205,7 @@ export class GenerationService {
     userPrompt: string,
     referenceBuffer?: Buffer,
     referenceMimeType?: string,
+    isRework = false,
   ) {
     try {
       await this.prisma.generation.update({
@@ -211,21 +213,41 @@ export class GenerationService {
         data: { status: 'PROCESSING' },
       });
 
-      const imageBuffer = await this.fetchImageBuffer(originalUrl);
-      const base64Image = imageBuffer.toString('base64');
-      const mimeType = this.detectMimeType(originalUrl);
+      const originalBuffer = await this.fetchImageBuffer(originalUrl);
+      const originalMimeType = this.detectMimeType(originalUrl);
 
-      const description = await this.geminiService.generateImageDescription(base64Image, mimeType);
-      const optimizedPrompt = await this.geminiService.generateCustomPrompt(description, userPrompt);
+      // In rework mode the generated thumbnail becomes the primary image;
+      // the original product photo is passed as reference for product identity.
+      const primaryBase64 = isRework && referenceBuffer
+        ? referenceBuffer.toString('base64')
+        : originalBuffer.toString('base64');
+      const primaryMimeType = isRework && referenceMimeType
+        ? referenceMimeType
+        : originalMimeType;
 
-      const refBase64 = referenceBuffer ? referenceBuffer.toString('base64') : undefined;
+      // For description, always use the original product photo
+      const descBase64 = originalBuffer.toString('base64');
+      const description = await this.geminiService.generateImageDescription(descBase64, originalMimeType);
+
+      const optimizedPrompt = isRework
+        ? await this.geminiService.generateReworkPrompt(description, userPrompt)
+        : await this.geminiService.generateCustomPrompt(description, userPrompt);
+
+      // In rework mode pass original as reference (for product identity);
+      // in normal mode pass the user-uploaded reference (for style).
+      const refBase64 = isRework
+        ? originalBuffer.toString('base64')
+        : referenceBuffer ? referenceBuffer.toString('base64') : undefined;
+      const refMime = isRework
+        ? originalMimeType
+        : referenceMimeType;
 
       const generated = await this.geminiService.generateImage(
-        base64Image,
-        mimeType,
+        primaryBase64,
+        primaryMimeType,
         optimizedPrompt,
         refBase64,
-        referenceMimeType,
+        refMime,
       );
 
       const imageData = Buffer.from(generated.base64, 'base64');

@@ -65,10 +65,11 @@ export const generationApi = {
   getStyles: () => api.get('/generation/styles'),
   startGeneration: (imageId: string, basePrompt?: string) =>
     api.post(`/generation/${imageId}/start`, basePrompt ? { basePrompt } : {}),
-  startCustomGeneration: (imageId: string, userPrompt: string, referenceFile?: File) => {
+  startCustomGeneration: (imageId: string, userPrompt: string, referenceFile?: File, isRework?: boolean) => {
     const formData = new FormData()
     formData.append('userPrompt', userPrompt)
     if (referenceFile) formData.append('reference', referenceFile)
+    if (isRework) formData.append('isRework', 'true')
     return api.post(`/generation/${imageId}/custom`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
