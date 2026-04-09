@@ -70,8 +70,18 @@ export default function Generate() {
   const startGeneration = async () => {
     setIsGenerating(true)
     try {
-      await generationApi.startGeneration(imageId!, basePrompt.trim() || undefined)
+      const { data } = await generationApi.startGeneration(imageId!, basePrompt.trim() || undefined)
       toast.success('Generowanie rozpoczęte! To może potrwać kilka minut.')
+      // Add placeholders immediately so cards appear
+      if (data.generationIds) {
+        const placeholders = data.generationIds.map((id: string, i: number) => ({
+          id,
+          style: ['white-bg', 'gradient-bg', 'lifestyle-home', 'in-action', 'dark-luxury', 'multi-angle'][i] || 'custom',
+          status: 'PENDING',
+          url: null,
+        }))
+        setGenerations((prev: any[]) => [...prev, ...placeholders])
+      }
       startPolling()
     } catch (err: any) {
       if (err.response?.status === 402) {
@@ -101,8 +111,15 @@ export default function Generate() {
     if (!customPrompt.trim()) return
     setIsCustomGenerating(true)
     try {
-      await generationApi.startCustomGeneration(imageId!, customPrompt, referenceFile || undefined, isRework)
+      const { data } = await generationApi.startCustomGeneration(imageId!, customPrompt, referenceFile || undefined, isRework)
       toast.success('Generowanie własnego zdjęcia rozpoczęte!')
+      // Add placeholder immediately so the card appears
+      if (data.generationId) {
+        setGenerations((prev: any[]) => [
+          ...prev,
+          { id: data.generationId, style: 'custom', status: 'PENDING', url: null },
+        ])
+      }
       setCustomPrompt('')
       setReferenceFile(null)
       setReferencePreview(null)
@@ -121,18 +138,26 @@ export default function Generate() {
   }
 
   const startPolling = () => {
+    // Do an immediate fetch so new items appear instantly
+    generationApi.getResults(imageId!).then(({ data }) => setGenerations(data)).catch(() => {})
+
+    // If already polling, don't start another interval
     if (pollIntervalRef.current) return
     const interval = window.setInterval(async () => {
-      const { data } = await generationApi.getResults(imageId!)
-      setGenerations(data)
-      const allDone = data.every(
-        (g: any) => g.status === 'COMPLETED' || g.status === 'FAILED',
-      )
-      if (allDone) {
-        clearInterval(interval)
-        pollIntervalRef.current = null
-        setIsGenerating(false)
-        toast.success('Generowanie zakończone!')
+      try {
+        const { data } = await generationApi.getResults(imageId!)
+        setGenerations(data)
+        const allDone = data.every(
+          (g: any) => g.status === 'COMPLETED' || g.status === 'FAILED',
+        )
+        if (allDone) {
+          clearInterval(interval)
+          pollIntervalRef.current = null
+          setIsGenerating(false)
+          toast.success('Generowanie zakończone!')
+        }
+      } catch {
+        // ignore polling errors
       }
     }, 3000)
     pollIntervalRef.current = interval
