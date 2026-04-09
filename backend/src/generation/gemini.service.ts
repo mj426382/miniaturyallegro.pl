@@ -38,6 +38,11 @@ export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private readonly logger = new Logger(GeminiService.name);
 
+  /** Cheap model for text-only tasks (descriptions, prompt engineering) */
+  private readonly TEXT_MODEL = 'gemini-2.0-flash';
+  /** Image generation model */
+  private readonly IMAGE_MODEL = 'gemini-2.5-flash-preview-04-17';
+
   private readonly MAX_RETRIES = 6;
   private readonly BASE_DELAY_MS = 3000;
 
@@ -79,7 +84,7 @@ export class GeminiService {
 
   async generateImageDescription(imageBase64: string, mimeType: string): Promise<string> {
     return this.withRetry('generateImageDescription', async () => {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
 
       const imagePart: Part = {
         inlineData: {
@@ -102,7 +107,7 @@ export class GeminiService {
     style: GenerationStyle,
     basePrompt?: string,
   ): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
 
     const basePromptSection = basePrompt
       ? `Dodatkowe wskazówki użytkownika (zastosuj do WSZYSTKICH stylów): ${basePrompt}\n`
@@ -137,7 +142,7 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
     productDescription: string,
     userPrompt: string,
   ): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
 
     return this.withRetry('generateCustomPrompt', async () => {
       const result = await model.generateContent([
@@ -167,7 +172,7 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
     productDescription: string,
     userPrompt: string,
   ): Promise<string> {
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
 
     return this.withRetry('generateReworkPrompt', async () => {
       const result = await model.generateContent([
@@ -194,6 +199,73 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
     });
   }
 
+  /**
+   * Generate optimized prompts for ALL styles in a single API call.
+   * Saves 5 API calls vs calling generatePromptForStyle 6 times.
+   */
+  async generateAllStylePrompts(
+    productDescription: string,
+    styles: GenerationStyle[],
+    basePrompt?: string,
+  ): Promise<Map<string, string>> {
+    const model = this.genAI.getGenerativeModel({ model: this.TEXT_MODEL });
+
+    const basePromptSection = basePrompt
+      ? `Dodatkowe wskazówki użytkownika (zastosuj do WSZYSTKICH stylów): ${basePrompt}\n`
+      : '';
+
+    const stylesListText = styles.map((s, i) => `${i + 1}. ID: "${s.id}" | Nazwa: "${s.name}" | Bazowy prompt: "${s.prompt}"`).join('\n');
+
+    return this.withRetry('generateAllStylePrompts', async () => {
+      const result = await model.generateContent([
+        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
+
+Opis produktu: ${productDescription}
+${basePromptSection}
+Wygeneruj prompt do generowania obrazu DLA KAŻDEGO z poniższych stylów:
+${stylesListText}
+
+=== BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść w KAŻDYM prompcie) ===
+1. WIERNA REPRODUKCJA PRODUKTU — identyczna geometria, proporcje, sylwetka. Żadnego rozciągania, ściskania, wyginania.
+2. ZACHOWAJ KAŻDY DETAL WIZUALNY — kolory, tekstury, loga, napisy, materiały.
+3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — produkt to święty, nietykalny element.
+4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, oświetlenie, cienie.
+5. NATURALNE UMIEJSCOWIENIE z poprawnymi cieniami.
+6. FOTOREALISTYCZNY REZULTAT.
+
+ODPOWIEDZ W FORMACIE (dokładnie, bez dodatkowego tekstu):
+===ID_STYLU===
+[prompt po polsku]
+===KONIEC===
+
+Przyład:
+===white-bg===
+Profesjonalne zdjęcie produktu...
+===KONIEC===
+===gradient-bg===
+Eleganckie zdjęcie z gradientem...
+===KONIEC===`,
+      ]);
+
+      const responseText = result.response.text();
+      const prompts = new Map<string, string>();
+
+      for (const style of styles) {
+        const regex = new RegExp(`===${style.id}===\\n?([\\s\\S]*?)===KONIEC===`);
+        const match = responseText.match(regex);
+        if (match) {
+          prompts.set(style.id, match[1].trim());
+        } else {
+          // Fallback: generate individually
+          this.logger.warn(`Could not parse prompt for style ${style.id} from batch, using fallback`);
+          prompts.set(style.id, style.prompt);
+        }
+      }
+
+      return prompts;
+    });
+  }
+
   async generateImage(
     imageBase64: string,
     imageMimeType: string,
@@ -202,7 +274,7 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
     referenceImageMimeType?: string,
   ): Promise<GeneratedImage> {
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash-image',
+      model: this.IMAGE_MODEL,
     });
 
     const imagePart: Part = {

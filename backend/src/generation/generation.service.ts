@@ -4,6 +4,14 @@ import { StorageService } from '../images/storage.service';
 import { GeminiService, GENERATION_STYLES } from './gemini.service';
 import * as https from 'https';
 import * as http from 'http';
+import * as sharp from 'sharp';
+
+/** Max concurrent image generation requests to Gemini */
+const MAX_CONCURRENT = 2;
+/** Pause between launching batches (ms) */
+const BATCH_PAUSE_MS = 2000;
+/** Max dimension for images sent to Gemini API (saves tokens & cost) */
+const MAX_IMAGE_DIM = 1024;
 
 @Injectable()
 export class GenerationService {
@@ -59,73 +67,99 @@ export class GenerationService {
     };
   }
 
+  /**
+   * Compress and resize image to save Gemini API tokens (smaller base64 = fewer input tokens = lower cost).
+   */
+  private async compressImage(buffer: Buffer, mimeType: string): Promise<{ buffer: Buffer; mimeType: string }> {
+    try {
+      const image = sharp(buffer);
+      const meta = await image.metadata();
+      const needsResize = (meta.width && meta.width > MAX_IMAGE_DIM) || (meta.height && meta.height > MAX_IMAGE_DIM);
+
+      let pipeline = needsResize
+        ? image.resize(MAX_IMAGE_DIM, MAX_IMAGE_DIM, { fit: 'inside', withoutEnlargement: true })
+        : image;
+
+      // Always output as JPEG for smallest size (unless PNG is needed for transparency)
+      if (mimeType === 'image/png') {
+        pipeline = pipeline.png({ quality: 85, compressionLevel: 9 });
+      } else {
+        pipeline = pipeline.jpeg({ quality: 85 });
+      }
+
+      const compressed = await pipeline.toBuffer();
+      this.logger.debug(`Image compressed: ${buffer.length} -> ${compressed.length} bytes (${Math.round(compressed.length / buffer.length * 100)}%)`);
+      return { buffer: compressed, mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg' };
+    } catch (err) {
+      this.logger.warn('Image compression failed, using original', err);
+      return { buffer, mimeType };
+    }
+  }
+
   private async processGenerations(originalUrl: string, generationIds: string[], basePrompt?: string) {
-    // Fetch the original image once and reuse across all styles
-    const imageBuffer = await this.fetchImageBuffer(originalUrl);
+    // Fetch and compress the original image once
+    const rawBuffer = await this.fetchImageBuffer(originalUrl);
+    const rawMimeType = this.detectMimeType(originalUrl);
+    const { buffer: imageBuffer, mimeType } = await this.compressImage(rawBuffer, rawMimeType);
     const base64Image = imageBuffer.toString('base64');
 
-    // Detect MIME type from the URL extension, defaulting to JPEG
-    const mimeType = this.detectMimeType(originalUrl);
+    // Generate product description once (cheap model, 1 API call)
+    const description = await this.geminiService.generateImageDescription(base64Image, mimeType);
 
-    // Generate a product description once to inform all style prompts
-    const description = await this.geminiService.generateImageDescription(
-      base64Image,
-      mimeType,
-    );
+    // Generate ALL style prompts in a single API call (saves 5 calls)
+    const styles = generationIds.map((id) => {
+      // Look up the style for each generation
+      return { genId: id, style: null as any };
+    });
 
+    // Map generationId -> style
+    const genStyles = new Map<string, any>();
     for (const generationId of generationIds) {
-      try {
-        await this.prisma.generation.update({
-          where: { id: generationId },
-          data: { status: 'PROCESSING' },
-        });
+      const generation = await this.prisma.generation.findUnique({ where: { id: generationId } });
+      const style = GENERATION_STYLES.find((s) => s.id === generation.style);
+      genStyles.set(generationId, style);
+    }
 
-        const generation = await this.prisma.generation.findUnique({
-          where: { id: generationId },
-        });
+    const allStyles = [...genStyles.values()];
+    const allPrompts = await this.geminiService.generateAllStylePrompts(description, allStyles, basePrompt);
 
-        const style = GENERATION_STYLES.find((s) => s.id === generation.style);
+    // Process in batches of MAX_CONCURRENT with pauses between batches
+    for (let i = 0; i < generationIds.length; i += MAX_CONCURRENT) {
+      const batch = generationIds.slice(i, i + MAX_CONCURRENT);
 
-        // Build a style-specific image generation prompt
-        const optimizedPrompt = await this.geminiService.generatePromptForStyle(
-          description,
-          style,
-          basePrompt,
-        );
+      await Promise.all(batch.map(async (generationId) => {
+        try {
+          await this.prisma.generation.update({
+            where: { id: generationId },
+            data: { status: 'PROCESSING' },
+          });
 
-        // Generate the thumbnail image with Gemini
-        const generated = await this.geminiService.generateImage(
-          base64Image,
-          mimeType,
-          optimizedPrompt,
-        );
+          const style = genStyles.get(generationId);
+          const optimizedPrompt = allPrompts.get(style.id) || style.prompt;
 
-        // Upload the generated image to Backblaze B2
-        const imageData = Buffer.from(generated.base64, 'base64');
-        const { url } = await this.storageService.uploadFile(
-          imageData,
-          `${style.id}.png`,
-          generated.mimeType,
-          'generated',
-        );
+          const generated = await this.geminiService.generateImage(base64Image, mimeType, optimizedPrompt);
 
-        await this.prisma.generation.update({
-          where: { id: generationId },
-          data: {
-            prompt: optimizedPrompt,
-            status: 'COMPLETED',
-            url,
-          },
-        });
-      } catch (error) {
-        this.logger.error(`Failed to process generation ${generationId}`, error);
-        await this.prisma.generation.update({
-          where: { id: generationId },
-          data: { status: 'FAILED' },
-        });
-        // Refund 1 credit for this failed generation
-        const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
-        if (gen) await this.refundCredits(gen.image.userId, 1);
+          const imageData = Buffer.from(generated.base64, 'base64');
+          const { url } = await this.storageService.uploadFile(imageData, `${style.id}.png`, generated.mimeType, 'generated');
+
+          await this.prisma.generation.update({
+            where: { id: generationId },
+            data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
+          });
+        } catch (error) {
+          this.logger.error(`Failed to process generation ${generationId}`, error);
+          await this.prisma.generation.update({
+            where: { id: generationId },
+            data: { status: 'FAILED' },
+          });
+          const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
+          if (gen) await this.refundCredits(gen.image.userId, 1);
+        }
+      }));
+
+      // Pause between batches to avoid rate limiting
+      if (i + MAX_CONCURRENT < generationIds.length) {
+        await new Promise((r) => setTimeout(r, BATCH_PAUSE_MS));
       }
     }
   }
@@ -216,8 +250,9 @@ export class GenerationService {
         data: { status: 'PROCESSING' },
       });
 
-      const originalBuffer = await this.fetchImageBuffer(originalUrl);
-      const originalMimeType = this.detectMimeType(originalUrl);
+      const rawOriginalBuffer = await this.fetchImageBuffer(originalUrl);
+      const rawOriginalMimeType = this.detectMimeType(originalUrl);
+      const { buffer: originalBuffer, mimeType: originalMimeType } = await this.compressImage(rawOriginalBuffer, rawOriginalMimeType);
 
       // In rework mode the generated thumbnail becomes the primary image;
       // the original product photo is passed as reference for product identity.
@@ -372,9 +407,10 @@ export class GenerationService {
       const generation = await this.prisma.generation.findUnique({ where: { id: generationId } });
       const style = GENERATION_STYLES.find((s) => s.id === generation.style);
 
-      const imageBuffer = await this.fetchImageBuffer(originalUrl);
+      const rawBuffer = await this.fetchImageBuffer(originalUrl);
+      const rawMime = this.detectMimeType(originalUrl);
+      const { buffer: imageBuffer, mimeType } = await this.compressImage(rawBuffer, rawMime);
       const base64Image = imageBuffer.toString('base64');
-      const mimeType = this.detectMimeType(originalUrl);
 
       const description = await this.geminiService.generateImageDescription(base64Image, mimeType);
       const optimizedPrompt = await this.geminiService.generatePromptForStyle(description, style);
