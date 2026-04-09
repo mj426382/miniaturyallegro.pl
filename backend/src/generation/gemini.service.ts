@@ -39,7 +39,7 @@ export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
 
   /** Cheap model for text-only tasks (descriptions, prompt engineering) */
-  private readonly TEXT_MODEL = 'gemini-2.0-flash';
+  private readonly TEXT_MODEL = 'gemini-2.5-flash';
   /** Image generation model */
   private readonly IMAGE_MODEL = 'gemini-2.5-flash-preview-04-17';
 
