@@ -264,43 +264,12 @@ jobs:
           print(f"blogPosts.ts updated — added: {var_name}")
 
           # ── Git & PR ────────────────────────────────────────────────────────
-          branch     = f"blog/seo-{int(time.time())}"
           commit_msg = f"feat(blog): {article['title']} ({date_iso})"
 
           run("git config user.name 'github-actions[bot]'")
           run("git config user.email 'github-actions[bot]@users.noreply.github.com'")
-          run(f"git checkout -b {branch}")
           run("git add landing-page/src/data/")
           run(["git", "commit", "-m", commit_msg])
-          run(["git", "push", "origin", branch])
-
-          pr_body = (
-              f"## Automatycznie wygenerowany artykuł SEO — AllGrafika.pl\n\n"
-              f"**Data:** {date_iso}\n"
-              f"**ID artykułu:** `{next_id}`\n"
-              f"**Slug:** `{slug}`\n"
-              f"**Kategoria:** {article.get('category', '')}\n"
-              f"**Czas czytania:** {article.get('readTime', '')} min\n\n"
-              f"Artykuł wygenerowany przez GitHub Actions + GitHub Models API (gpt-4o).\n\n"
-              f"**Nowy plik:** `landing-page/src/data/blogPosts/{slug}.ts`\n"
-              f"**Zaktualizowany rejestr:** `landing-page/src/data/blogPosts.ts`"
-          )
-          with open("/tmp/pr_body.txt", "w") as f:
-              f.write(pr_body)
-
-          pr_url = run([
-              "gh", "pr", "create",
-              "--title", f"🤖 SEO Blog: {article['title']}",
-              "--body-file", "/tmp/pr_body.txt",
-              "--base", "main",
-              "--head", branch,
-          ])
-          print(f"PR created: {pr_url}")
-
-          time.sleep(5)
-          run([
-              "gh", "pr", "merge", pr_url,
-              "--squash", "--delete-branch", "--admin",
-          ])
-          print("✅ PR merged into main.")
+          run(["git", "push", "origin", "HEAD:main"])
+          print(f"✅ Pushed to main: {commit_msg}")
           PYEOF

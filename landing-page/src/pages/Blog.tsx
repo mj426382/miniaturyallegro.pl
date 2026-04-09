@@ -4,6 +4,10 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { blogPosts } from '../data/blogPosts'
 
+const sortedPosts = [...blogPosts].sort(
+  (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+)
+
 export default function Blog() {
   return (
     <>
@@ -31,7 +35,7 @@ export default function Blog() {
           </div>
 
           <div className="space-y-8">
-            {blogPosts.map((post) => (
+            {sortedPosts.map((post) => (
               <article
                 key={post.id}
                 className="bg-white border border-gray-100 rounded-2xl p-8 hover:shadow-md transition-shadow"
