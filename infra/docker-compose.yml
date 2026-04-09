@@ -20,9 +20,7 @@ services:
       retries: 5
 
   backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: ghcr.io/mj426382/allgrafika-backend:latest
     container_name: AllGrafika_backend
     restart: unless-stopped
     depends_on:
