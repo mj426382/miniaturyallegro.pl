@@ -90,7 +90,7 @@ export class GeminiService {
 
       const result = await model.generateContent([
         imagePart,
-        'Describe this product in detail for use in generating marketing thumbnail images. Focus on the product type, key visual features, colors, and intended use. Keep the description concise (2-3 sentences).',
+        'Describe this product in precise detail for use in AI image generation that must preserve the product exactly. Include: product type, exact shape and proportions (aspect ratio, straight/curved edges, symmetry), all colours and gradients, surface textures and materials, logos/labels/text, notable features (buttons, ports, stitching, etc.), and intended use. Be concise but thorough (3-4 sentences).',
       ]);
 
       return result.response.text();
@@ -110,21 +110,23 @@ export class GeminiService {
 
     return this.withRetry('generatePromptForStyle', async () => {
       const result = await model.generateContent([
-        `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
-      
+        `You are a world-class prompt engineer specialising in photorealistic e-commerce product thumbnails.
+
 Product description: ${productDescription}
 ${basePromptSection}Style: ${style.name}
 Base style prompt: ${style.prompt}
 
-Create a detailed image generation prompt combining the product details with the style${basePrompt ? ` and the user\'s base instruction` : ''}. The prompt should be suitable for creating a professional Allegro thumbnail.
+Create a detailed image-generation prompt that combines the product with the requested style.
 
-CRITICAL RULES - include these explicitly in the prompt:
-- The product must remain IDENTICAL to the original photo: same shape, same colors, same design, same branding, same proportions
-- Do NOT alter, redesign or stylize the product itself in any way
-- Only change the background and lighting to match the style
-- The product must look like a faithful photographic reproduction
+=== ABSOLUTE PRODUCT-INTEGRITY RULES (embed ALL of these in the output prompt) ===
+1. PIXEL-PERFECT PRODUCT REPRODUCTION — the product must be an exact, undistorted copy of the source photo: identical geometry, proportions, aspect ratio, curvature, edges, corners, and silhouette. No stretching, squishing, warping, bending, skewing, or perspective changes.
+2. PRESERVE EVERY VISUAL DETAIL — same colours, textures, surface finish, reflections, logos, labels, text, stitching, buttons, ports, patterns, and materials. Nothing added, nothing removed.
+3. NO CREATIVE REINTERPRETATION — do NOT redesign, stylize, cartoonify, simplify, or artistically alter the product in any way. Treat it as a sacred, untouchable element.
+4. CHANGE ONLY THE ENVIRONMENT — background, scene, lighting, shadows, and reflections on surrounding surfaces may change to match the style. The product itself is a locked layer.
+5. NATURAL PLACEMENT — the product must sit naturally in the scene with physically correct shadows and reflections, but its shape must not adapt to the environment (no bending to fit a surface, no fisheye, no artificial tilt).
+6. PHOTOREALISTIC OUTPUT — the final image must look like a real high-end product photograph, not a render or illustration.
 
-Return only the prompt, no explanations.`,
+Return ONLY the prompt text, no commentary.`,
       ]);
 
       return result.response.text();
@@ -139,19 +141,22 @@ Return only the prompt, no explanations.`,
 
     return this.withRetry('generateCustomPrompt', async () => {
       const result = await model.generateContent([
-        `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
+        `You are a world-class prompt engineer specialising in photorealistic e-commerce product thumbnails.
 
 Product description: ${productDescription}
-User request: ${userPrompt}
+User creative request: ${userPrompt}
 
-Create a detailed, professional image generation prompt based on the user's request and the product description. The prompt should be suitable for creating a professional Allegro thumbnail.
+Create a detailed image-generation prompt that places the product in the scene/style the user described.
 
-CRITICAL RULES - include these explicitly in the prompt:
-- The product must remain IDENTICAL to the original photo: same shape, same colors, same design, same branding, same proportions
-- Do NOT alter, redesign or stylize the product itself in any way
-- Only change the background, lighting and environment as the user requested
+=== ABSOLUTE PRODUCT-INTEGRITY RULES (embed ALL of these in the output prompt) ===
+1. PIXEL-PERFECT PRODUCT REPRODUCTION — the product must be an exact, undistorted copy of the source photo: identical geometry, proportions, aspect ratio, curvature, edges, corners, and silhouette. No stretching, squishing, warping, bending, skewing, or perspective changes.
+2. PRESERVE EVERY VISUAL DETAIL — same colours, textures, surface finish, reflections, logos, labels, text, stitching, buttons, ports, patterns, and materials. Nothing added, nothing removed.
+3. NO CREATIVE REINTERPRETATION — do NOT redesign, stylize, cartoonify, simplify, or artistically alter the product in any way.
+4. CHANGE ONLY THE ENVIRONMENT — background, scene, props, lighting, shadows, and ambient reflections may change per the user's request. The product itself is a locked, untouchable element.
+5. NATURAL PLACEMENT — the product must sit naturally with physically correct shadows, but its shape must NOT adapt or deform to fit the environment.
+6. PHOTOREALISTIC OUTPUT — the final image must look like a real product photograph.
 
-Return only the prompt, no explanations.`,
+Return ONLY the prompt text, no commentary.`,
       ]);
 
       return result.response.text();
@@ -166,22 +171,23 @@ Return only the prompt, no explanations.`,
 
     return this.withRetry('generateReworkPrompt', async () => {
       const result = await model.generateContent([
-        `You are an expert at creating prompts for AI image generation for e-commerce product thumbnails.
+        `You are a world-class prompt engineer specialising in photorealistic e-commerce product thumbnails.
 
 Product description: ${productDescription}
 User modification request: ${userPrompt}
 
-The user wants to MODIFY an already-generated product thumbnail. The first image provided will be the EXISTING thumbnail that needs modification.
-Create a detailed prompt that instructs the AI to take that existing thumbnail and apply ONLY the requested changes while preserving everything else.
+The user wants to MODIFY an already-generated thumbnail. The FIRST image will be the existing thumbnail to refine.
+Create a detailed prompt that instructs the AI to apply ONLY the requested changes.
 
-CRITICAL RULES - include these explicitly in the prompt:
-- Start from the PROVIDED image (the existing thumbnail) and modify it
-- The product must remain IDENTICAL: same shape, same colors, same design, same branding, same proportions
-- Apply ONLY the changes the user requested
-- Preserve the overall composition and layout unless the user asks to change it
-- The result should look like a refined version of the input, not a completely new image
+=== ABSOLUTE PRODUCT-INTEGRITY RULES (embed ALL of these in the output prompt) ===
+1. START FROM THE PROVIDED IMAGE — this is an edit/refinement, NOT a new generation. Use the existing thumbnail as the starting canvas.
+2. PIXEL-PERFECT PRODUCT SHAPE — the product's geometry, proportions, aspect ratio, curvature, edges, corners, and silhouette must remain 100 % identical. No stretching, squishing, warping, bending, skewing, or perspective changes whatsoever.
+3. PRESERVE EVERY VISUAL DETAIL — same colours, textures, surface finish, reflections, logos, labels, text, stitching, buttons, ports, patterns, and materials. Nothing added to or removed from the product.
+4. NO CREATIVE REINTERPRETATION — do NOT redesign, stylize, cartoonify, simplify, or artistically alter the product.
+5. MINIMAL CHANGE PRINCIPLE — modify ONLY what the user explicitly requested. Everything else (composition, product placement, product appearance) stays identical to the input.
+6. PHOTOREALISTIC OUTPUT — the final image must look like a real product photograph.
 
-Return only the prompt, no explanations.`,
+Return ONLY the prompt text, no commentary.`,
       ]);
 
       return result.response.text();
@@ -215,10 +221,10 @@ Return only the prompt, no explanations.`,
           mimeType: referenceImageMimeType as GeminiImageMimeType,
         },
       });
-      parts.push({ text: 'The second image above is a REFERENCE image showing the desired style, background or composition. Use it only as visual inspiration for the environment/background — do NOT copy any products or objects from it.' });
+      parts.push({ text: 'The second image above is a REFERENCE for style/background/composition ONLY. Use it as visual inspiration for the environment and lighting — do NOT copy, morph, or blend any products or objects from it into the output. The product from the FIRST image must remain geometrically and visually untouched.' });
     }
 
-    parts.push({ text: `${prompt}\n\nIMPORTANT: Keep the product from the FIRST provided photo EXACTLY as it is — same shape, colors, design, branding, text and proportions. Do NOT modify, stylize or redesign the product itself. Only change the background and lighting environment.` });
+    parts.push({ text: `${prompt}\n\n=== MANDATORY PRODUCT-INTEGRITY CONSTRAINT ===\nThe product visible in the FIRST photo is LOCKED. You MUST reproduce it with:\n• Identical geometry, silhouette, proportions, and aspect ratio — NO stretching, squishing, warping, bending, skewing, rounding of corners, or any spatial distortion.\n• Identical colours, textures, logos, labels, text, surface finish, reflections, stitching, buttons, ports, and patterns — pixel-level fidelity.\n• NO redesign, simplification, stylization, cartoon effects, or artistic reinterpretation of the product.\n• The product is an untouchable, sacred element — treat it as a cut-out pasted onto the new scene.\n• You may ONLY change: background, environment, scene lighting, ambient shadows, and reflections on surrounding surfaces.\n• Output must be photorealistic, high-resolution, suitable as a professional e-commerce thumbnail.` });
 
     const generationConfig: ImageGenerationConfig = {
       responseModalities: ['IMAGE'],
