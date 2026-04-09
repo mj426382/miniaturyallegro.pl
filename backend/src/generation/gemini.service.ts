@@ -121,6 +121,37 @@ export class GeminiService {
     throw new Error(`[${label}] All models and retries exhausted`);
   }
 
+  /**
+   * Simple retry with exponential backoff for image generation (no model fallback).
+   */
+  private async simpleRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
+    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        const message = error?.message ?? '';
+        const isRetryable =
+          message.includes('503') ||
+          message.includes('429') ||
+          message.includes('Service Unavailable') ||
+          message.includes('high demand') ||
+          message.includes('RESOURCE_EXHAUSTED') ||
+          message.includes('overloaded');
+
+        if (!isRetryable || attempt === this.MAX_RETRIES) {
+          throw error;
+        }
+
+        const delay = this.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
+        this.logger.warn(
+          `[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} failed: ${message.substring(0, 200)}. Retrying in ${Math.round(delay)}ms...`,
+        );
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+    throw new Error(`[${label}] All retries exhausted`);
+  }
+
   async generateImageDescription(imageBase64: string, mimeType: string): Promise<string> {
     return this.withRetry('generateImageDescription', async (textModel) => {
       const model = this.genAI.getGenerativeModel({ model: textModel });
@@ -337,7 +368,7 @@ Eleganckie zdjęcie z gradientem...
       responseModalities: ['IMAGE'],
     };
 
-    return this.withRetry('generateImage', async (_textModel) => {
+    return this.simpleRetry('generateImage', async () => {
       const result = await model.generateContent({
         contents: [{ role: 'user', parts }],
         generationConfig: generationConfig as any,
