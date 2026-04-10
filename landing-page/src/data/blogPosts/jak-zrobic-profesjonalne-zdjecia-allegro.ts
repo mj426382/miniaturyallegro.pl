@@ -36,7 +36,7 @@ Jeśli sprzedajesz wiele produktów, warto trzymać się jednego stylu wizualneg
 
 ## Jak AI może pomóc w tworzeniu grafik produktowych?
 
-Narzędzia takie jak **AllGrafika.pl** używają sztucznej inteligencji (Google Gemini 2.5) do automatycznego generowania profesjonalnych grafik produktowych. Wystarczy wgrać zdjęcie produktu, a system wygeneruje **6 wariantów** w różnych stylach dostosowanych do Allegro, lub można podać własny prompt z opcjonalnym zdjęciem referencyjnym.
+Narzędzia takie jak **AllGrafika.pl** używają dedykowanego AI do tworzenia grafik — automatycznego generowania profesjonalnych grafik produktowych. Wystarczy wgrać zdjęcie produktu, a system wygeneruje **6 wariantów** w różnych stylach dostosowanych do Allegro, lub można podać własny prompt z opcjonalnym zdjęciem referencyjnym.
 
 ## Podsumowanie
 

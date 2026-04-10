@@ -15,8 +15,8 @@ const features = [
   },
   {
     icon: '🤖',
-    title: 'Google Gemini 2.5 AI',
-    desc: 'Model Gemini 2.5 Flash Image analizuje produkt, generuje opis i tworzy grafiki. Produkt zostaje identyczny — zmienia się tylko tło i oświetlenie.',
+    title: 'Dedykowane AI do grafik',
+    desc: 'Nasz autorski model AI analizuje produkt, generuje opis i tworzy grafiki. Produkt zostaje identyczny — zmienia się tylko tło i oświetlenie.',
   },
   {
     icon: '📦',
@@ -37,7 +37,7 @@ const features = [
 
 const steps = [
   { number: '1', title: 'Prześlij zdjęcie', desc: 'Załaduj zdjęcie produktu (JPG, PNG, WebP, maks. 10 MB). Możesz przesłać pojedynczo lub hurtem do 50 zdjęć.' },
-  { number: '2', title: 'AI generuje grafiki', desc: 'Gemini AI analizuje produkt i generuje 6 wariantów w różnych stylach. Produkt zostaje identyczny — zmienia się tło. Chcesz inaczej? Opisz własny styl.' },
+  { number: '2', title: 'AI generuje grafiki', desc: 'Dedykowane AI analizuje produkt i generuje 6 wariantów w różnych stylach. Produkt zostaje identyczny — zmienia się tło. Chcesz inaczej? Opisz własny styl.' },
   { number: '3', title: 'Pobierz i publikuj', desc: 'Wybierz najlepszą grafikę i wstaw na list na Allegro. Nie pasuje? Skorzystaj z „Przeróbki”.' },
 ]
 
@@ -97,7 +97,7 @@ export default function Home() {
     <>
       <Helmet>
         <title>AllGrafika – Generator grafik produktowych AI dla Allegro | AllGrafika.pl</title>
-        <meta name="description" content="Generuj profesjonalne grafiki produktowe Allegro dzięki Google Gemini AI. 6 stylów automatycznie + własny prompt z referencją. Pierwsze 10 grafik za darmo!" />
+        <meta name="description" content="Generuj profesjonalne grafiki produktowe Allegro dzięki dedykowanemu AI do tworzenia grafik. 6 stylów automatycznie + własny prompt z referencją. Pierwsze 10 grafik za darmo!" />
         <meta name="keywords" content="grafiki allegro, zdjęcia produktowe allegro, generator grafik allegro, AI grafiki allegro, allgrafika" />
         <meta property="og:title" content="AllGrafika – Generator grafik produktowych AI dla Allegro" />
         <meta property="og:description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund dzięki AI. 6 różnych stylów dla każdego produktu." />
@@ -115,7 +115,7 @@ export default function Home() {
           </div>
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center">
             <span className="inline-block bg-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-              🚀 Powered by Google Gemini AI
+              🚀 Powered by dedykowane AI do tworzenia grafik
             </span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
               Profesjonalne<br />
@@ -149,7 +149,7 @@ export default function Home() {
         <section className="bg-gray-50 border-b border-gray-100 py-6">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-500">
-              <span>🤖 Google Gemini 2.5 Flash Image</span>
+              <span>🤖 Dedykowane AI do tworzenia grafik</span>
               <span>•</span>
               <span>🎨 6 stylów auto + własny prompt</span>
               <span>•</span>

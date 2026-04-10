@@ -40,7 +40,7 @@ Każda kategoria i grupa docelowa jest inna, dlatego warto przeprowadzać **A/B 
 
 ## Jak AllGrafika.pl ułatwia tworzenie miniaturek?
 
-Dzięki **AllGrafika.pl** możesz w prosty sposób wygenerować aż 12 wariantów miniaturek swojego produktu w różnych stylach, takich jak białe tło, lifestyle, czy minimalistyczny. Narzędzie wykorzystuje technologię Google Gemini AI, by dobrać optymalny wygląd miniaturki i zwiększyć Twoje szanse na wyższy CTR.
+Dzięki **AllGrafika.pl** możesz w prosty sposób wygenerować aż 12 wariantów miniaturek swojego produktu w różnych stylach, takich jak białe tło, lifestyle, czy minimalistyczny. Narzędzie wykorzystuje dedykowane AI do tworzenia grafik, by dobrać optymalny wygląd miniaturki i zwiększyć Twoje szanse na wyższy CTR.
 
 Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,

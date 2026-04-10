@@ -47,7 +47,7 @@ Zamiast tracić czas na poprawianie zdjęć, skorzystaj z narzędzia **AllGrafik
 - Automatycznie generuje **zdjęcia na białym tle**, które są zgodne z wymaganiami Allegro.
 - Przygotowuje obrazy w odpowiednim formacie i rozdzielczości.
 - Tworzy różne style miniaturek, np. **Flat lay** czy **Lifestyle**, które możesz wykorzystać w dalszych zdjęciach oferty.
-- Dzięki wsparciu AI, jak Google Gemini, optymalizuje zdjęcia i opisy, by zwiększyć CTR.
+- Dzięki wsparciu dedykowanego AI do tworzenia grafik optymalizuje zdjęcia i opisy, by zwiększyć CTR.
 
 ## Porady dla sprzedawców Allegro
 

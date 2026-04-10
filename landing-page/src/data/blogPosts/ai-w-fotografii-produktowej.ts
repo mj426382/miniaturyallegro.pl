@@ -17,9 +17,9 @@ Systemy takie jak AllGrafika.pl łączą kilka technologii:
 2. **Large Language Models (LLM)** – generowanie opisu produktu i promptów
 3. **Diffusion Models** – generowanie nowych wersji zdjęcia
 
-### Google Gemini w służbie e-commerce
+### Dedykowane AI w służbie e-commerce
 
-AllGrafika.pl wykorzystuje **Google Gemini**, jeden z najbardziej zaawansowanych modeli AI. Gemini potrafi rozpoznać typ produktu, zidentyfikować kluczowe cechy wizualne i wygenerować opisy dostosowane do każdego stylu.
+AllGrafika.pl wykorzystuje **dedykowany model AI do tworzenia grafik**, jeden z najbardziej zaawansowanych w branży. Nasz AI potrafi rozpoznać typ produktu, zidentyfikować kluczowe cechy wizualne i wygenerować opisy dostosowane do każdego stylu.
 
 ## Korzyści dla sprzedawców Allegro
 
