@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import toast from 'react-hot-toast'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [touched, setTouched] = useState({ email: false })
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -23,23 +23,26 @@ export default function Login() {
     e.preventDefault()
 
     if (!email || !password) {
-      toast.error('Wypełnij wszystkie pola')
+      setError('Wypełnij wszystkie pola')
       return
     }
 
     setIsLoading(true)
+    setError('')
     try {
       await login(email.trim().toLowerCase(), password)
       navigate('/')
     } catch (err: any) {
       const message = err.response?.data?.message
+      let errorMsg: string
       if (err.response?.status === 429) {
-        toast.error('Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.')
+        errorMsg = 'Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.'
       } else if (Array.isArray(message)) {
-        message.forEach((msg: string) => toast.error(msg))
+        errorMsg = message.join('. ')
       } else {
-        toast.error(message || 'Nieprawidłowy email lub hasło')
+        errorMsg = message || 'Nieprawidłowy email lub hasło'
       }
+      setError(errorMsg)
     } finally {
       setIsLoading(false)
     }
@@ -54,6 +57,15 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm flex items-start gap-3">
+              <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
