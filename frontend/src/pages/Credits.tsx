@@ -108,7 +108,7 @@ export default function Credits() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Kredyty</h1>
-      <p className="text-gray-500 mb-8">1 kredyt = 1 wygenerowana miniaturka produktowa = 2 zł (komplet 6 stylów = 12 zł)</p>
+      <p className="text-gray-500 mb-8">1 kredyt = 1 wygenerowana grafika produktowa = 2 zł (komplet 6 stylów = 12 zł)</p>
 
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
@@ -118,7 +118,7 @@ export default function Credits() {
               <SparklesIcon className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Darmowe miniaturki</p>
+              <p className="text-sm text-gray-500">Darmowe grafiki</p>
               <p className="text-2xl font-bold text-gray-900">{freeLeft} / {FREE_LIMIT}</p>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function Credits() {
           <p className="text-xs text-gray-400 mt-2">
             {freeUsed === 0
               ? 'Nie użyto jeszcze żadnego darmowego kredytu'
-              : `Użyto ${freeUsed} z ${FREE_LIMIT} darmowych miniaturek`}
+              : `Użyto ${freeUsed} z ${FREE_LIMIT} darmowych grafik`}
           </p>
         </div>
 
@@ -179,7 +179,7 @@ export default function Credits() {
             <ul className="text-sm text-gray-600 space-y-1 flex-1">
               <li className="flex items-center gap-2">
                 <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
-                {pkg.credits} miniaturek
+                {pkg.credits} grafik
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
@@ -257,7 +257,7 @@ export default function Credits() {
         <div className="text-center py-8 text-gray-400">
           <CreditCardIcon className="h-12 w-12 mx-auto mb-3 opacity-40" />
           <p>Brak historii transakcji</p>
-          <p className="text-sm mt-1">Pierwsze 10 miniaturek jest darmowych!</p>
+          <p className="text-sm mt-1">Pierwsze 10 grafik jest darmowych!</p>
         </div>
       )}
 

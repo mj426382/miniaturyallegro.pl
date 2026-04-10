@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI, Part } from '@google/generative-ai';
+import axios from 'axios';
 
 export interface GenerationStyle {
   id: string;
@@ -25,106 +26,90 @@ export interface GeneratedImage {
 /** Supported inline image MIME types accepted by the Gemini API. */
 type GeminiImageMimeType = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
 
-/**
- * Extended generation config that includes `responseModalities` which is
- * supported by Gemini image-generation models but not yet typed in the SDK.
- */
 interface ImageGenerationConfig {
   responseModalities: Array<'IMAGE' | 'TEXT'>;
 }
 
 @Injectable()
 export class GeminiService {
-  private genAI: GoogleGenerativeAI;
   private readonly logger = new Logger(GeminiService.name);
 
-  /** Text model fallback chain — tries each model in order on persistent failures */
-  private readonly TEXT_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-preview-04-17', 'gemini-2.5-pro'];
-  /** Currently active text model index */
-  private activeTextModelIdx = 0;
-  /** Image generation model */
-  private readonly IMAGE_MODEL = 'gemini-2.5-flash-preview-04-17';
+  // ─── OpenAI for text tasks (reliable, no 503) ────────────────────
+  private readonly openaiApiKey: string;
+  private readonly TEXT_MODEL = 'gpt-4o-mini';
+
+  // ─── Gemini for image generation (only model that does image→image) ─
+  private genAI: GoogleGenerativeAI;
+  private readonly IMAGE_MODEL = 'gemini-2.5-flash-image';
 
   private readonly MAX_RETRIES = 4;
   private readonly BASE_DELAY_MS = 2000;
 
   constructor(private configService: ConfigService) {
-    const apiKey = configService.get<string>('GEMINI_API_KEY');
-    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.openaiApiKey = configService.get<string>('OPENAI_API_KEY');
+    const geminiKey = configService.get<string>('GEMINI_API_KEY');
+    this.genAI = new GoogleGenerativeAI(geminiKey);
   }
 
-  /** Get the currently active text model name */
-  private get TEXT_MODEL(): string {
-    return this.TEXT_MODELS[this.activeTextModelIdx];
-  }
+  // ─── OpenAI text helpers ──────────────────────────────────────────
 
-  /**
-   * Retry with exponential backoff. On persistent 503/429, tries fallback text models.
-   */
-  private async withRetry<T>(label: string, fn: (textModel: string) => Promise<T>): Promise<T> {
-    // Try each model in the fallback chain
-    const startModelIdx = this.activeTextModelIdx;
+  private async openaiChat(label: string, messages: Array<{ role: string; content: any }>): Promise<string> {
+    for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        const response = await axios.post(
+          'https://api.openai.com/v1/chat/completions',
+          { model: this.TEXT_MODEL, messages, max_tokens: 2000 },
+          {
+            headers: {
+              'Authorization': `Bearer ${this.openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 60000,
+          },
+        );
+        return response.data.choices[0].message.content;
+      } catch (error: any) {
+        const status = error?.response?.status;
+        const message = error?.response?.data?.error?.message || error?.message || '';
+        const isQuotaError = status === 429 && String(message).toLowerCase().includes('quota');
+        const isRetryable = (status === 429 && !isQuotaError) || status === 500 || status === 502 || status === 503;
 
-    for (let modelAttempt = 0; modelAttempt < this.TEXT_MODELS.length; modelAttempt++) {
-      const modelIdx = (startModelIdx + modelAttempt) % this.TEXT_MODELS.length;
-      const modelName = this.TEXT_MODELS[modelIdx];
-
-      for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
-        try {
-          return await fn(modelName);
-        } catch (error: any) {
-          const message = error?.message ?? '';
-          const is503 =
-            message.includes('503') ||
-            message.includes('Service Unavailable') ||
-            message.includes('high demand') ||
-            message.includes('overloaded');
-          const is429 =
-            message.includes('429') ||
-            message.includes('RESOURCE_EXHAUSTED');
-          const is404 =
-            message.includes('404') ||
-            message.includes('not found') ||
-            message.includes('is not found');
-          const isRetryable = is503 || is429;
-
-          // Model doesn't exist — skip to next fallback immediately
-          if (is404) {
-            this.logger.warn(`[${label}] Model "${modelName}" not available (404), trying next fallback...`);
-            break;
-          }
-
-          if (!isRetryable || attempt === this.MAX_RETRIES) {
-            // If all retries exhausted for this model, try next fallback
-            if (isRetryable && modelAttempt < this.TEXT_MODELS.length - 1) {
-              this.logger.warn(`[${label}] All retries exhausted for "${modelName}", trying next fallback...`);
-              break;
-            }
-            throw error;
-          }
-
-          const delay = this.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
-          this.logger.warn(
-            `[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} on "${modelName}" failed: ${message.substring(0, 200)}. Retrying in ${Math.round(delay)}ms...`,
-          );
-          await new Promise((r) => setTimeout(r, delay));
+        if (!isRetryable || attempt === this.MAX_RETRIES) {
+          this.logger.error(`[${label}] OpenAI error: ${message}`);
+          throw new Error(`[${label}] OpenAI API failed: ${message}`);
         }
-      }
 
-      // If we got here, the current model failed — switch active model for future calls
-      if (modelAttempt < this.TEXT_MODELS.length - 1) {
-        const nextIdx = (startModelIdx + modelAttempt + 1) % this.TEXT_MODELS.length;
-        this.activeTextModelIdx = nextIdx;
-        this.logger.log(`[${label}] Switched active text model to "${this.TEXT_MODELS[nextIdx]}"`);
+        const delay = this.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
+        this.logger.warn(`[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} failed (${status}). Retrying in ${Math.round(delay)}ms...`);
+        await new Promise((r) => setTimeout(r, delay));
       }
     }
-    throw new Error(`[${label}] All models and retries exhausted`);
+    throw new Error(`[${label}] All retries exhausted`);
   }
 
-  /**
-   * Simple retry with exponential backoff for image generation (no model fallback).
-   */
-  private async simpleRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  private async textCompletion(label: string, systemPrompt: string, userPrompt: string): Promise<string> {
+    return this.openaiChat(label, [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ]);
+  }
+
+  private async visionCompletion(label: string, systemPrompt: string, userText: string, imageBase64: string, mimeType: string): Promise<string> {
+    return this.openaiChat(label, [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+          { type: 'text', text: userText },
+        ],
+      },
+    ]);
+  }
+
+  // ─── Gemini image retry ───────────────────────────────────────────
+
+  private async geminiRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
     for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         return await fn();
@@ -143,33 +128,23 @@ export class GeminiService {
         }
 
         const delay = this.BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
-        this.logger.warn(
-          `[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} failed: ${message.substring(0, 200)}. Retrying in ${Math.round(delay)}ms...`,
-        );
+        this.logger.warn(`[${label}] Attempt ${attempt + 1}/${this.MAX_RETRIES} failed: ${message.substring(0, 200)}. Retrying in ${Math.round(delay)}ms...`);
         await new Promise((r) => setTimeout(r, delay));
       }
     }
     throw new Error(`[${label}] All retries exhausted`);
   }
 
+  // ─── Public API: text tasks → OpenAI ──────────────────────────────
+
   async generateImageDescription(imageBase64: string, mimeType: string): Promise<string> {
-    return this.withRetry('generateImageDescription', async (textModel) => {
-      const model = this.genAI.getGenerativeModel({ model: textModel });
-
-      const imagePart: Part = {
-        inlineData: {
-          data: imageBase64,
-          mimeType: mimeType as GeminiImageMimeType,
-        },
-      };
-
-      const result = await model.generateContent([
-        imagePart,
-        'Opisz ten produkt szczegółowo na potrzeby generowania obrazów AI, które musi zachować produkt dokładnie w oryginalnej formie. Uwzględnij: typ produktu, dokładny kształt i proporcje (stosunek boków, proste/zakrzywione krawędzie, symetrię), wszystkie kolory i gradienty, tekstury powierzchni i materiały, loga/etykiety/napisy, charakterystyczne cechy (przyciski, porty, szwy itp.) oraz przeznaczenie. Bądź zwięzły, ale dokładny (3-4 zdania). Odpowiedz po polsku.',
-      ]);
-
-      return result.response.text();
-    });
+    return this.visionCompletion(
+      'generateImageDescription',
+      'Jesteś ekspertem od opisu produktów e-commerce. Odpowiadasz po polsku.',
+      'Opisz ten produkt szczegółowo na potrzeby generowania obrazów AI, które musi zachować produkt dokładnie w oryginalnej formie. Uwzględnij: typ produktu, dokładny kształt i proporcje (stosunek boków, proste/zakrzywione krawędzie, symetrię), wszystkie kolory i gradienty, tekstury powierzchni i materiały, loga/etykiety/napisy, charakterystyczne cechy (przyciski, porty, szwy itp.) oraz przeznaczenie. Bądź zwięzły, ale dokładny (3-4 zdania).',
+      imageBase64,
+      mimeType,
+    );
   }
 
   async generatePromptForStyle(
@@ -181,95 +156,68 @@ export class GeminiService {
       ? `Dodatkowe wskazówki użytkownika (zastosuj do WSZYSTKICH stylów): ${basePrompt}\n`
       : '';
 
-    return this.withRetry('generatePromptForStyle', async (textModel) => {
-      const model = this.genAI.getGenerativeModel({ model: textModel });
-      const result = await model.generateContent([
-        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
-
-Opis produktu: ${productDescription}
+    return this.textCompletion(
+      'generatePromptForStyle',
+      'Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce. Zwracasz TYLKO tekst promptu, bez komentarzy. Prompt piszesz po polsku.',
+      `Opis produktu: ${productDescription}
 ${basePromptSection}Styl: ${style.name}
 Bazowy prompt stylu: ${style.prompt}
 
 Stwórz szczegółowy prompt do generowania obrazu, który łączy produkt z żądanym stylem.
 
 === BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść WSZYSTKIE w wygenerowanym prompcie) ===
-1. WIERNA REPRODUKCJA PRODUKTU — produkt musi być dokładną, niezniekształconą kopią zdjęcia źródłowego: identyczna geometria, proporcje, stosunek boków, krzywizny, krawędzie, narożniki i sylwetka. Żadnego rozciągania, ściskania, wyginania, skręcania, pochylania ani zmiany perspektywy.
-2. ZACHOWAJ KAŻDY DETAL WIZUALNY — te same kolory, tekstury, wykończenie powierzchni, odbicia, loga, etykiety, napisy, szwy, przyciski, porty, wzory i materiały. Nic nie dodawaj, nic nie usuwaj.
-3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — NIE przeprojektowuj, nie stylizuj, nie rób kreskówki, nie upraszczaj ani nie zmieniaj artystycznie produktu w żaden sposób. Traktuj go jako święty, nietykalny element.
-4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, oświetlenie, cienie i odbicia na otaczających powierzchniach mogą się zmieniać zgodnie ze stylem. Sam produkt to zablokowana warstwa.
-5. NATURALNE UMIEJSCOWIENIE — produkt musi naturalnie wyglądać w scenie z fizycznie poprawnymi cieniami i odbiciami, ale jego kształt NIE może się dostosowywać do otoczenia (bez wyginania do powierzchni, bez rybiego oka, bez sztucznego pochylenia).
-6. FOTOREALISTYCZNY REZULTAT — końcowy obraz musi wyglądać jak prawdziwe, profesjonalne zdjęcie produktowe, nie render ani ilustracja.
-
-Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
-      ]);
-
-      return result.response.text();
-    });
+1. WIERNA REPRODUKCJA PRODUKTU — identyczna geometria, proporcje, sylwetka. Żadnego rozciągania, ściskania, wyginania.
+2. ZACHOWAJ KAŻDY DETAL WIZUALNY — kolory, tekstury, loga, napisy, materiały.
+3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — produkt to święty, nietykalny element.
+4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, oświetlenie, cienie.
+5. NATURALNE UMIEJSCOWIENIE z poprawnymi cieniami.
+6. FOTOREALISTYCZNY REZULTAT.`,
+    );
   }
 
   async generateCustomPrompt(
     productDescription: string,
     userPrompt: string,
   ): Promise<string> {
-    return this.withRetry('generateCustomPrompt', async (textModel) => {
-      const model = this.genAI.getGenerativeModel({ model: textModel });
-      const result = await model.generateContent([
-        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
-
-Opis produktu: ${productDescription}
+    return this.textCompletion(
+      'generateCustomPrompt',
+      'Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce. Zwracasz TYLKO tekst promptu, bez komentarzy. Prompt piszesz po polsku.',
+      `Opis produktu: ${productDescription}
 Życzenie użytkownika: ${userPrompt}
 
 Stwórz szczegółowy prompt do generowania obrazu, który umieszcza produkt w scenie/stylu opisanym przez użytkownika.
 
 === BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść WSZYSTKIE w wygenerowanym prompcie) ===
-1. WIERNA REPRODUKCJA PRODUKTU — produkt musi być dokładną, niezniekształconą kopią zdjęcia źródłowego: identyczna geometria, proporcje, stosunek boków, krzywizny, krawędzie, narożniki i sylwetka. Żadnego rozciągania, ściskania, wyginania, skręcania, pochylania ani zmiany perspektywy.
-2. ZACHOWAJ KAŻDY DETAL WIZUALNY — te same kolory, tekstury, wykończenie powierzchni, odbicia, loga, etykiety, napisy, szwy, przyciski, porty, wzory i materiały. Nic nie dodawaj, nic nie usuwaj.
-3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — NIE przeprojektowuj, nie stylizuj, nie rób kreskówki, nie upraszczaj ani nie zmieniaj artystycznie produktu.
-4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, rekwizyty, oświetlenie, cienie i odbicia otoczenia mogą się zmieniać zgodnie z życzeniem użytkownika. Sam produkt to zablokowany, nietykalny element.
-5. NATURALNE UMIEJSCOWIENIE — produkt musi naturalnie wyglądać w scenie z fizycznie poprawnymi cieniami, ale jego kształt NIE może się dostosowywać ani deformować.
-6. FOTOREALISTYCZNY REZULTAT — końcowy obraz musi wyglądać jak prawdziwe zdjęcie produktowe.
-
-Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
-      ]);
-
-      return result.response.text();
-    });
+1. WIERNA REPRODUKCJA PRODUKTU — identyczna geometria, proporcje, sylwetka.
+2. ZACHOWAJ KAŻDY DETAL WIZUALNY — kolory, tekstury, loga, napisy, materiały.
+3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — produkt to nietykalny element.
+4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, oświetlenie, cienie.
+5. NATURALNE UMIEJSCOWIENIE z poprawnymi cieniami.
+6. FOTOREALISTYCZNY REZULTAT.`,
+    );
   }
 
   async generateReworkPrompt(
     productDescription: string,
     userPrompt: string,
   ): Promise<string> {
-    return this.withRetry('generateReworkPrompt', async (textModel) => {
-      const model = this.genAI.getGenerativeModel({ model: textModel });
-      const result = await model.generateContent([
-        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
-
-Opis produktu: ${productDescription}
+    return this.textCompletion(
+      'generateReworkPrompt',
+      'Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce. Zwracasz TYLKO tekst promptu, bez komentarzy. Prompt piszesz po polsku.',
+      `Opis produktu: ${productDescription}
 Żądana modyfikacja: ${userPrompt}
 
-Użytkownik chce ZMODYFIKOWAĆ już wygenerowaną miniaturkę. PIERWSZY obraz to istniejąca miniaturka do poprawy.
+Użytkownik chce ZMODYFIKOWAĆ już wygenerowaną miniaturkę.
 Stwórz szczegółowy prompt, który instruuje AI, aby zastosowało TYLKO żądane zmiany.
 
-=== BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść WSZYSTKIE w wygenerowanym prompcie) ===
-1. ZACZNIJ OD DOSTARCZONEGO OBRAZU — to jest edycja/poprawka, NIE nowa generacja. Użyj istniejącej miniaturki jako płótna startowego.
-2. IDEALNY KSZTAŁT PRODUKTU — geometria, proporcje, stosunek boków, krzywizny, krawędzie, narożniki i sylwetka produktu muszą pozostać w 100% identyczne. Żadnego rozciągania, ściskania, wyginania, skręcania, pochylania ani jakichkolwiek zmian perspektywy.
-3. ZACHOWAJ KAŻDY DETAL WIZUALNY — te same kolory, tekstury, wykończenie powierzchni, odbicia, loga, etykiety, napisy, szwy, przyciski, porty, wzory i materiały. Nic nie dodawaj ani nie usuwaj z produktu.
-4. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — NIE przeprojektowuj, nie stylizuj, nie rób kreskówki, nie upraszczaj ani nie zmieniaj artystycznie produktu.
-5. ZASADA MINIMALNEJ ZMIANY — modyfikuj TYLKO to, o co użytkownik wyraźnie poprosił. Wszystko inne (kompozycja, umiejscowienie produktu, wygląd produktu) pozostaje identyczne z wejściem.
-6. FOTOREALISTYCZNY REZULTAT — końcowy obraz musi wyglądać jak prawdziwe zdjęcie produktowe.
-
-Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
-      ]);
-
-      return result.response.text();
-    });
+=== ZASADY ===
+1. ZACZNIJ OD DOSTARCZONEGO OBRAZU — edycja, nie nowa generacja.
+2. ZACHOWAJ PRODUKT IDENTYCZNIE — geometria, kolory, detale.
+3. ZASADA MINIMALNEJ ZMIANY — modyfikuj TYLKO to, o co użytkownik poprosił.
+4. FOTOREALISTYCZNY REZULTAT.`,
+    );
   }
 
-  /**
-   * Generate optimized prompts for ALL styles in a single API call.
-   * Saves 5 API calls vs calling generatePromptForStyle 6 times.
-   */
   async generateAllStylePrompts(
     productDescription: string,
     styles: GenerationStyle[],
@@ -281,20 +229,18 @@ Zwróć TYLKO tekst promptu, bez komentarzy. Prompt napisz po polsku.`,
 
     const stylesListText = styles.map((s, i) => `${i + 1}. ID: "${s.id}" | Nazwa: "${s.name}" | Bazowy prompt: "${s.prompt}"`).join('\n');
 
-    return this.withRetry('generateAllStylePrompts', async (textModel) => {
-      const model = this.genAI.getGenerativeModel({ model: textModel });
-      const result = await model.generateContent([
-        `Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce.
-
-Opis produktu: ${productDescription}
+    const responseText = await this.textCompletion(
+      'generateAllStylePrompts',
+      'Jesteś światowej klasy inżynierem promptów specjalizującym się w fotorealistycznych miniaturkach produktów e-commerce. Odpowiadasz DOKŁADNIE w żądanym formacie. Prompty piszesz po polsku.',
+      `Opis produktu: ${productDescription}
 ${basePromptSection}
 Wygeneruj prompt do generowania obrazu DLA KAŻDEGO z poniższych stylów:
 ${stylesListText}
 
-=== BEZWZGLĘDNE ZASADY INTEGRALNOŚCI PRODUKTU (umieść w KAŻDYM prompcie) ===
-1. WIERNA REPRODUKCJA PRODUKTU — identyczna geometria, proporcje, sylwetka. Żadnego rozciągania, ściskania, wyginania.
-2. ZACHOWAJ KAŻDY DETAL WIZUALNY — kolory, tekstury, loga, napisy, materiały.
-3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — produkt to święty, nietykalny element.
+=== ZASADY INTEGRALNOŚCI PRODUKTU (umieść w KAŻDYM prompcie) ===
+1. WIERNA REPRODUKCJA PRODUKTU — identyczna geometria, proporcje, sylwetka.
+2. ZACHOWAJ KAŻDY DETAL WIZUALNY — kolory, tekstury, loga, napisy.
+3. ŻADNEJ TWÓRCZEJ REINTERPRETACJI — produkt to nietykalny element.
 4. ZMIENIAJ TYLKO OTOCZENIE — tło, scena, oświetlenie, cienie.
 5. NATURALNE UMIEJSCOWIENIE z poprawnymi cieniami.
 6. FOTOREALISTYCZNY REZULTAT.
@@ -304,33 +250,32 @@ ODPOWIEDZ W FORMACIE (dokładnie, bez dodatkowego tekstu):
 [prompt po polsku]
 ===KONIEC===
 
-Przyład:
+Przykład:
 ===white-bg===
 Profesjonalne zdjęcie produktu...
 ===KONIEC===
 ===gradient-bg===
 Eleganckie zdjęcie z gradientem...
 ===KONIEC===`,
-      ]);
+    );
 
-      const responseText = result.response.text();
-      const prompts = new Map<string, string>();
+    const prompts = new Map<string, string>();
 
-      for (const style of styles) {
-        const regex = new RegExp(`===${style.id}===\\n?([\\s\\S]*?)===KONIEC===`);
-        const match = responseText.match(regex);
-        if (match) {
-          prompts.set(style.id, match[1].trim());
-        } else {
-          // Fallback: generate individually
-          this.logger.warn(`Could not parse prompt for style ${style.id} from batch, using fallback`);
-          prompts.set(style.id, style.prompt);
-        }
+    for (const style of styles) {
+      const regex = new RegExp(`===${style.id}===\\n?([\\s\\S]*?)===KONIEC===`);
+      const match = responseText.match(regex);
+      if (match) {
+        prompts.set(style.id, match[1].trim());
+      } else {
+        this.logger.warn(`Could not parse prompt for style ${style.id} from batch, using fallback`);
+        prompts.set(style.id, style.prompt);
       }
+    }
 
-      return prompts;
-    });
+    return prompts;
   }
+
+  // ─── Public API: image generation → Gemini ────────────────────────
 
   async generateImage(
     imageBase64: string,
@@ -339,9 +284,7 @@ Eleganckie zdjęcie z gradientem...
     referenceImageBase64?: string,
     referenceImageMimeType?: string,
   ): Promise<GeneratedImage> {
-    const model = this.genAI.getGenerativeModel({
-      model: this.IMAGE_MODEL,
-    });
+    const model = this.genAI.getGenerativeModel({ model: this.IMAGE_MODEL });
 
     const imagePart: Part = {
       inlineData: {
@@ -362,13 +305,13 @@ Eleganckie zdjęcie z gradientem...
       parts.push({ text: 'Drugi obraz powyżej to REFERENCJA wyłącznie dla stylu/tła/kompozycji. Użyj go jako wizualnej inspiracji dla otoczenia i oświetlenia — NIE kopiuj, nie przenoś ani nie łącz żadnych produktów ani obiektów z niego do wyniku. Produkt z PIERWSZEGO obrazu musi pozostać geometrycznie i wizualnie nienaruszony.' });
     }
 
-    parts.push({ text: `${prompt}\n\n=== OBOWIĄZKOWE OGRANICZENIE INTEGRALNOŚCI PRODUKTU ===\nProdukt widoczny na PIERWSZYM zdjęciu jest ZABLOKOWANY. MUSISZ go odwzorować z:\n• Identyczną geometrią, sylwetką, proporcjami i stosunkiem boków — ŻADNEGO rozciągania, ściskania, wyginania, skręcania, pochylania, zaokrąglania narożników ani jakiejkolwiek deformacji przestrzennej.\n• Identycznymi kolorami, teksturami, logami, etykietami, napisami, wykończeniem powierzchni, odbiciami, szwami, przyciskami, portami i wzorami — wierność na poziomie pikseli.\n• ŻADNEGO przeprojektowywania, upraszczania, stylizacji, efektów kreskówkowych ani artystycznej reinterpretacji produktu.\n• Produkt to nietykalny, święty element — traktuj go jak wycięty i wklejony na nową scenę.\n• Możesz JEDYNIE zmieniać: tło, otoczenie, oświetlenie sceny, cienie otoczenia i odbicia na okolicznych powierzchniach.\n• Wynik musi być fotorealistyczny, w wysokiej rozdzielczości, odpowiedni jako profesjonalna miniaturka e-commerce.` });
+    parts.push({ text: `${prompt}\n\n=== OBOWIĄZKOWE OGRANICZENIE INTEGRALNOŚCI PRODUKTU ===\nProdukt widoczny na PIERWSZYM zdjęciu jest ZABLOKOWANY. MUSISZ go odwzorować z:\n• Identyczną geometrią, sylwetką, proporcjami i stosunkiem boków — ŻADNEGO rozciągania, ściskania, wyginania.\n• Identycznymi kolorami, teksturami, logami, etykietami, napisami, wykończeniem powierzchni.\n• ŻADNEGO przeprojektowywania, upraszczania, stylizacji ani artystycznej reinterpretacji produktu.\n• Produkt to nietykalny element — traktuj go jak wycięty i wklejony na nową scenę.\n• Możesz JEDYNIE zmieniać: tło, otoczenie, oświetlenie sceny, cienie otoczenia.\n• Wynik musi być fotorealistyczny, w wysokiej rozdzielczości, odpowiedni jako profesjonalna miniaturka e-commerce.` });
 
     const generationConfig: ImageGenerationConfig = {
       responseModalities: ['IMAGE'],
     };
 
-    return this.simpleRetry('generateImage', async () => {
+    return this.geminiRetry('generateImage', async () => {
       const result = await model.generateContent({
         contents: [{ role: 'user', parts }],
         generationConfig: generationConfig as any,
@@ -377,6 +320,17 @@ Eleganckie zdjęcie z gradientem...
       const candidate = result.response.candidates?.[0];
       if (!candidate) {
         throw new Error('Gemini returned no candidates');
+      }
+
+      const finishReason = candidate.finishReason ?? 'UNKNOWN';
+      const safetyRatings = candidate.safetyRatings
+        ? JSON.stringify(candidate.safetyRatings)
+        : 'none';
+
+      if (!candidate.content?.parts?.length) {
+        throw new Error(
+          `Gemini candidate has no content/parts. finishReason=${finishReason}, safetyRatings=${safetyRatings}`,
+        );
       }
 
       for (const part of candidate.content.parts) {
@@ -388,7 +342,9 @@ Eleganckie zdjęcie z gradientem...
         }
       }
 
-      throw new Error('Gemini response contained no image data');
+      throw new Error(
+        `Gemini response contained no image data. finishReason=${finishReason}, parts=${candidate.content.parts.length}`,
+      );
     });
   }
 }

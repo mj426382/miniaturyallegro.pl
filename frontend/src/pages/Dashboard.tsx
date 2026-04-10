@@ -34,7 +34,7 @@ export default function Dashboard() {
           Witaj, {user?.name || 'Użytkowniku'}! 👋
         </h1>
         <p className="text-gray-500 mt-1">
-          Generuj profesjonalne miniaturki dla swoich produktów na Allegro
+          Generuj profesjonalne grafiki produktowe dla swoich ofert na Allegro
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export default function Dashboard() {
               <ArrowUpTrayIcon className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{pagination.total}</p>
+              <p className="text-2xl font-bold text-gray-900">{user?._count?.images ?? pagination.total}</p>
               <p className="text-sm text-gray-500">Przesłane zdjęcia</p>
             </div>
           </div>
@@ -59,9 +59,9 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {images.reduce((sum, img) => sum + (img.generations?.length || 0), 0)}
+                {user?.totalGenerations ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Wygenerowane miniaturki</p>
+              <p className="text-sm text-gray-500">Wygenerowane grafiki</p>
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function Dashboard() {
           <div className="text-white">
             <p className="font-semibold mb-1">Dodaj nowe zdjęcie</p>
             <p className="text-blue-100 text-sm mb-3">
-              Prześlij zdjęcie produktu i wygeneruj 12 wariantów miniaturek
+              Prześlij zdjęcie produktu i wygeneruj profesjonalne grafiki w 6 stylach
             </p>
             <Link
               to="/upload"

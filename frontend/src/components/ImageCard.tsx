@@ -50,7 +50,7 @@ export default function ImageCard({ image }: ImageCardProps) {
             className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white rounded-lg px-3 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             <SparklesIcon className="h-4 w-4" />
-            Generuj miniaturki
+            Generuj grafiki
           </Link>
         )}
       </div>

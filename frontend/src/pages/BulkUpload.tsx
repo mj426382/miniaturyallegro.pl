@@ -110,7 +110,7 @@ export default function BulkUpload() {
   const statusLabel = (status: FileStatus) => {
     if (status === 'queued') return <span className="text-xs text-gray-500">Oczekuje</span>
     if (status === 'uploading') return <span className="text-xs text-blue-600 font-medium">Przesyłanie...</span>
-    if (status === 'generating') return <span className="text-xs text-purple-600 font-medium">Generowanie miniaturek...</span>
+    if (status === 'generating') return <span className="text-xs text-purple-600 font-medium">Generowanie grafik...</span>
     if (status === 'done') return <span className="text-xs text-green-600 font-medium">Gotowe</span>
     if (status === 'error') return <span className="text-xs text-red-600 font-medium">Błąd</span>
   }
@@ -120,7 +120,7 @@ export default function BulkUpload() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Masowe przesyłanie zdjęć</h1>
         <p className="text-gray-500 mt-1">
-          Prześlij wiele zdjęć naraz — dla każdego zostaną automatycznie wygenerowane 12 miniaturek
+          Prześlij wiele zdjęć naraz — dla każdego zostaną automatycznie wygenerowane grafiki produktowe w 6 stylach
         </p>
       </div>
 
@@ -222,7 +222,7 @@ export default function BulkUpload() {
           {!isRunning && doneCount > 0 && (
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
               <p className="text-sm font-medium text-green-800 mb-2">
-                ✅ {doneCount} {doneCount === 1 ? 'produkt gotowy' : 'produktów gotowych'} — generowanie miniaturek trwa w tle
+                ✅ {doneCount} {doneCount === 1 ? 'produkt gotowy' : 'produktów gotowych'} — generowanie grafik trwa w tle
               </p>
               <div className="flex flex-wrap gap-2">
                 {files.filter((f) => f.status === 'done' && f.imageId).map((f) => (

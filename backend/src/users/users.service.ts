@@ -26,7 +26,15 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    // Count total completed generations for this user
+    const totalGenerations = await this.prisma.generation.count({
+      where: {
+        image: { userId: id },
+        status: 'COMPLETED',
+      },
+    });
+
+    return { ...user, totalGenerations };
   }
 
   async findByEmail(email: string) {

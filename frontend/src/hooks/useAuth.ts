@@ -7,6 +7,8 @@ interface User {
   name?: string
   credits: number
   freeCreditsUsed: number
+  totalGenerations?: number
+  _count?: { images: number }
   createdAt: string
 }
 
@@ -41,13 +43,18 @@ export function useAuthProvider() {
     if (storedToken && storedUser) {
       setToken(storedToken)
       setUser(JSON.parse(storedUser))
-      // Verify token is still valid
-      usersApi.getMe().catch(() => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        setToken(null)
-        setUser(null)
-      })
+      // Refresh user data from API (fresh stats)
+      usersApi.getMe()
+        .then(({ data }) => {
+          setUser(data)
+          localStorage.setItem('user', JSON.stringify(data))
+        })
+        .catch(() => {
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          setToken(null)
+          setUser(null)
+        })
     }
     setIsLoading(false)
   }, [])

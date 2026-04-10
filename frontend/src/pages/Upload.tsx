@@ -47,7 +47,7 @@ export default function Upload() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Prześlij zdjęcie produktu</h1>
         <p className="text-gray-500 mt-1">
-          Wyślij zdjęcie swojego produktu, a my wygenerujemy 12 profesjonalnych miniaturek
+          Wyślij zdjęcie swojego produktu, a my wygenerujemy profesjonalne grafiki produktowe w 6 stylach
         </p>
       </div>
 

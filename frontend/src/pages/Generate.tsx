@@ -197,7 +197,7 @@ export default function Generate() {
       const objectUrl = URL.createObjectURL(data)
       const link = document.createElement('a')
       link.href = objectUrl
-      link.download = `miniaturka-${styleName}.png`
+      link.download = `grafika-${styleName}.png`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -249,7 +249,7 @@ export default function Generate() {
           />
         )}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Generator miniaturek</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Generator grafik produktowych</h1>
           <p className="text-gray-500 text-sm mt-0.5">{image?.filename}</p>
         </div>
       </div>
@@ -319,7 +319,7 @@ export default function Generate() {
                     className="btn-primary flex items-center gap-2"
                   >
                     <SparklesIcon className="h-5 w-5" />
-                    {isGenerating ? 'Generowanie...' : 'Generuj 6 miniaturek'}
+                    {isGenerating ? 'Generowanie...' : 'Generuj 6 grafik'}
                   </button>
                   <span className="text-xs text-gray-400 flex items-center gap-1">
                     <CreditCardIcon className="h-3.5 w-3.5" />
@@ -335,7 +335,7 @@ export default function Generate() {
         {activeTab === 'custom' && (
           <div className="p-5">
             <p className="text-sm text-gray-500 mb-4">
-              Opisz dokładnie jak ma wyglądać miniaturka. Możesz też dołączyć zdjęcie referencyjne stylu.
+              Opisz dokładnie jak ma wyglądać grafika produktowa. Możesz też dołączyć zdjęcie referencyjne stylu.
             </p>
 
             <div className="mb-4">
@@ -404,7 +404,7 @@ export default function Generate() {
                 className="btn-primary flex items-center gap-2"
               >
                 <SparklesIcon className="h-5 w-5" />
-                {isCustomGenerating ? 'Generowanie...' : 'Generuj miniaturkę'}
+                {isCustomGenerating ? 'Generowanie...' : 'Generuj grafikę'}
               </button>
               <span className="text-xs text-gray-400 flex items-center gap-1">
                 <CreditCardIcon className="h-3.5 w-3.5" />
@@ -491,8 +491,8 @@ export default function Generate() {
           <SparklesIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500">
             {activeTab === 'auto'
-              ? 'Kliknij "Generuj 6 miniaturek" aby rozpocząć'
-              : 'Opisz styl i kliknij "Generuj miniaturkę"'}
+              ? 'Kliknij "Generuj 6 grafik" aby rozpocząć'
+              : 'Opisz styl i kliknij "Generuj grafikę"'}
           </p>
         </div>
       )}

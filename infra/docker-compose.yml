@@ -36,7 +36,9 @@ services:
       B2_APPLICATION_KEY: ${B2_APPLICATION_KEY}
       B2_REGION: ${B2_REGION:-us-west-004}
       B2_PUBLIC_URL: ${B2_PUBLIC_URL}
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-unused}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      LLM_SERVICE_URL: ${LLM_SERVICE_URL:-http://localhost:8002}
       PORT: 3000
       NODE_ENV: production
       FRONTEND_URL: ${FRONTEND_URL:-https://app.AllGrafika.pl}
