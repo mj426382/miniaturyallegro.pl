@@ -47,13 +47,35 @@ export default function Generate() {
   const [isRework, setIsRework] = useState(false)
   const referenceInputRef = useRef<HTMLInputElement>(null)
   const pollIntervalRef = useRef<number | null>(null)
+  const refreshIntervalRef = useRef<number | null>(null)
 
   useEffect(() => {
     loadData()
+
+    // Auto-refresh co 10 sekund – odświeża listę generacji niezależnie od pollingu
+    refreshIntervalRef.current = window.setInterval(() => {
+      refreshGenerations()
+    }, 10_000)
+
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+      if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current)
     }
   }, [imageId])
+
+  const refreshGenerations = async () => {
+    if (!imageId) return
+    try {
+      const { data } = await generationApi.getResults(imageId)
+      setGenerations((prev: any[]) => {
+        const serverMap = new Map(data.map((g: any) => [g.id, g]))
+        const extras = prev.filter((g: any) => !serverMap.has(g.id))
+        return [...data, ...extras]
+      })
+    } catch {
+      // ignore refresh errors
+    }
+  }
 
   const loadData = async () => {
     try {
