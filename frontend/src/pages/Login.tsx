@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import GoogleLoginButton from '../components/GoogleLoginButton'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -9,7 +10,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [touched, setTouched] = useState({ email: false })
-  const { login } = useAuth()
+  const { login, googleLogin } = useAuth()
   const navigate = useNavigate()
 
   const emailError = useMemo(() => {
@@ -54,6 +55,33 @@ export default function Login() {
         <div className="text-center mb-8">
           <img src="/logo.webp" alt="AllGrafika.pl" className="h-12 w-auto mx-auto mb-2" />
           <p className="text-gray-500 mt-2">Zaloguj się do swojego konta</p>
+        </div>
+
+        <GoogleLoginButton
+          onSuccess={async (credentialResponse: { credential?: string }) => {
+            if (!credentialResponse.credential) return
+            setError('')
+            setIsLoading(true)
+            try {
+              await googleLogin(credentialResponse.credential)
+              navigate('/')
+            } catch (err: any) {
+              const message = err.response?.data?.message
+              setError(Array.isArray(message) ? message.join('. ') : message || 'Logowanie Google nie powiodło się')
+            } finally {
+              setIsLoading(false)
+            }
+          }}
+          onError={() => setError('Logowanie Google nie powiodło się. Spróbuj ponownie.')}
+        />
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-white text-gray-500">lub</span>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

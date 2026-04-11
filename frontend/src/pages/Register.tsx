@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
+import GoogleLoginButton from '../components/GoogleLoginButton'
 
 interface PasswordStrength {
   score: number
@@ -45,7 +46,7 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [touched, setTouched] = useState({ email: false, password: false, confirmPassword: false })
-  const { register } = useAuth()
+  const { register, googleLogin } = useAuth()
   const navigate = useNavigate()
 
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password])
@@ -111,6 +112,33 @@ export default function Register() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Utwórz konto</h1>
           <p className="text-gray-500 mt-2">Zacznij generować grafiki Allegro</p>
+        </div>
+
+        <GoogleLoginButton
+          onSuccess={async (credentialResponse) => {
+            if (!credentialResponse.credential) return
+            setIsLoading(true)
+            try {
+              await googleLogin(credentialResponse.credential)
+              navigate('/')
+              toast.success('Zalogowano przez Google!')
+            } catch (err: any) {
+              const message = err.response?.data?.message
+              toast.error(Array.isArray(message) ? message.join('. ') : message || 'Logowanie Google nie powiodło się')
+            } finally {
+              setIsLoading(false)
+            }
+          }}
+          onError={() => toast.error('Logowanie Google nie powiodło się. Spróbuj ponownie.')}
+        />
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-white text-gray-500">lub</span>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

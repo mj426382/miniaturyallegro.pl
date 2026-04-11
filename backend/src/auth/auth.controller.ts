@@ -2,7 +2,7 @@ import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto } from './auth.dto';
+import { RegisterDto, LoginDto, ForgotPasswordDto, GoogleLoginDto } from './auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -29,6 +29,16 @@ export class AuthController {
   @ApiResponse({ status: 429, description: 'Zbyt wiele prób logowania. Spróbuj później.' })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Logowanie za pomocą Google' })
+  @ApiResponse({ status: 200, description: 'Zalogowano przez Google pomyślnie' })
+  @ApiResponse({ status: 401, description: 'Nieprawidłowy token Google' })
+  async googleLogin(@Body() dto: GoogleLoginDto) {
+    return this.authService.googleLogin(dto);
   }
 
   @Post('forgot-password')

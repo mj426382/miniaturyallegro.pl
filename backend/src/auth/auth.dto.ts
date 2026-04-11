@@ -65,6 +65,16 @@ export class ForgotPasswordDto {
   email: string;
 }
 
+export class GoogleLoginDto {
+  @ApiProperty({
+    description: 'Google ID token from the frontend',
+    example: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE4MmU0M...'
+  })
+  @IsString({ message: 'Token Google musi być tekstem' })
+  @IsNotEmpty({ message: 'Token Google jest wymagany' })
+  googleToken: string;
+}
+
 export class ResetPasswordDto {
   @ApiProperty()
   @IsString()

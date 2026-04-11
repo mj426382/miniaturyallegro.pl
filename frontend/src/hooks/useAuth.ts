@@ -16,6 +16,7 @@ interface AuthContextType {
   user: User | null
   token: string | null
   login: (email: string, password: string) => Promise<void>
+  googleLogin: (googleToken: string) => Promise<void>
   register: (email: string, password: string, name?: string) => Promise<void>
   logout: () => void
   isLoading: boolean
@@ -67,6 +68,14 @@ export function useAuthProvider() {
     setUser(data.user)
   }
 
+  const googleLogin = async (googleToken: string) => {
+    const { data } = await authApi.googleLogin(googleToken)
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    setToken(data.token)
+    setUser(data.user)
+  }
+
   const register = async (email: string, password: string, name?: string) => {
     const { data } = await authApi.register({ email, password, name })
     localStorage.setItem('token', data.token)
@@ -82,5 +91,5 @@ export function useAuthProvider() {
     setUser(null)
   }
 
-  return { user, token, login, register, logout, isLoading }
+  return { user, token, login, googleLogin, register, logout, isLoading }
 }
