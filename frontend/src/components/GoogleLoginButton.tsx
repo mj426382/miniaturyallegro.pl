@@ -23,7 +23,6 @@ export default function GoogleLoginButton({ onSuccess, onError }: GoogleLoginBut
           shape="rectangular"
           size="large"
           width="100%"
-          locale="pl"
         />
       </div>
     </GoogleOAuthProvider>
