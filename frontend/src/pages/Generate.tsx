@@ -259,7 +259,7 @@ export default function Generate() {
   const hasResults = generations.length > 0
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="px-4 py-6 sm:p-8 max-w-5xl mx-auto">
 
       {/* Header: product image + title */}
       <div className="flex items-center gap-4 mb-6">

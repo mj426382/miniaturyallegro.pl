@@ -43,7 +43,7 @@ export default function Upload() {
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="px-4 py-6 sm:p-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Prześlij zdjęcie produktu</h1>
         <p className="text-gray-500 mt-1">
@@ -53,7 +53,7 @@ export default function Upload() {
 
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+        className={`border-2 border-dashed rounded-xl p-6 sm:p-12 text-center cursor-pointer transition-colors ${
           isDragActive
             ? 'border-blue-500 bg-blue-50'
             : preview

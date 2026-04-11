@@ -153,7 +153,7 @@ export default function Credits() {
 
       {/* Packages */}
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Doładuj kredyty</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
         {packages.map((pkg) => (
           <div
             key={pkg.id}
@@ -209,8 +209,8 @@ export default function Credits() {
       {transactions.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Historia transakcji</h2>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Data</th>
