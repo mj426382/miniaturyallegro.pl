@@ -40,7 +40,7 @@ export default function Layout() {
       <div className="p-6 border-b border-gray-200 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-bold text-xl text-gray-900" onClick={closeSidebar}>
           <img src="/logo.webp" alt="AllGrafika.pl" className="h-9 w-auto mix-blend-multiply" />
-          <span>AllGrafika.pl</span>
+          <span>AllGrafika</span>
         </Link>
         <button
           onClick={closeSidebar}
