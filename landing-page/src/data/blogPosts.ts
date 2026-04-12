@@ -7,6 +7,7 @@ import jakStworzycMiniaturkeAllegroUroda from './blogPosts/jak-stworzyc-miniatur
 import wymaganiaTechniczneAllegroZdjecia20252026 from './blogPosts/wymagania-techniczne-allegro-zdjecia-2025-2026'
 import jakStworzycMiniaturkeAllegroOdziez from './blogPosts/jak-stworzyc-miniaturke-allegro-odziez'
 import psychologiaKolorowWMiniaturkachAllegro from './blogPosts/psychologia-kolorow-w-miniaturkach-allegro'
+import jakStworzycMiniaturkeAllegroDomIOgrod from './blogPosts/jak-stworzyc-miniaturke-allegro-dom-i-ogrod'
 
 export interface BlogPostData {
   id: string
@@ -19,6 +20,6 @@ export interface BlogPostData {
   category: string
 }
 
-export { post1, post2, post3, idealnaMiniaturkaAllegroElektronika, jakZwiekszycCtrNaAllegroMiniaturki, jakStworzycMiniaturkeAllegroUroda, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroOdziez, psychologiaKolorowWMiniaturkachAllegro }
+export { post1, post2, post3, idealnaMiniaturkaAllegroElektronika, jakZwiekszycCtrNaAllegroMiniaturki, jakStworzycMiniaturkeAllegroUroda, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroOdziez, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroDomIOgrod }
 
-export const blogPosts: BlogPostData[] = [psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroOdziez, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroUroda, jakZwiekszycCtrNaAllegroMiniaturki, idealnaMiniaturkaAllegroElektronika, post1, post2, post3]
+export const blogPosts: BlogPostData[] = [jakStworzycMiniaturkeAllegroDomIOgrod, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroOdziez, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroUroda, jakZwiekszycCtrNaAllegroMiniaturki, idealnaMiniaturkaAllegroElektronika, post1, post2, post3]
