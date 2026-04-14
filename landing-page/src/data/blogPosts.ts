@@ -9,6 +9,7 @@ import jakStworzycMiniaturkeAllegroOdziez from './blogPosts/jak-stworzyc-miniatu
 import psychologiaKolorowWMiniaturkachAllegro from './blogPosts/psychologia-kolorow-w-miniaturkach-allegro'
 import jakStworzycMiniaturkeAllegroDomIOgrod from './blogPosts/jak-stworzyc-miniaturke-allegro-dom-i-ogrod'
 import jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro from './blogPosts/jak-zbudowac-spojna-identyfikacje-wizualna-allegro'
+import jakZwiekszycCtrAbTestowanieMiniaturek from './blogPosts/jak-zwiekszyc-ctr-ab-testowanie-miniaturek'
 
 export interface BlogPostData {
   id: string
@@ -21,6 +22,6 @@ export interface BlogPostData {
   category: string
 }
 
-export { post1, post2, post3, idealnaMiniaturkaAllegroElektronika, jakZwiekszycCtrNaAllegroMiniaturki, jakStworzycMiniaturkeAllegroUroda, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroOdziez, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro }
+export { post1, post2, post3, idealnaMiniaturkaAllegroElektronika, jakZwiekszycCtrNaAllegroMiniaturki, jakStworzycMiniaturkeAllegroUroda, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroOdziez, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro, jakZwiekszycCtrAbTestowanieMiniaturek }
 
-export const blogPosts: BlogPostData[] = [jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroOdziez, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroUroda, jakZwiekszycCtrNaAllegroMiniaturki, idealnaMiniaturkaAllegroElektronika, post1, post2, post3]
+export const blogPosts: BlogPostData[] = [jakZwiekszycCtrAbTestowanieMiniaturek, jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroOdziez, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroUroda, jakZwiekszycCtrNaAllegroMiniaturki, idealnaMiniaturkaAllegroElektronika, post1, post2, post3]
