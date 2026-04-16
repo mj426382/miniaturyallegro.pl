@@ -11,6 +11,7 @@ import jakStworzycMiniaturkeAllegroDomIOgrod from './blogPosts/jak-stworzyc-mini
 import jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro from './blogPosts/jak-zbudowac-spojna-identyfikacje-wizualna-allegro'
 import jakZwiekszycCtrAbTestowanieMiniaturek from './blogPosts/jak-zwiekszyc-ctr-ab-testowanie-miniaturek'
 import mobilePhotographyDlaSprzedawcowAllegro from './blogPosts/mobile-photography-dla-sprzedawcow-allegro'
+import jakStworzycMiniaturkeAllegroDlaMotoryzacji from './blogPosts/jak-stworzyc-miniaturke-allegro-dla-motoryzacji'
 
 export interface BlogPostData {
   id: string
@@ -23,6 +24,6 @@ export interface BlogPostData {
   category: string
 }
 
-export { post1, post2, post3, idealnaMiniaturkaAllegroElektronika, jakZwiekszycCtrNaAllegroMiniaturki, jakStworzycMiniaturkeAllegroUroda, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroOdziez, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro, jakZwiekszycCtrAbTestowanieMiniaturek, mobilePhotographyDlaSprzedawcowAllegro }
+export { post1, post2, post3, idealnaMiniaturkaAllegroElektronika, jakZwiekszycCtrNaAllegroMiniaturki, jakStworzycMiniaturkeAllegroUroda, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroOdziez, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro, jakZwiekszycCtrAbTestowanieMiniaturek, mobilePhotographyDlaSprzedawcowAllegro, jakStworzycMiniaturkeAllegroDlaMotoryzacji }
 
-export const blogPosts: BlogPostData[] = [mobilePhotographyDlaSprzedawcowAllegro, jakZwiekszycCtrAbTestowanieMiniaturek, jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroOdziez, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroUroda, jakZwiekszycCtrNaAllegroMiniaturki, idealnaMiniaturkaAllegroElektronika, post1, post2, post3]
+export const blogPosts: BlogPostData[] = [jakStworzycMiniaturkeAllegroDlaMotoryzacji, mobilePhotographyDlaSprzedawcowAllegro, jakZwiekszycCtrAbTestowanieMiniaturek, jakZbudowacSpojnaIdentyfikacjeWizualnaAllegro, jakStworzycMiniaturkeAllegroDomIOgrod, psychologiaKolorowWMiniaturkachAllegro, jakStworzycMiniaturkeAllegroOdziez, wymaganiaTechniczneAllegroZdjecia20252026, jakStworzycMiniaturkeAllegroUroda, jakZwiekszycCtrNaAllegroMiniaturki, idealnaMiniaturkaAllegroElektronika, post1, post2, post3]
