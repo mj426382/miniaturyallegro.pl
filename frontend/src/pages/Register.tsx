@@ -91,11 +91,6 @@ export default function Register() {
       return
     }
 
-    if (!acceptedTerms) {
-      toast.error('Musisz zaakceptować regulamin')
-      return
-    }
-
     setIsLoading(true)
     try {
       await register(email.trim().toLowerCase(), password, name.trim() || undefined)
