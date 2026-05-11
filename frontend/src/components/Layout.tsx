@@ -109,6 +109,10 @@ export default function Layout() {
           <ArrowRightOnRectangleIcon className="h-4 w-4" />
           Wyloguj się
         </button>
+        <div className="mt-3 flex gap-3 px-2">
+          <Link to="/regulamin" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Regulamin</Link>
+          <Link to="/polityka-prywatnosci" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">Prywatność</Link>
+        </div>
       </div>
     </>
   )
