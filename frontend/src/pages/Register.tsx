@@ -45,6 +45,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [touched, setTouched] = useState({ email: false, password: false, confirmPassword: false })
   const { register, googleLogin } = useAuth()
   const navigate = useNavigate()
@@ -72,9 +73,10 @@ export default function Register() {
       password &&
       passwordErrors.length === 0 &&
       confirmPassword === password &&
+      acceptedTerms &&
       !isLoading
     )
-  }, [email, emailError, password, passwordErrors, confirmPassword, isLoading])
+  }, [email, emailError, password, passwordErrors, confirmPassword, acceptedTerms, isLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -285,6 +287,27 @@ export default function Register() {
                 Hasła są identyczne
               </p>
             )}
+          </div>
+
+          <div className="flex items-start gap-3">
+            <input
+              id="acceptTerms"
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+            <label htmlFor="acceptTerms" className="text-sm text-gray-600 cursor-pointer">
+              Akceptuję{' '}
+              <Link
+                to="/regulamin"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 font-medium hover:text-blue-700 underline"
+              >
+                regulamin świadczenia usług
+              </Link>
+            </label>
           </div>
 
           <button
