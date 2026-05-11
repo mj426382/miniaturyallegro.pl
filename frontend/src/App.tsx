@@ -10,6 +10,8 @@ import Generate from './pages/Generate'
 import Gallery from './pages/Gallery'
 import Credits from './pages/Credits'
 import Layout from './components/Layout'
+import Regulamin from './pages/Regulamin'
+import PolitykaPrywatnosci from './pages/PolitykaPrywatnosci'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token')
@@ -34,6 +36,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/regulamin" element={<Regulamin />} />
+          <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
           <Route
             path="/"
             element={
