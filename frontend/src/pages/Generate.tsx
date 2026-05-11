@@ -67,14 +67,20 @@ export default function Generate() {
     if (!imageId) return
     try {
       const { data } = await generationApi.getResults(imageId)
-      setGenerations((prev: any[]) => {
-        const serverMap = new Map(data.map((g: any) => [g.id, g]))
-        const extras = prev.filter((g: any) => !serverMap.has(g.id))
-        return [...data, ...extras]
-      })
+      setGenerations((prev: any[]) => mergeGenerations(prev, data))
     } catch {
       // ignore refresh errors
     }
+  }
+
+  /** Merge server results into the current list while preserving visual order.
+   *  Existing items are updated in-place; new server items are appended at the end. */
+  const mergeGenerations = (prev: any[], serverData: any[]): any[] => {
+    const serverMap = new Map(serverData.map((g: any) => [g.id, g]))
+    const prevIds = new Set(prev.map((g: any) => g.id))
+    const updated = prev.map((g: any) => serverMap.has(g.id) ? serverMap.get(g.id) : g)
+    const newFromServer = serverData.filter((g: any) => !prevIds.has(g.id))
+    return [...updated, ...newFromServer]
   }
 
   const loadData = async () => {
@@ -163,13 +169,7 @@ export default function Generate() {
     // Do an immediate fetch so new items appear instantly.
     // Merge with existing placeholders so they don't disappear.
     generationApi.getResults(imageId!).then(({ data }) => {
-      setGenerations((prev: any[]) => {
-        // Build a map of server results keyed by id
-        const serverMap = new Map(data.map((g: any) => [g.id, g]))
-        // Keep placeholders that the server doesn't know about yet
-        const extras = prev.filter((g: any) => !serverMap.has(g.id))
-        return [...data, ...extras]
-      })
+      setGenerations((prev: any[]) => mergeGenerations(prev, data))
     }).catch(() => {})
 
     // If already polling, don't start another interval
@@ -177,7 +177,7 @@ export default function Generate() {
     const interval = window.setInterval(async () => {
       try {
         const { data } = await generationApi.getResults(imageId!)
-        setGenerations(data)
+        setGenerations((prev: any[]) => mergeGenerations(prev, data))
         const allDone = data.every(
           (g: any) => g.status === 'COMPLETED' || g.status === 'FAILED',
         )
