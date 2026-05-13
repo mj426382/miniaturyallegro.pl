@@ -1,0 +1,24 @@
+# robots.txt for AllGrafika.pl
+# https://allgrafika.pl/robots.txt
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://allgrafika.pl/sitemap.xml
