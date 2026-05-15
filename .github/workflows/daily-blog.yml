@@ -193,6 +193,18 @@ jobs:
 
           slug = article["slug"]
 
+          # ── Duplicate guard ─────────────────────────────────────────────────
+          out_file = articles_dir / f"{slug}.ts"
+          if out_file.exists():
+              print(f"⚠️  Post '{slug}' already exists — skipping to avoid duplicate.")
+              sys.exit(0)
+
+          index_path = Path("landing-page/src/data/blogPosts.ts")
+          idx = index_path.read_text(encoding="utf-8")
+          if f"from './blogPosts/{slug}'" in idx:
+              print(f"⚠️  Slug '{slug}' already registered in blogPosts.ts — skipping.")
+              sys.exit(0)
+
           # ── Write TS article file ───────────────────────────────────────────
           def esc_sq(s):
               """Escape for TypeScript single-quoted string."""
@@ -219,7 +231,6 @@ jobs:
               "export default post\n"
           )
 
-          out_file = articles_dir / f"{slug}.ts"
           out_file.write_text(ts_content, encoding="utf-8")
           print(f"Saved: {out_file}")
 
@@ -230,9 +241,6 @@ jobs:
           # JS identifiers cannot start with a digit
           if var_name and var_name[0].isdigit():
               var_name = "post" + var_name[0].upper() + var_name[1:]
-
-          index_path = Path("landing-page/src/data/blogPosts.ts")
-          idx = index_path.read_text(encoding="utf-8")
 
           new_import = f"import {var_name} from './blogPosts/{slug}'"
 
