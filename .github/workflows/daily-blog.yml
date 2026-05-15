@@ -194,8 +194,7 @@ jobs:
           slug = article["slug"]
 
           # ── Duplicate guard ─────────────────────────────────────────────────
-          out_file = articles_dir / f"{slug}.ts"
-          if out_file.exists():
+          if (articles_dir / f"{slug}.ts").exists():
               print(f"⚠️  Post '{slug}' already exists — skipping to avoid duplicate.")
               sys.exit(0)
 
@@ -231,6 +230,7 @@ jobs:
               "export default post\n"
           )
 
+          out_file = articles_dir / f"{slug}.ts"
           out_file.write_text(ts_content, encoding="utf-8")
           print(f"Saved: {out_file}")
 
