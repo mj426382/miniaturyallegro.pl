@@ -2,8 +2,8 @@ import type { BlogPostData } from '../blogPosts'
 
 const post: BlogPostData = {
   id: '2',
-  slug: 'najlepsze-style-grafik-allegro',
-  title: '6 najlepszych stylów grafik produktowych na Allegro',
+  slug: 'najlepsze-style-miniaturek-allegro',
+  title: 'Najlepsze style miniaturek produktowych na Allegro',
   excerpt: 'Przegląd najpopularniejszych stylów grafik produktowych na Allegro – który styl sprawdza się najlepiej w Twojej kategorii?',
   content: `## Style grafik produktowych na Allegro
 
