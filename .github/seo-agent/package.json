@@ -1,0 +1,16 @@
+{
+  "name": "seo-agent",
+  "version": "1.0.0",
+  "description": "SEO automation agent for AllGrafika.pl — integrates Google Search Console + AI",
+  "main": "agent.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node agent.js"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}
