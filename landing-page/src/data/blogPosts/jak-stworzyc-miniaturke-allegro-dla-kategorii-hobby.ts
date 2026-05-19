@@ -44,9 +44,7 @@ Co więcej, AllGrafika.pl automatycznie analizuje Twoje zdjęcia i dobiera optym
 
 Miniaturki w kategorii Hobby mają ogromny potencjał, aby przyciągnąć uwagę klientów i wyróżnić Twoje produkty na tle konkurencji. Inwestując w profesjonalne zdjęcia, stosując odpowiednie style i korzystając z nowoczesnych narzędzi jak [AllGrafika.pl](https://app.allgrafika.pl/register), znacznie zwiększysz swoje szanse na sukces.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-08',
   readTime: 6,

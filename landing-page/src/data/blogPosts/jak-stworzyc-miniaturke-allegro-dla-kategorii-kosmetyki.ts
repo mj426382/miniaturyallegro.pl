@@ -51,9 +51,7 @@ Dobór odpowiedniej palety kolorów może zwiększyć percepcję wartości produ
 
 Po wdrożeniu nowych miniaturek kosmetyków warto przeprowadzić **A/B testy**. Sprawdź, które zdjęcia generują wyższy CTR i konwersję. Dzięki AllGrafika.pl możesz łatwo zarządzać wersjami i analizować wyniki.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-01',
   readTime: 6,

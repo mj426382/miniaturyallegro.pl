@@ -47,9 +47,7 @@ Tworzenie miniaturek książek może być czasochłonne, zwłaszcza gdy musisz d
 
 Po stworzeniu kilku wersji miniaturek warto przeprowadzić A/B testy na Allegro. Wystarczy opublikować różne grafiki dla tej samej książki i monitorować wyniki sprzedaży oraz CTR. Wybierz styl, który osiąga najlepsze wyniki, i zastosuj go do podobnych produktów w swoim sklepie.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-18',
   readTime: 6,

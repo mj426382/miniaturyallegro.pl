@@ -48,9 +48,7 @@ Poprawa jakości zdjęć to inwestycja, która zwraca się w postaci:
 
 Jeśli zastanawiasz się, jak w prosty sposób poprawić jakość zdjęć, wypróbuj narzędzie [AllGrafika.pl](https://app.allgrafika.pl/register). Dzięki pierwszym 10 darmowym generacjom możesz samodzielnie przekonać się, jak łatwo stworzyć miniaturki, które wyróżnią Twoje produkty na tle konkurencji.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-26',
   readTime: 6,

@@ -47,9 +47,7 @@ Aby zwiększyć szanse na kliknięcia Twojego produktu:
 - Użyj zdjęcia wysokiej jakości z odpowiednim oświetleniem.
 - Zadbaj, aby miniaturka była spójna z resztą Twojego sklepu na Allegro.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-16',
   readTime: 6,

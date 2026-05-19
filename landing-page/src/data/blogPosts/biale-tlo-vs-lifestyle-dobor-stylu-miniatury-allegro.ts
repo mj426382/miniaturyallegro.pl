@@ -49,9 +49,7 @@ Dzięki temu oszczędzasz czas i pieniądze, unikając kosztów profesjonalnych 
 
 Wybór między białym tłem a stylem lifestyle zależy od charakteru Twojego produktu, oczekiwań klientów i kategorii Allegro. Warto pamiętać, że pierwsze wrażenie ma kluczowe znaczenie dla skuteczności Twoich ofert.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-19',
   readTime: 6,
