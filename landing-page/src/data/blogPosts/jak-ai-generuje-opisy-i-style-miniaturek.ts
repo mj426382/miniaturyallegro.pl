@@ -8,7 +8,7 @@ const post: BlogPostData = {
   content: `
 ## Jak działa AI w generowaniu miniaturek
 
-Sztuczna inteligencja zmienia sposób, w jaki sprzedawcy tworzą miniaturki Allegro. Dzięki **AllGrafika.pl** wystarczy jedno zdjęcie produktu, by system automatycznie wygenerował 12 profesjonalnych wariantów miniaturek w różnych stylach.
+Sztuczna inteligencja zmienia sposób, w jaki sprzedawcy tworzą miniaturki Allegro. Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) wystarczy jedno zdjęcie produktu, by system automatycznie wygenerował 12 profesjonalnych wariantów miniaturek w różnych stylach.
 
 AI analizuje przesłane zdjęcie, identyfikując kluczowe cechy produktu, takie jak kolor, kształt czy tekstura. Na tej podstawie dopasowuje styl miniaturki, który najlepiej podkreśli zalety produktu.
 
@@ -53,7 +53,7 @@ Korzystanie z AllGrafika.pl jest proste. Wystarczy:
 - Wybrać interesujące Cię style miniaturek lub skorzystać z sugestii AI.
 - Pobierać gotowe grafiki i opisy w kilka sekund.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-17',
   readTime: 6,

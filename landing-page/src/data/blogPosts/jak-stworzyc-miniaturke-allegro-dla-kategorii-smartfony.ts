@@ -14,7 +14,7 @@ Na Allegro konkurencja w kategorii elektroniki, a zwłaszcza smartfonów, jest o
 
 By zdjęcie Twojego smartfona zostało zaakceptowane przez Allegro, musisz pamiętać o kilku kluczowych zasadach:
 
-- **Tło:** Allegro wymaga białego tła w głównej miniaturce. Styl „White Background” generowany automatycznie przez **AllGrafika.pl** idealnie spełnia te normy.
+- **Tło:** Allegro wymaga białego tła w głównej miniaturce. Styl „White Background” generowany automatycznie przez [AllGrafika.pl](https://app.allgrafika.pl/register) idealnie spełnia te normy.
 - **Rozmiar i proporcje:** Minimalny rozmiar zdjęcia to 500x500 pikseli, a proporcje muszą być kwadratowe (1:1).
 - **Format pliku:** JPG, PNG lub WebP.
 - **Kompozycja:** Produkt musi zajmować minimum 80% powierzchni zdjęcia.
@@ -31,7 +31,7 @@ Dobór stylu miniaturki zależy od grupy docelowej oraz cech sprzedawanego produ
 
 Aby zwiększyć współczynnik klikalności na Allegro, skup się na kilku aspektach:
 
-- **Jasność i kontrast:** Upewnij się, że smartfon jest dobrze oświetlony i widoczny na białym tle. Możesz skorzystać z opcji „Studio” oferowanej przez **AllGrafika.pl**.
+- **Jasność i kontrast:** Upewnij się, że smartfon jest dobrze oświetlony i widoczny na białym tle. Możesz skorzystać z opcji „Studio” oferowanej przez [AllGrafika.pl](https://app.allgrafika.pl/register).
 - **Dodatkowe elementy:** Dodaj subtelne akcenty, takie jak logo marki telefonu lub mały napis wskazujący na promocję (np. „-10%” w rogu zdjęcia).
 - **Jasne kolory:** Psychologia kolorów wskazuje, że kolory takie jak niebieski czy zielony przyciągają wzrok i budują zaufanie.
 
@@ -43,9 +43,9 @@ Aby zwiększyć współczynnik klikalności na Allegro, skup się na kilku aspek
 
 ## Jak AllGrafika.pl ułatwia tworzenie miniaturek?
 
-Dzięki **AllGrafika.pl** oszczędzasz czas i pieniądze. Wystarczy przesłać zdjęcie smartfona, a narzędzie automatycznie wygeneruje 12 wariantów miniaturek w różnych stylach. Dostosowanie do wymagań Allegro zajmuje zaledwie kilka sekund.
+Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) oszczędzasz czas i pieniądze. Wystarczy przesłać zdjęcie smartfona, a narzędzie automatycznie wygeneruje 12 wariantów miniaturek w różnych stylach. Dostosowanie do wymagań Allegro zajmuje zaledwie kilka sekund.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-09',
   readTime: 6,

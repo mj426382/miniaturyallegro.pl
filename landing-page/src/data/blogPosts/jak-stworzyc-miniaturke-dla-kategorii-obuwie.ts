@@ -37,7 +37,7 @@ Kolory mają ogromne znaczenie w przyciąganiu uwagi. Oto kilka wskazówek:
 
 ## Jak AllGrafika.pl ułatwia pracę sprzedawcom obuwia?
 
-Korzystając z **AllGrafika.pl**, możesz w kilka sekund wygenerować nawet 12 wariantów miniaturek w różnych stylach. Narzędzie automatycznie analizuje przesłane zdjęcia produktu i dobiera najlepsze tło oraz kompozycję, oszczędzając Ci czas i pieniądze.
+Korzystając z [AllGrafika.pl](https://app.allgrafika.pl/register), możesz w kilka sekund wygenerować nawet 12 wariantów miniaturek w różnych stylach. Narzędzie automatycznie analizuje przesłane zdjęcia produktu i dobiera najlepsze tło oraz kompozycję, oszczędzając Ci czas i pieniądze.
 
 ## Optymalizacja miniaturki pod CTR
 
@@ -47,7 +47,7 @@ Aby zwiększyć szanse na kliknięcia Twojego produktu:
 - Użyj zdjęcia wysokiej jakości z odpowiednim oświetleniem.
 - Zadbaj, aby miniaturka była spójna z resztą Twojego sklepu na Allegro.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-16',
   readTime: 6,

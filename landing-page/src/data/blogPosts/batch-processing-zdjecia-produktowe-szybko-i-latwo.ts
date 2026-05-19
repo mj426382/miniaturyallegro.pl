@@ -8,7 +8,7 @@ const post: BlogPostData = {
   content: `
 ## Co to jest batch processing i dlaczego warto go używać?
 
-Batch processing to proces masowego przetwarzania wielu plików jednocześnie. Jeśli prowadzisz sklep na Allegro z dużym katalogiem produktów, wiesz, jak czasochłonne może być przygotowanie profesjonalnych miniaturek. Dzięki narzędziom takim jak **AllGrafika.pl**, możesz automatycznie wygenerować miniaturki dla setek produktów w ciągu kilku minut, co znacząco przyspiesza pracę.
+Batch processing to proces masowego przetwarzania wielu plików jednocześnie. Jeśli prowadzisz sklep na Allegro z dużym katalogiem produktów, wiesz, jak czasochłonne może być przygotowanie profesjonalnych miniaturek. Dzięki narzędziom takim jak [AllGrafika.pl](https://app.allgrafika.pl/register), możesz automatycznie wygenerować miniaturki dla setek produktów w ciągu kilku minut, co znacząco przyspiesza pracę.
 
 ## Jak działa batch processing w AllGrafika.pl?
 
@@ -53,7 +53,7 @@ Styl dark luxury z odpowiednim oświetleniem i ciemnym tłem dodaje elegancji i 
 
 Batch processing to narzędzie, które pozwala na znaczną oszczędność czasu i zasobów przy równoczesnym podniesieniu jakości Twoich zdjęć produktowych. Jeśli chcesz zwiększyć skuteczność sprzedaży i CTR na Allegro, automatyzacja tego procesu jest niezbędna.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-21',
   readTime: 6,

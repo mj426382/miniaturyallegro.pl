@@ -29,7 +29,7 @@ Tworząc miniaturkę, pamiętaj o tych kluczowych elementach:
 
 ## Jak wykorzystać AI do tworzenia miniaturek?
 
-Z pomocą **AllGrafika.pl** możesz szybko i tanio stworzyć profesjonalne miniaturki dla Twoich akcesoriów komputerowych. Narzędzie analizuje Twój produkt i generuje aż 12 wariantów graficznych, dzięki czemu możesz przetestować, które z nich sprawdzą się najlepiej.
+Z pomocą [AllGrafika.pl](https://app.allgrafika.pl/register) możesz szybko i tanio stworzyć profesjonalne miniaturki dla Twoich akcesoriów komputerowych. Narzędzie analizuje Twój produkt i generuje aż 12 wariantów graficznych, dzięki czemu możesz przetestować, które z nich sprawdzą się najlepiej.
 
 - **Automatyzacja i oszczędność czasu**: Zamiast inwestować w kosztowne sesje zdjęciowe, wystarczy jedno zdjęcie produktu, aby wygenerować różne style miniaturek.
 - **Dopasowanie do wymagań Allegro**: Wszystkie wygenerowane grafiki spełniają techniczne wymagania platformy, takie jak rozmiar czy tło.
@@ -46,7 +46,7 @@ Zoptymalizowane miniaturki mogą znacznie zwiększyć CTR. Oto kilka wskazówek:
 
 Tworzenie idealnych miniaturek dla akcesoriów komputerowych nie musi być trudne ani kosztowne. Dzięki AllGrafika.pl możesz z łatwością przygotować zdjęcia, które przyciągną uwagę klientów i zwiększą Twoją sprzedaż.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-19',
   readTime: 6,

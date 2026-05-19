@@ -10,11 +10,11 @@ const post: BlogPostData = {
 
 Sprzedaż sprzętu AGD na Allegro to dynamiczny rynek, na którym zdjęcia produktów odgrywają kluczową rolę w przyciąganiu uwagi klientów. **Miniaturka to pierwsza rzecz, którą widzi Twój potencjalny klient** — dlatego musi być nie tylko estetyczna, ale również przemyślana pod kątem funkcjonalności i zgodności z wymaganiami platformy.
 
-Dzięki profesjonalnej miniaturce możesz wyróżnić swoje produkty na tle konkurencji, zwiększając szanse na kliknięcia i finalizację zakupu. Poznaj najlepsze praktyki tworzenia miniaturek AGD i dowiedz się, jak narzędzie **AllGrafika.pl** może zautomatyzować ten proces.
+Dzięki profesjonalnej miniaturce możesz wyróżnić swoje produkty na tle konkurencji, zwiększając szanse na kliknięcia i finalizację zakupu. Poznaj najlepsze praktyki tworzenia miniaturek AGD i dowiedz się, jak narzędzie [AllGrafika.pl](https://app.allgrafika.pl/register) może zautomatyzować ten proces.
 
 ## Wybór odpowiedniego stylu dla produktów AGD
 
-Wybór stylu miniaturki zależy od rodzaju oferowanego sprzętu AGD. Oto rekomendowane style dostępne w **AllGrafika.pl**:
+Wybór stylu miniaturki zależy od rodzaju oferowanego sprzętu AGD. Oto rekomendowane style dostępne w [AllGrafika.pl](https://app.allgrafika.pl/register):
 
 - **Białe tło:** Idealne dla większości sprzętów AGD. Minimalistyczne i zgodne z wymaganiami Allegro, podkreślają profesjonalizm i pozwalają skupić się na produkcie.
 
@@ -28,7 +28,7 @@ Tworząc miniaturki dla produktów AGD, należy pamiętać o kilku kluczowych wy
 
 - **Format pliku:** Akceptowane są formaty JPG, PNG i WebP.
 - **Rozmiar zdjęcia:** Minimalna rozdzielczość to 500x500 pikseli, jednak zalecane jest minimum 1000x1000 pikseli, aby zapewnić wysoką jakość.
-- **Tło:** Białe tło jest obowiązkowe dla zdjęcia głównego. Dzięki **AllGrafika.pl** uzyskasz perfekcyjnie wycięte i dostosowane zdjęcie w kilka sekund.
+- **Tło:** Białe tło jest obowiązkowe dla zdjęcia głównego. Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) uzyskasz perfekcyjnie wycięte i dostosowane zdjęcie w kilka sekund.
 
 ## Jak wyeksponować funkcjonalność AGD w miniaturkach?
 
@@ -40,7 +40,7 @@ Klienci kupują sprzęt AGD, by ułatwiać sobie życie. Twoja miniaturka powinn
   
 ## Jak może pomóc AllGrafika.pl?
 
-Tworzenie profesjonalnych miniaturek AGD nie musi być czasochłonne ani kosztowne. **AllGrafika.pl** automatyzuje proces kreacji zdjęć produktowych dzięki zaawansowanemu AI:
+Tworzenie profesjonalnych miniaturek AGD nie musi być czasochłonne ani kosztowne. [AllGrafika.pl](https://app.allgrafika.pl/register) automatyzuje proces kreacji zdjęć produktowych dzięki zaawansowanemu AI:
 
 - **Szybki wybór stylów:** Wybieraj spośród sześciu profesjonalnych stylów dopasowanych do kategorii AGD.
 - **Automatyczne dostosowanie:** Narzędzie automatycznie wycina produkt z tła i generuje gotowe miniaturki zgodne z wymaganiami Allegro.
@@ -54,7 +54,7 @@ Oto kilka sprawdzonych sposobów na zwiększenie współczynnika klikalności:
 - **Dodaj kontekst użytkowania:** Wybierz styl lifestyle, aby pokazać sprzęt w akcji, np. odkurzacz w trakcie sprzątania.
 - **Unikaj zatłoczenia:** Mniej znaczy więcej – zbyt wiele elementów w kadrze może zmylić klientów.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-27',
   readTime: 6,
