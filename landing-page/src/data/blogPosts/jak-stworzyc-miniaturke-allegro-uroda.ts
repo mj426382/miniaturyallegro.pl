@@ -50,7 +50,7 @@ Dzięki AllGrafika.pl możesz błyskawicznie generować **12 różnych stylów m
 
 Idealna miniaturka dla kategorii Uroda na Allegro to połączenie estetyki, zgodności z wymaganiami platformy i psychologii kolorów. Dzięki AllGrafika.pl możesz w prosty sposób stworzyć profesjonalne, przyciągające wzrok zdjęcia produktowe, które wyróżnią Twoje kosmetyki na tle konkurencji.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-09',
   readTime: 6,

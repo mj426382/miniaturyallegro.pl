@@ -41,7 +41,7 @@ Unikaj jaskrawych kolorów, które mogą sprawiać wrażenie agresywnych lub nie
 
 ## Jak używać AllGrafika.pl do tworzenia miniaturek?
 
-Dzięki **AllGrafika.pl** możesz w prosty sposób stworzyć idealne miniaturki dla kategorii Zdrowie:
+Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz w prosty sposób stworzyć idealne miniaturki dla kategorii Zdrowie:
 
 - Wgraj zdjęcie produktu w formacie JPG, PNG lub WebP.
 - Wybierz preferowany styl, na przykład białe tło lub minimalistyczny.
@@ -58,7 +58,7 @@ Aby Twoje miniaturki skutecznie przyciągały klientów, zadbaj o ich optymaliza
 
 Dzięki tym działaniom zwiększysz widoczność swoich produktów w wynikach wyszukiwania na Allegro.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-13',
   readTime: 6,

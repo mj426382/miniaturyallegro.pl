@@ -17,7 +17,7 @@ Aby Twoje zdjęcia były zgodne z wytycznymi Allegro:
 - **Rozdzielczość:** minimum 2560x2560 pikseli
 - **Tło:** Zalecane białe (White Background) dla produktów takich jak laptopy, myszki czy klawiatury
 
-Dzięki narzędziu **AllGrafika.pl** możesz automatycznie wygenerować miniaturki spełniające te wymagania.
+Dzięki narzędziu [AllGrafika.pl](https://app.allgrafika.pl/register) możesz automatycznie wygenerować miniaturki spełniające te wymagania.
 
 ## Jak dobrać styl miniaturki dla różnych produktów?
 
@@ -34,11 +34,11 @@ Kolory mogą wpływać na decyzje zakupowe:
 - **Czarny:** Elegancja i luksus — wybierz dla akcesoriów premium.
 - **Zielony:** Innowacja i technologia — świetny dla nowoczesnych podzespołów.
 
-Dzięki **AllGrafika.pl** możesz personalizować kolorystykę tła i elementów w miniaturkach.
+Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz personalizować kolorystykę tła i elementów w miniaturkach.
 
 ## Automatyzacja i optymalizacja z AllGrafika.pl
 
-Tworzenie miniaturek dla dużej liczby produktów może być czasochłonne. Dzięki **AllGrafika.pl**:
+Tworzenie miniaturek dla dużej liczby produktów może być czasochłonne. Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register):
 - Generujesz 12 wariantów miniaturki w ciągu 60 sekund.
 - Optymalizujesz zdjęcia pod kątem technicznym i wizualnym.
 - Oszczędzasz czas i pieniądze w porównaniu do tradycyjnej sesji fotograficznej.
@@ -47,7 +47,7 @@ Tworzenie miniaturek dla dużej liczby produktów może być czasochłonne. Dzi�
 
 Idealna miniaturka to połączenie estetyki, zgodności z wymaganiami Allegro i dopasowania do grupy docelowej. Odpowiednie zdjęcia mogą zwiększyć Twoją widoczność oraz sprzedaż.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-12',
   readTime: 6,

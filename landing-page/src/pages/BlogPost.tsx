@@ -4,6 +4,13 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { blogPosts } from '../data/blogPosts'
 
+// Renders inline markdown: links [text](url) and bold **text**
+function renderInline(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:underline font-semibold" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+}
+
 // Simple markdown-like renderer for bold and headers
 function renderContent(content: string) {
   const lines = content.split('\n')
@@ -17,14 +24,14 @@ function renderContent(content: string) {
     if (line.startsWith('- ')) {
       return (
         <li key={i} className="text-gray-700 leading-relaxed ml-4 list-disc"
-          dangerouslySetInnerHTML={{ __html: line.slice(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
+          dangerouslySetInnerHTML={{ __html: renderInline(line.slice(2)) }}
         />
       )
     }
     if (line.trim() === '') return <br key={i} />
     return (
       <p key={i} className="text-gray-700 leading-relaxed mb-4"
-        dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
+        dangerouslySetInnerHTML={{ __html: renderInline(line) }}
       />
     )
   })

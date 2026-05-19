@@ -39,7 +39,7 @@ Aby Twoja miniaturka wyróżniała się na tle konkurencji, zadbaj o:
 
 ## Jak AllGrafika.pl ułatwia tworzenie miniaturek
 
-Dzięki **AllGrafika.pl** możesz zaoszczędzić czas i pieniądze. Wystarczy jedno zdjęcie produktu, aby narzędzie stworzyło aż 12 wariantów miniaturek w różnych stylach. AI analizuje Twój produkt i automatycznie dopasowuje najlepszy opis oraz styl grafiki. Dzięki temu z łatwością spełnisz wszystkie wymagania Allegro i zwiększysz widoczność swoich aukcji.
+Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz zaoszczędzić czas i pieniądze. Wystarczy jedno zdjęcie produktu, aby narzędzie stworzyło aż 12 wariantów miniaturek w różnych stylach. AI analizuje Twój produkt i automatycznie dopasowuje najlepszy opis oraz styl grafiki. Dzięki temu z łatwością spełnisz wszystkie wymagania Allegro i zwiększysz widoczność swoich aukcji.
 
 ## Optymalizacja tytułów i opisów pod kątem algorytmu Allegro
 
@@ -49,7 +49,7 @@ Nie zapominaj, że miniaturka to tylko jeden element sukcesu. Połącz ją z dob
 - **Alt text**: Dodaj opis alternatywny dla każdego obrazu, który zawiera słowa kluczowe.
 - **Dane szczegółowe**: Podaj jak najwięcej informacji w opisie, aby algorytm Allegro mógł lepiej dopasować Twój produkt do wyszukiwań użytkowników.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-16',
   readTime: 6,

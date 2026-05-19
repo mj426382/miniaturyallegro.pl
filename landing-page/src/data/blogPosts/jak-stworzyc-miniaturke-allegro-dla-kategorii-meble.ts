@@ -38,7 +38,7 @@ Kolory i kompozycja odgrywają ogromną rolę w przyciąganiu uwagi:
 
 ## Jak AllGrafika.pl pomaga sprzedawcom mebli?
 
-Zamiast tracić czas i pieniądze na sesje fotograficzne, skorzystaj z **AllGrafika.pl**. Nasze narzędzie AI:
+Zamiast tracić czas i pieniądze na sesje fotograficzne, skorzystaj z [AllGrafika.pl](https://app.allgrafika.pl/register). Nasze narzędzie AI:
 
 - Automatycznie dodaje profesjonalne tło (np. błyszczące białe lub stylizowane na wnętrze).
 - Generuje **12 różnych stylów miniaturek**, które możesz wybrać.
@@ -50,7 +50,7 @@ Zamiast tracić czas i pieniądze na sesje fotograficzne, skorzystaj z **AllGraf
 - **Unikaj bałaganu w kadrze**: Tło powinno być czyste i spójne.
 - **Pokaż szczegóły**: Zbliżenia na fakturę, szwy czy wykończenie dodadzą wiarygodności.
 
-Gotowy? Wypróbuj **AllGrafika.pl** za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-04',
   readTime: 6,
