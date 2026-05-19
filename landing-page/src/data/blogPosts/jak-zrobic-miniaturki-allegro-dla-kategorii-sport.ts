@@ -59,6 +59,8 @@ Nie zapominaj o optymalizacji miniaturek pod kątem wyszukiwarek. Oto kilka wska
 
 Tworzenie idealnych miniaturek dla kategorii Sport wymaga przemyślenia stylu, kompozycji i optymalizacji. Pamiętaj, że miniaturka to Twoja wizytówka wśród tysięcy ofert na Allegro. Użyj narzędzia [AllGrafika.pl](https://app.allgrafika.pl/register), aby zaoszczędzić czas i stworzyć wersje, które zwiększą Twoją sprzedaż.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-20',

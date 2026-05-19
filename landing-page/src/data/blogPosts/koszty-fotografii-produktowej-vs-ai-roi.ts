@@ -44,6 +44,8 @@ Jeśli za tradycyjną sesję fotograficzną wydasz 300 zł na zdjęcie, a dzięk
 
 Wybór metody tworzenia zdjęć produktowych zależy od budżetu, ilości produktów i oczekiwań co do jakości. Narzędzia AI, takie jak AllGrafika.pl, oferują **kosztową efektywność**, szybkość i różnorodność stylów. Tradycyjne rozwiązania mogą być bardziej prestiżowe, ale ich koszty i czas realizacji często nie mają uzasadnienia dla sprzedawców online.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-02',

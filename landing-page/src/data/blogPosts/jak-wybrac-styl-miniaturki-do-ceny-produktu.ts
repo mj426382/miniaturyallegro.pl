@@ -36,6 +36,8 @@ Nie wiesz, który styl najlepiej pasuje do Twojego produktu? Skorzystaj z **A/B 
 
 Dzięki **dedykowanemu AI**, AllGrafika.pl analizuje Twój produkt i sugeruje najbardziej odpowiedni styl miniaturki. Aplikacja automatycznie wygeneruje 12 wariantów miniaturek, które możesz przetestować, aby znaleźć ten, który najlepiej działa dla Twojej grupy docelowej.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-10',

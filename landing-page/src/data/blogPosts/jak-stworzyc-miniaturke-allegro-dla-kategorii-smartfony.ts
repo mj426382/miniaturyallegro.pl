@@ -45,6 +45,8 @@ Aby zwiększyć współczynnik klikalności na Allegro, skup się na kilku aspek
 
 Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) oszczędzasz czas i pieniądze. Wystarczy przesłać zdjęcie smartfona, a narzędzie automatycznie wygeneruje 12 wariantów miniaturek w różnych stylach. Dostosowanie do wymagań Allegro zajmuje zaledwie kilka sekund.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-09',

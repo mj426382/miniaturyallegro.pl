@@ -44,6 +44,8 @@ Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) proces optymalizacji
 - Optymalizuj nazwy plików i alt text dla każdego zdjęcia produktu.
 - Testuj różne style miniaturek, aby znaleźć ten, który najlepiej konwertuje.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-22',

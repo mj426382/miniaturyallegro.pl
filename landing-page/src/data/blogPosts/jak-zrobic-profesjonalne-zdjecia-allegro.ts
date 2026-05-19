@@ -40,7 +40,10 @@ Narzędzia takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) używaj
 
 ## Podsumowanie
 
-Dobra grafika produktowa Allegro to inwestycja, która zwraca się wielokrotnie.`,
+Dobra grafika produktowa Allegro to inwestycja, która zwraca się wielokrotnie.
+
+[← Wróć do strony głównej](https://allgrafika.pl/)
+  `,
   publishedAt: '2026-01-15',
   readTime: 6,
   category: 'Poradniki',

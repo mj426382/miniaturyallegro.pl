@@ -39,6 +39,8 @@ Badania pokazują, że kolory mogą zwiększyć CTR nawet o **30%**. Klucz to te
 
 Psychologia kolorów to potężne narzędzie w rękach sprzedawcy na Allegro. Dobór odpowiednich barw, stylu tła i kompozycji może znacząco wpłynąć na wyniki Twoich aukcji. Dzięki narzędziom takim jak AllGrafika.pl proces tworzenia skutecznych miniaturek staje się łatwy i szybki.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-11',

@@ -49,6 +49,8 @@ Nie zapominaj, że miniaturka to tylko jeden element sukcesu. Połącz ją z dob
 - **Alt text**: Dodaj opis alternatywny dla każdego obrazu, który zawiera słowa kluczowe.
 - **Dane szczegółowe**: Podaj jak najwięcej informacji w opisie, aby algorytm Allegro mógł lepiej dopasować Twój produkt do wyszukiwań użytkowników.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-16',

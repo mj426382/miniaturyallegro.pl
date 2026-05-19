@@ -42,6 +42,8 @@ Tworząc miniaturki, pamiętaj także o ich optymalizacji dla wyszukiwarek:
 
 Po opublikowaniu miniaturek na Allegro nie kończ pracy – to dopiero początek. Przeprowadzaj **A/B testy**, by sprawdzić, które wersje przyciągają większy ruch. Analizuj CTR (współczynnik klikalności) i dostosowuj swoje grafiki w oparciu o wyniki.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-10',
