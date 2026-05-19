@@ -37,6 +37,8 @@ Narzędzia takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) umożli
 
 Profesjonalnie wykonane miniaturki Allegro mogą znacząco zmniejszyć liczbę zwrotów, prezentując produkt w sposób precyzyjny i atrakcyjny. Wykorzystaj automatyzację i sztuczną inteligencję od [AllGrafika.pl](https://app.allgrafika.pl/register), aby zaoszczędzić czas i uniknąć błędów.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-23',

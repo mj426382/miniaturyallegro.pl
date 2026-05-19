@@ -37,7 +37,9 @@ A/B testowanie miniaturek to świetny sposób, aby dowiedzieć się, co działa 
 
 ## Podsumowanie
 
-Tworzenie miniaturek dla kategorii Dom i Ogród na Allegro wymaga odpowiedniego podejścia. Pamiętaj o wyborze stylu pasującego do produktu, wysokiej jakości zdjęciach i testowaniu różnych wariantów, aby znaleźć ten najbardziej skuteczny. Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+Tworzenie miniaturek dla kategorii Dom i Ogród na Allegro wymaga odpowiedniego podejścia. Pamiętaj o wyborze stylu pasującego do produktu, wysokiej jakości zdjęciach i testowaniu różnych wariantów, aby znaleźć ten najbardziej skuteczny. [← Wróć do strony głównej](https://allgrafika.pl/)
+
+Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-12',
   readTime: 6,

@@ -65,6 +65,8 @@ AllGrafika.pl oferuje wsparcie w tworzeniu profesjonalnych zdjęć w stylu flat 
 
 Styl flat lay to doskonałe narzędzie zwiększające atrakcyjność Twoich ofert na Allegro. Poprawnie zaplanowany i zrealizowany układ przyciąga uwagę klientów, zwiększa współczynnik klikalności i buduje profesjonalny wizerunek marki. Pamiętaj, że dzięki takim narzędziom jak [AllGrafika.pl](https://app.allgrafika.pl/register) możesz znacząco przyspieszyć proces tworzenia pięknych i skutecznych zdjęć.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-18',

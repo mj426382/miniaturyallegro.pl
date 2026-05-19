@@ -42,6 +42,8 @@ Nie musisz być profesjonalnym fotografem, aby tworzyć skuteczne miniaturki. [A
 - Przeprowadzaj **A/B testy**, aby sprawdzić, który układ zdjęcia przyciąga więcej kliknięć.
 - Analizuj dane dotyczące CTR, aby lepiej zrozumieć preferencje klientów i dostosować miniaturki do ich oczekiwań.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-15',

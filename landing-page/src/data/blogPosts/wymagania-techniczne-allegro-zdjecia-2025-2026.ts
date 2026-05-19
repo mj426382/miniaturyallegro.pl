@@ -55,6 +55,8 @@ Zamiast tracić czas na poprawianie zdjęć, skorzystaj z narzędzia [AllGrafika
 - Warto inwestować w jakość zdjęć, ponieważ **lepsze fotografie zwiększają szanse na sprzedaż**.
 - Używaj narzędzi do automatyzacji, takich jak AllGrafika.pl, aby zaoszczędzić czas i pieniądze.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-10',

@@ -53,6 +53,8 @@ Nasze AI oferuje m.in.:
 
 Idealna miniaturka w kategorii Dziecko to połączenie technicznych wymagań Allegro z umiejętnym wykorzystaniem psychologii kolorów i kompozycji. Profesjonalny wygląd zdjęcia wzbudza zaufanie i przyciąga uwagę klientów, co przekłada się na wyższy CTR i większą sprzedaż.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-17',

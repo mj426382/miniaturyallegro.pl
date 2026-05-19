@@ -54,6 +54,8 @@ Oto kilka sprawdzonych sposobów na zwiększenie współczynnika klikalności:
 - **Dodaj kontekst użytkowania:** Wybierz styl lifestyle, aby pokazać sprzęt w akcji, np. odkurzacz w trakcie sprzątania.
 - **Unikaj zatłoczenia:** Mniej znaczy więcej – zbyt wiele elementów w kadrze może zmylić klientów.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-27',

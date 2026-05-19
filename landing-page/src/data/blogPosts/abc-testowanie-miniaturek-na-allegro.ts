@@ -41,6 +41,8 @@ Użyj narzędzi analitycznych Allegro, aby śledzić współczynnik klikalności
 
 AllGrafika.pl automatycznie generuje różnorodne style miniaturek, takie jak **Dark Luxury** czy **Flat Lay**, które możesz wykorzystać w A/B testach. Dzięki AI oszczędzasz czas i zyskujesz profesjonalne warianty w zaledwie 60 sekund.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-04-30',

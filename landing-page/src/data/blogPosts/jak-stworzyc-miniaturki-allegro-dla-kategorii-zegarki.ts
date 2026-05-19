@@ -48,6 +48,8 @@ Dzięki AllGrafika.pl możesz w kilka chwil wygenerować aż **12 profesjonalnyc
 
 Tworzenie idealnych miniaturek dla zegarków na Allegro to sztuka, która wymaga uwagi do detali, odpowiedniego stylu i zgodności z technicznymi wymaganiami platformy. Dzięki narzędziu jak [AllGrafika.pl](https://app.allgrafika.pl/register) możesz oszczędzić czas i pieniądze, jednocześnie zwiększając sprzedaż.
 
+[← Wróć do strony głównej](https://allgrafika.pl/)
+
 Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
   `,
   publishedAt: '2026-05-11',
