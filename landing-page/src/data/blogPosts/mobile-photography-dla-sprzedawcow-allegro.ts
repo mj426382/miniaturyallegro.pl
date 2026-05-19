@@ -43,9 +43,7 @@ Chociaż smartfon pozwala na wykonanie dobrych zdjęć, narzędzia takie jak [Al
 
 Dobre zdjęcia produktów to klucz do sukcesu na Allegro. Dzięki odpowiedniej technice mobile photography i wsparciu narzędzi takich jak AllGrafika.pl możesz w prosty sposób poprawić jakość swoich miniaturek, przyciągnąć więcej klientów i zwiększyć sprzedaż.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-15',
   readTime: 6,

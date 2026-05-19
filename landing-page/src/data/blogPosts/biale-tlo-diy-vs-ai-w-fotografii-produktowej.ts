@@ -48,9 +48,7 @@ Narzedzia AI, takie jak [AllGrafika.pl](https://app.allgrafika.pl/register), aut
 
 Przygotowanie zdjęć z białym tłem nigdy nie było prostsze. Wystarczy załadować zdjęcie, wybrać styl i pobrać gotową miniaturkę. Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) oszczędzasz czas i pieniądze, jednocześnie poprawiając widoczność swoich produktów.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-29',
   readTime: 6,

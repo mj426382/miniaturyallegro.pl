@@ -42,9 +42,7 @@ Każda kategoria i grupa docelowa jest inna, dlatego warto przeprowadzać **A/B 
 
 Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz w prosty sposób wygenerować aż 12 wariantów miniaturek swojego produktu w różnych stylach, takich jak białe tło, lifestyle, czy minimalistyczny. Narzędzie wykorzystuje dedykowane AI do tworzenia grafik, by dobrać optymalny wygląd miniaturki i zwiększyć Twoje szanse na wyższy CTR.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-09',
   readTime: 6,

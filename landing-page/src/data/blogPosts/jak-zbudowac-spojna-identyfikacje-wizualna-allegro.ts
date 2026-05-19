@@ -47,9 +47,7 @@ Tworzenie spójnych miniaturek dla całego katalogu produktów może być czasoc
 - Regularnie **testuj i analizuj CTR** (współczynnik klikalności) swoich miniaturek.
 - Aktualizuj zdjęcia co kilka miesięcy, aby dostosować się do zmieniających się preferencji klientów.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-13',
   readTime: 6,

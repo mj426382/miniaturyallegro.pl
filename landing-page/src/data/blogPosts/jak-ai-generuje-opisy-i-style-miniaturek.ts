@@ -53,9 +53,7 @@ Korzystanie z AllGrafika.pl jest proste. Wystarczy:
 - Wybrać interesujące Cię style miniaturek lub skorzystać z sugestii AI.
 - Pobierać gotowe grafiki i opisy w kilka sekund.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-17',
   readTime: 6,

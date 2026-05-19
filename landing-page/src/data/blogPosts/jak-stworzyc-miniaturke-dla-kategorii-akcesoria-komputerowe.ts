@@ -46,9 +46,7 @@ Zoptymalizowane miniaturki mogą znacznie zwiększyć CTR. Oto kilka wskazówek:
 
 Tworzenie idealnych miniaturek dla akcesoriów komputerowych nie musi być trudne ani kosztowne. Dzięki AllGrafika.pl możesz z łatwością przygotować zdjęcia, które przyciągną uwagę klientów i zwiększą Twoją sprzedaż.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-19',
   readTime: 6,

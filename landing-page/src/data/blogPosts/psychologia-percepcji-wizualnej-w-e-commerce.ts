@@ -40,9 +40,7 @@ Wizualny kontrast to kolejny kluczowy aspekt, który wpływa na uwagę klientów
 
 Badania pokazują, że ludzie podejmują decyzje intuicyjnie w ułamku sekundy. Twoja miniaturka musi błyskawicznie przekazać kluczowe informacje: co to za produkt, dlaczego jest wyjątkowy i dlaczego warto go kupić. **Wysokiej jakości zdjęcia, odpowiednie kolory i kompozycja to klucz do sukcesu.**
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-14',
   readTime: 6,

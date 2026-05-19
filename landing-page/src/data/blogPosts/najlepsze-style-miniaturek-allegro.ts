@@ -33,7 +33,7 @@ Widok z góry z komplementarnymi elementami. **Idealny dla:** odzieży, akcesori
 
 Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz wygenerować wszystkie 6 stylów jednocześnie i testować, który przynosi najlepsze wyniki.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-01-22',
   readTime: 8,

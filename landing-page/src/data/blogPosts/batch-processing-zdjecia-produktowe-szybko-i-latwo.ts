@@ -53,9 +53,7 @@ Styl dark luxury z odpowiednim oświetleniem i ciemnym tłem dodaje elegancji i 
 
 Batch processing to narzędzie, które pozwala na znaczną oszczędność czasu i zasobów przy równoczesnym podniesieniu jakości Twoich zdjęć produktowych. Jeśli chcesz zwiększyć skuteczność sprzedaży i CTR na Allegro, automatyzacja tego procesu jest niezbędna.
 
-[← Wróć do strony głównej](https://allgrafika.pl/)
-
-Gotowy? Wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) za darmo — pierwsze 10 miniaturek bez żadnych opłat, wynik w 60 sekund!
+[← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-21',
   readTime: 6,
