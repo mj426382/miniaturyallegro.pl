@@ -47,10 +47,14 @@ jobs:
               slug_m = re.search(r"slug:\s*'([^']+)'", text)
               if not slug_m:
                   slug_m = re.search(r'slug:\s*"([^"]+)"', text)
+              cat_m = re.search(r"category:\s*'([^']+)'", text)
+              if not cat_m:
+                  cat_m = re.search(r'category:\s*"([^"]+)"', text)
               if title_m:
                   existing.append({
                       "title": title_m.group(1),
                       "slug": slug_m.group(1) if slug_m else "",
+                      "category": cat_m.group(1) if cat_m else "",
                   })
 
           existing_count = len(existing)
@@ -58,7 +62,14 @@ jobs:
 
           now = datetime.now()
           date_iso = now.strftime("%Y-%m-%d")
-          existing_str = "\n".join(f"- {e['title']} (slug: {e['slug']})" for e in existing)
+          existing_str = "\n".join(f"- {e['title']} (slug: {e['slug']}, kat: {e['category']})" for e in existing)
+
+          # Count topics per category to identify underrepresented areas
+          cat_counts = {}
+          for e in existing:
+              c = e['category']
+              cat_counts[c] = cat_counts.get(c, 0) + 1
+          cat_summary = ", ".join(f"{k}: {v}" for k, v in sorted(cat_counts.items(), key=lambda x: x[1]))
 
           # ── Prompts ─────────────────────────────────────────────────────────
           SYSTEM_PROMPT = (
@@ -68,41 +79,31 @@ jobs:
               "CZYM JEST ALLGRAFIKA.PL:\n"
               "Aplikacja webowa, która:\n"
               "- Przyjmuje zdjęcie produktu (JPG, PNG, WebP) od sprzedawcy\n"
-              "- Automatycznie generuje 12 wariantów profesjonalnych miniaturek w różnych stylach\n"
+              "- Automatycznie generuje 6 wariantów profesjonalnych miniaturek w różnych stylach\n"
               "- Używa dedykowanego AI do analizy produktu i tworzenia optymalnych opisów\n"
+              "- Umożliwia własny prompt z opcjonalnym zdjęciem referencyjnym\n"
               "- Przechowuje wygenerowane grafiki bezpiecznie w chmurze\n"
-              "- Kosztuje ok. 1 zł za generację, pierwsze 10 miniaturek jest bezpłatnych\n"
+              "- Kosztuje ok. 1-2 zł za grafikę, pierwsze 10 miniaturek jest bezpłatnych\n"
               "- Oszczędza czas i pieniądze vs. tradycyjna sesja fotograficzna (200-500 zł za produkt)\n\n"
-              "DOSTĘPNE STYLE MINIATUREK (naturalnie wplataj — max 3-4 wzmianki):\n"
+              "DOSTĘPNE STYLE MINIATUREK (wplataj naturalnie — max 2-3 wzmianki na artykuł):\n"
               "- Białe tło (White Background) — wymagane przez Allegro, profesjonalne\n"
               "- Lifestyle — produkt w naturalnym otoczeniu użytkowania\n"
               "- Dark luxury — ciemne tło z dramatycznym oświetleniem (biżuteria, zegarki, perfumy)\n"
               "- Minimalistyczny — dużo pustej przestrzeni, czyste linie\n"
               "- Flat lay — widok z góry z komplementarnymi elementami\n"
               "- Studio — neutralne tło gradientowe, miękkie naturalne cienie\n\n"
-              "GŁÓWNE OBSZARY POZYCJONOWANIA (priorytetowe tematy):\n"
-              "- Jak tworzyć miniaturki Allegro zwiększające sprzedaż i CTR\n"
-              "- Wymagania techniczne Allegro dla zdjęć produktowych — rozmiar, format, tło\n"
-              "- Psychologia kolorów i kompozycji w fotografii produktowej\n"
-              "- AI i automatyzacja w fotografii produktowej dla e-commerce\n"
-              "- Optymalizacja listingów Allegro przez lepsze zdjęcia\n"
-              "- Poradniki dla sprzedawców Allegro dla konkretnych kategorii produktowych\n"
-              "- Porównanie narzędzi do tworzenia zdjęć produktowych (AI vs. studio vs. DIY)\n"
-              "- Mobile photography dla sprzedawców — jak fotografować produkty telefonem\n"
-              "- A/B testowanie miniaturek i analiza CTR na Allegro\n"
-              "- Batch processing i automatyzacja dla dużych katalogów produktów\n"
-              "- SEO grafik produktowych — nazwy plików, alt text, metadane obrazków\n"
-              "- Budowanie spójnej identyfikacji wizualnej sklepu na Allegro\n"
-              "- Algorytm Allegro a jakość zdjęć — wpływ na pozycję w wynikach\n\n"
               "ZASADY PISANIA ARTYKUŁÓW:\n"
               "1. Język: profesjonalny, ale przystępny polski. Bez korporacyjnego żargonu.\n"
               "2. Styl: bezpośredni — zwracaj się do czytelnika 'Ty', 'Twoje produkty', 'Twój sklep'.\n"
-              "3. Struktura: wciągający wstęp (problem lub pytanie retoryczne) → 4-6 sekcji H2 "
-              "z opcjonalnymi H3 → podsumowanie z CTA.\n"
-              "4. SEO On-Page: główna fraza kluczowa w tytule, excercie i pierwszym H2. "
-              "Frazy LSI rozsiane naturalnie w treści.\n"
-              "5. Długość: 500-700 słów treści (pole 'content').\n"
-              "6. FORMAT pola 'content' — WYŁĄCZNIE liniowy Markdown bez HTML:\n"
+              "3. UNIKALNA STRUKTURA: każdy artykuł musi mieć inną strukturę H2/H3 niż pozostałe.\n"
+              "   Nie używaj standardowego schematu 'wstęp → lista → podsumowanie'.\n"
+              "   Stosuj: studium przypadku, porównanie opcji, checklist, Q&A, krok po kroku, dane/statystyki.\n"
+              "4. UNIKALNY WSTĘP: zacznij od zaskakującego faktu, pytania retorycznego, anegdoty lub\n"
+              "   konkretnej liczby/statystyki — nigdy od 'W dzisiejszych czasach' ani ogólnika.\n"
+              "5. SEO On-Page: główna fraza kluczowa w tytule, excercie i pierwszym H2.\n"
+              "   Frazy LSI rozsiane naturalnie w treści. NIE powtarzaj frazy kluczowej mechanicznie.\n"
+              "6. Długość: 600-800 słów treści (pole 'content') — więcej niż dotychczas.\n"
+              "7. FORMAT pola 'content' — WYŁĄCZNIE liniowy Markdown bez HTML:\n"
               "   - Nagłówek H2: linia zaczynająca się od '## ' (dwa hashe i spacja)\n"
               "   - Nagłówek H3: linia zaczynająca się od '### ' (trzy hashe i spacja)\n"
               "   - Element listy: linia zaczynająca się od '- ' (myślnik i spacja)\n"
@@ -111,43 +112,50 @@ jobs:
               "   - Akapit: zwykła linia tekstu\n"
               "   - Odstęp między sekcjami: pusta linia\n"
               "   - BEZ tagów HTML, BEZ numerowanych list (zamiast 1. 2. 3. używaj - )\n"
-              "7. Ostatni akapit artykułu: link do strony głównej — dokładnie ta linia:\n"
-              "   '[← Przejdź do strony głównej](https://allgrafika.pl/)'\n"
-              "8. Każde INNE wystąpienie nazwy AllGrafika.pl w treści artykułu również zapisuj jako "
+              "8. Ostatni akapit artykułu: link do strony głównej — dokładnie ta linia:\n"
+              "   '[← Przejdź do AllGrafika.pl](https://allgrafika.pl/)'\n"
+              "9. Każde INNE wystąpienie nazwy AllGrafika w treści artykułu zapisuj jako "
               "link: [AllGrafika.pl](https://app.allgrafika.pl/register)\n"
-              "9. slug: tylko małe litery ASCII (a-z), myślniki zamiast spacji, "
+              "10. INTERNAL LINKS: w treści artykułu dodaj 1-2 linki do innych powiązanych artykułów "
+              "na blogu allgrafika.pl używając formatu [tytuł artykułu](https://allgrafika.pl/blog/slug).\n"
+              "11. slug: tylko małe litery ASCII (a-z), myślniki zamiast spacji, "
               "bez polskich znaków diakrytycznych, max 60 znaków, "
               "ZAWSZE zaczyna się od litery (nie cyfry).\n"
-              "10. category: jedna z: Poradniki / Technologia / Styl i design / E-commerce / Optymalizacja.\n"
-              "11. readTime: liczba całkowita (szacowane minuty czytania, ok. 200 słów/min).\n"
-              "12. NIGDY nie powtarzaj tematów z listy istniejących artykułów."
+              "12. category: jedna z: Poradniki / Technologia / Styl i design / E-commerce / Optymalizacja.\n"
+              "    Priorytetuj kategorie z mniejszą liczbą artykułów.\n"
+              "13. readTime: liczba całkowita (szacowane minuty czytania, ok. 200 słów/min).\n"
+              "14. NIGDY nie powtarzaj tematów z listy istniejących artykułów.\n"
+              "15. RÓŻNORODNOŚĆ STRUKTURY H2: używaj od 3 do 5 sekcji H2, każda z innym typem treści\n"
+              "    (np. jedna sekcja z listą, jedna z akapitami narracyjnymi, jedna z H3 i podpunktami)."
           )
 
           USER_PROMPT = (
               f"Data publikacji: {date_iso}\n\n"
+              f"Liczba artykułów per kategoria: {cat_summary}\n\n"
               f"Istniejące artykuły na blogu (NIE powtarzaj tych tematów):\n"
               f"{existing_str}\n\n"
-              "Napisz nowy artykuł SEO dla AllGrafika.pl. Priorytetowo wybieraj tematy:\n"
-              "- jak stworzyć idealną miniaturkę dla konkretnej kategorii Allegro "
-              "(np. elektronika, odzież, dom i ogród, sport, uroda, motoryzacja)\n"
-              "- wymagania techniczne Allegro dla zdjęć produktowych 2025/2026 — rozmiar, format, tło\n"
-              "- jak zwiększyć CTR (współczynnik klikalności) na Allegro przez lepsze miniaturki\n"
-              "- psychologia percepcji wizualnej w e-commerce — co przyciąga wzrok kupującego\n"
-              "- A/B testowanie miniaturek — jak mierzyć i interpretować skuteczność zdjęć\n"
-              "- mobile photography dla sprzedawców — jak robić profesjonalne zdjęcia telefonem\n"
-              "- jak dedykowane AI generuje opisy i dobiera style dla różnych produktów\n"
-              "- białe tło w fotografii produktowej — techniki DIY vs. automatyczne AI\n"
-              "- batch processing — jak szybko przygotować zdjęcia dla 100+ produktów naraz\n"
-              "- SEO zdjęć produktowych — nazwy plików, alt text, metadane pod algorytm Allegro\n"
-              "- dobór stylu miniaturki (lifestyle vs. białe tło vs. dark luxury) do kategorii i ceny\n"
-              "- jak zbudować spójną identyfikację wizualną sklepu na Allegro\n"
-              "- wpływ jakości i stylu zdjęć na pozycję w wynikach wyszukiwania Allegro\n"
-              "- koszty fotografii produktowej: studio vs. freelancer vs. AI — kalkulacja ROI\n"
-              "- flat lay — jak tworzyć estetyczne układy produktów krok po kroku\n"
-              "- oświetlenie DIY dla sprzedawców — lampy, dyfuzory, softboxy za 100-300 zł\n"
-              "- jak fotografia produktowa wpływa na zwroty i reklamacje klientów\n"
-              "— cokolwiek jeszcze NIE było omówione, związanego z miniaturkami produktowymi, "
-              "zdjęciami na Allegro, sprzedażą online lub AI w e-commerce.\n\n"
+              "Napisz nowy artykuł SEO dla AllGrafika.pl.\n\n"
+              "WAŻNE — priorytetuj tematy, których jeszcze NIE ma na blogu:\n"
+              "- jak napisać skuteczny tytuł aukcji Allegro wspierający miniaturkę\n"
+              "- porównanie formatów grafik: JPG vs WebP vs PNG na Allegro — co wybrać\n"
+              "- jak dostosować miniaturki do sezonowych kampanii (Boże Narodzenie, lato, Wielkanoc)\n"
+              "- optymalizacja konwersji listingu Allegro — grafika + tytuł + cena\n"
+              "- jak testować efektywność miniaturek bez dużego budżetu reklamowego\n"
+              "- wpływ tła miniaturki na postrzeganą wartość produktu przez kupującego\n"
+              "- miniaturki dla nowych kategorii na Allegro (np. żywność, zwierzęta, narzędzia)\n"
+              "- automatyzacja workflow graficznego dla sklepów z 500+ SKU\n"
+              "- case study: jak zmiana miniaturki zwiększyła CTR o X%\n"
+              "- porównanie platform e-commerce pod kątem wymagań graficznych (Allegro vs Shopify vs WooCommerce)\n"
+              "- rola miniaturki w algorytmie rankingowym Allegro 2025/2026\n"
+              "- miniaturki na urządzenia mobilne — jak wyglądają Twoje grafiki na telefonie\n"
+              "- jak tworzyć grafiki świąteczne i promocyjne do ofert na Allegro\n"
+              "- psychologia cen a styl miniaturki — jak premium packaging wpływa na postrzeganą cenę\n"
+              "— lub inny unikalny temat związany z miniaturkami, grafiką produktową, sprzedażą online.\n\n"
+              "Wymagania dotyczące STRUKTURY tego konkretnego artykułu:\n"
+              "- Zacznij od ZASKAKUJĄCEGO FAKTU lub KONKRETNEJ LICZBY (nie od ogólnika)\n"
+              "- Użyj CO NAJMNIEJ jednej sekcji H2 z typem 'studium przypadku' lub 'konkretny przykład'\n"
+              "- Użyj CO NAJMNIEJ jednej sekcji z podpunktami H3\n"
+              "- Zakończ konkretnym CTA lub action item dla czytelnika\n\n"
               "Zwróć WYŁĄCZNIE surowy obiekt JSON (zero markdown, zero ```, zero komentarzy przed/po), "
               "w DOKŁADNIE tym formacie:\n"
               "{\n"
@@ -174,8 +182,8 @@ jobs:
                       {"role": "system", "content": SYSTEM_PROMPT},
                       {"role": "user",   "content": USER_PROMPT},
                   ],
-                  "max_tokens": 3000,
-                  "temperature": 0.75,
+                  "max_tokens": 3500,
+                  "temperature": 0.85,
                   "response_format": {"type": "json_object"},
               },
               timeout=180,
@@ -226,6 +234,8 @@ jobs:
               f"{esc_tl(article['content'])}\n"
               "  `,\n"
               f"  publishedAt: '{date_iso}',\n"
+              f"  modifiedAt: '{date_iso}',\n"
+              f"  author: 'AllGrafika.pl',\n"
               f"  readTime: {int(article['readTime'])},\n"
               f"  category: '{esc_sq(article['category'])}',\n"
               "}\n\n"
@@ -273,13 +283,65 @@ jobs:
           index_path.write_text(idx, encoding="utf-8")
           print(f"blogPosts.ts updated — added: {var_name}")
 
+          # ── Regenerate public/sitemap.xml with correct dates ────────────────
+          sitemap_entries = []
+
+          # Collect all posts with their publishedAt dates
+          all_posts_meta = []
+          for ts_file in sorted(articles_dir.glob("*.ts")):
+              text = ts_file.read_text(encoding="utf-8")
+              slug_m = re.search(r"slug:\s*'([^']+)'", text) or re.search(r'slug:\s*"([^"]+)"', text)
+              pub_m  = re.search(r"publishedAt:\s*'([^']+)'", text) or re.search(r'publishedAt:\s*"([^"]+)"', text)
+              mod_m  = re.search(r"modifiedAt:\s*'([^']+)'", text) or re.search(r'modifiedAt:\s*"([^"]+)"', text)
+              if slug_m:
+                  post_slug    = slug_m.group(1)
+                  published_at = pub_m.group(1)  if pub_m  else date_iso
+                  modified_at  = mod_m.group(1)  if mod_m  else published_at
+                  lastmod      = modified_at if modified_at else published_at
+                  all_posts_meta.append({"slug": post_slug, "lastmod": lastmod})
+
+          most_recent = max((p["lastmod"] for p in all_posts_meta), default=date_iso)
+
+          def sitemap_url(loc, lastmod, changefreq, priority):
+              return (
+                  f"  <url>\n"
+                  f"    <loc>{loc}</loc>\n"
+                  f"    <lastmod>{lastmod}</lastmod>\n"
+                  f"    <changefreq>{changefreq}</changefreq>\n"
+                  f"    <priority>{priority}</priority>\n"
+                  f"  </url>"
+              )
+
+          sitemap_entries.append(sitemap_url("https://allgrafika.pl/",                      most_recent,   "weekly",  "1.0"))
+          sitemap_entries.append(sitemap_url("https://allgrafika.pl/blog",                  most_recent,   "weekly",  "0.9"))
+          sitemap_entries.append(sitemap_url("https://allgrafika.pl/regulamin",             "2026-01-01", "yearly",  "0.3"))
+          sitemap_entries.append(sitemap_url("https://allgrafika.pl/polityka-prywatnosci",  "2026-01-01", "yearly",  "0.3"))
+
+          for p in sorted(all_posts_meta, key=lambda x: x["lastmod"], reverse=True):
+              sitemap_entries.append(sitemap_url(
+                  f"https://allgrafika.pl/blog/{p['slug']}",
+                  p["lastmod"], "monthly", "0.7"
+              ))
+
+          sitemap_xml = (
+              '<?xml version="1.0" encoding="UTF-8"?>\n'
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+              + "\n".join(sitemap_entries) + "\n"
+              '</urlset>\n'
+          )
+
+          sitemap_path = Path("landing-page/public/sitemap.xml")
+          sitemap_path.write_text(sitemap_xml, encoding="utf-8")
+          print(f"✅ sitemap.xml updated ({len(all_posts_meta)} blog posts)")
+
           # ── Git & PR ────────────────────────────────────────────────────────
           commit_msg = f"feat(blog): {article['title']} ({date_iso})"
 
           run("git config user.name 'github-actions[bot]'")
           run("git config user.email 'github-actions[bot]@users.noreply.github.com'")
-          run("git add landing-page/src/data/")
+          run("git add landing-page/src/data/ landing-page/public/sitemap.xml")
           run(["git", "commit", "-m", commit_msg])
           run(["git", "push", "origin", "HEAD:main"])
           print(f"✅ Pushed to main: {commit_msg}")
           PYEOF
+

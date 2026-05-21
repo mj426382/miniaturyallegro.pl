@@ -4,6 +4,8 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { blogPosts } from '../data/blogPosts'
 
+const SITE_URL = 'https://allgrafika.pl'
+
 // Renders inline markdown: links [text](url) and bold **text**
 function renderInline(text: string): string {
   return text
@@ -43,16 +45,79 @@ export default function BlogPostPage() {
 
   if (!post) return <Navigate to="/blog" replace />
 
-  const otherPosts = blogPosts.filter((p) => p.slug !== slug).slice(0, 2)
+  const canonicalUrl = `${SITE_URL}/blog/${post.slug}`
+  const datePublished = post.publishedAt
+  const dateModified = post.modifiedAt ?? post.publishedAt
+
+  // Related posts: prefer same category, exclude current, take up to 3
+  const related = [
+    ...blogPosts.filter((p) => p.slug !== slug && p.category === post.category),
+    ...blogPosts.filter((p) => p.slug !== slug && p.category !== post.category),
+  ].slice(0, 3)
+
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt,
+    datePublished,
+    dateModified,
+    author: {
+      '@type': 'Organization',
+      name: 'AllGrafika.pl',
+      url: SITE_URL,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'AllGrafika.pl',
+      url: SITE_URL,
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.webp` },
+    },
+    url: canonicalUrl,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+    articleSection: post.category,
+    image: `${SITE_URL}/logo.webp`,
+  }
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Strona główna', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+      { '@type': 'ListItem', position: 3, name: post.title, item: canonicalUrl },
+    ],
+  }
 
   return (
     <>
       <Helmet>
         <title>{post.title} | AllGrafika.pl</title>
         <meta name="description" content={post.excerpt} />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="article" />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.excerpt} />
-        <link rel="canonical" href={`https://allgrafika.pl/blog/${post.slug}`} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:site_name" content="AllGrafika.pl" />
+        <meta property="og:locale" content="pl_PL" />
+        <meta property="og:image" content={`${SITE_URL}/logo.webp`} />
+        <meta property="article:published_time" content={datePublished} />
+        <meta property="article:modified_time" content={dateModified} />
+        <meta property="article:section" content={post.category} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={post.excerpt} />
+        <meta name="twitter:image" content={`${SITE_URL}/logo.webp`} />
+
+        {/* JSON-LD */}
+        <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-white">
@@ -60,7 +125,7 @@ export default function BlogPostPage() {
 
         <article className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500 mb-8">
             <Link to="/" className="hover:text-gray-700">Strona główna</Link>
             <span>/</span>
             <Link to="/blog" className="hover:text-gray-700">Blog</Link>
@@ -74,11 +139,13 @@ export default function BlogPostPage() {
               {post.category}
             </span>
             <span className="text-gray-400 text-sm">
-              {new Date(post.publishedAt).toLocaleDateString('pl-PL', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              <time dateTime={datePublished}>
+                {new Date(datePublished).toLocaleDateString('pl-PL', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </time>
             </span>
             <span className="text-gray-400 text-sm">• {post.readTime} min czytania</span>
           </div>
@@ -112,12 +179,12 @@ export default function BlogPostPage() {
           </div>
         </article>
 
-        {/* Other posts */}
-        {otherPosts.length > 0 && (
+        {/* Related posts */}
+        {related.length > 0 && (
           <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Przeczytaj również</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {otherPosts.map((p) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {related.map((p) => (
                 <Link
                   key={p.id}
                   to={`/blog/${p.slug}`}

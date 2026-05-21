@@ -4,6 +4,8 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { blogPosts } from '../data/blogPosts'
 
+const SITE_URL = 'https://allgrafika.pl'
+
 const sortedPosts = [...blogPosts].sort(
   (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
 )
@@ -17,8 +19,23 @@ export default function Blog() {
           name="description"
           content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro."
         />
-        <meta name="keywords" content="blog grafiki allegro, zdjęcia produktowe allegro, generator grafik allegro, porady sprzedaż allegro" />
-        <link rel="canonical" href="https://allgrafika.pl/blog" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`${SITE_URL}/blog`} />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl" />
+        <meta property="og:description" content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro." />
+        <meta property="og:url" content={`${SITE_URL}/blog`} />
+        <meta property="og:site_name" content="AllGrafika.pl" />
+        <meta property="og:locale" content="pl_PL" />
+        <meta property="og:image" content={`${SITE_URL}/logo.webp`} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl" />
+        <meta name="twitter:description" content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online." />
+        <meta name="twitter:image" content={`${SITE_URL}/logo.webp`} />
       </Helmet>
 
       <div className="min-h-screen bg-white">
