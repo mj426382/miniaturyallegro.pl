@@ -55,6 +55,8 @@ export interface BlogPostData {
   excerpt: string
   content: string
   publishedAt: string
+  modifiedAt?: string
+  author?: string
   readTime: number
   category: string
 }

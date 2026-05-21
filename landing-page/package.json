@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port 5174",
     "generate-sitemap": "node scripts/generate-sitemap.js",
-    "build": "node scripts/generate-sitemap.js && tsc && vite build",
+    "build": "node scripts/generate-sitemap.js && tsc && vite build && node scripts/prerender.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

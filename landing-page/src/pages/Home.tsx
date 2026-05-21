@@ -101,6 +101,15 @@ export default function Home() {
         <meta name="keywords" content="grafiki allegro, zdjęcia produktowe allegro, generator grafik allegro, AI grafiki allegro, allgrafika" />
         <meta property="og:title" content="AllGrafika – Generator grafik produktowych AI dla Allegro" />
         <meta property="og:description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund dzięki AI. 6 różnych stylów dla każdego produktu." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://allgrafika.pl" />
+        <meta property="og:site_name" content="AllGrafika.pl" />
+        <meta property="og:locale" content="pl_PL" />
+        <meta property="og:image" content="https://allgrafika.pl/logo.webp" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="AllGrafika – Generator grafik produktowych AI dla Allegro" />
+        <meta name="twitter:description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund dzięki AI." />
+        <meta name="twitter:image" content="https://allgrafika.pl/logo.webp" />
         <link rel="canonical" href="https://allgrafika.pl" />
       </Helmet>
 
