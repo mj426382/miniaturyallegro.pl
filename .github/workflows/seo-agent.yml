@@ -1,0 +1,59 @@
+name: 🔍 SEO Agent – Auto-optimize (Google Search Console)
+
+# ── Triggers ──────────────────────────────────────────────────────────────────
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run — analyze only, no files changed, no PR created"
+        type: boolean
+        default: false
+
+  schedule:
+    - cron: "0 5 * * *"   # daily at 05:00 UTC
+
+# ── Permissions ───────────────────────────────────────────────────────────────
+permissions:
+  contents: write        # create branch + commit
+  pull-requests: write   # open PR
+
+# ── Job ───────────────────────────────────────────────────────────────────────
+jobs:
+  seo-agent:
+    name: SEO Agent
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the full repo (needed for git history on push)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Node.js 20 — native fetch available, no polyfill needed
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: .github/seo-agent/package-lock.json
+
+      # 3. Install agent dependencies
+      - name: Install agent dependencies
+        run: npm install
+        working-directory: .github/seo-agent
+
+      # 4. Run the SEO agent
+      - name: Run SEO Agent
+        env:
+          # Google Search Console service account key (base64-encoded JSON)
+          GSC_SERVICE_ACCOUNT_KEY: ${{ secrets.GSC_SERVICE_ACCOUNT_KEY }}
+          # GSC property URL, e.g. "https://allgrafika.pl/" or "sc-domain:allgrafika.pl"
+          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+          # PAT with contents:write + pull-requests:write  (same token used by daily-blog.yml)
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: node agent.js
+        working-directory: .github/seo-agent
