@@ -92,7 +92,7 @@ jobs:
       - run: npm run format:check
       - run: npm run build
         env:
-          VITE_API_URL: https://api.allgrafika.pl/api
+          VITE_API_URL: https://server.allgrafika.pl/api
           VITE_GOOGLE_CLIENT_ID: ci-placeholder.apps.googleusercontent.com
       - name: Unit tests (download helper per platform)
         run: npm test

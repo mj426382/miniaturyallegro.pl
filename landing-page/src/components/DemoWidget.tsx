@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { track } from '../services/analytics'
 import { downloadBlob } from '../utils/download'
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || 'https://api.allgrafika.pl/api'
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || 'https://server.allgrafika.pl/api'
 const APP_URL = 'https://app.allgrafika.pl'
 const POLL_MS = 3000
 const MAX_POLLS = 60

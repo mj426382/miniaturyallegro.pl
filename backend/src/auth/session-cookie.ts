@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
  * Session transport.
  *
  * The JWT is delivered in an httpOnly cookie so an XSS in the SPA cannot read it.
- * app.allgrafika.pl and api.allgrafika.pl are different sites, so the cookie must be
+ * app.allgrafika.pl and server.allgrafika.pl (the API host) are different sites, so the cookie must be
  * SameSite=None; Secure – which means a cross-site form could still *send* it. The
  * CSRF defence is the custom header below: browsers only attach it after a CORS
  * preflight that our allow-list has approved, so evil.com cannot set it.
