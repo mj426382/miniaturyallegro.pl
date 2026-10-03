@@ -12,7 +12,7 @@ Badania pokazują, że kupujący online podejmują decyzje zakupowe w ciągu kil
 
 ## Studium przypadku: Biżuteria i efekt „Dark Luxury”
 
-Jednym z najskuteczniejszych sposobów na przyciągnięcie uwagi do produktów premium na Allegro jest zastosowanie ciemnych motywów, takich jak **styl „Dark Luxury”**. Przykładem jest sprzedawca biżuterii, który dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) poprawił swoje miniaturki i zwiększył sprzedaż o 40% w ciągu trzech miesięcy.
+Jednym z najskuteczniejszych sposobów na przyciągnięcie uwagi do produktów premium na Allegro jest zastosowanie ciemnych motywów, takich jak **styl „Dark Luxury”**. Wyobraź sobie sprzedawcę biżuterii, który dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) zamienia zdjęcia z telefonu na miniaturki w stylu dark luxury: ciemne tło i dramatyczne światło sprawiają, że produkt wygląda na droższy, niż sugeruje cena, a oferta przestaje ginąć wśród konkurencji.
 
 ### Co zrobiono?
 
@@ -20,7 +20,7 @@ Jednym z najskuteczniejszych sposobów na przyciągnięcie uwagi do produktów p
 - **Detale produktu:** Zadbano o ostrość fotografii, by oddać każdy szczegół zdobień i faktur.
 - **Kolorystyka:** Podkreślono barwy złota i diamentów za pomocą ciepłego światła, co dodatkowo wzmacniało wrażenie luksusu.
 
-Rezultat? **Wzrost CTR o 40%** i większa skłonność klientów do zakupu droższych przedmiotów.
+Rezultat (scenariusz hipotetyczny)? **Wyraźnie wyższy CTR** i większa skłonność klientów do zakupu droższych przedmiotów.
 
 ## Kluczowe elementy miniaturki premium
 
@@ -80,7 +80,7 @@ Nie czekaj z poprawą swoich miniaturek. Już teraz wgraj zdjęcie produktu do [
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-10',
-  modifiedAt: '2026-06-10',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

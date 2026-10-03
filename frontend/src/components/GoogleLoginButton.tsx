@@ -16,14 +16,7 @@ export default function GoogleLoginButton({ onSuccess, onError }: GoogleLoginBut
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={onSuccess}
-          onError={onError}
-          text="continue_with"
-          shape="rectangular"
-          size="large"
-          width="100%"
-        />
+        <GoogleLogin onSuccess={onSuccess} onError={onError} text="continue_with" shape="rectangular" size="large" width="100%" />
       </div>
     </GoogleOAuthProvider>
   )

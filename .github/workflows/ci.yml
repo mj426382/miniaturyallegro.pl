@@ -1,0 +1,178 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  specs:
+    name: Specs – traceability & API contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Every acceptance criterion has a test (and vice versa)
+        run: node scripts/check-spec-coverage.js --report
+      - name: Legal copies are identical in the app and on the landing page
+        run: |
+          diff -q frontend/src/legal/RegulaminContent.tsx landing-page/src/legal/RegulaminContent.tsx
+          diff -q frontend/src/legal/PolitykaContent.tsx landing-page/src/legal/PolitykaContent.tsx
+          diff -q frontend/src/legal/entity.ts landing-page/src/legal/entity.ts
+      - name: OpenAPI contract is committed
+        run: test -s docs/api/openapi.json
+
+  backend:
+    name: Backend – lint, unit & integration tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: allgrafika_test
+        ports:
+          - 5437:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Unit tests
+        run: npm test -- --ci
+      - name: Integration tests
+        run: npm run test:e2e -- --ci
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5437/allgrafika_test?schema=public
+      - name: Docker image builds
+        run: docker build --target runner -t allgrafika-backend:ci .
+
+  frontend:
+    name: App frontend – typecheck & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+        env:
+          VITE_API_URL: https://api.allgrafika.pl/api
+          VITE_GOOGLE_CLIENT_ID: ci-placeholder.apps.googleusercontent.com
+      - name: Unit tests (download helper per platform)
+        run: npm test
+
+  frontend-browsers:
+    name: App frontend – downloads on iPhone / Android / desktop (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run test:e2e
+        env:
+          CI: 'true'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: frontend/test-results
+          retention-days: 7
+
+  landing:
+    name: Landing page – build & prerender
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: landing-page
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: landing-page/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+      - name: Verify prerendered output
+        run: |
+          test -f dist/index.html
+          test -f dist/blog/index.html
+          test -f dist/sitemap.xml
+          grep -q 'application/ld+json' dist/index.html
+          grep -q 'rel="canonical" href="https://allgrafika.pl/"' dist/index.html
+          echo "Prerendered blog posts: $(ls dist/blog | wc -l)"
+
+  landing-hydration:
+    name: Landing page – hydration in real browsers (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: landing-page
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: landing-page/package-lock.json
+      - run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('landing-page/package-lock.json') }}
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test
+        env:
+          CI: 'true'

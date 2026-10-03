@@ -1,7 +1,12 @@
 node_modules
 dist
+coverage
 .env
 .env.*
 *.md
 .git
 .gitignore
+test
+scripts/*.md
+**/*.spec.ts
+build-and-push.bat

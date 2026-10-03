@@ -15,6 +15,9 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-8">
+            <Link to="/#demo" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              Wypróbuj
+            </Link>
             <Link to="/#features" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
               Funkcje
             </Link>
@@ -24,16 +27,10 @@ export default function Navbar() {
             <Link to="/blog" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
               Blog
             </Link>
-            <a
-              href="https://app.allgrafika.pl/login"
-              className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-            >
+            <a href="https://app.allgrafika.pl/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
               Zaloguj się
             </a>
-            <a
-              href="https://app.allgrafika.pl/register"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
+            <a href="https://app.allgrafika.pl/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
               Wypróbuj za darmo
             </a>
           </div>
@@ -64,16 +61,10 @@ export default function Navbar() {
             <Link to="/blog" onClick={() => setMenuOpen(false)} className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2">
               Blog
             </Link>
-            <a
-              href="https://app.allgrafika.pl/login"
-              className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2"
-            >
+            <a href="https://app.allgrafika.pl/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2">
               Zaloguj się
             </a>
-            <a
-              href="https://app.allgrafika.pl/register"
-              className="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors text-center mt-1"
-            >
+            <a href="https://app.allgrafika.pl/register" className="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors text-center mt-1">
               Wypróbuj za darmo
             </a>
           </div>

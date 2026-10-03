@@ -26,7 +26,7 @@ Badania dowiodły, że **83% konsumentów ocenia wartość produktu na podstawie
 
 ## Studium przypadku: Jak styl miniaturki podniósł wartość zegarka
 
-Jeden z użytkowników [AllGrafika.pl](https://app.allgrafika.pl/register) postanowił przetestować różne style miniaturek dla swojego sklepu oferującego zegarki. Przy użyciu stylu **białe tło** cena zegarka wydawała się przeciętna, podczas gdy zmiana tła na **dark luxury** podwoiła współczynnik CTR i umożliwiła podniesienie ceny o 20%. Klienci zaczęli postrzegać produkt jako ekskluzywny, a sprzedaż wzrosła o 35% w ciągu miesiąca.
+Wyobraźmy sobie użytkownika [AllGrafika.pl](https://app.allgrafika.pl/register), który postanawia przetestować różne style miniaturek dla swojego sklepu oferującego zegarki. Przy użyciu stylu **białe tło** cena zegarka wydawała się przeciętna, podczas gdy zmiana tła na **dark luxury** wyraźnie poprawia CTR i pozwala wycenić produkt wyżej. Klienci zaczynają postrzegać zegarek jako ekskluzywny – to przykład hipotetyczny, własne wyniki zmierzysz w statystykach Allegro.
 
 ## Jak dostosować styl miniaturki do modelu cenowego
 
@@ -54,7 +54,7 @@ Pierwszym krokiem jest przeanalizowanie, jaki styl miniaturki najlepiej odda cha
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-24',
-  modifiedAt: '2026-05-24',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

@@ -1,19 +1,25 @@
 import axios from 'axios'
+import { reportError } from './errorReporting'
 
+/**
+ * The session lives in an httpOnly cookie set by the API (not readable by JS, so an XSS
+ * cannot steal it). Every request carries the custom header the backend requires for
+ * cookie-authenticated calls – that header is the CSRF defence.
+ */
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
 })
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
+/** Set by useAuth after the session bootstrap; lets the 401 handler avoid redirect loops. */
+let onUnauthorized: (() => void) | null = null
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler
+}
 
 api.interceptors.response.use(
   (response) => response,
@@ -21,9 +27,11 @@ api.interceptors.response.use(
     const url = error.config?.url || ''
     const isAuthEndpoint = url.startsWith('/auth/')
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      onUnauthorized?.()
+    }
+    // Server-side failures are reported with the correlation id the API echoes back.
+    if (!error.response || error.response.status >= 500) {
+      reportError(error, { url, status: error.response?.status, requestId: error.response?.headers?.['x-request-id'] })
     }
     return Promise.reject(error)
   },
@@ -31,25 +39,60 @@ api.interceptors.response.use(
 
 export default api
 
+export interface GenerationStyleInfo {
+  id: string
+  name: string
+  description: string
+  starter: boolean
+}
+
+export interface StylesResponse {
+  styles: GenerationStyleInfo[]
+  defaultStyleIds: string[]
+}
+
 // Auth
 export const authApi = {
-  register: (data: { email: string; password: string; name?: string }) =>
-    api.post('/auth/register', data),
-  login: (data: { email: string; password: string }) =>
-    api.post('/auth/login', data),
-  googleLogin: (googleToken: string) =>
-    api.post('/auth/google', { googleToken }),
-  forgotPassword: (email: string) =>
-    api.post('/auth/forgot-password', { email }),
+  register: (data: { email: string; password: string; name?: string; acceptedTerms: boolean }) => api.post('/auth/register', data),
+  login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+  googleLogin: (googleToken: string, acceptedTerms?: boolean) => api.post('/auth/google', { googleToken, ...(acceptedTerms ? { acceptedTerms } : {}) }),
+  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token: string, password: string) => api.post('/auth/reset-password', { token, password }),
+  changePassword: (currentPassword: string, newPassword: string) => api.post('/auth/change-password', { currentPassword, newPassword }),
+  logout: () => api.post('/auth/logout'),
 }
 
 // Users
 export const usersApi = {
   getMe: () => api.get('/users/me'),
   updateProfile: (data: { name?: string }) => api.patch('/users/me', data),
+  deleteAccount: (confirmEmail: string) => api.delete('/users/me', { data: { confirmEmail } }),
 }
 
 // Images
+export interface GenerationSummary {
+  id: string
+  status: string
+  style?: string | null
+  url?: string | null
+  createdAt?: string
+}
+
+export interface ImageSummary {
+  id: string
+  originalUrl: string
+  filename: string
+  createdAt: string
+  allegroOfferId?: string | null
+  generations: GenerationSummary[]
+  hasDescription?: boolean
+}
+
+export interface ImageListResponse {
+  images: ImageSummary[]
+  pagination: { page: number; limit: number; total: number; pages: number }
+}
+
 export const imagesApi = {
   upload: (file: File) => {
     const formData = new FormData()
@@ -58,17 +101,20 @@ export const imagesApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
-  getAll: (page = 1, limit = 20) =>
-    api.get(`/images?page=${page}&limit=${limit}`),
+  getAll: (page = 1, limit = 20) => api.get<ImageListResponse>(`/images?page=${page}&limit=${limit}`),
   getById: (id: string) => api.get(`/images/${id}`),
   delete: (id: string) => api.delete(`/images/${id}`),
 }
 
 // Generation
 export const generationApi = {
-  getStyles: () => api.get('/generation/styles'),
-  startGeneration: (imageId: string, basePrompt?: string) =>
-    api.post(`/generation/${imageId}/start`, basePrompt ? { basePrompt } : {}),
+  getStyles: () => api.get<StylesResponse>('/generation/styles'),
+  /** Starts generation of the given styles (backend default = starter batch of 3). */
+  startGeneration: (imageId: string, options: { styles?: string[]; basePrompt?: string } = {}) =>
+    api.post(`/generation/${imageId}/start`, {
+      ...(options.styles?.length ? { styles: options.styles } : {}),
+      ...(options.basePrompt ? { basePrompt: options.basePrompt } : {}),
+    }),
   startCustomGeneration: (imageId: string, userPrompt: string, referenceFile?: File, isRework?: boolean) => {
     const formData = new FormData()
     formData.append('userPrompt', userPrompt)
@@ -78,17 +124,120 @@ export const generationApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
-  getResults: (imageId: string) =>
-    api.get(`/generation/${imageId}/results`),
+  getResults: (imageId: string) => api.get(`/generation/${imageId}/results`),
   getById: (id: string) => api.get(`/generation/result/${id}`),
   retryGeneration: (id: string) => api.post(`/generation/retry/${id}`),
-  downloadGeneration: (id: string) =>
-    api.get(`/generation/download/${id}`, { responseType: 'blob' }),
+  downloadGeneration: (id: string) => api.get(`/generation/download/${id}`, { responseType: 'blob' }),
+}
+
+export type FeedbackReason = 'product-changed' | 'artifacts' | 'wrong-style' | 'composition' | 'text-or-logo' | 'other'
+
+export interface ImageAdjustments {
+  brightness?: number
+  contrast?: number
+  saturation?: number
+  sharpen?: boolean
+}
+
+export interface ExportOptions {
+  ratio?: '1:1' | '4:3' | '3:4' | '16:9'
+  /** User-chosen framing (fractions 0-1 of the rotated source). Without it the whole graphic is fitted on white. */
+  crop?: { left: number; top: number; width: number; height: number }
+  /** Clockwise rotation applied before framing. */
+  rotate?: 0 | 90 | 180 | 270
+  adjust?: ImageAdjustments
+  size?: number
+  format?: 'jpeg' | 'png' | 'webp'
+  badgeText?: string
+  badgeColor?: 'red' | 'orange' | 'green' | 'blue' | 'black'
+  badgePosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+}
+
+export const feedbackApi = {
+  submit: (generationId: string, rating: 1 | -1, reason?: FeedbackReason, comment?: string) =>
+    api.post(`/generation/feedback/${generationId}`, { rating, ...(reason ? { reason } : {}), ...(comment ? { comment } : {}) }),
+}
+
+export const exportApi = {
+  export: (generationId: string, options: ExportOptions) => api.post(`/generation/export/${generationId}`, options, { responseType: 'blob' }),
+}
+
+// Offer descriptions (SEO copy attached to an uploaded photo)
+export interface OfferDescription {
+  title: string
+  body: string
+  keywords: string[]
+  sellerNotes: string | null
+  promptEditsUsed: number
+  updatedAt: string
+}
+
+export interface DescriptionView {
+  description: OfferDescription | null
+  /** Free edits + purchased packs. */
+  promptEditsLimit: number
+  promptEditsLeft: number
+  canCreate: boolean
+  /** Credits for the first description (0 – bonus to the graphics). */
+  creditCost: number
+  editPackSize: number
+  editPackCredits: number
+}
+
+export const descriptionsApi = {
+  get: (imageId: string) => api.get<DescriptionView>(`/descriptions/${imageId}`),
+  create: (imageId: string, notes?: string) => api.post<DescriptionView>(`/descriptions/${imageId}`, notes ? { notes } : {}),
+  update: (imageId: string, data: { title: string; body: string; keywords: string[] }) => api.patch<DescriptionView>(`/descriptions/${imageId}`, data),
+  refine: (imageId: string, instruction: string) => api.post<DescriptionView>(`/descriptions/${imageId}/refine`, { instruction }),
+  buyEditPack: (imageId: string) => api.post<DescriptionView>(`/descriptions/${imageId}/edit-packs`),
 }
 
 // Payments
+export interface SubscriptionPlan {
+  id: string
+  name: string
+  credits: number
+  priceGrosze: number
+  priceLabel: string
+  description: string
+  available: boolean
+}
+
+export interface SubscriptionInfo {
+  planId: string
+  planName: string
+  creditsPerMonth: number | null
+  status: string
+  active: boolean
+  currentPeriodEnd: string | null
+  cancelAtPeriodEnd: boolean
+}
+
 export const paymentsApi = {
   getPackages: () => api.get('/payments/packages'),
-  createCheckout: (packageId: string) => api.post('/payments/checkout', { packageId }),
+  getPlans: () => api.get<SubscriptionPlan[]>('/payments/plans'),
+  createCheckout: (packageId: string, acceptedWithdrawalWaiver: boolean) => api.post('/payments/checkout', { packageId, acceptedWithdrawalWaiver }),
+  subscribe: (planId: string, acceptedWithdrawalWaiver: boolean) => api.post('/payments/subscribe', { planId, acceptedWithdrawalWaiver }),
+  portal: () => api.post('/payments/portal'),
+  getSubscription: () => api.get<{ subscription: SubscriptionInfo | null }>('/payments/subscription'),
   getHistory: () => api.get('/payments/history'),
+}
+
+// Allegro
+export interface AllegroOffer {
+  id: string
+  name: string
+  primaryImage: string | null
+  status: string
+  price: string | null
+}
+
+export const allegroApi = {
+  status: () => api.get<{ configured: boolean; connected: boolean; sellerLogin: string | null }>('/allegro/status'),
+  authUrl: () => api.get<{ url: string }>('/allegro/auth-url'),
+  callback: (code: string, state: string) => api.post('/allegro/callback', { code, state }),
+  disconnect: () => api.delete('/allegro/connection'),
+  offers: (params: { offset?: number; limit?: number; name?: string } = {}) => api.get<{ offers: AllegroOffer[]; total: number }>('/allegro/offers', { params }),
+  importOffer: (offerId: string) => api.post<{ id: string; offerId: string; offerName: string | null }>(`/allegro/offers/${offerId}/import`),
+  publish: (offerId: string, generationId: string, position: 'first' | 'last') => api.post(`/allegro/offers/${offerId}/publish`, { generationId, position }),
 }

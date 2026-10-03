@@ -33,7 +33,7 @@ Postaw na klasyczne kolory świąteczne, takie jak:
 - Wstążki i kokardy, które podkreślają ideę „prezentu”.
 - Bajkowe efekty świetlne, np. subtelne rozbłyski lub ciepłe światło świec.
 
-## Studium przypadku: Jak zwiększyć CTR o 25% w święta?
+## Przykład hipotetyczny: jak podnieść CTR w święta?
 
 Właściciel sklepu z akcesoriami kuchennymi postanowił skorzystać z funkcji [AllGrafika.pl](https://app.allgrafika.pl/register) w okresie przedświątecznym. Przygotował trzy różne wersje miniaturek swojej oferty zestawów garnków:
 
@@ -72,7 +72,7 @@ Tworzenie grafik świątecznych nie musi być czasochłonne ani kosztowne. Dzię
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-02',
-  modifiedAt: '2026-06-02',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

@@ -1,28 +1,16 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Param,
-  Body,
-  Request,
-  Response,
-  UseGuards,
-  UseInterceptors,
-  UploadedFile,
-} from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UseGuards, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { memoryStorage } from 'multer';
+import type { Response as ExpressResponse } from 'express';
+import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GenerationService } from './generation.service';
-import { IsString, MinLength, MaxLength } from 'class-validator';
-import { memoryStorage } from 'multer';
-
-export class CustomGenerationDto {
-  @IsString()
-  @MinLength(3)
-  @MaxLength(500)
-  userPrompt: string;
-}
+import { CustomGenerationDto, StartGenerationDto } from './generation.dto';
+import { ExportDto, FeedbackDto } from './feedback.dto';
+import { imageMimeFilter, MAX_UPLOAD_BYTES, validateImageBuffer } from '../images/image-validation';
+import { UploadedImageFile } from '../types/uploaded-file';
 
 @ApiTags('generation')
 @ApiBearerAuth()
@@ -32,88 +20,112 @@ export class GenerationController {
   constructor(private generationService: GenerationService) {}
 
   @Get('styles')
-  @ApiOperation({ summary: 'Get available generation styles' })
-  async getStyles() {
+  @ApiOperation({ summary: 'Available styles and the default (starter) batch' })
+  getStyles() {
     return this.generationService.getStyles();
   }
 
   @Post(':imageId/start')
-  @ApiOperation({ summary: 'Start generating 12 image variants' })
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Start generating the selected styles (default: starter batch of 3)' })
   async startGeneration(
     @Param('imageId') imageId: string,
-    @Body('basePrompt') basePrompt: string | undefined,
-    @Request() req: any,
+    @Body() dto: StartGenerationDto,
+    @CurrentUser() user: SessionUser,
   ) {
-    return this.generationService.startGeneration(imageId, req.user.userId, basePrompt || undefined);
+    return this.generationService.startGeneration(imageId, user.userId, {
+      styleIds: dto.styles,
+      basePrompt: dto.basePrompt || undefined,
+    });
   }
 
   @Post(':imageId/custom')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Generate a single custom image from user prompt + optional reference image' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('reference', {
-    storage: memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-        return cb(new Error('Only image files are allowed'), false);
-      }
-      cb(null, true);
-    },
-  }))
+  @UseInterceptors(
+    FileInterceptor('reference', {
+      storage: memoryStorage(),
+      limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+      fileFilter: imageMimeFilter,
+    }),
+  )
   async startCustomGeneration(
     @Param('imageId') imageId: string,
-    @Body('userPrompt') userPrompt: string,
-    @Body('isRework') isRework: string,
-    @UploadedFile() referenceFile: any,
-    @Request() req: any,
+    @Body() dto: CustomGenerationDto,
+    @UploadedFile() referenceFile: UploadedImageFile | undefined,
+    @CurrentUser() user: SessionUser,
   ) {
+    let referenceMime: string | undefined;
+    if (referenceFile) {
+      referenceMime = (await validateImageBuffer(referenceFile.buffer)).mimeType;
+    }
     return this.generationService.startCustomGeneration(
       imageId,
-      req.user.userId,
-      userPrompt,
-      referenceFile ? referenceFile.buffer : undefined,
-      referenceFile ? referenceFile.mimetype : undefined,
-      isRework === 'true',
+      user.userId,
+      dto.userPrompt,
+      referenceFile?.buffer,
+      referenceMime,
+      dto.isRework === true,
     );
   }
 
   @Post('retry/:id')
-  @ApiOperation({ summary: 'Retry a failed generation' })
-  async retryGeneration(
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
-    return this.generationService.retryGeneration(id, req.user.userId);
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Retry a failed generation (costs 1 credit)' })
+  async retryGeneration(@Param('id') id: string, @CurrentUser() user: SessionUser) {
+    return this.generationService.retryGeneration(id, user.userId);
   }
 
   @Get('download/:id')
   @ApiOperation({ summary: 'Download a generated image (proxy to avoid CORS)' })
-  async downloadGeneration(
-    @Param('id') id: string,
-    @Request() req: any,
-    @Response() res: any,
-  ) {
-    const { buffer, contentType, style } = await this.generationService.getGenerationForDownload(id, req.user.userId);
+  async downloadGeneration(@Param('id') id: string, @CurrentUser() user: SessionUser, @Res() res: ExpressResponse) {
+    const { buffer, contentType, style } = await this.generationService.getGenerationForDownload(id, user.userId);
+    const safeStyle = style.replace(/[^a-z0-9-]/gi, '');
+    const ext = contentType.includes('jpeg') ? 'jpg' : contentType.includes('webp') ? 'webp' : 'png';
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="miniaturka-${style}.png"`);
+    res.setHeader('Content-Disposition', `attachment; filename="grafika-${safeStyle}.${ext}"`);
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    res.send(buffer);
+  }
+
+  @Post('feedback/:id')
+  @ApiOperation({ summary: 'Rate a finished graphic (thumbs up/down + reason)' })
+  async submitFeedback(@Param('id') id: string, @Body() dto: FeedbackDto, @CurrentUser() user: SessionUser) {
+    return this.generationService.submitFeedback(id, user.userId, dto.rating, dto.reason, dto.comment);
+  }
+
+  @Post('export/:id')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Export a finished graphic in a marketplace format (ratio, size, promo badge)' })
+  async exportGeneration(
+    @Param('id') id: string,
+    @Body() dto: ExportDto,
+    @CurrentUser() user: SessionUser,
+    @Res() res: ExpressResponse,
+  ) {
+    const { buffer, contentType, extension, style } = await this.generationService.exportGeneration(
+      id,
+      user.userId,
+      dto,
+    );
+    const safeStyle = style.replace(/[^a-z0-9-]/gi, '');
+    const ratio = (dto.ratio ?? '1:1').replace(':', 'x');
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="grafika-${safeStyle}-${ratio}.${extension}"`);
     res.send(buffer);
   }
 
   @Get(':imageId/results')
-  @ApiOperation({ summary: 'Get generation results for an image' })
-  async getGenerations(
-    @Param('imageId') imageId: string,
-    @Request() req: any,
-  ) {
-    return this.generationService.getGenerations(imageId, req.user.userId);
+  @SkipThrottle()
+  @ApiOperation({ summary: 'Get generation results for an image (polled by the UI)' })
+  async getGenerations(@Param('imageId') imageId: string, @CurrentUser() user: SessionUser) {
+    return this.generationService.getGenerations(imageId, user.userId);
   }
 
   @Get('result/:id')
   @ApiOperation({ summary: 'Get a single generation result' })
-  async getGeneration(
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
-    return this.generationService.getGenerationById(id, req.user.userId);
+  async getGeneration(@Param('id') id: string, @CurrentUser() user: SessionUser) {
+    return this.generationService.getGenerationById(id, user.userId);
   }
 }

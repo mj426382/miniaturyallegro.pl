@@ -1,215 +1,147 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, HttpException, HttpStatus } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { StorageService } from '../images/storage.service';
-import { GeminiService, GENERATION_STYLES } from './gemini.service';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as https from 'https';
 import * as http from 'http';
-import * as sharp from 'sharp';
+import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../images/storage.service';
+import { GeminiService } from './gemini.service';
+import { CreditsService } from './credits.service';
+import { ExportService, ExportOptions } from './export.service';
+import { detectMimeTypeFromUrl, prepareForAi } from '../images/image-prep';
+import { GENERATION_STYLES, GenerationStyle, getDefaultStyleIds, getStyle } from './styles';
 
-/** Max concurrent image generation requests to Gemini */
+/** Max concurrent image generation requests to Gemini per batch */
 const MAX_CONCURRENT = 2;
 /** Pause between launching batches (ms) */
 const BATCH_PAUSE_MS = 2000;
-/** Max dimension for images sent to Gemini API (saves tokens & cost) */
-const MAX_IMAGE_DIM = 1024;
+/** A user may not have more than this many generations in flight (budget guard). */
+const MAX_ACTIVE_PER_USER = 30;
+/** Generations stuck in PENDING/PROCESSING longer than this are failed and refunded. */
+const STALE_GENERATION_MINUTES = 20;
+const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
 
 @Injectable()
-export class GenerationService {
+export class GenerationService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(GenerationService.name);
 
-  /** Short-lived buffer cache to avoid re-downloading from B2 within the same session */
-  private readonly bufferCache = new Map<string, { buffer: Buffer; expiresAt: number }>();
+  /** Short-lived cache of AI-ready (≤1024 px) originals – avoids re-downloading and re-encoding within a session */
+  private readonly preparedCache = new Map<string, { base64: string; mimeType: string; expiresAt: number }>();
   private readonly BUFFER_TTL_MS = 10 * 60 * 1000; // 10 minutes
+  private readonly BUFFER_CACHE_MAX = 50;
+
+  private reconcileTimer: NodeJS.Timeout | null = null;
+  readonly defaultStyleIds: string[];
 
   constructor(
     private prisma: PrismaService,
     private geminiService: GeminiService,
     private storageService: StorageService,
-  ) {}
+    private credits: CreditsService,
+    private exportService: ExportService,
+    configService: ConfigService,
+  ) {
+    this.defaultStyleIds = getDefaultStyleIds(configService.get<string>('DEFAULT_STYLE_IDS'));
+  }
 
-  async startGeneration(imageId: string, userId: string, basePrompt?: string) {
-    const image = await this.prisma.image.findUnique({
-      where: { id: imageId },
+  // ─── Lifecycle: recover from crashes / restarts ───────────────────
+
+  onModuleInit() {
+    this.reconcileStaleGenerations().catch((err) => this.logger.error('Initial reconciliation failed', err));
+    this.reconcileTimer = setInterval(() => {
+      this.reconcileStaleGenerations().catch((err) => this.logger.error('Reconciliation failed', err));
+    }, RECONCILE_INTERVAL_MS);
+    this.reconcileTimer.unref?.();
+  }
+
+  onModuleDestroy() {
+    if (this.reconcileTimer) clearInterval(this.reconcileTimer);
+  }
+
+  /**
+   * Generations are processed in-memory; a crash or deploy in the middle leaves
+   * rows stuck in PENDING/PROCESSING with the credit already charged. Fail them
+   * and give the credit back so the user can retry.
+   */
+  async reconcileStaleGenerations(): Promise<number> {
+    const cutoff = new Date(Date.now() - STALE_GENERATION_MINUTES * 60 * 1000);
+    const stale = await this.prisma.generation.findMany({
+      where: { status: { in: ['PENDING', 'PROCESSING'] }, updatedAt: { lt: cutoff } },
+      select: { id: true, image: { select: { userId: true } } },
+      take: 200,
     });
 
-    if (!image) throw new NotFoundException('Image not found');
-    if (image.userId !== userId) throw new ForbiddenException('Access denied');
+    let refunded = 0;
+    for (const gen of stale) {
+      // Conditional update: only the instance that flips the row refunds.
+      const { count } = await this.prisma.generation.updateMany({
+        where: { id: gen.id, status: { in: ['PENDING', 'PROCESSING'] } },
+        data: { status: 'FAILED' },
+      });
+      if (count === 1) {
+        await this.credits.refund(gen.image.userId, 1);
+        refunded++;
+      }
+    }
+    if (refunded) this.logger.warn(`Reconciled ${refunded} stale generation(s) – credits refunded`);
+    return refunded;
+  }
 
-    const count = GENERATION_STYLES.length;
+  // ─── Public API ───────────────────────────────────────────────────
 
-    // Check and deduct credits before starting (synchronous, before async processing)
-    await this.deductCredits(userId, count);
+  getStyles() {
+    return {
+      styles: GENERATION_STYLES.map(({ id, name, description, starter }) => ({ id, name, description, starter })),
+      defaultStyleIds: this.defaultStyleIds,
+    };
+  }
 
-    // Create generation records (one per style)
-    const generations = await Promise.all(
-      GENERATION_STYLES.map((style) =>
-        this.prisma.generation.create({
-          data: {
-            imageId,
-            style: style.id,
-            prompt: style.prompt,
-            status: 'PENDING',
-          },
-        }),
-      ),
-    );
+  async startGeneration(imageId: string, userId: string, options: { styleIds?: string[]; basePrompt?: string } = {}) {
+    const image = await this.getOwnedImage(imageId, userId);
 
-    // Process generations asynchronously
-    const originalUrlSigned = this.storageService.getSignedUrl(image.originalUrl);
-    this.processGenerations(originalUrlSigned, generations.map((g) => g.id), basePrompt).catch(
-      (err) => this.logger.error('Generation processing failed', err),
-    );
+    const styleIds = options.styleIds?.length ? options.styleIds : this.defaultStyleIds;
+    const styles = styleIds.map((id) => getStyle(id)).filter((s): s is GenerationStyle => Boolean(s));
+    if (!styles.length) throw new HttpException('Nie wybrano żadnego stylu', HttpStatus.BAD_REQUEST);
+
+    // Charge, enforce the in-flight cap and create the rows in ONE transaction under the user row lock.
+    const { result: generations } = await this.credits.deduct(userId, styles.length, {
+      maxActive: MAX_ACTIVE_PER_USER,
+      within: async (tx) => {
+        const rows: { id: string }[] = [];
+        for (const style of styles) {
+          rows.push(
+            await tx.generation.create({
+              data: { imageId, style: style.id, prompt: style.prompt, status: 'PENDING' },
+              select: { id: true },
+            }),
+          );
+        }
+        return rows;
+      },
+    });
+
+    const originalUrlSigned = await this.storageService.getSignedUrl(image.originalUrl);
+    this.processGenerations(
+      image.id,
+      originalUrlSigned,
+      generations.map((g) => g.id),
+      options.basePrompt,
+    ).catch((err) => this.logger.error('Generation processing failed', err));
 
     return {
       message: 'Generation started',
       generationIds: generations.map((g) => g.id),
+      styles: styles.map((s) => s.id),
       count: generations.length,
     };
-  }
-
-  /**
-   * Compress and resize image to save Gemini API tokens (smaller base64 = fewer input tokens = lower cost).
-   */
-  private async compressImage(buffer: Buffer, mimeType: string): Promise<{ buffer: Buffer; mimeType: string }> {
-    try {
-      const image = sharp(buffer);
-      const meta = await image.metadata();
-      const needsResize = (meta.width && meta.width > MAX_IMAGE_DIM) || (meta.height && meta.height > MAX_IMAGE_DIM);
-
-      let pipeline = needsResize
-        ? image.resize(MAX_IMAGE_DIM, MAX_IMAGE_DIM, { fit: 'inside', withoutEnlargement: true })
-        : image;
-
-      // Always output as JPEG for smallest size (unless PNG is needed for transparency)
-      if (mimeType === 'image/png') {
-        pipeline = pipeline.png({ quality: 85, compressionLevel: 9 });
-      } else {
-        pipeline = pipeline.jpeg({ quality: 85 });
-      }
-
-      const compressed = await pipeline.toBuffer();
-      const ratio = Math.round(compressed.length / buffer.length * 100);
-      this.logger.debug(`Image compressed: ${buffer.length} -> ${compressed.length} bytes (${ratio}%)`);
-
-      // Only use compressed version if it's actually smaller
-      if (compressed.length >= buffer.length) {
-        this.logger.debug('Compressed image is larger than original, keeping original');
-        return { buffer, mimeType };
-      }
-
-      return { buffer: compressed, mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg' };
-    } catch (err) {
-      this.logger.warn('Image compression failed, using original', err);
-      return { buffer, mimeType };
-    }
-  }
-
-  private async processGenerations(originalUrl: string, generationIds: string[], basePrompt?: string) {
-    // Fetch and compress the original image once
-    const rawBuffer = await this.fetchImageBuffer(originalUrl);
-    const rawMimeType = this.detectMimeType(originalUrl);
-    const { buffer: imageBuffer, mimeType } = await this.compressImage(rawBuffer, rawMimeType);
-    const base64Image = imageBuffer.toString('base64');
-
-    // Generate product description once (cheap model, 1 API call)
-    const description = await this.geminiService.generateImageDescription(base64Image, mimeType);
-
-    // Generate ALL style prompts in a single API call (saves 5 calls)
-    const styles = generationIds.map((id) => {
-      // Look up the style for each generation
-      return { genId: id, style: null as any };
-    });
-
-    // Map generationId -> style
-    const genStyles = new Map<string, any>();
-    for (const generationId of generationIds) {
-      const generation = await this.prisma.generation.findUnique({ where: { id: generationId } });
-      const style = GENERATION_STYLES.find((s) => s.id === generation.style);
-      genStyles.set(generationId, style);
-    }
-
-    const allStyles = [...genStyles.values()];
-    const allPrompts = await this.geminiService.generateAllStylePrompts(description, allStyles, basePrompt);
-
-    // Process in batches of MAX_CONCURRENT with pauses between batches
-    for (let i = 0; i < generationIds.length; i += MAX_CONCURRENT) {
-      const batch = generationIds.slice(i, i + MAX_CONCURRENT);
-
-      await Promise.all(batch.map(async (generationId) => {
-        try {
-          await this.prisma.generation.update({
-            where: { id: generationId },
-            data: { status: 'PROCESSING' },
-          });
-
-          const style = genStyles.get(generationId);
-          const optimizedPrompt = allPrompts.get(style.id) || style.prompt;
-
-          const generated = await this.geminiService.generateImage(base64Image, mimeType, optimizedPrompt);
-
-          const imageData = Buffer.from(generated.base64, 'base64');
-          const { url } = await this.storageService.uploadFile(imageData, `${style.id}.png`, generated.mimeType, 'generated');
-
-          await this.prisma.generation.update({
-            where: { id: generationId },
-            data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
-          });
-        } catch (error) {
-          this.logger.error(`Failed to process generation ${generationId}`, error);
-          await this.prisma.generation.update({
-            where: { id: generationId },
-            data: { status: 'FAILED' },
-          });
-          const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
-          if (gen) await this.refundCredits(gen.image.userId, 1);
-        }
-      }));
-
-      // Pause between batches to avoid rate limiting
-      if (i + MAX_CONCURRENT < generationIds.length) {
-        await new Promise((r) => setTimeout(r, BATCH_PAUSE_MS));
-      }
-    }
-  }
-
-  private detectMimeType(url: string): string {
-    try {
-      const { pathname } = new URL(url);
-      const ext = pathname.split('.').pop()?.toLowerCase();
-      if (ext === 'png') return 'image/png';
-      if (ext === 'webp') return 'image/webp';
-      if (ext === 'gif') return 'image/gif';
-    } catch {
-      // fall through to default
-    }
-    return 'image/jpeg';
-  }
-
-  private async fetchImageBuffer(url: string): Promise<Buffer> {
-    // Use signed URL as cache key base: strip query string so key is stable per file
-    const cacheKey = url.split('?')[0];
-    const now = Date.now();
-    const cached = this.bufferCache.get(cacheKey);
-    if (cached && cached.expiresAt > now) {
-      this.logger.debug(`Buffer cache hit: ${cacheKey}`);
-      return cached.buffer;
-    }
-
-    const buffer = await this._fetchBufferFromUrl(url);
-    this.bufferCache.set(cacheKey, { buffer, expiresAt: now + this.BUFFER_TTL_MS });
-    return buffer;
-  }
-
-  private _fetchBufferFromUrl(url: string): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const client = url.startsWith('https') ? https : http;
-      client.get(url, (response) => {
-        const chunks: Buffer[] = [];
-        response.on('data', (chunk) => chunks.push(chunk));
-        response.on('end', () => resolve(Buffer.concat(chunks)));
-        response.on('error', reject);
-      });
-    });
   }
 
   async startCustomGeneration(
@@ -220,31 +152,206 @@ export class GenerationService {
     referenceMimeType?: string,
     isRework = false,
   ) {
-    const image = await this.prisma.image.findUnique({ where: { id: imageId } });
-    if (!image) throw new NotFoundException('Image not found');
-    if (image.userId !== userId) throw new ForbiddenException('Access denied');
-
-    // Check and deduct 1 credit for custom generation
-    await this.deductCredits(userId, 1);
-
-    const generation = await this.prisma.generation.create({
-      data: {
-        imageId,
-        style: 'custom',
-        prompt: userPrompt,
-        status: 'PENDING',
-      },
+    const image = await this.getOwnedImage(imageId, userId);
+    if (isRework && !referenceBuffer) {
+      throw new HttpException(
+        'Przeróbka wymaga wcześniej wygenerowanej grafiki jako pliku referencyjnego',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const { result: generation } = await this.credits.deduct(userId, 1, {
+      maxActive: MAX_ACTIVE_PER_USER,
+      within: (tx) =>
+        tx.generation.create({
+          data: { imageId, style: 'custom', prompt: userPrompt, status: 'PENDING' },
+          select: { id: true },
+        }),
     });
 
-    const originalUrlSigned = this.storageService.getSignedUrl(image.originalUrl);
-    this.processCustomGeneration(originalUrlSigned, generation.id, userPrompt, referenceBuffer, referenceMimeType, isRework).catch(
-      (err) => this.logger.error('Custom generation failed', err),
-    );
+    const originalUrlSigned = await this.storageService.getSignedUrl(image.originalUrl);
+    this.processCustomGeneration(
+      image.id,
+      originalUrlSigned,
+      generation.id,
+      userPrompt,
+      referenceBuffer,
+      referenceMimeType,
+      isRework,
+    ).catch((err) => this.logger.error('Custom generation failed', err));
 
     return { generationId: generation.id };
   }
 
+  async getGenerations(imageId: string, userId: string) {
+    await this.getOwnedImage(imageId, userId);
+
+    const generations = await this.prisma.generation.findMany({
+      where: { imageId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return Promise.all(
+      generations.map(async (g) => ({
+        ...g,
+        url: g.url ? await this.storageService.getSignedUrl(g.url) : null,
+      })),
+    );
+  }
+
+  async getGenerationById(id: string, userId: string) {
+    const generation = await this.getOwnedGeneration(id, userId);
+    return {
+      ...generation,
+      url: generation.url ? await this.storageService.getSignedUrl(generation.url) : null,
+    };
+  }
+
+  async getGenerationForDownload(
+    id: string,
+    userId: string,
+  ): Promise<{ buffer: Buffer; contentType: string; style: string }> {
+    const generation = await this.getOwnedGeneration(id, userId);
+    if (!generation.url) throw new NotFoundException('Generation file not available');
+
+    const { buffer, contentType } = await this.storageService.getFileBuffer(generation.url);
+    return { buffer, contentType, style: generation.style || 'custom' };
+  }
+
+  async retryGeneration(generationId: string, userId: string) {
+    const generation = await this.getOwnedGeneration(generationId, userId);
+    if (generation.status !== 'FAILED') {
+      throw new HttpException('Ponowić można tylko nieudane generacje', HttpStatus.BAD_REQUEST);
+    }
+
+    // Charge and claim the row in one transaction – a double click must not start two retries.
+    await this.credits.deduct(userId, 1, {
+      maxActive: MAX_ACTIVE_PER_USER,
+      within: async (tx) => {
+        const { count } = await tx.generation.updateMany({
+          where: { id: generationId, status: 'FAILED' },
+          data: { status: 'PENDING' },
+        });
+        if (count !== 1) throw new HttpException('Ta generacja jest już ponawiana', HttpStatus.CONFLICT);
+      },
+    });
+
+    const originalUrlSigned = await this.storageService.getSignedUrl(generation.image.originalUrl);
+
+    if (generation.style === 'custom') {
+      this.processCustomGeneration(generation.imageId, originalUrlSigned, generationId, generation.prompt || '').catch(
+        (err) => this.logger.error('Retry custom generation failed', err),
+      );
+    } else {
+      this.processGenerations(generation.imageId, originalUrlSigned, [generationId]).catch((err) =>
+        this.logger.error('Retry generation failed', err),
+      );
+    }
+
+    return { message: 'Ponowienie rozpoczęte', generationId };
+  }
+
+  /** Thumbs up/down on a finished graphic – the signal used to tune styles and prompts. */
+  async submitFeedback(id: string, userId: string, rating: 1 | -1, reason?: string, comment?: string) {
+    const generation = await this.getOwnedGeneration(id, userId);
+    if (generation.status !== 'COMPLETED') {
+      throw new HttpException('Ocenić można tylko ukończone generacje', HttpStatus.BAD_REQUEST);
+    }
+    const ratingReason = rating === -1 ? [reason, comment].filter(Boolean).join(': ') || 'other' : null;
+    await this.prisma.generation.update({ where: { id }, data: { rating, ratingReason } });
+    return { id, rating, ratingReason };
+  }
+
+  /** Aggregated feedback per style – for the owner to see which styles under-deliver. */
+  async getFeedbackStats() {
+    const rows = await this.prisma.generation.groupBy({
+      by: ['style', 'rating'],
+      where: { rating: { not: null } },
+      _count: { _all: true },
+    });
+    const stats = new Map<string, { up: number; down: number }>();
+    for (const row of rows) {
+      const entry = stats.get(row.style || 'custom') ?? { up: 0, down: 0 };
+      if (row.rating === 1) entry.up += row._count._all;
+      else entry.down += row._count._all;
+      stats.set(row.style || 'custom', entry);
+    }
+    return [...stats.entries()].map(([style, counts]) => ({ style, ...counts }));
+  }
+
+  /** Marketplace-ready export (ratio / size / promo badge) of a finished graphic. */
+  async exportGeneration(id: string, userId: string, options: ExportOptions) {
+    const generation = await this.getOwnedGeneration(id, userId);
+    if (!generation.url) throw new NotFoundException('Generation file not available');
+    const { buffer } = await this.storageService.getFileBuffer(generation.url);
+    const exported = await this.exportService.exportImage(buffer, options);
+    return { ...exported, style: generation.style || 'custom' };
+  }
+
+  // ─── Processing pipeline ──────────────────────────────────────────
+
+  private async processGenerations(imageId: string, originalUrl: string, generationIds: string[], basePrompt?: string) {
+    let base64Image: string;
+    let mimeType: string;
+    let description: string;
+    try {
+      const prepared = await this.prepareOriginal(originalUrl);
+      base64Image = prepared.base64;
+      mimeType = prepared.mimeType;
+      description = await this.getOrCreateDescription(imageId, base64Image, mimeType);
+    } catch (error) {
+      this.logger.error('Failed to prepare image/description – failing whole batch', error);
+      await Promise.all(generationIds.map((id) => this.failGeneration(id)));
+      return;
+    }
+
+    const generations = await this.prisma.generation.findMany({ where: { id: { in: generationIds } } });
+    const genStyles = new Map<string, GenerationStyle>();
+    for (const gen of generations) {
+      const style = getStyle(gen.style || '');
+      if (style) genStyles.set(gen.id, style);
+      else await this.failGeneration(gen.id);
+    }
+
+    const uniqueStyles = [...new Map([...genStyles.values()].map((s) => [s.id, s])).values()];
+    let allPrompts: Map<string, string>;
+    try {
+      allPrompts = await this.geminiService.generateAllStylePrompts(description, uniqueStyles, basePrompt);
+    } catch (error) {
+      this.logger.warn('Prompt generation failed – falling back to base style prompts', error);
+      allPrompts = new Map(uniqueStyles.map((s) => [s.id, s.prompt]));
+    }
+
+    const ids = [...genStyles.keys()];
+    for (let i = 0; i < ids.length; i += MAX_CONCURRENT) {
+      const batch = ids.slice(i, i + MAX_CONCURRENT);
+
+      await Promise.all(
+        batch.map(async (generationId) => {
+          const style = genStyles.get(generationId)!;
+          const optimizedPrompt = allPrompts.get(style.id) || style.prompt;
+          try {
+            if (!(await this.claimForProcessing(generationId))) return;
+            const generated = await this.geminiService.generateImage(base64Image, mimeType, optimizedPrompt);
+            const url = await this.storeGenerated(generated.base64, generated.mimeType, `${style.id}.png`);
+            await this.prisma.generation.update({
+              where: { id: generationId },
+              data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
+            });
+          } catch (error) {
+            this.logger.error(`Failed to process generation ${generationId}`, error);
+            await this.failGeneration(generationId);
+          }
+        }),
+      );
+
+      if (i + MAX_CONCURRENT < ids.length) {
+        await sleep(BATCH_PAUSE_MS);
+      }
+    }
+  }
+
   private async processCustomGeneration(
+    imageId: string,
     originalUrl: string,
     generationId: string,
     userPrompt: string,
@@ -253,256 +360,149 @@ export class GenerationService {
     isRework = false,
   ) {
     try {
-      await this.prisma.generation.update({
-        where: { id: generationId },
-        data: { status: 'PROCESSING' },
-      });
+      if (!(await this.claimForProcessing(generationId))) return;
 
-      const rawOriginalBuffer = await this.fetchImageBuffer(originalUrl);
-      const rawOriginalMimeType = this.detectMimeType(originalUrl);
-      const { buffer: originalBuffer, mimeType: originalMimeType } = await this.compressImage(rawOriginalBuffer, rawOriginalMimeType);
+      const original = await this.prepareOriginal(originalUrl);
+      const description = await this.getOrCreateDescription(imageId, original.base64, original.mimeType);
 
-      // In rework mode the generated thumbnail becomes the primary image;
-      // the original product photo is passed as reference for product identity.
-      const primaryBase64 = isRework && referenceBuffer
-        ? referenceBuffer.toString('base64')
-        : originalBuffer.toString('base64');
-      const primaryMimeType = isRework && referenceMimeType
-        ? referenceMimeType
-        : originalMimeType;
+      // Reference uploads are user-controlled – compress & validate them like the original.
+      let reference: { base64: string; mimeType: string } | undefined;
+      if (referenceBuffer && referenceMimeType) {
+        const compressed = await prepareForAi(referenceBuffer, referenceMimeType);
+        reference = { base64: compressed.buffer.toString('base64'), mimeType: compressed.mimeType };
+      }
 
-      // For description, always use the original product photo
-      const descBase64 = originalBuffer.toString('base64');
-      const description = await this.geminiService.generateImageDescription(descBase64, originalMimeType);
+      // Rework: the previously generated graphic is edited; the original photo is the identity reference.
+      const primary = isRework && reference ? reference : original;
+      const ref = isRework ? original : reference;
 
       const optimizedPrompt = isRework
         ? await this.geminiService.generateReworkPrompt(description, userPrompt)
         : await this.geminiService.generateCustomPrompt(description, userPrompt);
 
-      // In rework mode pass original as reference (for product identity);
-      // in normal mode pass the user-uploaded reference (for style).
-      const refBase64 = isRework
-        ? originalBuffer.toString('base64')
-        : referenceBuffer ? referenceBuffer.toString('base64') : undefined;
-      const refMime = isRework
-        ? originalMimeType
-        : referenceMimeType;
-
       const generated = await this.geminiService.generateImage(
-        primaryBase64,
-        primaryMimeType,
+        primary.base64,
+        primary.mimeType,
         optimizedPrompt,
-        refBase64,
-        refMime,
+        ref?.base64,
+        ref?.mimeType,
       );
 
-      const imageData = Buffer.from(generated.base64, 'base64');
-      const { url } = await this.storageService.uploadFile(imageData, 'custom.png', generated.mimeType, 'generated');
-
+      const url = await this.storeGenerated(generated.base64, generated.mimeType, 'custom.png');
       await this.prisma.generation.update({
         where: { id: generationId },
         data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
       });
     } catch (error) {
       this.logger.error(`Custom generation ${generationId} failed`, error);
-      await this.prisma.generation.update({
-        where: { id: generationId },
-        data: { status: 'FAILED' },
-      });
-      // Refund 1 credit for this failed generation
-      const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
-      if (gen) await this.refundCredits(gen.image.userId, 1);
+      await this.failGeneration(generationId);
     }
   }
 
-  async getGenerations(imageId: string, userId: string) {
-    const image = await this.prisma.image.findUnique({
-      where: { id: imageId },
-    });
+  // ─── Helpers ──────────────────────────────────────────────────────
 
+  private async getOwnedImage(imageId: string, userId: string) {
+    const image = await this.prisma.image.findUnique({ where: { id: imageId } });
     if (!image) throw new NotFoundException('Image not found');
     if (image.userId !== userId) throw new ForbiddenException('Access denied');
-
-    const generations = await this.prisma.generation.findMany({
-      where: { imageId },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    return generations.map((g) => ({
-      ...g,
-      url: g.url ? this.storageService.getSignedUrl(g.url) : null,
-    }));
+    return image;
   }
 
-  async getGenerationById(id: string, userId: string) {
-    const generation = await this.prisma.generation.findUnique({
-      where: { id },
-      include: { image: true },
-    });
-
+  private async getOwnedGeneration(id: string, userId: string) {
+    const generation = await this.prisma.generation.findUnique({ where: { id }, include: { image: true } });
     if (!generation) throw new NotFoundException('Generation not found');
     if (generation.image.userId !== userId) throw new ForbiddenException('Access denied');
-
-    return {
-      ...generation,
-      url: generation.url ? this.storageService.getSignedUrl(generation.url) : null,
-    };
+    return generation;
   }
 
-  async getGenerationForDownload(id: string, userId: string): Promise<{ buffer: Buffer; contentType: string; style: string }> {
-    const generation = await this.prisma.generation.findUnique({
-      where: { id },
-      include: { image: true },
+  /**
+   * PENDING → PROCESSING, but only if the row is still PENDING. If the reconciler already
+   * failed and refunded it (e.g. after a very long queue), we must not process it again.
+   */
+  private async claimForProcessing(generationId: string): Promise<boolean> {
+    const { count } = await this.prisma.generation.updateMany({
+      where: { id: generationId, status: 'PENDING' },
+      data: { status: 'PROCESSING' },
     });
-
-    if (!generation) throw new NotFoundException('Generation not found');
-    if (generation.image.userId !== userId) throw new ForbiddenException('Access denied');
-    if (!generation.url) throw new NotFoundException('Generation file not available');
-
-    const { buffer, contentType } = await this.storageService.getFileBuffer(generation.url);
-    return { buffer, contentType, style: generation.style };
+    if (count !== 1) this.logger.warn(`Generation ${generationId} is no longer PENDING – skipping`);
+    return count === 1;
   }
 
-  async getStyles() {
-    return GENERATION_STYLES;
-  }
-
-  async retryGeneration(generationId: string, userId: string) {
-    const generation = await this.prisma.generation.findUnique({
+  /** Marks a generation FAILED and refunds exactly once (conditional update). */
+  private async failGeneration(generationId: string) {
+    const { count } = await this.prisma.generation.updateMany({
+      where: { id: generationId, status: { in: ['PENDING', 'PROCESSING'] } },
+      data: { status: 'FAILED' },
+    });
+    if (count !== 1) return;
+    const gen = await this.prisma.generation.findUnique({
       where: { id: generationId },
-      include: { image: true },
+      select: { image: { select: { userId: true } } },
     });
-
-    if (!generation) throw new NotFoundException('Generation not found');
-    if (generation.image.userId !== userId) throw new ForbiddenException('Access denied');
-    if (generation.status !== 'FAILED') {
-      throw new HttpException('Only failed generations can be retried', HttpStatus.BAD_REQUEST);
-    }
-
-    // Deduct credits again for retry
-    await this.deductCredits(userId, 1);
-
-    await this.prisma.generation.update({
-      where: { id: generationId },
-      data: { status: 'PENDING' },
-    });
-
-    const originalUrlSigned = this.storageService.getSignedUrl(generation.image.originalUrl);
-
-    if (generation.style === 'custom') {
-      this.processCustomGeneration(
-        originalUrlSigned,
-        generationId,
-        generation.prompt || '',
-      ).catch((err) => this.logger.error('Retry custom generation failed', err));
-    } else {
-      // Re-process single auto style
-      this.reprocessSingleGeneration(originalUrlSigned, generationId).catch(
-        (err) => this.logger.error('Retry generation failed', err),
-      );
-    }
-
-    return { message: 'Ponowienie rozpoczęte', generationId };
+    if (gen) await this.credits.refund(gen.image.userId, 1);
   }
 
-  private async reprocessSingleGeneration(originalUrl: string, generationId: string) {
-    try {
-      await this.prisma.generation.update({
-        where: { id: generationId },
-        data: { status: 'PROCESSING' },
-      });
+  /** The product description is generated once per uploaded image and reused. */
+  private async getOrCreateDescription(imageId: string, base64: string, mimeType: string): Promise<string> {
+    const image = await this.prisma.image.findUnique({ where: { id: imageId }, select: { description: true } });
+    if (image?.description) return image.description;
 
-      const generation = await this.prisma.generation.findUnique({ where: { id: generationId } });
-      const style = GENERATION_STYLES.find((s) => s.id === generation.style);
-
-      const rawBuffer = await this.fetchImageBuffer(originalUrl);
-      const rawMime = this.detectMimeType(originalUrl);
-      const { buffer: imageBuffer, mimeType } = await this.compressImage(rawBuffer, rawMime);
-      const base64Image = imageBuffer.toString('base64');
-
-      const description = await this.geminiService.generateImageDescription(base64Image, mimeType);
-      const optimizedPrompt = await this.geminiService.generatePromptForStyle(description, style);
-
-      const generated = await this.geminiService.generateImage(base64Image, mimeType, optimizedPrompt);
-
-      const imageData = Buffer.from(generated.base64, 'base64');
-      const { url } = await this.storageService.uploadFile(imageData, `${style.id}.png`, generated.mimeType, 'generated');
-
-      await this.prisma.generation.update({
-        where: { id: generationId },
-        data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
-      });
-    } catch (error) {
-      this.logger.error(`Retry generation ${generationId} failed`, error);
-      await this.prisma.generation.update({
-        where: { id: generationId },
-        data: { status: 'FAILED' },
-      });
-      const gen = await this.prisma.generation.findUnique({ where: { id: generationId }, include: { image: true } });
-      if (gen) await this.refundCredits(gen.image.userId, 1);
-    }
+    const description = await this.geminiService.generateImageDescription(base64, mimeType);
+    await this.prisma.image.update({ where: { id: imageId }, data: { description } }).catch(() => undefined);
+    return description;
   }
 
-  /** Refund credits back to user (reverse of deductCredits). */
-  private async refundCredits(userId: string, count: number) {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { freeCreditsUsed: true },
-      });
-      if (!user) return;
-
-      // If user still has free credits used, refund to free pool first
-      const freeToRefund = Math.min(count, user.freeCreditsUsed);
-      const paidToRefund = count - freeToRefund;
-
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          freeCreditsUsed: { decrement: freeToRefund },
-          credits: { increment: paidToRefund },
-        },
-      });
-      this.logger.log(`Refunded ${count} credit(s) to user ${userId} (free: ${freeToRefund}, paid: ${paidToRefund})`);
-    } catch (err) {
-      this.logger.error(`Failed to refund credits for user ${userId}`, err);
+  private async prepareOriginal(originalUrl: string): Promise<{ base64: string; mimeType: string }> {
+    // Strip the signature so the cache key is stable per file.
+    const cacheKey = originalUrl.split('?')[0];
+    const now = Date.now();
+    const cached = this.preparedCache.get(cacheKey);
+    if (cached && cached.expiresAt > now) {
+      return { base64: cached.base64, mimeType: cached.mimeType };
     }
+
+    const rawBuffer = originalUrl.startsWith('http')
+      ? await fetchBufferFromUrl(originalUrl)
+      : (await this.storageService.getFileBuffer(originalUrl)).buffer;
+    const { buffer, mimeType } = await prepareForAi(rawBuffer, detectMimeTypeFromUrl(originalUrl));
+    const prepared = { base64: buffer.toString('base64'), mimeType, expiresAt: now + this.BUFFER_TTL_MS };
+
+    for (const [key, entry] of this.preparedCache) {
+      if (entry.expiresAt <= now) this.preparedCache.delete(key);
+    }
+    if (this.preparedCache.size >= this.BUFFER_CACHE_MAX) {
+      const oldest = this.preparedCache.keys().next().value;
+      if (oldest) this.preparedCache.delete(oldest);
+    }
+    this.preparedCache.set(cacheKey, prepared);
+    return { base64: prepared.base64, mimeType: prepared.mimeType };
   }
 
-  /** FREE_LIMIT: first 10 thumbnails are free, then 1 credit = 1 thumbnail */
-  private readonly FREE_LIMIT = 10;
+  private async storeGenerated(base64: string, mimeType: string, name: string): Promise<string> {
+    const imageData = Buffer.from(base64, 'base64');
+    const { url } = await this.storageService.uploadFile(imageData, name, mimeType, 'generated');
+    return url;
+  }
+}
 
-  private async deductCredits(userId: string, count: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { credits: true, freeCreditsUsed: true },
+function fetchBufferFromUrl(url: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https') ? https : http;
+    const req = client.get(url, (response) => {
+      if (response.statusCode && response.statusCode >= 400) {
+        response.resume();
+        return reject(new Error(`Failed to download image: HTTP ${response.statusCode}`));
+      }
+      const chunks: Buffer[] = [];
+      response.on('data', (chunk) => chunks.push(chunk));
+      response.on('end', () => resolve(Buffer.concat(chunks)));
+      response.on('error', reject);
     });
+    req.setTimeout(30_000, () => req.destroy(new Error('Image download timed out')));
+    req.on('error', reject);
+  });
+}
 
-    if (!user) throw new NotFoundException('User not found');
-
-    const freeLeft = Math.max(0, this.FREE_LIMIT - user.freeCreditsUsed);
-    const freeToUse = Math.min(count, freeLeft);
-    const paidToUse = count - freeToUse;
-
-    if (paidToUse > 0 && user.credits < paidToUse) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.PAYMENT_REQUIRED,
-          error: 'Payment Required',
-          message: `Niewystarczające kredyty. Potrzebujesz ${paidToUse} kredyt${paidToUse > 1 ? 'ów' : 'u'}, masz ${user.credits}. Doładuj konto na stronie Kredyty.`,
-          creditsRequired: paidToUse,
-          creditsAvailable: user.credits,
-        },
-        HttpStatus.PAYMENT_REQUIRED,
-      );
-    }
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        freeCreditsUsed: { increment: freeToUse },
-        credits: { decrement: paidToUse },
-      },
-    });
-  }
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }

@@ -6,7 +6,7 @@ const post: BlogPostData = {
   title: 'Jak testować efektywność miniaturek Allegro bez dużego budżetu',
   excerpt: 'Sprawdź, jak testować skuteczność miniaturek Allegro niskim kosztem, zwiększając CTR i sprzedaż. Porady, narzędzia i konkretne przykłady.',
   content: `
-## Czy wiesz, że nawet drobne zmiany w miniaturkach mogą zwiększyć CTR o 30%?
+## Dlaczego nawet drobne zmiany w miniaturkach potrafią wyraźnie zmienić CTR?
 
 Efektywność miniaturek na Allegro potrafi zdziałać cuda w kontekście sprzedaży. Jednak co zrobić, jeśli nie dysponujesz dużym budżetem na testy marketingowe? W tym artykule dowiesz się, jak skutecznie i tanio sprawdzić, które miniaturki działają najlepiej na Twoje wyniki sprzedaży.
 
@@ -34,7 +34,7 @@ Właściciel sklepu z akcesoriami do smartfonów zauważył spadek sprzedaży w 
 Pani Anna, właścicielka sklepu z biżuterią na Allegro, chciała zwiększyć sprzedaż swoich produktów klasy premium. Wykorzystując styl **Dark Luxury** w jednej wersji miniaturki oraz **White Background** w drugiej, uruchomiła reklamy testowe na minimalnym budżecie 20 zł w Allegro Ads.
 
 - Miniaturka **Dark Luxury** przyciągnęła o 35% więcej kliknięć.
-- Konwersja wzrosła o 18%.
+- Konwersja rośnie – skalę zmierzysz we własnych statystykach Allegro (to przykład hipotetyczny).
 - Inwestycja w testy zwróciła się trzykrotnie w ciągu tygodnia.
 
 Pani Anna teraz regularnie testuje różne warianty miniaturek i zauważyła poprawę sprzedaży w całym sklepie.
@@ -67,7 +67,7 @@ Skuteczne miniaturki to klucz do sukcesu na Allegro. Masz już narzędzia i wied
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-26',
-  modifiedAt: '2026-05-26',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Optymalizacja',

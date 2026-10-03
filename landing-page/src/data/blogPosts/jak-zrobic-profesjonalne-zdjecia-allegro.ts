@@ -7,7 +7,7 @@ const post: BlogPostData = {
   excerpt: 'Dowiedz się, jakie zdjęcia sprzedają na Allegro i jak je przygotować bez profesjonalnego studia fotograficznego.',
   content: `## Dlaczego zdjęcia produktowe są kluczowe na Allegro?
 
-Zdjęcia produktowe to pierwsze co widzi potencjalny kupujący przeglądając wyniki wyszukiwania na Allegro. Badania pokazują, że **grafika produktowa może zwiększyć CTR (click-through rate) nawet o 40%**, co bezpośrednio przekłada się na liczbę sprzedaży.
+Zdjęcia produktowe to pierwsze co widzi potencjalny kupujący przeglądając wyniki wyszukiwania na Allegro. Dobra **grafika produktowa wyraźnie podnosi CTR (click-through rate)**, co bezpośrednio przekłada się na liczbę sprzedaży.
 
 ## Wymagania techniczne Allegro
 

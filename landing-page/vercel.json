@@ -1,5 +1,250 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/blog/ai-w-fotografii-produktowej",
+      "destination": "/blog/jak-wykorzystac-ai-do-miniaturek-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-miniaturka-allegro-wplywa-na-rankingi-2026",
+      "destination": "/blog/wplyw-jakosci-zdjec-na-pozycje-wynikach-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-miniaturka-zmienila-sprzedaz-allegro-40-procent",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-miniaturki-allegro-wplywaja-na-postrzeganie-wartosci",
+      "destination": "/blog/jak-styl-miniaturki-wplywa-na-postrzeganie-produktu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-miniaturki-wplywaja-na-odbior-produktu-allegro",
+      "destination": "/blog/jak-styl-miniaturki-wplywa-na-postrzeganie-produktu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-miniaturki-wplywaja-na-postrzeganie-ceny",
+      "destination": "/blog/psychologia-cen-a-styl-miniaturki",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-miniaturki-wplywaja-na-sprzedaz-allegro",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-miniaturki-wplywaja-na-zaufanie-klientow-allegro",
+      "destination": "/blog/jak-zbudowac-zaufanie-miniaturkami-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-optymalizowac-miniaturki-allegro-na-urzadzenia-mobilne",
+      "destination": "/blog/miniaturki-na-urzadzenia-mobilne-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-skutecznie-testowac-miniaturki-na-allegro",
+      "destination": "/blog/jak-testowac-miniaturki-bez-duzego-budzetu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-na-allegro-ktora-sprzedaje",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturki-dla-nowoczesnych-kategorii-allegro",
+      "destination": "/blog/miniaturki-dla-kategorii-zywnosc-zwierzeta-narzedzia",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturki-na-urzadzenia-mobilne",
+      "destination": "/blog/miniaturki-na-urzadzenia-mobilne-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-premium-miniaturke-allegro",
+      "destination": "/blog/jak-stworzyc-miniaturki-allegro-dla-produktow-premium",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-styl-miniaturki-wplywa-na-nasza-psychike",
+      "destination": "/blog/jak-miniaturki-wplywaja-na-zakupowe-decyzje-klienta",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-testowac-efektywnosc-miniaturek-na-allegro",
+      "destination": "/blog/jak-testowac-miniaturki-bez-duzego-budzetu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-tlo-miniaturki-wplywa-na-postrzeganie-produktu",
+      "destination": "/blog/wplyw-tla-miniaturki-na-postrzegana-wartosc-produktu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-tworzyc-grafiki-promocyjne-na-allegro",
+      "destination": "/blog/jak-tworzyc-grafiki-swiateczne-promocyjne-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-tworzyc-grafiki-swiateczne-na-allegro",
+      "destination": "/blog/jak-tworzyc-grafiki-swiateczne-promocyjne-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-tworzyc-miniaturki-allegro-ktore-przyciagaja-klientow",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-tworzyc-miniaturki-dla-produktow-na-allegro",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-tworzyc-premium-miniaturki-allegro-z-wysoka-konwersja",
+      "destination": "/blog/jak-stworzyc-miniaturki-allegro-dla-produktow-premium",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-wplywa-tlo-miniaturki-na-wartosc-produktu",
+      "destination": "/blog/wplyw-tla-miniaturki-na-postrzegana-wartosc-produktu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-wygladaja-miniaturki-na-urzadzeniach-mobilnych",
+      "destination": "/blog/miniaturki-na-urzadzenia-mobilne-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-wygladaja-twoje-miniaturki-na-urzadzeniach-mobilnych",
+      "destination": "/blog/miniaturki-na-urzadzenia-mobilne-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zmiana-miniaturki-zwiekszyla-sprzedaz-na-allegro",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zmienic-miniaturke-i-poprawic-sprzedaz-allegro",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-ctr-allegro",
+      "destination": "/blog/jak-zwiekszyc-ctr-na-allegro-miniaturki",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-ctr-o-60-procent",
+      "destination": "/blog/jak-zwiekszyc-ctr-na-allegro-miniaturki",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-sprzedaz-o-25-proc",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-sprzedaz-o-45-procent",
+      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zoptymalizowac-miniaturke-na-allegro-pod-sezonowe-kampanie",
+      "destination": "/blog/jak-dostosowac-miniaturki-do-sezonowych-kampanii",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zoptymalizowac-miniaturki-allegro-na-sezonowe-kampanie",
+      "destination": "/blog/jak-dostosowac-miniaturki-do-sezonowych-kampanii",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zoptymalizowac-miniaturki-na-allegro-pod-kampanie-swiateczne",
+      "destination": "/blog/jak-dostosowac-miniaturki-do-sezonowych-kampanii",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/miniaturki-allegro-a-wzrost-ctr-o-30-procent-case-study",
+      "destination": "/blog/jak-zwiekszyc-ctr-na-allegro-miniaturki",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/miniaturki-dla-nowych-kategorii-allegro",
+      "destination": "/blog/miniaturki-dla-kategorii-zywnosc-zwierzeta-narzedzia",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/najlepsze-style-miniaturek-allegro",
+      "destination": "/blog/najlepsze-style-grafik-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-cen-a-miniaturki-allegro",
+      "destination": "/blog/psychologia-cen-a-styl-miniaturki",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-cen-a-miniaturki-allegro-postrzegana-cena",
+      "destination": "/blog/psychologia-cen-a-styl-miniaturki",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-kolorow-miniaturek-allegro-praktyczne-wskazowki",
+      "destination": "/blog/psychologia-kolorow-miniaturek-allegro-jak-wplywaja-na-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-kolorow-miniaturki-allegro",
+      "destination": "/blog/psychologia-kolorow-miniaturek-allegro-jak-wplywaja-na-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-kolorow-w-miniaturkach-allegro",
+      "destination": "/blog/psychologia-kolorow-miniaturek-allegro-jak-wplywaja-na-sprzedaz",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-kompozycji-w-miniaturkach-allegro",
+      "destination": "/blog/psychologia-kompozycji-miniaturek-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-miniaturki-allegro-wplyw-na-sprzedaz",
+      "destination": "/blog/jak-miniaturki-wplywaja-na-zakupowe-decyzje-klienta",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-miniaturki-wplyw-na-postrzegana-cene",
+      "destination": "/blog/psychologia-cen-a-styl-miniaturki",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-miniaturki-wplyw-na-zakupowe-decyzje",
+      "destination": "/blog/jak-miniaturki-wplywaja-na-zakupowe-decyzje-klienta",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/psychologia-tla-miniaturki-allegro",
+      "destination": "/blog/wplyw-tla-miniaturki-na-postrzegana-wartosc-produktu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/rola-miniaturki-w-algorytmie-rankingowym-allegro",
+      "destination": "/blog/wplyw-jakosci-zdjec-na-pozycje-wynikach-allegro",
+      "statusCode": 301
+    }
   ]
 }

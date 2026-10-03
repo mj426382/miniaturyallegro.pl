@@ -12,7 +12,7 @@ Czy wiesz, że ciemne tła zwiększają percepcję luksusu i elegancji produktu 
 
 Eksperci podkreślają, że odpowiednio zaprojektowana miniaturka może podnieść wartość postrzeganą produktu nawet o 30%. Czarne tło w połączeniu z subtelnym, dramatycznym oświetleniem przyciąga wzrok i buduje zaufanie do jakości.
 
-## Studium przypadku: Jak ciemne tło zwiększyło sprzedaż biżuterii o 40%
+## Przykład hipotetyczny: jak ciemne tło może wzmocnić sprzedaż biżuterii
 
 Jednym z naszych klientów była firma sprzedająca ekskluzywne naszyjniki na Allegro. Przed rozpoczęciem współpracy, miniaturki ich produktów przedstawiały naszyjniki na białym tle. Choć był to styl wymagany przez Allegro, konwersje nie spełniały oczekiwań.
 
@@ -66,7 +66,7 @@ Styl „Dark Luxury” to nie tylko estetyka, ale także narzędzie sprzedażowe
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-20',
-  modifiedAt: '2026-06-20',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

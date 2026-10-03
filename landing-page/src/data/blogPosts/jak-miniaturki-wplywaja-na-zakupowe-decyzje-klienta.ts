@@ -18,7 +18,7 @@ Jeden z naszych klientów, sprzedawca biżuterii na Allegro, zdecydował się na
 - Zmniejszenie wizualnego chaosu poprzez ograniczenie liczby elementów w tle.
 - Dodanie subtelnych cieni dla lepszego efektu 3D.
 
-**Wynik? 35% wzrost CTR w ciągu pierwszych dwóch tygodni** od zmiany. Klient zauważył także większą liczbę transakcji, co zwiększyło jego miesięczny przychód o 20%.
+**Wynik? 35% wzrost CTR w ciągu pierwszych dwóch tygodni** od zmiany. Klient zauważył także większą liczbę transakcji, co w tym hipotetycznym przykładzie przełożyło się na wyższy miesięczny przychód.
 
 [Przetestuj różne style miniaturek na AllGrafika.pl](https://app.allgrafika.pl/register)
 
@@ -51,7 +51,7 @@ Dobre miniaturki to nie tylko estetyka; to strategiczne narzędzie sprzedażowe.
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-13',
-  modifiedAt: '2026-06-13',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

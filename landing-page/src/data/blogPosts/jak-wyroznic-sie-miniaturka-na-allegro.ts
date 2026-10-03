@@ -10,7 +10,7 @@ const post: BlogPostData = {
 
 Czy wiesz, że aż **67% klientów online klika w ofertę wyłącznie na podstawie miniaturki produktu**? W morzu tysięcy podobnych produktów, pierwszy kontakt z użytkownikiem często decyduje, czy w ogóle zajrzy on do Twojej oferty. Właśnie dlatego stworzenie wyróżniającej się miniaturki na Allegro to kluczowy krok do zwiększenia Twojej sprzedaży.
 
-## Studium przypadku: Jak odpowiednia miniaturka zwiększyła CTR o 50%
+## Przykład hipotetyczny: jak odpowiednia miniaturka podnosi CTR
 
 Marcin, właściciel sklepu z biżuterią na Allegro, zauważył, że jego produkty mimo konkurencyjnych cen rzadko przyciągały uwagę klientów. Postanowił zmienić podejście do miniaturek i skorzystał z narzędzia [AllGrafika.pl](https://app.allgrafika.pl/register). Wygenerował 6 różnych wariantów zdjęcia swojego topowego pierścionka w stylu **Dark Luxury** z dramatycznym oświetleniem i ciemnym tłem.
 
@@ -63,7 +63,7 @@ Wiesz już, jak ważna jest miniaturka, ale stworzenie odpowiedniej grafiki moż
 
 - **Testuj różne style**: Wykorzystaj A/B testing, by zrozumieć, który styl najlepiej działa w Twojej kategorii.
 - **Stwórz spójność wizualną**: Wszystkie miniaturki w Twoim sklepie powinny mieć podobny styl, co buduje zaufanie klientów.
-- **Dostosuj do sezonu**: W okresach świątecznych, jak Boże Narodzenie czy Wielkanoc, możesz postawić na grafiki w stylu świątecznym (więcej o tym przeczytasz w artykule [Jak tworzyć grafiki świąteczne na Allegro](https://allgrafika.pl/blog/jak-tworzyc-grafiki-swiateczne-na-allegro)).
+- **Dostosuj do sezonu**: W okresach świątecznych, jak Boże Narodzenie czy Wielkanoc, możesz postawić na grafiki w stylu świątecznym (więcej o tym przeczytasz w artykule [Jak tworzyć grafiki świąteczne na Allegro](https://allgrafika.pl/blog/jak-tworzyc-grafiki-swiateczne-promocyjne-allegro)).
 
 ## Podsumowanie: Zrób pierwszy krok!
 
@@ -72,7 +72,7 @@ Tworzenie skutecznych miniaturek na Allegro to sztuka, którą można opanować 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-22',
-  modifiedAt: '2026-06-22',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

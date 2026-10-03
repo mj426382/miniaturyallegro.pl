@@ -26,7 +26,7 @@ Każdy kolor niesie ze sobą określone skojarzenia i emocje. Zrozumienie ich ps
 
 Chociaż te ogólne zasady są pomocne, kluczowe jest dostosowanie kolorów do grupy docelowej i specyfiki rynku. Nasi klienci w [AllGrafika.pl](https://app.allgrafika.pl/register) mogą z łatwością eksperymentować z różnymi stylami miniaturek, w tym takimi jak **białe tło**, **lifestyle** czy **dark luxury**, aby odkryć, które z nich najlepiej działają.
 
-## Studium przypadku: Jak kolor tła zwiększył CTR o 40%?
+## Przykład hipotetyczny: jak kolor tła może podnieść CTR
 
 Rozważ przypadek sprzedawcy odzieży sportowej, który prowadził eksperymenty z miniaturkami koszulek treningowych. Początkowo używał zdjęć na **białym tle**, które są standardem na Allegro. Choć wyniki były przyzwoite, sprzedawca postanowił sprawdzić, czy zmiana koloru tła wpłynie na jego sprzedaż.
 
@@ -38,10 +38,10 @@ Rozważ przypadek sprzedawcy odzieży sportowej, który prowadził eksperymenty 
 
 **Wyniki:**
 - Białe tło generowało średni CTR na poziomie 2,5%.
-- Zielone tło poprawiło CTR o 15%, osiągając 2,9%.
+- Zielone tło: wyraźnie lepszy CTR niż białe.
 - Ciemne tło zanotowało największy sukces, zwiększając CTR aż o **40% do wartości 3,5%.**
 
-Sprzedawca zdecydował się na długoterminowe stosowanie stylu **dark luxury**, co przełożyło się na wzrost sprzedaży o 30% w ciągu kolejnych dwóch miesięcy.
+Sprzedawca zdecydował się na długoterminowe stosowanie stylu **dark luxury**, co w tym hipotetycznym scenariuszu przekłada się na wyraźny wzrost sprzedaży.
 
 ## Jak dopasować kolory miniaturek do grupy docelowej?
 
@@ -69,7 +69,7 @@ Dostosowanie kolorów miniaturek nie musi być skomplikowane ani kosztowne. Narz
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-07-02',
-  modifiedAt: '2026-07-02',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 7,
   category: 'Styl i design',

@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom'
+import { LEGAL_ENTITY } from '../legal/entity'
+
+const CONTACT_EMAIL = 'kontakt@allgrafika.pl'
 
 export default function Footer() {
   return (
@@ -10,34 +13,75 @@ export default function Footer() {
               AllGrafika.pl
             </Link>
             <p className="mt-3 text-sm leading-relaxed">
-              Profesjonalne grafiki produktowe dla sprzedawców Allegro.
-              Generuj dziesiątki wariantów w kilka sekund dzięki AI.
+              Generator miniaturek i grafik produktowych AI dla sprzedawców Allegro. Prześlij zdjęcie, wybierz style, pobierz gotowe grafiki w kilka minut.
             </p>
           </div>
 
           <div>
             <h3 className="text-white font-semibold mb-4">Produkt</h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="#features" className="hover:text-white transition-colors">Funkcje</a></li>
-              <li><a href="#pricing" className="hover:text-white transition-colors">Cennik</a></li>
-              <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+              <li>
+                <Link to="/#features" className="hover:text-white transition-colors">
+                  Funkcje
+                </Link>
+              </li>
+              <li>
+                <Link to="/#pricing" className="hover:text-white transition-colors">
+                  Cennik
+                </Link>
+              </li>
+              <li>
+                <Link to="/#faq" className="hover:text-white transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="hover:text-white transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <a href="https://app.allgrafika.pl/login" className="hover:text-white transition-colors">
+                  Logowanie
+                </a>
+              </li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-white font-semibold mb-4">Firma</h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">O nas</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Kontakt</a></li>
-              <li><Link to="/polityka-prywatnosci" className="hover:text-white transition-colors">Polityka prywatności</Link></li>
-              <li><Link to="/regulamin" className="hover:text-white transition-colors">Regulamin</Link></li>
+              <li>
+                <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-white transition-colors">
+                  Kontakt: {CONTACT_EMAIL}
+                </a>
+              </li>
+              <li>
+                <Link to="/polityka-prywatnosci" className="hover:text-white transition-colors">
+                  Polityka prywatności
+                </Link>
+              </li>
+              <li>
+                <Link to="/regulamin" className="hover:text-white transition-colors">
+                  Regulamin
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-gray-800 pt-8 text-sm text-center space-y-2">
           <p>© {new Date().getFullYear()} AllGrafika.pl · Wszelkie prawa zastrzeżone</p>
-          <p>Powered by <a href="https://jan-mat.pl" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">jan-mat.pl</a></p>
+          <p className="text-xs text-gray-500">
+            {LEGAL_ENTITY.name}, {LEGAL_ENTITY.address}, NIP {LEGAL_ENTITY.nip} · {LEGAL_ENTITY.email} · {LEGAL_ENTITY.phone}
+          </p>
+          <p className="text-xs text-gray-500">AllGrafika.pl nie jest powiązana z Allegro.pl sp. z o.o. Allegro jest znakiem towarowym jego właściciela.</p>
+          <p>
+            Powered by{' '}
+            <a href="https://jan-mat.pl" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+              jan-mat.pl
+            </a>
+          </p>
         </div>
       </div>
     </footer>

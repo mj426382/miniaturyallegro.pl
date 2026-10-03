@@ -1,5 +1,11 @@
 import { Link } from 'react-router-dom'
-import { SparklesIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { SparklesIcon, ClockIcon, DocumentTextIcon, TrashIcon } from '@heroicons/react/24/outline'
+
+function graphicsWord(n: number) {
+  if (n === 1) return 'grafika'
+  if (n >= 2 && n <= 4) return 'grafiki'
+  return 'grafik'
+}
 
 interface ImageCardProps {
   image: {
@@ -7,34 +13,58 @@ interface ImageCardProps {
     originalUrl: string
     filename: string
     createdAt: string
-    generations: Array<{ id: string; status: string; url?: string }>
+    generations: Array<{ id: string; status: string; url?: string | null }>
+    hasDescription?: boolean
   }
+  /** When given, the card shows a delete action (the caller confirms and calls the API). */
+  onDelete?: () => void
 }
 
-export default function ImageCard({ image }: ImageCardProps) {
+export default function ImageCard({ image, onDelete }: ImageCardProps) {
   const completedCount = image.generations.filter((g) => g.status === 'COMPLETED').length
   const hasGenerations = image.generations.length > 0
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
-        <img
-          src={image.originalUrl}
-          alt="Product"
-          className="w-full h-full object-cover"
-        />
+        <img src={image.originalUrl} alt="Product" className="w-full h-full object-cover" />
         {hasGenerations && (
           <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
             {completedCount}/{image.generations.length}
           </div>
         )}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            aria-label="Usuń zdjęcie"
+            title="Usuń zdjęcie"
+            className="absolute top-2 left-2 bg-white/90 text-gray-500 hover:text-red-600 rounded-full p-1.5 shadow-sm"
+          >
+            <TrashIcon className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div className="p-4">
-        <p className="text-xs text-gray-500 mb-3 flex items-center gap-1">
+        <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
           <ClockIcon className="h-3 w-3" />
           {new Date(image.createdAt).toLocaleDateString('pl-PL')}
         </p>
+        <div className="flex flex-wrap gap-1.5 mb-3 min-h-[22px]" aria-label="Stan produktu">
+          {completedCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-green-50 text-green-700 text-xs px-2 py-0.5">
+              <SparklesIcon className="h-3 w-3" />
+              {completedCount} {graphicsWord(completedCount)}
+            </span>
+          )}
+          {image.hasDescription && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 text-xs px-2 py-0.5">
+              <DocumentTextIcon className="h-3 w-3" />
+              Opis ✓
+            </span>
+          )}
+        </div>
 
         {hasGenerations ? (
           <Link

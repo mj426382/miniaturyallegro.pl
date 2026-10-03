@@ -6,9 +6,9 @@ const post: BlogPostData = {
   title: 'Jak Wykorzystać AI do Tworzenia Skutecznych Miniaturek na Allegro',
   excerpt: 'Dowiedz się, jak AI pomaga tworzyć miniaturki Allegro, które zwiększają CTR i konwersje, oszczędzając czas i pieniądze sprzedawców.',
   content: `
-## Czy wiesz, że AI może zwiększyć CTR na Allegro nawet o 60%?
+## Jak AI zmienia miniaturki na Allegro?
 
-Badania pokazują, że odpowiednia optymalizacja miniaturek zwiększa wskaźnik kliknięć nawet o 60%. Jak więc wykorzystać AI, aby tworzyć miniaturki, które przyciągają uwagę?
+Dobrze zoptymalizowana miniaturka potrafi wyraźnie podnieść wskaźnik kliknięć – skalę zmierzysz we własnych statystykach Allegro. Jak więc wykorzystać AI, aby tworzyć miniaturki, które przyciągają uwagę?
 
 ## Jak działa AI w tworzeniu miniaturek productowych
 
@@ -22,7 +22,7 @@ Przykład sprzedawcy zegarków premium:
 
 - Problem: Niskie zainteresowanie aukcją wskutek nieatrakcyjnej miniaturki.
 - Rozwiązanie: Użycie stylu **dark luxury**, który podkreślił walory estetyczne produktu.
-- Rezultat: CTR wzrósł o 45%, a sprzedaż zwiększyła się o 30% w ciągu miesiąca.
+- Rezultat (scenariusz hipotetyczny): wyższy CTR i więcej zamówień – skalę zmierzysz we własnych statystykach Allegro.
 
 ## Jak zacząć korzystać z AI w swoim sklepie?
 
@@ -48,7 +48,7 @@ Nie tylko oszczędność czasu i pieniędzy jest zaletą AI:
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-07-09',
-  modifiedAt: '2026-07-09',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Technologia',

@@ -1,124 +1,147 @@
-﻿import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { imagesApi, generationApi } from '../services/api'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import {
-  SparklesIcon,
-  ArrowDownTrayIcon,
-  CheckCircleIcon,
-  XMarkIcon,
-  PhotoIcon,
-  CreditCardIcon,
-  Squares2X2Icon,
-  PencilSquareIcon,
-  ArrowPathIcon,
-} from '@heroicons/react/24/outline'
+import { imagesApi, generationApi, allegroApi } from '../services/api'
+import { useAuth } from '../hooks/useAuth'
+import { useGenerations, Generation } from '../hooks/useGenerations'
+import { usePageTitle } from '../hooks/usePageTitle'
+import { useConfirm } from '../hooks/useConfirm'
+import { track } from '../services/analytics'
+import { downloadBlob, shareBlob } from '../utils/download'
+import ExportModal from '../components/ExportModal'
+import PublishToAllegroModal from '../components/PublishToAllegroModal'
+import OfferDescriptionPanel from '../components/OfferDescriptionPanel'
+import StylePicker from '../components/generate/StylePicker'
+import CustomStyleForm from '../components/generate/CustomStyleForm'
+import ResultCard from '../components/generate/ResultCard'
+import { SparklesIcon, CreditCardIcon, Squares2X2Icon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
 
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Oczekuje',
-  PROCESSING: 'Generowanie...',
-  COMPLETED: 'Gotowe',
-  FAILED: 'Błąd',
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-gray-100 text-gray-600',
-  PROCESSING: 'bg-blue-100 text-blue-600',
-  COMPLETED: 'bg-green-100 text-green-600',
-  FAILED: 'bg-red-100 text-red-600',
-}
+const FREE_LIMIT = 10
 
 type Tab = 'auto' | 'custom'
 
+/**
+ * Generator screen: orchestrates the photo's generations (useGenerations), the two ways of
+ * starting new ones (style batch / custom prompt), per-result actions and the offer description.
+ */
 export default function Generate() {
   const { imageId } = useParams<{ imageId: string }>()
   const navigate = useNavigate()
-  const [image, setImage] = useState<any>(null)
-  const [generations, setGenerations] = useState<any[]>([])
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, refreshUser } = useAuth()
+  const confirm = useConfirm()
+  usePageTitle('Generator grafik')
+
+  const resultsRef = useRef<HTMLDivElement>(null)
+  const descriptionRef = useRef<HTMLDivElement>(null)
+  const hasDescriptionRef = useRef(false)
+  const nudgedRef = useRef(false)
+  const referenceInputRef = useRef<HTMLInputElement>(null)
+  /** Downloaded blobs by generation id – filled on hover/touch so "Pobierz" needs no network call. */
+  const blobCache = useRef(new Map<string, Promise<Blob>>())
+
   const [activeTab, setActiveTab] = useState<Tab>('auto')
   const [basePrompt, setBasePrompt] = useState('')
   const [customPrompt, setCustomPrompt] = useState('')
+  const [isStarting, setIsStarting] = useState(false)
   const [isCustomGenerating, setIsCustomGenerating] = useState(false)
   const [referenceFile, setReferenceFile] = useState<File | null>(null)
   const [referencePreview, setReferencePreview] = useState<string | null>(null)
   const [reworkingId, setReworkingId] = useState<string | null>(null)
   const [isRework, setIsRework] = useState(false)
-  const referenceInputRef = useRef<HTMLInputElement>(null)
-  const pollIntervalRef = useRef<number | null>(null)
-  const refreshIntervalRef = useRef<number | null>(null)
+  const [exportTarget, setExportTarget] = useState<Generation | null>(null)
+  const [publishTarget, setPublishTarget] = useState<Generation | null>(null)
+  const [pendingShare, setPendingShare] = useState<{ blob: Blob; name: string } | null>(null)
+  /** Style picker collapses once results exist so they stay in view (phones especially). */
+  const [pickerOpen, setPickerOpen] = useState(true)
+  /** "Allegro" on the result cards only makes sense once a seller account is connected. */
+  const [allegroConnected, setAllegroConnected] = useState(false)
+
+  const gens = useGenerations(imageId, {
+    onBatchFinished: () => {
+      if (!hasDescriptionRef.current && !nudgedRef.current) {
+        // First finished graphic: offer the SEO copy once, with a one-tap jump to the panel.
+        nudgedRef.current = true
+        toast(
+          (t) => (
+            <span className="flex items-center gap-3">
+              <span>Grafika gotowa. Dopisz opis oferty pod SEO Allegro.</span>
+              <button
+                type="button"
+                className="btn-primary text-xs px-2.5 py-1 whitespace-nowrap"
+                onClick={() => {
+                  toast.dismiss(t.id)
+                  descriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
+                Dopisz opis
+              </button>
+            </span>
+          ),
+          { duration: 10000, icon: '✅' },
+        )
+      } else {
+        toast.success('Generowanie zakończone!')
+      }
+      setPickerOpen(false)
+      refreshUser().catch(() => undefined)
+    },
+  })
+  const { image, generations, setGenerations, styles, styleNames, generatedStyleIds, selectedStyles, toggleStyle, isLoading, pollTimedOut, hasActive, completedCount, hasResults } = gens
 
   useEffect(() => {
-    loadData()
+    setPickerOpen(!gens.openedWithResults)
+  }, [gens.openedWithResults])
 
-    // Auto-refresh co 10 sekund – odświeża listę generacji niezależnie od pollingu
-    refreshIntervalRef.current = window.setInterval(() => {
-      refreshGenerations()
-    }, 10_000)
+  useEffect(() => {
+    allegroApi
+      .status()
+      .then((r) => setAllegroConnected(Boolean(r.data.connected)))
+      .catch(() => setAllegroConnected(false))
+  }, [])
 
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
-      if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current)
+  const freeLeft = Math.max(0, FREE_LIMIT - (user?.freeCreditsUsed ?? 0))
+  const paidCredits = user?.credits ?? 0
+  const locked = hasActive && !pollTimedOut
+
+  const prefetchBlob = (genId: string) => {
+    if (blobCache.current.has(genId)) return blobCache.current.get(genId)!
+    const promise = generationApi.downloadGeneration(genId).then((r) => r.data as Blob)
+    promise.catch(() => blobCache.current.delete(genId))
+    if (blobCache.current.size >= 24) {
+      const oldest = blobCache.current.keys().next().value
+      if (oldest) blobCache.current.delete(oldest)
     }
-  }, [imageId])
-
-  const refreshGenerations = async () => {
-    if (!imageId) return
-    try {
-      const { data } = await generationApi.getResults(imageId)
-      setGenerations((prev: any[]) => mergeGenerations(prev, data))
-    } catch {
-      // ignore refresh errors
-    }
+    blobCache.current.set(genId, promise)
+    return promise
   }
 
-  /** Merge server results into the current list while preserving visual order.
-   *  Existing items are updated in-place; new server items are appended at the end. */
-  const mergeGenerations = (prev: any[], serverData: any[]): any[] => {
-    const serverMap = new Map(serverData.map((g: any) => [g.id, g]))
-    const prevIds = new Set(prev.map((g: any) => g.id))
-    const updated = prev.map((g: any) => serverMap.has(g.id) ? serverMap.get(g.id) : g)
-    const newFromServer = serverData.filter((g: any) => !prevIds.has(g.id))
-    return [...updated, ...newFromServer]
-  }
-
-  const loadData = async () => {
-    try {
-      const { data } = await imagesApi.getById(imageId!)
-      setImage(data)
-      setGenerations(data.generations || [])
-    } catch {
-      toast.error('Nie udało się załadować zdjęcia')
-    } finally {
-      setIsLoading(false)
+  const handleCreditsError = (err: any, fallback: string) => {
+    if (err.response?.status === 402) {
+      toast.error(err.response.data?.message || 'Brak kredytów', { duration: 6000 })
+      navigate('/credits')
+    } else {
+      const message = err.response?.data?.message
+      toast.error(Array.isArray(message) ? message.join('. ') : message || fallback)
     }
   }
+
+  const scrollToResults = () => setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
 
   const startGeneration = async () => {
-    setIsGenerating(true)
+    if (!selectedStyles.length || isStarting || hasActive) return
+    setIsStarting(true)
     try {
-      const { data } = await generationApi.startGeneration(imageId!, basePrompt.trim() || undefined)
-      toast.success('Generowanie rozpoczęte! To może potrwać kilka minut.')
-      // Add placeholders immediately so cards appear
-      if (data.generationIds) {
-        const placeholders = data.generationIds.map((id: string, i: number) => ({
-          id,
-          style: ['white-bg', 'gradient-bg', 'lifestyle-home', 'in-action', 'dark-luxury', 'multi-angle'][i] || 'custom',
-          status: 'PENDING',
-          url: null,
-        }))
-        setGenerations((prev: any[]) => [...prev, ...placeholders])
-      }
-      startPolling()
+      const { data } = await generationApi.startGeneration(imageId!, { styles: selectedStyles, basePrompt: basePrompt.trim() || undefined })
+      toast.success(`Generowanie ${data.count} ${data.count === 1 ? 'grafiki' : 'grafik'} rozpoczęte! To może potrwać kilka minut.`)
+      const placeholders: Generation[] = (data.generationIds as string[]).map((id, i) => ({ id, style: data.styles?.[i] || selectedStyles[i] || 'custom', status: 'PENDING', url: null }))
+      setGenerations((prev) => [...prev, ...placeholders])
+      track('generation_start', { styles: data.count, mode: 'auto' })
+      scrollToResults()
+      refreshUser().catch(() => undefined)
     } catch (err: any) {
-      if (err.response?.status === 402) {
-        toast.error(err.response.data?.message || 'Brak kredytów', { duration: 6000 })
-        navigate('/credits')
-      } else {
-        toast.error(err.response?.data?.message || 'Błąd generowania')
-      }
-      setIsGenerating(false)
+      handleCreditsError(err, 'Błąd generowania')
+    } finally {
+      setIsStarting(false)
     }
   }
 
@@ -136,114 +159,87 @@ export default function Generate() {
   }
 
   const startCustomGeneration = async () => {
-    if (!customPrompt.trim()) return
+    if (customPrompt.trim().length < 3 || isCustomGenerating) return
     setIsCustomGenerating(true)
     try {
-      const { data } = await generationApi.startCustomGeneration(imageId!, customPrompt, referenceFile || undefined, isRework)
-      toast.success('Generowanie własnego zdjęcia rozpoczęte!')
-      // Add placeholder immediately so the card appears
-      if (data.generationId) {
-        setGenerations((prev: any[]) => [
-          ...prev,
-          { id: data.generationId, style: 'custom', status: 'PENDING', url: null },
-        ])
-      }
+      const { data } = await generationApi.startCustomGeneration(imageId!, customPrompt.trim(), referenceFile || undefined, isRework)
+      toast.success('Generowanie własnej grafiki rozpoczęte!')
+      setGenerations((prev) => [...prev, { id: data.generationId, style: 'custom', status: 'PENDING', url: null }])
+      track('generation_start', { styles: 1, mode: isRework ? 'rework' : 'custom' })
+      scrollToResults()
       setCustomPrompt('')
-      setReferenceFile(null)
-      setReferencePreview(null)
-      setIsRework(false)
-      startPolling()
+      handleReferenceFile(null)
+      refreshUser().catch(() => undefined)
     } catch (err: any) {
-      if (err.response?.status === 402) {
-        toast.error(err.response.data?.message || 'Brak kredytów', { duration: 6000 })
-        navigate('/credits')
-      } else {
-        toast.error(err.response?.data?.message || 'Błąd generowania')
-      }
+      handleCreditsError(err, 'Błąd generowania')
     } finally {
       setIsCustomGenerating(false)
     }
-  }
-
-  const startPolling = () => {
-    // Do an immediate fetch so new items appear instantly.
-    // Merge with existing placeholders so they don't disappear.
-    generationApi.getResults(imageId!).then(({ data }) => {
-      setGenerations((prev: any[]) => mergeGenerations(prev, data))
-    }).catch(() => {})
-
-    // If already polling, don't start another interval
-    if (pollIntervalRef.current) return
-    const interval = window.setInterval(async () => {
-      try {
-        const { data } = await generationApi.getResults(imageId!)
-        setGenerations((prev: any[]) => mergeGenerations(prev, data))
-        const allDone = data.every(
-          (g: any) => g.status === 'COMPLETED' || g.status === 'FAILED',
-        )
-        if (allDone) {
-          clearInterval(interval)
-          pollIntervalRef.current = null
-          setIsGenerating(false)
-          toast.success('Generowanie zakończone!')
-        }
-      } catch {
-        // ignore polling errors
-      }
-    }, 3000)
-    pollIntervalRef.current = interval
   }
 
   const retryFailed = async (genId: string) => {
     try {
       await generationApi.retryGeneration(genId)
       toast.success('Ponowienie generowania rozpoczęte!')
-      // Update the card to PENDING immediately
-      setGenerations((prev: any[]) =>
-        prev.map((g: any) => g.id === genId ? { ...g, status: 'PENDING' } : g),
-      )
-      startPolling()
+      setGenerations((prev) => prev.map((g) => (g.id === genId ? { ...g, status: 'PENDING' } : g)))
+      refreshUser().catch(() => undefined)
     } catch (err: any) {
-      if (err.response?.status === 402) {
-        toast.error(err.response.data?.message || 'Brak kredytów', { duration: 6000 })
-        navigate('/credits')
-      } else {
-        toast.error('Nie udało się ponowić generowania')
-      }
+      handleCreditsError(err, 'Nie udało się ponowić generowania')
     }
   }
 
-  const downloadImage = async (genId: string, styleName: string) => {
+  const downloadImage = async (gen: Generation) => {
     try {
-      const { data } = await generationApi.downloadGeneration(genId)
-      const objectUrl = URL.createObjectURL(data)
-      const link = document.createElement('a')
-      link.href = objectUrl
-      link.download = `grafika-${styleName}.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(objectUrl)
+      const data = await prefetchBlob(gen.id)
+      const name = `grafika-${gen.style}.png`
+      const method = await downloadBlob(data, name)
+      if (method !== 'cancelled') track('download', { style: gen.style, method })
+      if (method === 'share-rejected') {
+        // The share sheet needs a fresh tap – offer a one-tap button that calls it synchronously.
+        setPendingShare({ blob: data, name })
+      } else if (method === 'open-tab' || method === 'anchor-ios') {
+        toast('Przytrzymaj obraz i wybierz „Zapisz obraz”, aby zapisać go w Zdjęciach.', { duration: 6000 })
+      }
     } catch {
-      toast.error('Nie udało się pobrać zdjęcia')
+      toast.error('Nie udało się pobrać grafiki')
     }
   }
 
-  const startRework = async (gen: any) => {
+  const startRework = async (gen: Generation) => {
     setReworkingId(gen.id)
     try {
       const { data } = await generationApi.downloadGeneration(gen.id)
       const file = new File([data], `generated-${gen.style}.png`, { type: data.type || 'image/png' })
       handleReferenceFile(file)
       setIsRework(true)
+      setPickerOpen(true)
       setActiveTab('custom')
       setCustomPrompt('')
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      toast.success('Załadowano jako bazę do przeróbki. Opisz jak chcesz przerobić zdjęcie.')
+      toast.success('Załadowano jako bazę do przeróbki. Opisz, co zmienić.')
     } catch {
-      toast.error('Nie udało się załadować zdjęcia do przeróbki')
+      toast.error('Nie udało się załadować grafiki do przeróbki')
     } finally {
       setReworkingId(null)
+    }
+  }
+
+  const deletePhoto = async () => {
+    if (!image) return
+    const ok = await confirm({
+      title: 'Usunąć to zdjęcie?',
+      message: 'Zdjęcie, wszystkie wygenerowane dla niego grafiki i opis oferty zostaną trwale usunięte. Wykorzystanych kredytów nie zwracamy.',
+      confirmLabel: 'Usuń zdjęcie',
+      danger: true,
+    })
+    if (!ok) return
+    try {
+      await imagesApi.delete(image.id)
+      toast.success('Zdjęcie usunięte')
+      refreshUser().catch(() => undefined)
+      navigate('/gallery')
+    } catch {
+      toast.error('Nie udało się usunąć zdjęcia')
     }
   }
 
@@ -255,267 +251,175 @@ export default function Generate() {
     )
   }
 
-  const completedCount = generations.filter((g) => g.status === 'COMPLETED').length
-  const hasResults = generations.length > 0
+  if (!image) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-700 mb-4">Nie znaleziono tego zdjęcia – mogło zostać usunięte.</p>
+        <Link to="/gallery" className="btn-primary">
+          Wróć do galerii
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="px-4 py-6 sm:p-8 max-w-5xl mx-auto">
-
       {/* Header: product image + title */}
       <div className="flex items-center gap-4 mb-6">
-        {image && (
-          <img
-            src={image.originalUrl}
-            alt="Product"
-            className="w-20 h-20 object-cover rounded-xl border border-gray-200 shrink-0"
-          />
-        )}
-        <div>
+        <img src={image.originalUrl} alt="Zdjęcie produktu" className="w-20 h-20 object-cover rounded-xl border border-gray-200 shrink-0" />
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-gray-900">Generator grafik produktowych</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{image?.filename}</p>
+          <p className="text-gray-500 text-sm mt-0.5 truncate">
+            {image.createdAt ? `Zdjęcie przesłane ${new Date(image.createdAt).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })}` : 'Zdjęcie produktu'}
+            {image.allegroOfferId ? ` · oferta Allegro ${image.allegroOfferId}` : ''}
+          </p>
+        </div>
+        <div className="ml-auto flex items-center gap-2 shrink-0">
+          <Link to="/credits" className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg">
+            <CreditCardIcon className="h-4 w-4" />
+            {freeLeft > 0 ? `Darmowe: ${freeLeft}` : `Kredyty: ${paidCredits}`}
+          </Link>
+          <button
+            type="button"
+            onClick={deletePhoto}
+            disabled={locked}
+            aria-label="Usuń zdjęcie"
+            title={locked ? 'Poczekaj na zakończenie generowania' : 'Usuń zdjęcie i wszystkie jego grafiki'}
+            className="p-1.5 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-40"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
-      {/* Mode tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 mb-6">
-        <div className="flex border-b border-gray-200">
+      {/* Mode tabs – collapsed when results exist so they stay in view */}
+      {hasResults && !pickerOpen && (
+        <div className="bg-white rounded-xl border border-gray-200 mb-6 p-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-gray-600">Chcesz więcej wariantów? Dogeneruj kolejne style albo opisz własny.</p>
+          <button type="button" onClick={() => setPickerOpen(true)} className="btn-secondary text-sm">
+            Pokaż style
+          </button>
+        </div>
+      )}
+      <div className={`bg-white rounded-xl border border-gray-200 mb-6 ${hasResults && !pickerOpen ? 'hidden' : ''}`}>
+        <div className="flex border-b border-gray-200" role="tablist">
           <button
+            role="tab"
+            aria-selected={activeTab === 'auto'}
             onClick={() => setActiveTab('auto')}
-            className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              activeTab === 'auto'
-                ? 'border-blue-600 text-blue-700'
-                : 'border-transparent text-gray-500 hover:text-gray-800'
-            }`}
+            className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === 'auto' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
           >
             <Squares2X2Icon className="h-4 w-4" />
-            6 stylów automatycznych
+            Style automatyczne
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'custom'}
             onClick={() => setActiveTab('custom')}
-            className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              activeTab === 'custom'
-                ? 'border-blue-600 text-blue-700'
-                : 'border-transparent text-gray-500 hover:text-gray-800'
-            }`}
+            className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === 'custom' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
           >
             <PencilSquareIcon className="h-4 w-4" />
             Własny styl
           </button>
         </div>
 
-        {/* Tab: 6 auto styles */}
-        {activeTab === 'auto' && (
-          <div className="p-5">
-            <p className="text-sm text-gray-500 mb-4">
-              AI wygeneruje 6 profesjonalnych wariantów Twojego produktu: białe tło, gradient, lifestyle, produkt w akcji, dark luxury, wiele perspektyw.
-            </p>
-
-            {hasResults ? (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                {completedCount} z {generations.length} wygenerowanych
-              </div>
-            ) : (
-              <>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Dodatkowe wskazówki dla AI{' '}
-                    <span className="text-gray-400 font-normal">(opcjonalnie)</span>
-                  </label>
-                  <textarea
-                    value={basePrompt}
-                    onChange={(e) => setBasePrompt(e.target.value)}
-                    placeholder="np. elegancki wygląd, produkt w centrum kadru, bez cieni"
-                    rows={2}
-                    maxLength={400}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Wskazówki zostaną zastosowane do wszystkich 6 stylów.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={startGeneration}
-                    disabled={isGenerating}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    <SparklesIcon className="h-5 w-5" />
-                    {isGenerating ? 'Generowanie...' : 'Generuj 6 grafik'}
-                  </button>
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <CreditCardIcon className="h-3.5 w-3.5" />
-                    6 × 2 zł = 12 zł (lub z darmowej puli)
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Tab: custom */}
-        {activeTab === 'custom' && (
-          <div className="p-5">
-            <p className="text-sm text-gray-500 mb-4">
-              Opisz dokładnie jak ma wyglądać grafika produktowa. Możesz też dołączyć zdjęcie referencyjne stylu.
-            </p>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Opis stylu <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && startCustomGeneration()}
-                placeholder="np. na drewnianym stole, w plenerze, ciepłe kolory, bokeh w tle"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                maxLength={500}
-              />
-            </div>
-
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Zdjęcie referencyjne stylu{' '}
-                <span className="text-gray-400 font-normal">(opcjonalnie)</span>
-              </label>
-              <input
-                ref={referenceInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="hidden"
-                onChange={(e) => handleReferenceFile(e.target.files?.[0] ?? null)}
-              />
-              {referencePreview ? (
-                <div className="flex items-center gap-3">
-                  <img
-                    src={referencePreview}
-                    alt="Referencja"
-                    className="h-16 w-16 object-cover rounded-lg border border-gray-300"
-                  />
-                  <div>
-                    <p className="text-sm text-gray-700">Zdjęcie referencyjne dodane</p>
-                    <button
-                      onClick={() => {
-                        handleReferenceFile(null)
-                        if (referenceInputRef.current) referenceInputRef.current.value = ''
-                      }}
-                      className="text-xs text-red-500 hover:text-red-700 mt-0.5 flex items-center gap-1"
-                    >
-                      <XMarkIcon className="h-3.5 w-3.5" />
-                      Usuń
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => referenceInputRef.current?.click()}
-                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 border border-dashed border-gray-300 rounded-lg px-4 py-2.5 hover:border-blue-400 transition-colors"
-                >
-                  <PhotoIcon className="h-4 w-4" />
-                  Dodaj zdjęcie referencyjne
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={startCustomGeneration}
-                disabled={isCustomGenerating || !customPrompt.trim()}
-                className="btn-primary flex items-center gap-2"
-              >
-                <SparklesIcon className="h-5 w-5" />
-                {isCustomGenerating ? 'Generowanie...' : 'Generuj grafikę'}
-              </button>
-              <span className="text-xs text-gray-400 flex items-center gap-1">
-                <CreditCardIcon className="h-3.5 w-3.5" />
-                1 × 2 zł (lub z darmowej puli)
-              </span>
-            </div>
-          </div>
+        {activeTab === 'auto' ? (
+          <StylePicker
+            styles={styles}
+            selectedStyles={selectedStyles}
+            generatedStyleIds={generatedStyleIds}
+            onToggle={toggleStyle}
+            hasResults={hasResults}
+            completedCount={completedCount}
+            totalCount={generations.length}
+            locked={locked}
+            basePrompt={basePrompt}
+            onBasePromptChange={setBasePrompt}
+            onStart={startGeneration}
+            isStarting={isStarting}
+            freeLeft={freeLeft}
+            paidCredits={paidCredits}
+          />
+        ) : (
+          <CustomStyleForm
+            prompt={customPrompt}
+            onPromptChange={setCustomPrompt}
+            referencePreview={referencePreview}
+            isRework={isRework}
+            inputRef={referenceInputRef}
+            onFile={handleReferenceFile}
+            onStart={startCustomGeneration}
+            isGenerating={isCustomGenerating}
+            freeLeft={freeLeft}
+            paidCredits={paidCredits}
+          />
         )}
       </div>
 
       {/* Results grid */}
       {hasResults && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div ref={resultsRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 scroll-mt-4">
           {generations.map((gen) => (
-            <div key={gen.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="aspect-square bg-gray-100 relative">
-                {gen.status === 'COMPLETED' && gen.url ? (
-                  <img src={gen.url} alt={gen.style} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    {gen.status === 'PROCESSING' ? (
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-                    ) : (
-                      <SparklesIcon className="h-12 w-12 text-gray-300" />
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-700">
-                    {({
-                      'white-bg': 'Białe tło',
-                      'gradient-bg': 'Gradient tło',
-                      'lifestyle-home': 'Styl życia - dom',
-                      'in-action': 'Produkt w akcji',
-                      'dark-luxury': 'Ciemny luksus',
-                      'multi-angle': 'Wiele perspektyw',
-                      'custom': '✨ Własny styl',
-                    } as Record<string, string>)[gen.style] || gen.style}
-                  </span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[gen.status]}`}>
-                    {STATUS_LABELS[gen.status]}
-                  </span>
-                </div>
-                {gen.status === 'COMPLETED' && gen.url && (
-                  <div className="flex gap-1 mt-1">
-                    <button
-                      onClick={() => downloadImage(gen.id, gen.style)}
-                      className="flex-1 flex items-center justify-center gap-1 text-xs text-blue-600 hover:text-blue-700 py-1.5 rounded hover:bg-blue-50 transition-colors"
-                    >
-                      <ArrowDownTrayIcon className="h-3.5 w-3.5" />
-                      Pobierz
-                    </button>
-                    <div className="w-px bg-gray-100" />
-                    <button
-                      onClick={() => startRework(gen)}
-                      disabled={reworkingId === gen.id}
-                      title="Użyj tego zdjęcia jako bazy do dalszej edycji"
-                      className="flex-1 flex items-center justify-center gap-1 text-xs text-purple-600 hover:text-purple-700 py-1.5 rounded hover:bg-purple-50 transition-colors disabled:opacity-50"
-                    >
-                      <ArrowPathIcon className={`h-3.5 w-3.5 ${reworkingId === gen.id ? 'animate-spin' : ''}`} />
-                      Przeróbka
-                    </button>
-                  </div>
-                )}
-                {gen.status === 'FAILED' && (
-                  <button
-                    onClick={() => retryFailed(gen.id)}
-                    className="flex items-center justify-center gap-1 w-full text-xs text-red-600 hover:text-red-700 py-1.5 rounded hover:bg-red-50 transition-colors mt-1"
-                  >
-                    <ArrowPathIcon className="h-3.5 w-3.5" />
-                    Ponów generowanie
-                  </button>
-                )}
-              </div>
-            </div>
+            <ResultCard
+              key={gen.id}
+              generation={gen}
+              styleName={styleNames[gen.style] || gen.style}
+              onPrefetch={() => prefetchBlob(gen.id)}
+              onDownload={() => downloadImage(gen)}
+              onExport={() => setExportTarget(gen)}
+              onRework={() => startRework(gen)}
+              reworking={reworkingId === gen.id}
+              onPublish={allegroConnected ? () => setPublishTarget(gen) : undefined}
+              onRetry={() => retryFailed(gen.id)}
+              onRated={(rating) => setGenerations((prev) => prev.map((g) => (g.id === gen.id ? { ...g, rating } : g)))}
+            />
           ))}
         </div>
       )}
 
-      {!hasResults && !isGenerating && (
+      {hasResults && (
+        <div ref={descriptionRef}>
+          <OfferDescriptionPanel
+            imageId={imageId!}
+            hasCompletedGraphic={completedCount > 0}
+            onCreditsChanged={() => refreshUser().catch(() => undefined)}
+            onStateChange={(has) => {
+              hasDescriptionRef.current = has
+            }}
+          />
+        </div>
+      )}
+
+      {pendingShare && (
+        <div className="fixed inset-x-0 bottom-0 z-50 p-4 bg-white border-t border-gray-200 shadow-lg flex items-center justify-between gap-3">
+          <p className="text-sm text-gray-700">Grafika jest gotowa. Dotknij, aby zapisać ją w Zdjęciach.</p>
+          <div className="flex gap-2">
+            <button onClick={() => setPendingShare(null)} className="btn-secondary text-sm">
+              Anuluj
+            </button>
+            <button
+              onClick={() => {
+                const { blob, name } = pendingShare
+                setPendingShare(null)
+                shareBlob(blob, name).then((ok) => {
+                  if (!ok) downloadBlob(blob, name)
+                })
+              }}
+              className="btn-primary text-sm"
+            >
+              Zapisz w Zdjęciach
+            </button>
+          </div>
+        </div>
+      )}
+
+      {exportTarget && exportTarget.url && <ExportModal generationId={exportTarget.id} styleName={exportTarget.style} previewUrl={exportTarget.url} onClose={() => setExportTarget(null)} />}
+      {publishTarget && <PublishToAllegroModal generationId={publishTarget.id} style={publishTarget.style} defaultOfferId={image.allegroOfferId ?? null} onClose={() => setPublishTarget(null)} />}
+
+      {!hasResults && (
         <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
           <SparklesIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">
-            {activeTab === 'auto'
-              ? 'Kliknij "Generuj 6 grafik" aby rozpocząć'
-              : 'Opisz styl i kliknij "Generuj grafikę"'}
-          </p>
+          <p className="text-gray-500">{activeTab === 'auto' ? 'Wybierz style i kliknij „Generuj”, aby rozpocząć' : 'Opisz styl i kliknij „Generuj grafikę”'}</p>
         </div>
       )}
     </div>

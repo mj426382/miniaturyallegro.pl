@@ -9,8 +9,10 @@ build/
 .next/
 out/
 
-# Environment files
+# Environment files (every variant except the examples)
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
@@ -30,7 +32,7 @@ pids/
 *.pid.lock
 
 # Prisma
-backend/prisma/migrations/
+# (migrations are versioned – see backend/prisma/migrations)
 
 # Editor directories
 .vscode/
@@ -61,3 +63,11 @@ coverage/
 
 # Docker
 infra/.env
+
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/playwright/.cache/
+landing-page/test-results/
+landing-page/playwright-report/

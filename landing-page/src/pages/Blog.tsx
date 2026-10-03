@@ -2,23 +2,18 @@ import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { blogPosts } from '../data/blogPosts'
+import { blogIndex } from '../data/blogIndex'
 
 const SITE_URL = 'https://allgrafika.pl'
 
-const sortedPosts = [...blogPosts].sort(
-  (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-)
+const sortedPosts = [...blogIndex].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
 
 export default function Blog() {
   return (
     <>
       <Helmet>
         <title>Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl</title>
-        <meta
-          name="description"
-          content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro."
-        />
+        <meta name="description" content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro." />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${SITE_URL}/blog`} />
 
@@ -29,13 +24,13 @@ export default function Blog() {
         <meta property="og:url" content={`${SITE_URL}/blog`} />
         <meta property="og:site_name" content="AllGrafika.pl" />
         <meta property="og:locale" content="pl_PL" />
-        <meta property="og:image" content={`${SITE_URL}/logo.webp`} />
+        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl" />
         <meta name="twitter:description" content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online." />
-        <meta name="twitter:image" content={`${SITE_URL}/logo.webp`} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-image.png`} />
       </Helmet>
 
       <div className="min-h-screen bg-white">
@@ -43,24 +38,15 @@ export default function Blog() {
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16">
           <div className="text-center mb-16">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Blog AllGrafika – grafiki i sprzedaż na Allegro
-            </h1>
-            <p className="text-lg text-gray-500">
-              Porady, wskazówki i strategie dla sprzedawców Allegro
-            </p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog AllGrafika – grafiki i sprzedaż na Allegro</h1>
+            <p className="text-lg text-gray-500">Porady, wskazówki i strategie dla sprzedawców Allegro</p>
           </div>
 
           <div className="space-y-8">
             {sortedPosts.map((post) => (
-              <article
-                key={post.id}
-                className="bg-white border border-gray-100 rounded-2xl p-8 hover:shadow-md transition-shadow"
-              >
+              <article key={post.id} className="bg-white border border-gray-100 rounded-2xl p-8 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">
-                    {post.category}
-                  </span>
+                  <span className="bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">{post.category}</span>
                   <span className="text-gray-400 text-sm">
                     {new Date(post.publishedAt).toLocaleDateString('pl-PL', {
                       year: 'numeric',
@@ -73,20 +59,14 @@ export default function Blog() {
                 </div>
 
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  <Link
-                    to={`/blog/${post.slug}`}
-                    className="hover:text-blue-600 transition-colors"
-                  >
+                  <Link to={`/blog/${post.slug}`} className="hover:text-blue-600 transition-colors">
                     {post.title}
                   </Link>
                 </h2>
 
                 <p className="text-gray-600 leading-relaxed mb-4">{post.excerpt}</p>
 
-                <Link
-                  to={`/blog/${post.slug}`}
-                  className="text-blue-600 font-medium hover:text-blue-700 text-sm"
-                >
+                <Link to={`/blog/${post.slug}`} className="text-blue-600 font-medium hover:text-blue-700 text-sm">
                   Czytaj dalej →
                 </Link>
               </article>

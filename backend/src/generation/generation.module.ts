@@ -2,11 +2,14 @@ import { Module } from '@nestjs/common';
 import { GenerationController } from './generation.controller';
 import { GenerationService } from './generation.service';
 import { GeminiService } from './gemini.service';
+import { CreditsService } from './credits.service';
+import { ExportService } from './export.service';
 import { ImagesModule } from '../images/images.module';
 
 @Module({
   imports: [ImagesModule],
   controllers: [GenerationController],
-  providers: [GenerationService, GeminiService],
+  providers: [GenerationService, GeminiService, CreditsService, ExportService],
+  exports: [CreditsService, ExportService, GeminiService],
 })
 export class GenerationModule {}

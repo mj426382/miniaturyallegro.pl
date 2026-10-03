@@ -30,7 +30,7 @@ Profesjonalne miniaturki mogą sprawić, że Twoje produkty będą wyglądały b
 - Korzystaj z tego samego stylu miniaturek dla wszystkich produktów w ofercie, aby tworzyć wrażenie profesjonalizmu.
 - [AllGrafika.pl](https://app.allgrafika.pl/register) umożliwia generowanie spójnych grafik w różnych stylach, takich jak Lifestyle czy Flat Lay.
 
-## Studium przypadku: Jak zmiana miniaturki zwiększyła CTR o 45%
+## Przykład hipotetyczny: jak zmiana miniaturki wpływa na CTR
 
 Anna, właścicielka sklepu z kosmetykami organicznymi, miała problem z niską konwersją na Allegro. Jej oferty miały atrakcyjne ceny, ale CTR pozostawał poniżej średniej. Po analizie okazało się, że zdjęcia jej produktów były zbyt amatorskie, co wzbudzało nieufność wśród klientów.
 
@@ -66,7 +66,7 @@ Nie lekceważ roli, jaką odgrywają dobre miniaturki w budowaniu zaufania. Prof
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-18',
-  modifiedAt: '2026-06-18',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'E-commerce',

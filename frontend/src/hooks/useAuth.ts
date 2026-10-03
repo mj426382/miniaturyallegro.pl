@@ -1,5 +1,7 @@
-import { useState, useEffect, createContext, useContext } from 'react'
-import { authApi, usersApi } from '../services/api'
+import { useState, useEffect, createContext, useContext, useCallback } from 'react'
+import { authApi, usersApi, setUnauthorizedHandler } from '../services/api'
+import { queryClient } from '../lib/queryClient'
+import { setReportingUser } from '../services/errorReporting'
 
 interface User {
   id: string
@@ -8,17 +10,22 @@ interface User {
   credits: number
   freeCreditsUsed: number
   totalGenerations?: number
+  /** False for Google-only accounts (no password set). */
+  hasPassword?: boolean
   _count?: { images: number }
   createdAt: string
 }
 
 interface AuthContextType {
   user: User | null
+  /** @deprecated the session is an httpOnly cookie – kept for components that only check truthiness */
   token: string | null
   login: (email: string, password: string) => Promise<void>
-  googleLogin: (googleToken: string) => Promise<void>
-  register: (email: string, password: string, name?: string) => Promise<void>
+  googleLogin: (googleToken: string, acceptedTerms?: boolean) => Promise<void>
+  register: (email: string, password: string, name: string | undefined, acceptedTerms: boolean) => Promise<void>
   logout: () => void
+  /** Re-fetches the profile (credits, counters) from the API. */
+  refreshUser: () => Promise<void>
   isLoading: boolean
 }
 
@@ -32,64 +39,95 @@ export function useAuth() {
   return context
 }
 
+// Legacy sessions stored the JWT in localStorage – wipe it so it can never be read by a script again.
+function clearLegacyStorage() {
+  try {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+  } catch {
+    // storage may be unavailable (private mode)
+  }
+}
+
 export function useAuthProvider() {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token')
-    const storedUser = localStorage.getItem('user')
+  const refreshUser = useCallback(async () => {
+    const { data } = await usersApi.getMe()
+    setUser(data)
+    setToken('cookie')
+  }, [])
 
-    if (storedToken && storedUser) {
-      setToken(storedToken)
-      setUser(JSON.parse(storedUser))
-      // Refresh user data from API (fresh stats)
-      usersApi.getMe()
-        .then(({ data }) => {
-          setUser(data)
-          localStorage.setItem('user', JSON.stringify(data))
-        })
-        .catch(() => {
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
+  // Session bootstrap: the cookie is httpOnly, so the only way to know whether we are
+  // logged in is to ask the API. 401 here simply means "not logged in".
+  useEffect(() => {
+    clearLegacyStorage()
+    let cancelled = false
+    refreshUser()
+      .catch(() => {
+        if (!cancelled) {
           setToken(null)
           setUser(null)
-        })
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-    setIsLoading(false)
-  }, [])
+  }, [refreshUser])
+
+  // Once logged in, any later 401 (expired cookie, password reset elsewhere) drops the session and
+  // sends the user to /login. The handler is armed ONLY for an authenticated session – otherwise the
+  // bootstrap 401 of an anonymous visitor would bounce /register and /reset-password to /login.
+  useEffect(() => {
+    if (!user) {
+      setUnauthorizedHandler(null)
+      return
+    }
+    setReportingUser({ id: user.id })
+    setUnauthorizedHandler(() => {
+      queryClient.clear()
+      setReportingUser(null)
+      setToken(null)
+      setUser(null)
+      if (window.location.pathname !== '/login') window.location.href = '/login'
+    })
+    return () => setUnauthorizedHandler(null)
+  }, [user])
 
   const login = async (email: string, password: string) => {
     const { data } = await authApi.login({ email, password })
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
-    setToken(data.token)
+    setToken('cookie')
     setUser(data.user)
+    refreshUser().catch(() => undefined)
   }
 
-  const googleLogin = async (googleToken: string) => {
-    const { data } = await authApi.googleLogin(googleToken)
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
-    setToken(data.token)
+  const googleLogin = async (googleToken: string, acceptedTerms?: boolean) => {
+    const { data } = await authApi.googleLogin(googleToken, acceptedTerms)
+    setToken('cookie')
     setUser(data.user)
+    refreshUser().catch(() => undefined)
   }
 
-  const register = async (email: string, password: string, name?: string) => {
-    const { data } = await authApi.register({ email, password, name })
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
-    setToken(data.token)
+  const register = async (email: string, password: string, name: string | undefined, acceptedTerms: boolean) => {
+    const { data } = await authApi.register({ email, password, name, acceptedTerms })
+    setToken('cookie')
     setUser(data.user)
+    refreshUser().catch(() => undefined)
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    authApi.logout().catch(() => undefined)
+    // Cached server state belongs to the previous session – never show it to the next user.
+    queryClient.clear()
+    setReportingUser(null)
     setToken(null)
     setUser(null)
   }
 
-  return { user, token, login, googleLogin, register, logout, isLoading }
+  return { user, token, login, googleLogin, register, logout, refreshUser, isLoading }
 }

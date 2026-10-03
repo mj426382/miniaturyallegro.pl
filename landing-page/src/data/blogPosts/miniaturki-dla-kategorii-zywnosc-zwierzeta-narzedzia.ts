@@ -28,7 +28,7 @@ Każda z tych kategorii ma swoje unikalne cechy, które mogą wpłynąć na styl
 - Klienci szukają konkretności i wyrazistości. Styl **Dark Luxury** z podświetleniem może podkreślić precyzję wykonania.
 - **Białe tło** spełnia wymagania Allegro i jednocześnie świetnie eksponuje metaliczne powierzchnie.
 
-## Studium przypadku: Jak miniaturki żywności zwiększyły CTR o 35%?
+## Przykład hipotetyczny: jak miniaturki żywności mogą podnieść CTR
 
 Firma X sprzedająca zestawy śniadaniowe na Allegro zauważyła, że ich miniaturki z białym tłem nie wyróżniają się na tle konkurencyjnych ofert. Po przetestowaniu stylu **Flat Lay**, przedstawiającego produkty w otoczeniu drewnianych desek do krojenia i świeżych składników, CTR wzrósł o **35%** w ciągu pierwszego miesiąca. Klienci lepiej odbierali produkty pokazane w ich naturalnym kontekście użytkowania, co zwiększyło ich atrakcyjność.
 
@@ -54,7 +54,7 @@ Zaczynając sprzedaż w nowych kategoriach na Allegro, warto pamiętać o unikal
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-29',
-  modifiedAt: '2026-05-29',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'E-commerce',

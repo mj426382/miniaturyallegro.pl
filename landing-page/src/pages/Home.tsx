@@ -1,94 +1,159 @@
 import { Helmet } from 'react-helmet-async'
+import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import BeforeAfter from '../components/BeforeAfter'
+import DemoWidget from '../components/DemoWidget'
+import { blogIndex } from '../data/blogIndex'
+import { samplePairs } from '../data/samples'
+import { track } from '../services/analytics'
 
-const features = [
+const SITE_URL = 'https://allgrafika.pl'
+const APP_URL = 'https://app.allgrafika.pl'
+const OG_IMAGE = `${SITE_URL}/og-image.png`
+
+const PAGE_TITLE = 'Miniaturki Allegro z AI – lepsze zdjęcia ofert w kilka minut | AllGrafika.pl'
+const PAGE_DESCRIPTION =
+  'Oferta nie klika, bo konkurent ma ładniejsze zdjęcia? Prześlij zdjęcie z telefonu, a AI zrobi z niego profesjonalną miniaturkę Allegro. Produkt zostaje wierny oryginałowi. Wypróbuj bez konta, pierwsze 10 grafik za darmo.'
+
+const pains = [
   {
-    icon: '🎨',
-    title: '6 stylów automatycznie',
-    desc: 'Jednym kliknięciem wygenerujesz 6 wariantów: białe tło, gradient, lifestyle, minimalistyczny, dark luxury i styl Allegro.',
+    icon: '👀',
+    title: 'Kupujący przewija obok Twojej oferty',
+    desc: 'Na liście wyników widać dziesiątki niemal identycznych produktów. Jedyne, co różni Twoją ofertę od konkurencji, to miniaturka. Zdjęcie z kuchennego blatu przegrywa z packshotem.',
   },
   {
-    icon: '✏️',
-    title: 'Własny styl z promptem',
-    desc: 'Opisz dokładnie jak ma wyglądać grafika. Możesz dołączyć zdjęcie referencyjne stylu — AI odwzoruje klimat.',
+    icon: '💸',
+    title: 'Fotograf to 200–500 zł za produkt i tydzień czekania',
+    desc: 'Przy kilkudziesięciu SKU sesja jest poza budżetem, a nowe produkty i tak dochodzą co tydzień. Grafik freelancer liczy od 30 zł za jedno przerobione zdjęcie.',
   },
   {
-    icon: '🤖',
-    title: 'Dedykowane AI do grafik',
-    desc: 'Nasz autorski model AI analizuje produkt, generuje opis i tworzy grafiki. Produkt zostaje identyczny — zmienia się tylko tło i oświetlenie.',
-  },
-  {
-    icon: '📦',
-    title: 'Hurtem do 50 zdjęć',
-    desc: 'Prześlij do 50 zdjęć na raz — system wygeneruje grafiki dla każdego produktu automatycznie w kolejce.',
-  },
-  {
-    icon: '🔄',
-    title: 'Przeróbka i iteracja',
-    desc: 'Nie podoba Ci się wynik? Kliknij „Przeróbka”, dodaj własny opis i wygeneruj ulepszoną wersję — bez ponownego przesyłania.',
-  },
-  {
-    icon: '☁️',
-    title: 'Chmura Backblaze B2',
-    desc: 'Oryginalne i wygenerowane grafiki są bezpiecznie przechowywane. Dostępne z każdego urządzenia, bez limitu czasu.',
+    icon: '🧩',
+    title: 'Ogólne narzędzia AI zmieniają Twój produkt',
+    desc: 'Generatory obrazów „upiększają” logo, zmieniają kształt i kolory. Dla sprzedawcy to reklamacja i zwrot, nie oszczędność.',
   },
 ]
 
 const steps = [
-  { number: '1', title: 'Prześlij zdjęcie', desc: 'Załaduj zdjęcie produktu (JPG, PNG, WebP, maks. 10 MB). Możesz przesłać pojedynczo lub hurtem do 50 zdjęć.' },
-  { number: '2', title: 'AI generuje grafiki', desc: 'Dedykowane AI analizuje produkt i generuje 6 wariantów w różnych stylach. Produkt zostaje identyczny — zmienia się tło. Chcesz inaczej? Opisz własny styl.' },
-  { number: '3', title: 'Pobierz i publikuj', desc: 'Wybierz najlepszą grafikę i wstaw na list na Allegro. Nie pasuje? Skorzystaj z „Przeróbki”.' },
-]
-
-const testimonials = [
+  { number: '1', title: 'Prześlij zdjęcie', desc: 'Zwykła fotka z telefonu wystarczy (JPG, PNG, WebP, maks. 10 MB). Możesz też pobrać zdjęcia prosto ze swoich ofert Allegro.' },
+  { number: '2', title: 'Wybierz style', desc: 'Zaczynasz od zestawu startowego 3 grafik. Dodatkowe wskazówki wpisujesz po polsku, resztę stylów dogenerujesz, gdy zobaczysz pierwsze wyniki.' },
   {
-    name: 'Katarzyna M.',
-    role: 'Sprzedawca Allegro • Elektronika',
-    text: 'Po zmianie grafik produktowych moja sprzedaż wzrosła o 40%. Narzędzie jest niesamowite, oszczędza mnóstwo czasu i pieniędzy.',
-  },
-  {
-    name: 'Piotr K.',
-    role: 'Sprzedawca Allegro • Odzież',
-    text: 'Generuję grafiki dla 50 produktów dziennie. Bez AllGrafika nie wyobrażam sobie pracy.',
-  },
-  {
-    name: 'Anna W.',
-    role: 'Sprzedawca Allegro • Dom i ogród',
-    text: 'Profesjonalne zdjęcia produktowe kosztowały mnie 200 zł za sztukę. Teraz mam gotowe grafiki w sekundy za ułamek ceny!',
+    number: '3',
+    title: 'Pobierz albo opublikuj',
+    desc: 'Kadrujesz, obracasz i poprawiasz grafiki w formatach Allegro (1:1, galeria 4:3, baner Ads, plakietka promocyjna), dopisujesz opis oferty pod SEO i publikujesz jednym kliknięciem do oferty.',
   },
 ]
 
-const pricingPlans = [
+const features = [
   {
-    name: 'Pakiet Startowy',
-    credits: 5,
-    price: '10',
-    pricePerCredit: '2,00 zł / grafikę',
-    saving: null,
-    features: ['5 kredytów AI', '1 kredyt = 1 grafika (auto lub własna)', 'Sesja auto 6 stylów = 6 kredytów', 'Przechowywanie w chmurze', 'Bez abonamentu'],
-    cta: 'Kup 5 kredytów',
-    highlighted: false,
+    icon: '🔒',
+    title: 'Produkt zostaje wierny oryginałowi',
+    desc: 'AI zmienia tylko tło, scenę i oświetlenie. Kształt, kolory, logo i napisy są chronione twardymi regułami w każdej generacji. Nieudane generacje zwracamy automatycznie, a wadliwą grafikę zgłaszasz jednym kliknięciem – zwracamy kredyt.',
   },
   {
-    name: 'Pakiet Popularny',
-    credits: 15,
-    price: '28',
-    pricePerCredit: '1,87 zł / grafikę',
-    saving: 'Oszczędzasz 2 zł',
-    features: ['15 kredytów AI', '1 kredyt = 1 grafika (auto lub własna)', 'Sesja auto 6 stylów = 6 kredytów', 'Przechowywanie w chmurze', 'Bez abonamentu'],
-    cta: 'Kup 15 kredytów',
-    highlighted: true,
+    icon: '🛒',
+    title: 'Integracja z Allegro',
+    desc: 'Połącz konto sprzedawcy, pobierz zdjęcia z ofert, wygeneruj grafiki i ustaw je jako zdjęcie główne lub dodaj do galerii, bez pobierania i wgrywania plików ręcznie.',
   },
   {
-    name: 'Pakiet Pro',
-    credits: 40,
-    price: '70',
-    pricePerCredit: '1,75 zł / grafikę',
-    saving: 'Oszczędzasz 10 zł',
-    features: ['40 kredytów AI', '1 kredyt = 1 grafika (auto lub własna)', 'Sesja auto 6 stylów = 6 kredytów', 'Przechowywanie w chmurze', 'Bez abonamentu'],
-    cta: 'Kup 40 kredytów',
-    highlighted: false,
+    icon: '🎯',
+    title: 'Płacisz za to, co wybierzesz',
+    desc: 'Zestaw startowy to 3 style za 3 kredyty. Pozostałe z 6 stylów dogenerujesz jednym kliknięciem. Nieudane generacje zwracamy automatycznie.',
+  },
+  {
+    icon: '📐',
+    title: 'Formaty gotowe pod Allegro',
+    desc: 'Zdjęcie główne 1:1, galeria 4:3, baner 16:9 pod Allegro Ads, PNG w wysokiej jakości i plakietki typu „-20%” lub „NOWOŚĆ” na kolejne zdjęcia.',
+  },
+  {
+    icon: '✏️',
+    title: 'Własny styl i przeróbka',
+    desc: 'Opisz po polsku scenę, dołącz zdjęcie referencyjne albo poproś o zmianę w gotowej grafice: „jaśniejsze tło”, „bez cienia”, „produkt bardziej z lewej”.',
+  },
+  {
+    icon: '📦',
+    title: 'Hurtem do 50 zdjęć',
+    desc: 'Prześlij do 50 zdjęć naraz. System wygeneruje zestaw startowy dla każdego produktu w kolejce, a Ty wracasz po gotowe pliki.',
+  },
+]
+
+const styles = [
+  { name: 'Białe tło', desc: 'Packshot zgodny z wymaganiami zdjęcia głównego Allegro.', starter: true },
+  { name: 'Lifestyle – wnętrze', desc: 'Produkt w jasnym, nowoczesnym wnętrzu dopasowanym do kategorii.', starter: true },
+  { name: 'Ciemny luksus', desc: 'Dramatyczne światło i ciemne tło – dla produktów premium.', starter: true },
+  { name: 'Gradient', desc: 'Elegancki gradient w kolorystyce dopasowanej do produktu.', starter: false },
+  { name: 'Produkt w użyciu', desc: 'Realistyczna scena pokazująca zastosowanie produktu.', starter: false },
+  { name: 'Wiele ujęć', desc: 'Kolaż 3–4 ujęć z różnych stron w jednej grafice.', starter: false },
+]
+
+const packages = [
+  { name: 'Pakiet Startowy', credits: 5, price: '10', perCredit: '2,00 zł / grafikę', saving: null },
+  { name: 'Pakiet Popularny', credits: 15, price: '28', perCredit: '1,87 zł / grafikę', saving: 'Oszczędzasz 2 zł vs. pakiet 5', highlighted: true },
+  { name: 'Pakiet Pro', credits: 40, price: '70', perCredit: '1,75 zł / grafikę', saving: 'Oszczędzasz 10 zł vs. pakiet 5' },
+]
+
+const plans = [
+  { name: 'Start', price: '49', credits: 40, perCredit: '1,23 zł / grafikę', desc: 'Dla sklepów dodających kilka produktów tygodniowo.' },
+  { name: 'Pro', price: '149', credits: 150, perCredit: '0,99 zł / grafikę', desc: 'Dla sklepów z setkami SKU i hurtowym przesyłaniem.', highlighted: true },
+]
+
+const faq = [
+  {
+    q: 'Czy miniaturki wygenerowane przez AI są zgodne z wymaganiami Allegro?',
+    a: 'Styl „Białe tło” tworzy packshot na jednolitym białym tle, bez napisów, ramek i znaków wodnych, tak jak wymaga tego Allegro dla zdjęcia głównego. Pozostałe style i plakietki promocyjne stosuj na kolejnych zdjęciach galerii. Zawsze zweryfikuj gotową grafikę z aktualnym regulaminem Allegro przed publikacją.',
+  },
+  {
+    q: 'Czy AI zmieni wygląd mojego produktu?',
+    a: 'Nie. Każda generacja zawiera twarde reguły integralności produktu: zachowujemy kształt, proporcje, kolory, logo i napisy, a zmieniamy wyłącznie tło, scenę i oświetlenie. Modele generatywne nie są jednak idealne, dlatego przed publikacją porównaj grafikę z oryginałem i oceń ją kciukiem, a nieudane generacje ponów bezpłatnie.',
+  },
+  {
+    q: 'Ile to kosztuje?',
+    a: 'Pierwsze 10 grafik jest darmowych i nie wymaga karty. Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 1,75 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
+  },
+  {
+    q: 'Jak działa integracja z Allegro?',
+    a: 'W aplikacji łączysz konto sprzedawcy przez oficjalną autoryzację Allegro (nie podajesz nam hasła). Potem przeglądasz swoje oferty, pobierasz z nich zdjęcie główne, generujesz grafiki i publikujesz je do oferty jako zdjęcie główne lub do galerii. Dostęp możesz cofnąć w każdej chwili.',
+  },
+  {
+    q: 'Jak długo trwa generowanie?',
+    a: 'Zestaw startowy jest zwykle gotowy w ciągu 1–3 minut. Generowanie działa w tle, więc w tym czasie możesz przesyłać kolejne zdjęcia.',
+  },
+  {
+    q: 'Czy mogę używać grafik komercyjnie?',
+    a: 'Tak. Wygenerowane grafiki możesz wykorzystywać bez ograniczeń w ofertach na Allegro, w sklepie internetowym i w reklamach. Odpowiadasz za to, by przesłane zdjęcie było Twoje lub byś miał prawo z niego korzystać.',
+  },
+  {
+    q: 'Co dzieje się z moimi zdjęciami?',
+    a: 'Zdjęcia i grafiki są przechowywane w chmurze (Backblaze B2) i dostępne tylko dla Ciebie. Do wygenerowania grafiki zdjęcie jest przekazywane dostawcom modeli AI (Google, OpenAI), którzy zgodnie z warunkami API nie używają go do trenowania modeli. Konto wraz ze wszystkimi plikami możesz usunąć w każdej chwili.',
+  },
+]
+
+const latestPosts = [...blogIndex].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()).slice(0, 3)
+
+const structuredData = [
+  { '@context': 'https://schema.org', '@type': 'Organization', name: 'AllGrafika.pl', url: SITE_URL, logo: `${SITE_URL}/logo.png`, email: 'kontakt@allgrafika.pl' },
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: 'AllGrafika.pl', url: SITE_URL, inLanguage: 'pl-PL' },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'AllGrafika – generator miniaturek Allegro AI',
+    applicationCategory: 'DesignApplication',
+    operatingSystem: 'Web',
+    url: APP_URL,
+    description: PAGE_DESCRIPTION,
+    offers: [
+      { '@type': 'Offer', price: '0', priceCurrency: 'PLN', description: 'Pierwsze 10 grafik za darmo' },
+      { '@type': 'Offer', price: '10', priceCurrency: 'PLN', description: 'Pakiet 5 kredytów' },
+      { '@type': 'Offer', price: '28', priceCurrency: 'PLN', description: 'Pakiet 15 kredytów' },
+      { '@type': 'Offer', price: '70', priceCurrency: 'PLN', description: 'Pakiet 40 kredytów' },
+      { '@type': 'Offer', price: '49', priceCurrency: 'PLN', description: 'Abonament Start – 40 grafik miesięcznie' },
+      { '@type': 'Offer', price: '149', priceCurrency: 'PLN', description: 'Abonament Pro – 150 grafik miesięcznie' },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.q, acceptedAnswer: { '@type': 'Answer', text: item.a } })),
   },
 ]
 
@@ -96,115 +161,122 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>AllGrafika – Generator grafik produktowych AI dla Allegro | AllGrafika.pl</title>
-        <meta name="description" content="Generuj profesjonalne grafiki produktowe Allegro dzięki dedykowanemu AI do tworzenia grafik. 6 stylów automatycznie + własny prompt z referencją. Pierwsze 10 grafik za darmo!" />
-        <meta name="keywords" content="grafiki allegro, zdjęcia produktowe allegro, generator grafik allegro, AI grafiki allegro, allgrafika" />
-        <meta property="og:title" content="AllGrafika – Generator grafik produktowych AI dla Allegro" />
-        <meta property="og:description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund dzięki AI. 6 różnych stylów dla każdego produktu." />
+        <title>{PAGE_TITLE}</title>
+        <meta name="description" content={PAGE_DESCRIPTION} />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <link rel="canonical" href={`${SITE_URL}/`} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://allgrafika.pl" />
+        <meta property="og:title" content={PAGE_TITLE} />
+        <meta property="og:description" content={PAGE_DESCRIPTION} />
+        <meta property="og:url" content={`${SITE_URL}/`} />
         <meta property="og:site_name" content="AllGrafika.pl" />
         <meta property="og:locale" content="pl_PL" />
-        <meta property="og:image" content="https://allgrafika.pl/logo.webp" />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="AllGrafika – generator miniaturek Allegro AI" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AllGrafika – Generator grafik produktowych AI dla Allegro" />
-        <meta name="twitter:description" content="Generuj profesjonalne grafiki produktowe Allegro w kilka sekund dzięki AI." />
-        <meta name="twitter:image" content="https://allgrafika.pl/logo.webp" />
-        <link rel="canonical" href="https://allgrafika.pl" />
+        <meta name="twitter:title" content={PAGE_TITLE} />
+        <meta name="twitter:description" content={PAGE_DESCRIPTION} />
+        <meta name="twitter:image" content={OG_IMAGE} />
+        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
 
       <div className="min-h-screen bg-white">
         <Navbar />
 
-        {/* Hero */}
+        {/* Hero – lead with the seller's pain, not with styles */}
         <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
-          <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 opacity-10" aria-hidden="true">
             <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
             <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-300 rounded-full blur-3xl"></div>
           </div>
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center">
-            <span className="inline-block bg-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-              🚀 Powered by dedykowane AI do tworzenia grafik
-            </span>
+            <span className="inline-block bg-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-6">Dla sprzedawców Allegro, którzy nie mają czasu i budżetu na sesje zdjęciowe</span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
-              Profesjonalne<br />
-              <span className="text-yellow-300">grafiki produktowe</span><br />
-              generowane przez AI
+              Twoja oferta nie klika?
+              <br />
+              <span className="text-yellow-300">Zacznij od miniaturki.</span>
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-              Prześlij zdjęcie produktu i wygeneruj <strong className="text-white">6 wariantów grafik</strong> w różnych stylach — lub opisz dokładnie jak ma wyglądać i dodaj zdjęcie referencyjne.
+              Prześlij zwykłe zdjęcie z telefonu, a AI zrobi z niego profesjonalną miniaturkę Allegro w kilka minut. Zmieniamy tylko tło i światło, a kształt, kolory i logo produktu są chronione
+              regułami integralności. Bez fotografa, bez grafika, bez czekania.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="https://app.allgrafika.pl/register"
-                className="bg-yellow-400 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
-              >
-                Wypróbuj za darmo →
+              <a href="#demo" onClick={() => track('hero_demo_click')} className="bg-yellow-400 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors">
+                Sprawdź na swoim produkcie →
               </a>
               <a
-                href="#features"
+                href={`${APP_URL}/register`}
+                onClick={() => track('hero_register_click')}
                 className="bg-white/10 text-white font-medium px-8 py-4 rounded-xl text-lg hover:bg-white/20 transition-colors border border-white/20"
               >
-                Zobacz jak działa
+                Załóż konto – 10 grafik gratis
               </a>
             </div>
-            <p className="mt-6 text-blue-200 text-sm">
-              Bez karty kredytowej • Pierwsze 10 grafik za darmo • Czas generacji: kilka minut
-            </p>
+            <p className="mt-6 text-blue-200 text-sm">Bez karty • Bez konta do pierwszej próby • Gotowe w kilka minut</p>
           </div>
         </section>
 
-        {/* Social proof */}
-        <section className="bg-gray-50 border-b border-gray-100 py-6">
+        {/* Pain points */}
+        <section className="py-20 bg-gray-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-500">
-              <span>🤖 Dedykowane AI do tworzenia grafik</span>
-              <span>•</span>
-              <span>🎨 6 stylów auto + własny prompt</span>
-              <span>•</span>
-              <span>📦 Bulk upload do 50 zdjęć</span>
-              <span>•</span>
-              <span>💳 Bez abonamentu — płacisz tylko za użycie</span>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
+              Dlaczego dobre produkty <span className="text-blue-600">przegrywają na liście wyników</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {pains.map((p) => (
+                <div key={p.title} className="bg-white rounded-2xl p-6 border border-gray-100">
+                  <div className="text-4xl mb-4" aria-hidden="true">
+                    {p.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{p.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{p.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
+        <BeforeAfter pairs={samplePairs} />
+
+        <DemoWidget />
+
         {/* How it works */}
-        <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Jak działa <span className="text-blue-600">AllGrafika AI</span>?
-            </h2>
-            <p className="text-gray-500 mt-4 text-lg">
-              Trzy proste kroki do profesjonalnych grafik produktowych
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((step) => (
-              <div key={step.number} className="text-center">
-                <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-6">
-                  {step.number}
+        <section id="how-it-works" className="py-20 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+                Jak powstają <span className="text-blue-600">miniaturki na Allegro</span> w AllGrafika?
+              </h2>
+              <p className="text-gray-500 mt-4 text-lg">Trzy kroki od zdjęcia z telefonu do grafiki w ofercie</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {steps.map((step) => (
+                <div key={step.number} className="text-center">
+                  <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-6">{step.number}</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{step.title}</h3>
+                  <p className="text-gray-500">{step.desc}</p>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{step.title}</h3>
-                <p className="text-gray-500">{step.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Features */}
-        <section id="features" className="py-20 bg-gray-50">
+        <section id="features" className="py-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                Wszystko czego potrzebujesz do<br />
-                <span className="text-blue-600">grafik produktowych na Allegro</span>
+                Zrobione pod <span className="text-blue-600">sprzedaż na Allegro</span>, nie pod „ładne obrazki”
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((f) => (
                 <div key={f.title} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="text-4xl mb-4">{f.icon}</div>
+                  <div className="text-4xl mb-4" aria-hidden="true">
+                    {f.icon}
+                  </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{f.title}</h3>
                   <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
                 </div>
@@ -213,117 +285,139 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Co mówią nasi sprzedawcy?
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
-              <div key={t.name} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                <div className="flex mb-3">
-                  {[1,2,3,4,5].map((s) => (
-                    <span key={s} className="text-yellow-400">★</span>
-                  ))}
+        {/* Styles */}
+        <section id="styles" className="py-20 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+                6 stylów grafik – <span className="text-blue-600">Ty decydujesz, które generujesz</span>
+              </h2>
+              <p className="text-gray-500 mt-4 text-lg">Zestaw startowy (oznaczony) to 3 kredyty. Pozostałe style dogenerujesz, kiedy zobaczysz pierwsze wyniki.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {styles.map((s) => (
+                <div key={s.name} className="bg-white rounded-2xl p-5 border border-gray-100">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-gray-900">{s.name}</h3>
+                    {s.starter && <span className="text-[10px] uppercase tracking-wide bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">zestaw startowy</span>}
+                  </div>
+                  <p className="text-sm text-gray-500">{s.desc}</p>
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed mb-4">"{t.text}"</p>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
-                  <p className="text-gray-400 text-xs">{t.role}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Pricing */}
-        <section id="pricing" className="py-20 bg-gray-50">
+        <section id="pricing" className="py-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Prosty i przejrzysty <span className="text-blue-600">cennik</span>
               </h2>
               <p className="text-gray-500 mt-4">
-                Płać tylko za generacje — bez abonamentu.{' '}
-                <span className="font-medium text-blue-600">Pierwsze 10 grafik za darmo po rejestracji!</span>
+                1 kredyt = 1 grafika, opis oferty pod SEO gratis do każdej. <span className="font-medium text-blue-600">Pierwsze 10 grafik za darmo po rejestracji.</span>
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {pricingPlans.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`rounded-2xl p-8 ${
-                    plan.highlighted
-                      ? 'bg-blue-600 text-white ring-4 ring-blue-300'
-                      : 'bg-white border border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className={`text-xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.name}
-                    </h3>
-                    {plan.saving && (
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                        plan.highlighted ? 'bg-yellow-300 text-gray-900' : 'bg-green-100 text-green-700'
-                      }`}>
-                        {plan.saving}
-                      </span>
-                    )}
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-1">Abonament miesięczny</h3>
+            <p className="text-sm text-gray-500 mb-5">Najtaniej za grafikę. Kredyty co miesiąc, anulujesz w każdej chwili w panelu Stripe.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+              {plans.map((plan) => (
+                <div key={plan.name} className={`rounded-2xl p-8 ${plan.highlighted ? 'bg-blue-600 text-white ring-4 ring-blue-300' : 'bg-white border border-gray-200'}`}>
+                  <h4 className={`text-xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>Plan {plan.name}</h4>
+                  <div className="mt-2 mb-1">
+                    <span className={`text-4xl font-extrabold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>{plan.price} zł</span>
+                    <span className={`text-sm ml-2 ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}>/ miesiąc · {plan.credits} grafik</span>
                   </div>
-                  <div className="mb-1">
-                    <span className={`text-4xl font-extrabold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.price} zł
-                    </span>
-                    <span className={`text-sm ml-2 font-medium ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
-                      za {plan.credits} kredytów
-                    </span>
-                  </div>
-                  <p className={`text-xs mb-6 ${plan.highlighted ? 'text-blue-200' : 'text-gray-400'}`}>
-                    {plan.pricePerCredit}
-                  </p>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((f) => (
-                      <li key={f} className={`flex items-center gap-2 text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>
-                        <span className={plan.highlighted ? 'text-yellow-300' : 'text-green-500'}>✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
+                  <p className={`text-xs mb-4 ${plan.highlighted ? 'text-blue-200' : 'text-gray-400'}`}>{plan.perCredit} · ceny brutto</p>
+                  <p className={`text-sm mb-6 ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>{plan.desc}</p>
                   <a
-                    href="https://app.allgrafika.pl/credits"
-                    className={`block text-center py-3 px-6 rounded-xl font-semibold transition-colors ${
-                      plan.highlighted
-                        ? 'bg-white text-blue-600 hover:bg-blue-50'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                    href={`${APP_URL}/credits`}
+                    className={`block text-center py-3 px-6 rounded-xl font-semibold transition-colors ${plan.highlighted ? 'bg-white text-blue-600 hover:bg-blue-50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                   >
-                    {plan.cta}
+                    Wybierz plan {plan.name}
                   </a>
                 </div>
               ))}
             </div>
-            <p className="text-center text-sm text-gray-400 mt-6">
-              Kredyty nie wygasają · Jednorazowa płatność · Bezpieczne przelewy przez Stripe
-            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-1">Pakiety jednorazowe</h3>
+            <p className="text-sm text-gray-500 mb-5">Bez zobowiązań. Kredyty nie wygasają.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {packages.map((pkg) => (
+                <div key={pkg.name} className="rounded-2xl p-6 bg-white border border-gray-200">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-lg font-bold text-gray-900">{pkg.name}</h4>
+                    {pkg.saving && <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">{pkg.saving}</span>}
+                  </div>
+                  <span className="text-3xl font-extrabold text-gray-900">{pkg.price} zł</span>
+                  <span className="text-sm ml-2 text-gray-500">za {pkg.credits} kredytów</span>
+                  <p className="text-xs text-gray-400 mt-1 mb-5">{pkg.perCredit} · ceny brutto</p>
+                  <a href={`${APP_URL}/credits`} className="block text-center py-2.5 px-6 rounded-xl font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors">
+                    Kup {pkg.credits} kredytów
+                  </a>
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-sm text-gray-400 mt-6">Bezpieczne płatności przez Stripe (karta; BLIK dla pakietów jednorazowych) · Nieudane generacje zwracamy automatycznie</p>
           </div>
         </section>
+
+        {/* FAQ */}
+        <section id="faq" className="py-20 bg-gray-50">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6">
+            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Najczęstsze pytania</h2>
+            <div className="space-y-4">
+              {faq.map((item) => (
+                <details key={item.q} className="bg-white rounded-2xl border border-gray-100 p-6 group">
+                  <summary className="font-semibold text-gray-900 cursor-pointer list-none flex justify-between items-center gap-4">
+                    {item.q}
+                    <span className="text-blue-600 group-open:rotate-45 transition-transform text-xl" aria-hidden="true">
+                      +
+                    </span>
+                  </summary>
+                  <p className="text-gray-600 mt-4 leading-relaxed">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Latest from the blog */}
+        {latestPosts.length > 0 && (
+          <section className="py-20">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6">
+              <div className="flex items-end justify-between mb-8">
+                <h2 className="text-3xl font-bold text-gray-900">Z bloga: poradniki dla sprzedawców</h2>
+                <Link to="/blog" className="text-blue-600 font-medium hover:underline hidden sm:inline">
+                  Wszystkie artykuły →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {latestPosts.map((p) => (
+                  <Link key={p.id} to={`/blog/${p.slug}`} className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                    <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded-full">{p.category}</span>
+                    <h3 className="font-semibold text-gray-900 mt-3 mb-2 leading-snug">{p.title}</h3>
+                    <p className="text-gray-500 text-sm line-clamp-3">{p.excerpt}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* CTA */}
         <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Zacznij tworzyć grafiki produktowe AI już dziś
-            </h2>
-            <p className="text-blue-100 text-lg mb-8">
-              Prześlij pierwsze zdjęcie, a AI wygeneruje 6 wariantów grafik. Pierwsze 10 grafik jest całkowicie bezpłatnych — bez podawania karty.
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Zrób pierwsze miniaturki Allegro już dziś</h2>
+            <p className="text-blue-100 text-lg mb-8">Sprawdź na jednym produkcie bez konta albo załóż darmowe konto i wygeneruj 10 grafik bez podawania karty.</p>
             <a
-              href="https://app.allgrafika.pl/register"
+              href={`${APP_URL}/register`}
+              onClick={() => track('cta_register_click')}
               className="inline-block bg-yellow-400 text-gray-900 font-bold px-10 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
             >
-              Rejestracja za darmo — 10 pierwszych grafik gratis →
+              Rejestracja za darmo – 10 grafik gratis →
             </a>
           </div>
         </section>

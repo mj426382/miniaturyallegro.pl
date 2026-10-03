@@ -64,4 +64,3 @@ Nie zmieniaj miniaturki tylko dlatego, że CTR jest niski. Zmień ją, gdy masz 
 }
 
 export default post
-

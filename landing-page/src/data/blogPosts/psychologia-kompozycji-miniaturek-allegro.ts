@@ -30,11 +30,11 @@ Na Allegro, gdzie setki ofert konkurują o uwagę użytkownika, Twoja miniaturka
 ### 4. **Linie prowadzące wzrok**
 - Zastosowanie perspektywy lub układanie przedmiotów w sposób kierujący wzrok na główny produkt to kolejny efektowny zabieg. Styl **Flat Lay** doskonale wspiera takie kompozycje.
 
-## Studium przypadku: Jak zmiana kompozycji zwiększyła sprzedaż o 40%
+## Przykład hipotetyczny: jak zmiana kompozycji może zwiększyć sprzedaż
 
 Jednym z klientów [AllGrafika.pl](https://app.allgrafika.pl/register) był sprzedawca akcesoriów sportowych, który zauważył, że jego dotychczasowe miniaturki nie przyciągają uwagi klientów. Jego głównym konkurentem był inny sprzedawca z bardzo atrakcyjnymi zdjęciami w stylu **Lifestyle**.
 
-Sprzedawca postanowił zaktualizować miniaturki swoich produktów, wykorzystując zasady psychologii kompozycji. Dzięki narzędziom [AllGrafika.pl](https://app.allgrafika.pl/register) stworzył wizualizacje prezentujące produkty w ich naturalnym otoczeniu. Po wdrożeniu nowych miniaturek, odnotował **wzrost CTR o 40% w ciągu pierwszych dwóch tygodni**, co przełożyło się na znaczny wzrost zamówień i przychodów.
+Wyobraźmy sobie sprzedawcę, który postanawia zaktualizować miniaturki swoich produktów, wykorzystując zasady psychologii kompozycji. Dzięki narzędziom [AllGrafika.pl](https://app.allgrafika.pl/register) stworzył wizualizacje prezentujące produkty w ich naturalnym otoczeniu. Po wdrożeniu nowych miniaturek może odnotować **wyraźny wzrost CTR już w pierwszych tygodniach**, co przekłada się na więcej zamówień – skalę zmierzysz we własnych statystykach.
 
 ## Jak wykorzystać psychologię kompozycji do ulepszenia swoich miniaturek
 
@@ -61,7 +61,7 @@ Chcesz stworzyć miniaturki, które sprzedają? Wypróbuj [AllGrafika.pl](https:
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-07-04',
-  modifiedAt: '2026-07-04',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

@@ -1,17 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as AWS from 'aws-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl as presign } from '@aws-sdk/s3-request-presigner';
+import { randomUUID } from 'crypto';
 import * as path from 'path';
 import * as fs from 'fs';
 
+/**
+ * File storage: Backblaze B2 through the S3-compatible API (AWS SDK v3) in production,
+ * local disk when B2 is not configured (dev/tests). Keys are stored in the database;
+ * presigned GET URLs are produced on demand and cached per key.
+ */
 @Injectable()
 export class StorageService {
-  private s3: AWS.S3 | null = null;
+  private s3: S3Client | null = null;
   private bucketName: string;
   private publicUrl: string;
   private useLocal: boolean;
   private localUploadDir: string;
+  /** Absolute origin of this API for locally stored files (API_PUBLIC_URL), empty = relative URLs. */
+  private readonly publicBase: string;
   private readonly logger = new Logger(StorageService.name);
 
   /** Cache: key -> { url, expiresAt } */
@@ -21,7 +29,8 @@ export class StorageService {
   constructor(private configService: ConfigService) {
     this.bucketName = configService.get<string>('B2_BUCKET_NAME') || '';
     this.publicUrl = configService.get<string>('B2_PUBLIC_URL') || '';
-    this.localUploadDir = '/app/uploads';
+    this.localUploadDir = configService.get<string>('LOCAL_UPLOAD_DIR') || '/app/uploads';
+    this.publicBase = (configService.get<string>('API_PUBLIC_URL') || '').replace(/\/$/, '');
 
     const hasB2Config =
       !!this.bucketName &&
@@ -31,13 +40,14 @@ export class StorageService {
 
     if (hasB2Config) {
       this.useLocal = false;
-      this.s3 = new AWS.S3({
+      this.s3 = new S3Client({
         endpoint: configService.get<string>('B2_ENDPOINT'),
-        accessKeyId: configService.get<string>('B2_KEY_ID'),
-        secretAccessKey: configService.get<string>('B2_APPLICATION_KEY'),
         region: configService.get<string>('B2_REGION') || 'us-west-004',
-        signatureVersion: 'v4',
-        s3ForcePathStyle: true,
+        credentials: {
+          accessKeyId: configService.get<string>('B2_KEY_ID')!,
+          secretAccessKey: configService.get<string>('B2_APPLICATION_KEY')!,
+        },
+        forcePathStyle: true,
       });
       this.logger.log('Storage: using Backblaze B2');
     } else {
@@ -56,7 +66,7 @@ export class StorageService {
     folder = 'uploads',
   ): Promise<{ url: string; filename: string }> {
     const ext = path.extname(originalName);
-    const filename = `${folder}/${uuidv4()}${ext}`;
+    const filename = `${folder}/${randomUUID()}${ext}`;
 
     if (this.useLocal) {
       const dir = path.join(this.localUploadDir, folder);
@@ -66,26 +76,23 @@ export class StorageService {
       return { url: `/api/uploads/${filename}`, filename };
     }
 
-    await this.s3!
-      .putObject({
-        Bucket: this.bucketName,
-        Key: filename,
-        Body: buffer,
-        ContentType: mimeType,
-      })
-      .promise();
-
+    await this.s3!.send(
+      new PutObjectCommand({ Bucket: this.bucketName, Key: filename, Body: buffer, ContentType: mimeType }),
+    );
     // Store just the key — presigned URLs are generated on demand
     return { url: filename, filename };
   }
 
   /**
-   * Generate a presigned GET URL cached for URL_TTL_SECONDS.
-   * Stable URL across requests = browser can cache the image itself.
+   * Presigned GET URL cached for URL_TTL_SECONDS: a stable URL across requests lets the
+   * browser cache the image itself. Local files resolve to the API's static route.
    */
-  getSignedUrl(key: string): string {
-    if (this.useLocal || key.startsWith('/') || key.startsWith('http')) {
-      return key;
+  async getSignedUrl(key: string): Promise<string> {
+    if (key.startsWith('http')) return key;
+    if (this.useLocal || key.startsWith('/')) {
+      // Local-disk files are served by this API; when the SPA runs on another origin
+      // (e.g. Vite on :5173 vs API on :3001) the URL must be absolute.
+      return key.startsWith('/') && this.publicBase ? `${this.publicBase}${key}` : key;
     }
 
     const now = Date.now();
@@ -94,12 +101,9 @@ export class StorageService {
       return cached.url;
     }
 
-    const url = this.s3!.getSignedUrl('getObject', {
-      Bucket: this.bucketName,
-      Key: key,
-      Expires: this.URL_TTL_SECONDS,
+    const url = await presign(this.s3!, new GetObjectCommand({ Bucket: this.bucketName, Key: key }), {
+      expiresIn: this.URL_TTL_SECONDS,
     });
-
     this.urlCache.set(key, { url, expiresAt: now + this.URL_TTL_SECONDS * 1000 });
     return url;
   }
@@ -107,20 +111,19 @@ export class StorageService {
   /** Fetch file content as a Buffer directly from B2 (or local disk). */
   async getFileBuffer(key: string): Promise<{ buffer: Buffer; contentType: string }> {
     if (this.useLocal || key.startsWith('/')) {
-      const filePath = key.startsWith('/') ? key.replace(/^\/api\/uploads\//, this.localUploadDir + '/') : path.join(this.localUploadDir, key);
+      const filePath = key.startsWith('/')
+        ? key.replace(/^\/api\/uploads\//, this.localUploadDir + '/')
+        : path.join(this.localUploadDir, key);
       const buffer = fs.readFileSync(filePath);
       const ext = path.extname(filePath).toLowerCase();
       const ct = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
       return { buffer, contentType: ct };
     }
 
-    const result = await this.s3!.getObject({
-      Bucket: this.bucketName,
-      Key: key,
-    }).promise();
-
+    const result = await this.s3!.send(new GetObjectCommand({ Bucket: this.bucketName, Key: key }));
+    const bytes = await result.Body!.transformToByteArray();
     return {
-      buffer: result.Body as Buffer,
+      buffer: Buffer.from(bytes),
       contentType: result.ContentType || 'application/octet-stream',
     };
   }
@@ -132,19 +135,15 @@ export class StorageService {
 
   async deleteFile(filename: string): Promise<void> {
     this.invalidateCachedUrl(filename);
-
-    if (this.useLocal) {
-      const filePath = path.join(this.localUploadDir, filename);
+    if (this.useLocal || filename.startsWith('/')) {
+      const filePath = filename.startsWith('/')
+        ? filename.replace(/^\/api\/uploads\//, this.localUploadDir + '/')
+        : path.join(this.localUploadDir, filename);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
       return;
     }
 
-    await this.s3!
-      .deleteObject({
-        Bucket: this.bucketName,
-        Key: filename,
-      })
-      .promise();
+    await this.s3!.send(new DeleteObjectCommand({ Bucket: this.bucketName, Key: filename }));
   }
 
   getLocalUploadDir(): string {

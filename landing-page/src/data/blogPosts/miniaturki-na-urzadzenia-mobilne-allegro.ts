@@ -26,7 +26,7 @@ Gdy mówimy o miniaturkach dla użytkowników smartfonów, musimy uwzględnić s
 - Dostosuj rozdzielczość zdjęć do wymagań Allegro, np. minimalna szerokość to 500 px, ale najlepiej celować w proporcje 1:1 (kwadrat).
 - Upewnij się, że kluczowe elementy produktu znajdują się w centralnej części grafiki, ponieważ na urządzeniach mobilnych krawędzie mogą być mniej widoczne.
 
-## Przykład: Jak optymalizacja miniaturki zwiększyła CTR o 40%
+## Przykład hipotetyczny: jak optymalizacja miniaturki pod telefon podnosi CTR
 
 Przyjrzyjmy się prawdziwemu przypadkowi z [AllGrafika.pl](https://app.allgrafika.pl/register). Jeden z klientów, sprzedający elektronikę, zauważył spadek sprzedaży w mobilnych wynikach wyszukiwania. Po przeanalizowaniu jego miniaturek zastosowano następujące zmiany:
 
@@ -62,7 +62,7 @@ Teraz, gdy wiesz, jak ważne jest dopasowanie miniaturek do urządzeń mobilnych
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-21',
-  modifiedAt: '2026-05-21',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'E-commerce',

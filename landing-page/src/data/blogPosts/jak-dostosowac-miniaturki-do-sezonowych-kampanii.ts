@@ -6,7 +6,7 @@ const post: BlogPostData = {
   title: 'Jak dostosować miniaturki do sezonowych kampanii na Allegro',
   excerpt: 'Dowiedz się, jak tworzyć miniaturki dopasowane do świątecznych i sezonowych kampanii na Allegro, aby zwiększyć sprzedaż i przyciągnąć uwagę klientów.',
   content: `
-## Czy wiesz, że sezonowe kampanie mogą zwiększyć sprzedaż nawet o 30%?
+## Dlaczego sezonowe kampanie potrafią wyraźnie podnieść sprzedaż?
 
 Badania pokazują, że odpowiednio dopasowana komunikacja wizualna w trakcie sezonowych wydarzeń, takich jak Boże Narodzenie, Wielkanoc czy Black Friday, może podnieść sprzedaż o nawet 30%. Jednym z najważniejszych elementów tej układanki są **miniaturki aukcji**, które przyciągają uwagę klientów i zachęcają ich do kliknięcia. Zastanówmy się, jak skutecznie dostosować miniaturki do sezonowych kampanii na Allegro.
 
@@ -62,7 +62,7 @@ Sezonowe kampanie to doskonała okazja, by zwiększyć sprzedaż na Allegro, ale
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-23',
-  modifiedAt: '2026-05-23',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'E-commerce',

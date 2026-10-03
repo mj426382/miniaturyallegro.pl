@@ -35,7 +35,7 @@ Zastanówmy się nad prostym przykładem: Zegarek, który można umieścić na b
 - Na **białym tle** zegarek wygląda czysto i profesjonalnie, co czyni go atrakcyjnym dla większej grupy klientów. Cena może wydawać się przystępniejsza.
 - Na **ciemnym tle**, w stylu „dark luxury”, ten sam zegarek wygląda ekskluzywnie i drożej. Tego rodzaju fotografia jest skierowana raczej do klientów premium.
 
-Zmiana samego tła w testach A/B zwiększyła CTR o 20% dla wersji z ciemnym tłem w kategorii „Zegarki”. Okazuje się, że odpowiedni wybór tła może diametralnie wpłynąć na postrzeganą wartość.
+W testach A/B sama zmiana tła na ciemne potrafi wyraźnie podnieść CTR, zwłaszcza w kategoriach takich jak „Zegarki” – sprawdź to na własnych ofertach. Okazuje się, że odpowiedni wybór tła może diametralnie wpłynąć na postrzeganą wartość.
 
 ## Jak wybrać odpowiednie tło? Oto kluczowe wskazówki:
 
@@ -58,7 +58,7 @@ Tło Twojej miniaturki to nie tylko kwestia estetyki — to kluczowy element wp�
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-27',
-  modifiedAt: '2026-05-27',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

@@ -26,7 +26,7 @@ Nie wszystkie miniaturki żywności są sobie równe. Dobra miniaturka powinna s
 - Czyste, białe tło (White Background) jest idealne do prezentacji produktów spożywczych, szczególnie gdy chcesz sprostać wymaganiom Allegro.
 - Dobrze sprawdzają się również tła typu Lifestyle, które pokazują produkt w kontekście jego użycia, np. filiżanka kawy na stole czy ser w otoczeniu owoców i wina.
 
-## Przykład sukcesu: Jak dobrze zaprojektowana miniaturka zwiększyła sprzedaż czekolady o 40%
+## Przykład hipotetyczny: jak dobrze zaprojektowana miniaturka może zwiększyć sprzedaż czekolady
 
 Jeden z producentów czekolady wykorzystał [AllGrafika.pl](https://app.allgrafika.pl/register) do stworzenia nowoczesnych miniaturek dla swojej oferty. Poprzednio używał prostych zdjęć swoich produktów na białym tle, które były zgodne z regulaminem Allegro, ale nie wyróżniały się na tle konkurencji.
 
@@ -61,7 +61,7 @@ Dzięki niemu zaoszczędzisz czas i pieniądze, które wcześniej pochłaniały 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-07-06',
-  modifiedAt: '2026-07-06',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'E-commerce',

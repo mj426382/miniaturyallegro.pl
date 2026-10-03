@@ -12,7 +12,7 @@ const post: BlogPostData = {
 
 ## Studium przypadku: Biżuteria na ciemnym tle
 
-W jednym z projektów z zastosowaniem [AllGrafika.pl](https://app.allgrafika.pl/register), sprzedawca biżuterii zdecydował się na styl **Dark luxury**, który wykorzystuje ciemne tło i dramatyczne oświetlenie. Efekt? Poprawa CTR o 42% i wzrost średniej wartości koszyka o 25%. Kupujący postrzegali biżuterię jako bardziej luksusową niż na zdjęciach z białym tłem.
+Wyobraźmy sobie sprzedawcę biżuterii, który w [AllGrafika.pl](https://app.allgrafika.pl/register) decyduje się na styl **Dark luxury**, który wykorzystuje ciemne tło i dramatyczne oświetlenie. Efekt w takim scenariuszu? Wyższy CTR i wyższa średnia wartość koszyka. Kupujący postrzegali biżuterię jako bardziej luksusową niż na zdjęciach z białym tłem.
 
 Podobne rezultaty można osiągnąć w innych segmentach, takich jak perfumy czy zegarki, gdzie postrzegana wartość ma kluczowe znaczenie.
 
@@ -53,7 +53,7 @@ Zainspiruj się sukcesami innych sprzedawców, takich jak w opisanym wyżej przy
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-06',
-  modifiedAt: '2026-06-06',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

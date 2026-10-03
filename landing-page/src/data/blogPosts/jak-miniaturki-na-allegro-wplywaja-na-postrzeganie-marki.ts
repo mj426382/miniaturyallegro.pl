@@ -30,9 +30,9 @@ Produkt centralnie umieszczony, z odpowiednią ilością pustej przestrzeni, lep
 ### 5. **Kolory i branding**
 Wykorzystanie odpowiednich kolorów w miniaturkach może komunikować różne wartości Twojej marki. Czerwień przyciąga uwagę, złoto kojarzy się z luksusem, a pastelowe odcienie mogą sugerować delikatność i subtelność.
 
-## Studium przypadku: zmiana tła zwiększyła sprzedaż o 30%
+## Przykład hipotetyczny: zmiana tła a wzrost sprzedaży
 
-Sklep sprzedający kosmetyki zdecydował się na przejście z tła minimalistycznego na styl **lifestyle**, prezentując produkty w ich naturalnym otoczeniu — na przykład krem na białym ręczniku obok świeczek i kwiatów lawendy. Wynik? Wzrost CTR o 30%! Klienci lepiej utożsamiali się z produktami, widząc, jak mogą ich używać w codziennym życiu. 
+Sklep sprzedający kosmetyki zdecydował się na przejście z tła minimalistycznego na styl **lifestyle**, prezentując produkty w ich naturalnym otoczeniu — na przykład krem na białym ręczniku obok świeczek i kwiatów lawendy. Wynik w tym hipotetycznym scenariuszu? Wyraźnie wyższy CTR. Klienci lepiej utożsamiali się z produktami, widząc, jak mogą ich używać w codziennym życiu. 
 
 ### Wnioski dla Ciebie:
 - Przetestuj różne style miniaturek, np. **białe tło** w porównaniu z **lifestyle**.
@@ -58,7 +58,7 @@ Użyj narzędzi takich jak [AllGrafika.pl](https://app.allgrafika.pl/register), 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-12',
-  modifiedAt: '2026-06-12',
+  modifiedAt: '2026-10-02',
   author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',

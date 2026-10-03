@@ -4,29 +4,49 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5174",
+    "dev": "node scripts/generate-samples.js && node scripts/generate-blog-index.js && vite --port 5174",
     "generate-sitemap": "node scripts/generate-sitemap.js",
-    "build": "node scripts/generate-sitemap.js && tsc && vite build && node scripts/prerender.js",
+    "build": "node scripts/check-redirects.js && node scripts/generate-samples.js && node scripts/generate-blog-index.js && node scripts/generate-sitemap.js && tsc && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:client": "tsc && vite build",
+    "og-image": "node scripts/generate-og-image.js",
+    "typecheck": "tsc --noEmit",
+    "samples": "node scripts/generate-samples.js",
+    "check:redirects": "node scripts/check-redirects.js",
+    "test:e2e": "playwright test",
+    "blog-index": "node scripts/generate-blog-index.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
-    "axios": "^1.6.0",
+    "axios": "^1.20.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.18.0",
-    "react-helmet-async": "^2.0.4"
+    "react-helmet-async": "^2.0.4",
+    "react-router-dom": "^6.18.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^20.19.43",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
     "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.16",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.26",
     "postcss": "^8.4.31",
+    "prettier": "^3.9.9",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
