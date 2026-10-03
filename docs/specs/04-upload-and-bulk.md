@@ -43,3 +43,4 @@
 - **AC-UPL-015** – Given galeria, When użytkownik usunie zdjęcie i potwierdzi, Then `DELETE` jest wywołane, a karta znika.
 - **AC-UPL-016** – Given dashboard, When załadowany, Then widać liczniki zdjęć i grafik oraz ostatnie zdjęcia.
 - **AC-UPL-017** – Given generator, When użytkownik usunie zdjęcie i potwierdzi (anulowanie nic nie robi), Then trafia do galerii, a usuwanie jest zablokowane podczas generowania.
+- **AC-UPL-018** – Given `B2_ENDPOINT` podany jako sam host (bez `https://`), When backend startuje, Then endpoint jest uzupełniany o schemat i podpisywanie URL działa (AWS SDK v3 odrzuca adres bez schematu; wartość pusta oznacza dysk lokalny).

@@ -11,6 +11,16 @@ import * as fs from 'fs';
  * local disk when B2 is not configured (dev/tests). Keys are stored in the database;
  * presigned GET URLs are produced on demand and cached per key.
  */
+/**
+ * S3-compatible endpoint as a full URL. Operators often configure just the host
+ * (`s3.eu-central-003.backblazeb2.com`); AWS SDK v2 accepted that, v3 throws "Invalid URL".
+ */
+export function toEndpointUrl(value: string | undefined): string | undefined {
+  const v = (value || '').trim();
+  if (!v) return undefined;
+  return /^[a-z][a-z0-9+.-]*:\/\//i.test(v) ? v : `https://${v}`;
+}
+
 @Injectable()
 export class StorageService {
   private s3: S3Client | null = null;
@@ -41,7 +51,7 @@ export class StorageService {
     if (hasB2Config) {
       this.useLocal = false;
       this.s3 = new S3Client({
-        endpoint: configService.get<string>('B2_ENDPOINT'),
+        endpoint: toEndpointUrl(configService.get<string>('B2_ENDPOINT')),
         region: configService.get<string>('B2_REGION') || 'us-west-004',
         credentials: {
           accessKeyId: configService.get<string>('B2_KEY_ID')!,
