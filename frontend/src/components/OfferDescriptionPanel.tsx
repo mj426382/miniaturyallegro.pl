@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ArrowUturnLeftIcon, ClipboardDocumentIcon, DocumentTextIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import { ArrowUturnLeftIcon, ClipboardDocumentIcon, DocumentTextIcon, ShoppingBagIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { descriptionsApi, DescriptionView, OfferDescription } from '../services/api'
 import { track } from '../services/analytics'
 import { allegroHtmlToText, compactAllegroHtml, formatAllegroHtml, MAX_TITLE_LENGTH, splitKeywords } from '../utils/allegroHtml'
+import PublishDescriptionModal from './PublishDescriptionModal'
 
 interface Props {
   imageId: string
@@ -14,6 +15,10 @@ interface Props {
   onCreditsChanged?: () => void
   /** Reports whether a description exists (after load and after every change). */
   onStateChange?: (hasDescription: boolean) => void
+  /** Spec 08: "Opublikuj na Allegro" is offered only with a connected seller account. */
+  allegroConnected?: boolean
+  /** Offer the photo was imported from – preselected in the publish dialog. */
+  defaultOfferId?: string | null
 }
 
 interface Draft {
@@ -26,7 +31,7 @@ const NOTES_PLACEHOLDER = 'Np. kubek ceramiczny 350 ml, biały, nadaje się do z
 
 const toDraft = (d: OfferDescription): Draft => ({ title: d.title, html: formatAllegroHtml(d.body), keywords: d.keywords.join(', ') })
 
-export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, onCreditsChanged, onStateChange }: Props) {
+export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, onCreditsChanged, onStateChange, allegroConnected = false, defaultOfferId = null }: Props) {
   const navigate = useNavigate()
   const [view, setView] = useState<DescriptionView | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -37,6 +42,7 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
   const [undo, setUndo] = useState<Draft | null>(null)
   const [tab, setTab] = useState<'preview' | 'html'>('preview')
   const [instruction, setInstruction] = useState('')
+  const [publishOpen, setPublishOpen] = useState(false)
 
   const applyView = useCallback(
     (next: DescriptionView, options: { keepDraft?: boolean } = {}) => {
@@ -328,6 +334,16 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
                 <ArrowUturnLeftIcon className="h-4 w-4" /> Cofnij ostatnią poprawkę
               </button>
             )}
+            {allegroConnected && (
+              <button
+                onClick={() => setPublishOpen(true)}
+                disabled={dirty || busy !== null}
+                title={dirty ? 'Najpierw zapisz zmiany – publikujemy zapisany opis' : undefined}
+                className="btn-secondary text-sm flex items-center gap-1"
+              >
+                <ShoppingBagIcon className="h-4 w-4" /> Opublikuj na Allegro
+              </button>
+            )}
             <span className="flex-1" />
             <button onClick={() => copy('title')} className="text-sm text-blue-600 hover:underline flex items-center gap-1">
               <ClipboardDocumentIcon className="h-4 w-4" /> Kopiuj tytuł
@@ -347,6 +363,7 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
           <p className="text-xs text-gray-500">Opis jest tworzony przez AI na podstawie Twoich notatek i zdjęcia – przed publikacją sprawdź parametry i zgodność z regulaminem Allegro.</p>
         </div>
       )}
+      {publishOpen && <PublishDescriptionModal imageId={imageId} defaultOfferId={defaultOfferId} onClose={() => setPublishOpen(false)} />}
     </section>
   )
 }

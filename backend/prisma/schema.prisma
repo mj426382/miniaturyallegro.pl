@@ -12,41 +12,47 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  password        String?
-  name            String?
-  googleId        String?   @unique
-  credits         Int       @default(0)
-  freeCreditsUsed Int       @default(0)
+  id                String    @id @default(cuid())
+  email             String    @unique
+  /// Canonical mailbox (lower-case, no +alias, no Gmail dots) – one account per mailbox (spec 13).
+  /// Legacy duplicates created before 2026-10-04 hold "<email>#legacy:<id>".
+  emailCanonical    String    @unique
+  /// Set when the owner clicked the verification link (or signed in with Google). Required to generate and pay.
+  emailVerifiedAt   DateTime?
+  password          String?
+  name              String?
+  googleId          String?   @unique
+  credits           Int       @default(0)
+  freeCreditsUsed   Int       @default(0)
   /// Timestamp of accepting the Terms of Service (regulamin) – required for audit (UŚUDE / RODO).
-  termsAcceptedAt DateTime?
+  termsAcceptedAt   DateTime?
   /// Stripe customer id – created lazily on first checkout / subscription.
-  stripeCustomerId String?  @unique
+  stripeCustomerId  String?   @unique
   /// JWTs issued before this moment are rejected (set on password reset).
   passwordChangedAt DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  images              Image[]
-  transactions        PaymentTransaction[]
-  passwordResetTokens PasswordResetToken[]
-  subscription        Subscription?
-  allegroConnection   AllegroConnection?
+  images                  Image[]
+  transactions            PaymentTransaction[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  subscription            Subscription?
+  allegroConnection       AllegroConnection?
 
   @@map("users")
 }
 
 model Image {
-  id          String   @id @default(cuid())
-  userId      String
-  originalUrl String
-  filename    String
+  id             String   @id @default(cuid())
+  userId         String
+  originalUrl    String
+  filename       String
   /// Cached AI product description (generated once, reused by every generation of this image).
-  description String?
+  description    String?
   /// Set when the photo was imported from an Allegro offer – enables one-click publishing back.
   allegroOfferId String?
-  createdAt   DateTime @default(now())
+  createdAt      DateTime @default(now())
 
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   generations      Generation[]
@@ -60,18 +66,18 @@ model Image {
 /// Created only after at least one graphic was generated for the photo. The first description is a
 /// free bonus; AI rewrites spend prompt edits (a few free, then packs for a credit); manual edits are unlimited.
 model OfferDescription {
-  id              String   @id @default(cuid())
-  imageId         String   @unique
-  title           String
-  body            String
-  keywords        String[] @default([])
+  id                   String   @id @default(cuid())
+  imageId              String   @unique
+  title                String
+  body                 String
+  keywords             String[] @default([])
   /// What the seller told us about the product (features, dimensions, set contents...).
-  sellerNotes     String?
-  promptEditsUsed Int      @default(0)
+  sellerNotes          String?
+  promptEditsUsed      Int      @default(0)
   /// Extra prompt edits bought in packs (EDIT_PACK_SIZE each, one credit per pack).
-  promptEditsPurchased Int @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  promptEditsPurchased Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
@@ -79,17 +85,17 @@ model OfferDescription {
 }
 
 model Generation {
-  id        String           @id @default(cuid())
-  imageId   String
-  url       String?
-  prompt    String?
-  style     String?
-  status    GenerationStatus @default(PENDING)
+  id           String           @id @default(cuid())
+  imageId      String
+  url          String?
+  prompt       String?
+  style        String?
+  status       GenerationStatus @default(PENDING)
   /// User quality feedback: 1 = thumbs up, -1 = thumbs down.
   rating       Int?
   ratingReason String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @default(now()) @updatedAt
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @default(now()) @updatedAt
 
   image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
@@ -110,10 +116,12 @@ model PaymentTransaction {
   userId          String
   /// Stripe Checkout session id (one-time packs) or invoice id (subscription renewals) – idempotency key.
   stripeSessionId String   @unique
-  amountPln       Int      // grosze (np. 1000 = 10 zł)
+  amountPln       Int // grosze (np. 1000 = 10 zł)
   creditsAdded    Int
   status          String   @default("pending") // pending | completed | failed | expired
   kind            String   @default("package") // package | subscription
+  /// Stripe invoice (with the buyer's tax id when given) – fetched on demand as a fresh PDF link.
+  stripeInvoiceId String?
   createdAt       DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -137,13 +145,28 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+/// One-time link proving the account owner controls the mailbox (spec 13). Only the SHA-256 is stored.
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
 /// Monthly plan paid through Stripe Billing; credits are granted on every paid invoice.
 model Subscription {
   id                   String    @id @default(cuid())
   userId               String    @unique
   stripeSubscriptionId String    @unique
   planId               String
-  status               String    // active | past_due | canceled | unpaid | incomplete | trialing
+  status               String // active | past_due | canceled | unpaid | incomplete | trialing
   currentPeriodEnd     DateTime?
   cancelAtPeriodEnd    Boolean   @default(false)
   createdAt            DateTime  @default(now())
@@ -172,17 +195,20 @@ model AllegroConnection {
 
 /// Free "try it without an account" generation from the landing page (lead capture).
 model DemoRequest {
-  id          String           @id @default(cuid())
-  email       String
-  ipHash      String
-  imageKey    String
-  resultKey   String?
-  status      GenerationStatus @default(PENDING)
-  marketingOk Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @default(now()) @updatedAt
+  id             String           @id @default(cuid())
+  email          String
+  /// Canonical mailbox – the per-mailbox demo limit counts by this (spec 13).
+  emailCanonical String?
+  ipHash         String
+  imageKey       String
+  resultKey      String?
+  status         GenerationStatus @default(PENDING)
+  marketingOk    Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
 
   @@index([email])
+  @@index([emailCanonical])
   @@index([ipHash, createdAt])
   @@map("demo_requests")
 }

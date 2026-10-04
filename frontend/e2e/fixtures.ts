@@ -12,6 +12,7 @@ export const USER = {
   totalGenerations: 1,
   _count: { images: 1 },
   createdAt: '2026-10-01T00:00:00.000Z',
+  emailVerified: true,
 }
 
 export const IMAGE = {
@@ -28,10 +29,13 @@ export const IMAGE = {
 
 export const STYLES = {
   styles: [
-    { id: 'white-bg', name: 'Białe tło', description: 'Czyste białe tło', starter: true },
-    { id: 'lifestyle-home', name: 'Lifestyle – wnętrze', description: 'Wnętrze', starter: true },
-    { id: 'dark-luxury', name: 'Ciemny luksus', description: 'Ciemne tło', starter: true },
-    { id: 'gradient-bg', name: 'Gradient', description: 'Gradient', starter: false },
+    { id: 'white-bg', name: 'Białe tło', description: 'Czyste białe tło', starter: true, category: 'universal', inSeason: false },
+    { id: 'lifestyle-home', name: 'Lifestyle – wnętrze', description: 'Wnętrze', starter: true, category: 'universal', inSeason: false },
+    { id: 'dark-luxury', name: 'Ciemny luksus', description: 'Ciemne tło', starter: true, category: 'universal', inSeason: false },
+    { id: 'gradient-bg', name: 'Gradient', description: 'Gradient', starter: false, category: 'universal', inSeason: false },
+    { id: 'valentines', name: 'Walentynki', description: 'Róż i czerwień', starter: false, category: 'seasonal', inSeason: false },
+    { id: 'christmas', name: 'Boże Narodzenie', description: 'Świąteczny klimat', starter: false, category: 'seasonal', inSeason: true },
+    { id: 'fashion', name: 'Moda i odzież', description: 'Flat lay', starter: false, category: 'industry', inSeason: false },
   ],
   defaultStyleIds: ['white-bg', 'lifestyle-home', 'dark-luxury'],
 }
@@ -51,12 +55,29 @@ export const DESCRIPTION = {
 
 export const PASSWORD = 'Dobre!Haslo1'
 
-export async function mockApp(page: Page, options: { loggedIn?: boolean } = {}) {
+export interface MockOptions {
+  loggedIn?: boolean
+  /** Spec 13 – unconfirmed account (banner, gate). */
+  emailVerified?: boolean
+  /** Spec 08 – a connected Allegro seller account. */
+  allegroConnected?: boolean
+  /** Pre-existing offer copy for IMAGE. */
+  withDescription?: boolean
+  /** Payment history rows. */
+  history?: any[]
+  /** Extra gallery photos (spec 15). */
+  extraImages?: any[]
+  /** IMAGE was imported from this Allegro offer. */
+  imageOfferId?: string
+}
+
+export async function mockApp(page: Page, options: MockOptions = {}) {
   const requests: Array<{ url: string; method: string; body?: any }> = []
   let loggedIn = options.loggedIn ?? true
-  const images: any[] = [IMAGE]
+  let emailVerified = options.emailVerified ?? true
+  const images: any[] = [IMAGE, ...(options.extraImages ?? [])]
   // Offer description state lives for the duration of the page – mirrors the API behaviour.
-  let description: typeof DESCRIPTION | null = null
+  let description: typeof DESCRIPTION | null = options.withDescription ? { ...DESCRIPTION } : null
   let editsPurchased = 0
   const descriptionView = () => ({
     description,
@@ -77,7 +98,46 @@ export async function mockApp(page: Page, options: { loggedIn?: boolean } = {}) 
     const path = url.pathname.replace(/^\/api/, '')
     const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
-    if (path === '/users/me' && req.method() === 'GET') return loggedIn ? json({ ...USER, hasPassword: true }) : json({ message: 'Unauthorized' }, 401)
+    if (path === '/users/me' && req.method() === 'GET') return loggedIn ? json({ ...USER, hasPassword: true, emailVerified }) : json({ message: 'Unauthorized' }, 401)
+    if (path === '/auth/resend-verification') {
+      requests.push({ url: path, method: 'POST' })
+      return json({ sent: true })
+    }
+    if (path === '/auth/verify-email') {
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: 'POST', body })
+      if (body?.token !== 'good-token') return json({ statusCode: 400, message: 'Link weryfikacyjny jest nieprawidłowy lub wygasł' }, 400)
+      emailVerified = true
+      return json({ verified: true })
+    }
+    if (path === '/generation/infographic-icons')
+      return json([
+        { id: 'check', name: 'Zaleta' },
+        { id: 'shield', name: 'Gwarancja' },
+        { id: 'truck', name: 'Dostawa' },
+      ])
+    if (path === '/generation/infographic/gen-1') {
+      requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
+      return route.fulfill({ status: 201, contentType: 'image/png', headers: { 'Content-Disposition': 'attachment; filename="infografika-features-white-bg.png"' }, body: PNG_BYTES })
+    }
+    if (path === '/generation/zip') {
+      requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
+      return route.fulfill({
+        status: 201,
+        contentType: 'application/zip',
+        headers: { 'Content-Disposition': 'attachment; filename="allgrafika-2026-10-04.zip"' },
+        body: Buffer.from('PK\u0005\u0006' + '\u0000'.repeat(18), 'binary'),
+      })
+    }
+    if (/^\/payments\/invoices\//.test(path)) {
+      requests.push({ url: path, method: 'GET' })
+      return json({ url: 'about:blank#invoice' })
+    }
+    if (path === '/allegro/offers') return json({ offers: [{ id: 'off-1', name: 'Kubek ceramiczny – oferta', primaryImage: null, status: 'ACTIVE', price: '29.99 PLN' }], total: 1 })
+    if (/^\/allegro\/offers\/[^/]+\/description$/.test(path)) {
+      requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
+      return json({ offerId: 'off-1', mode: req.postDataJSON()?.mode, titleUpdated: Boolean(req.postDataJSON()?.updateTitle), sections: 1 }, 201)
+    }
     if (path === '/users/me' && req.method() === 'PATCH') {
       requests.push({ url: path, method: 'PATCH', body: req.postDataJSON() })
       return json({ ...USER, hasPassword: true, name: req.postDataJSON()?.name ?? USER.name })
@@ -136,6 +196,12 @@ export async function mockApp(page: Page, options: { loggedIn?: boolean } = {}) 
       return json({ ...IMAGE, id, originalUrl: `/api/uploads/originals/${id}.jpg`, generations: [] })
     }
     if (/^\/generation\/img-new-\d+\/results$/.test(path)) return json([])
+    if (/^\/descriptions\/img-new-\d+$/.test(path) && req.method() === 'GET')
+      return json({ description: null, promptEditsLimit: 5, promptEditsLeft: 5, canCreate: true, creditCost: 0, editPackSize: 15, editPackCredits: 1 })
+    if (/^\/descriptions\/img-new-\d+$/.test(path) && req.method() === 'POST') {
+      requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
+      return json({ description: { ...DESCRIPTION }, promptEditsLimit: 5, promptEditsLeft: 5, canCreate: true, creditCost: 0, editPackSize: 15, editPackCredits: 1 }, 201)
+    }
     if (path === '/auth/reset-password') {
       requests.push({ url: path, method: req.method(), body: req.postDataJSON() })
       return json({ message: 'Hasło zostało zmienione. Możesz się teraz zalogować.' })
@@ -145,7 +211,7 @@ export async function mockApp(page: Page, options: { loggedIn?: boolean } = {}) 
       return json({ url: 'http://localhost:4173/credits?success=1' }, 201)
     }
     if (path === '/payments/packages') return json([{ id: 'credits_5', credits: 5, priceGrosze: 1000, label: '5 kredytów', priceLabel: '10 zł', savingLabel: null }])
-    if (path === '/payments/history') return json([])
+    if (path === '/payments/history') return json(options.history ?? [])
     if (path === '/generation/styles') return json(STYLES)
     if (path === '/images')
       return json({ images: images.map((i) => ({ ...i, hasDescription: i.id === IMAGE.id && Boolean(description) })), pagination: { page: 1, limit: 20, total: images.length, pages: 1 } })
@@ -154,8 +220,24 @@ export async function mockApp(page: Page, options: { loggedIn?: boolean } = {}) 
       images.splice(0, images.length)
       return json({ message: 'Image deleted' })
     }
-    if (path === `/images/${IMAGE.id}`) return json(IMAGE)
+    if (path === `/images/${IMAGE.id}`) return json({ ...IMAGE, allegroOfferId: options.imageOfferId ?? null })
     if (path === `/generation/${IMAGE.id}/results`) return json(IMAGE.generations)
+    const extra = images.find((i) => i.id !== IMAGE.id && (path === `/generation/${i.id}/results` || path === `/descriptions/${i.id}`))
+    if (extra && path.endsWith('/results')) return json(extra.generations)
+    if (extra && path.startsWith('/descriptions/') && req.method() === 'GET')
+      return json({
+        description: null,
+        promptEditsLimit: 5,
+        promptEditsLeft: 5,
+        canCreate: extra.generations.some((g: any) => g.status === 'COMPLETED'),
+        creditCost: 0,
+        editPackSize: 15,
+        editPackCredits: 1,
+      })
+    if (extra && path.startsWith('/descriptions/') && req.method() === 'POST') {
+      requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
+      return json({ description: { ...DESCRIPTION }, promptEditsLimit: 5, promptEditsLeft: 5, canCreate: true, creditCost: 0, editPackSize: 15, editPackCredits: 1 }, 201)
+    }
     if (path.startsWith('/uploads/')) return route.fulfill({ status: 200, contentType: 'image/png', body: PNG_BYTES })
     if (path === '/generation/download/gen-1') {
       requests.push({ url: path, method: req.method() })
@@ -221,7 +303,7 @@ export async function mockApp(page: Page, options: { loggedIn?: boolean } = {}) 
       }
       return json(descriptionView(), 201)
     }
-    if (path === '/allegro/status') return json({ configured: false, connected: false, sellerLogin: null })
+    if (path === '/allegro/status') return json(options.allegroConnected ? { configured: true, connected: true, sellerLogin: 'sklep' } : { configured: false, connected: false, sellerLogin: null })
     if (path === '/payments/subscription') return json({ subscription: null })
     if (path === '/payments/plans') return json([])
     return json({ message: `unmocked ${path}` }, 404)

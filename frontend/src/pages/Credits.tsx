@@ -6,7 +6,7 @@ import { track } from '../services/analytics'
 import { useAuth } from '../hooks/useAuth'
 import { usePageTitle } from '../hooks/usePageTitle'
 import toast from 'react-hot-toast'
-import { CreditCardIcon, CheckCircleIcon, XCircleIcon, SparklesIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { CreditCardIcon, CheckCircleIcon, XCircleIcon, SparklesIcon, ClockIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
 
 const FREE_LIMIT = 10
 const HIGHLIGHTED_PACKAGE = 'credits_15'
@@ -27,6 +27,8 @@ interface Transaction {
   status: string
   kind?: 'package' | 'subscription'
   createdAt: string
+  /** Spec 09: a Stripe invoice exists (with the tax id when the buyer gave one). */
+  hasInvoice?: boolean
 }
 
 interface CreditsPageData {
@@ -64,6 +66,26 @@ export default function Credits() {
   const page = useQuery({ queryKey: ['credits-page'], queryFn: loadCreditsPage })
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [buyingPackageId, setBuyingPackageId] = useState<string | null>(null)
+  const [openingInvoice, setOpeningInvoice] = useState<string | null>(null)
+
+  /** Stripe invoice links expire, so a fresh one is requested on every click (spec 09). */
+  const openInvoice = async (transactionId: string) => {
+    setOpeningInvoice(transactionId)
+    // Opened synchronously inside the click so the browser does not block it as a pop-up.
+    const tab = window.open('', '_blank')
+    if (tab) tab.opener = null
+    try {
+      const { data } = await paymentsApi.invoiceUrl(transactionId)
+      if (tab) tab.location.href = data.url
+      else window.location.href = data.url
+    } catch (err: any) {
+      tab?.close()
+      const message = err.response?.data?.message
+      toast.error(Array.isArray(message) ? message.join('. ') : message || 'Nie udało się otworzyć faktury')
+    } finally {
+      setOpeningInvoice(null)
+    }
+  }
   const [acceptedWaiver, setAcceptedWaiver] = useState(false)
   const [acceptedSubscriptionTerms, setAcceptedSubscriptionTerms] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
@@ -194,8 +216,8 @@ export default function Credits() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Kredyty</h1>
       <p className="text-gray-500 mb-8">
-        1 kredyt = 1 wygenerowana grafika. Zestaw startowy to 3 kredyty, komplet wszystkich 6 stylów to 6 kredytów. Opis oferty pod SEO jest gratis do każdego zdjęcia z gotową grafiką (5 poprawek AI w
-        cenie, kolejne 15 poprawek = 1 kredyt).
+        1 kredyt = 1 wygenerowana grafika. Zestaw startowy to 3 kredyty, każdy kolejny styl (z 19, także sezonowe i branżowe) to 1 kredyt. Opis oferty pod SEO jest gratis do każdego zdjęcia z gotową
+        grafiką (5 poprawek AI w cenie, kolejne 15 poprawek = 1 kredyt).
       </p>
 
       {/* Balance cards */}
@@ -332,6 +354,10 @@ export default function Credits() {
                   <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
                   Bezpieczna płatność Stripe
                 </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
+                  Faktura VAT – NIP podasz w formularzu płatności
+                </li>
               </ul>
               <button onClick={() => handleBuy(pkg.id)} disabled={buyingPackageId === pkg.id || redirecting} className={highlighted ? 'btn-primary w-full' : 'btn-secondary w-full'}>
                 {buyingPackageId === pkg.id ? 'Przekierowuję...' : `Kup ${pkg.label}`}
@@ -353,6 +379,9 @@ export default function Credits() {
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Kredyty</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Kwota</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">
+                    <span className="sr-only">Faktura</span>
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -382,6 +411,19 @@ export default function Credits() {
                           )}
                           {status.label}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {tx.hasInvoice && (
+                          <button
+                            type="button"
+                            onClick={() => openInvoice(tx.id)}
+                            disabled={openingInvoice === tx.id}
+                            className="text-blue-600 hover:underline text-sm flex items-center gap-1 ml-auto"
+                          >
+                            <DocumentArrowDownIcon className="h-4 w-4" />
+                            {openingInvoice === tx.id ? 'Otwieram...' : 'Faktura'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )

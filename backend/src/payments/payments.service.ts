@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { CREDIT_PACKAGES, SUBSCRIPTION_PLANS, findPackage, findPlan, SubscriptionPlan } from './plans';
+import { emailNotVerifiedException, isVerificationRequired } from '../auth/email-verification';
 
 // Stripe v22 CJS – use require to avoid TS namespace issues
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -22,15 +23,27 @@ export const TRANSACTION_STATUS = {
 
 const ACTIVE_SUBSCRIPTION_STATUSES = ['active', 'trialing', 'past_due'];
 
+/**
+ * Spec 09: every payment gets a Stripe invoice. Checkout asks for the billing address and lets the
+ * buyer tick "purchasing as a business" with a NIP; both are saved on the Stripe customer.
+ */
+const INVOICE_DETAILS_COLLECTION = {
+  billing_address_collection: 'required',
+  tax_id_collection: { enabled: true },
+  customer_update: { name: 'auto', address: 'auto' },
+} as const;
+
 @Injectable()
 export class PaymentsService {
   private stripe: any = null;
   private readonly logger = new Logger(PaymentsService.name);
+  private readonly verificationRequired: boolean;
 
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
+    this.verificationRequired = isVerificationRequired(this.configService.get<string>('EMAIL_VERIFICATION_REQUIRED'));
     const key = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (key && !/PLACEHOLDER/i.test(key)) {
       this.stripe = new StripeLib(key, { apiVersion: '2026-03-25.dahlia' });
@@ -90,13 +103,21 @@ export class PaymentsService {
     const pkg = findPackage(packageId);
     if (!pkg) throw new BadRequestException('Nieprawidłowy pakiet');
 
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new BadRequestException('Nie znaleziono użytkownika');
+    await this.assertCanPurchase(userId);
+    const customerId = await this.ensureCustomer(userId);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       // Payment methods (card, BLIK, Przelewy24...) are managed in the Stripe dashboard.
-      ...(user.stripeCustomerId ? { customer: user.stripeCustomerId } : { customer_email: user.email }),
+      customer: customerId,
+      ...INVOICE_DETAILS_COLLECTION,
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          description: `${pkg.label} – AllGrafika (${pkg.credits} kredytów)`,
+          metadata: { userId, packageId },
+        },
+      },
       line_items: [
         {
           price_data: {
@@ -137,6 +158,14 @@ export class PaymentsService {
 
   // ─── Subscriptions ────────────────────────────────────────────────
 
+  /** Spec 13: only confirmed accounts may pay (otherwise they would buy credits they cannot spend). */
+  private async assertCanPurchase(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { emailVerifiedAt: true } });
+    if (!user) throw new BadRequestException('Nie znaleziono użytkownika');
+    if (this.verificationRequired && !user.emailVerifiedAt) throw emailNotVerifiedException();
+  }
+
+  /** The Stripe customer carries the invoice details (name, address, tax id) between purchases. */
   private async ensureCustomer(userId: string): Promise<string> {
     const stripe = this.requireStripe();
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -167,10 +196,12 @@ export class PaymentsService {
       }
     }
 
+    await this.assertCanPurchase(userId);
     const customerId = await this.ensureCustomer(userId);
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
+      ...INVOICE_DETAILS_COLLECTION,
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { userId, planId, withdrawalWaiverAcceptedAt: new Date().toISOString() },
       subscription_data: { metadata: { userId, planId } },
@@ -320,6 +351,14 @@ export class PaymentsService {
 
     if (added) this.logger.log(`Added ${transaction.creditsAdded} credits to user ${transaction.userId}`);
     else this.logger.warn(`Duplicate webhook for session ${session.id} ignored`);
+
+    const invoiceId = typeof session.invoice === 'string' ? session.invoice : session.invoice?.id;
+    if (invoiceId) {
+      await this.prisma.paymentTransaction.updateMany({
+        where: { id: transaction.id, stripeInvoiceId: null },
+        data: { stripeInvoiceId: invoiceId },
+      });
+    }
   }
 
   private async handleSubscriptionCheckout(session: any) {
@@ -397,6 +436,7 @@ export class PaymentsService {
             creditsAdded: plan.credits,
             status: TRANSACTION_STATUS.completed,
             kind: 'subscription',
+            stripeInvoiceId: invoice.id,
           },
         });
         await tx.user.update({ where: { id: userId }, data: { credits: { increment: plan.credits } } });
@@ -457,11 +497,39 @@ export class PaymentsService {
   }
 
   async getTransactionHistory(userId: string) {
-    return this.prisma.paymentTransaction.findMany({
+    const rows = await this.prisma.paymentTransaction.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 20,
-      select: { id: true, creditsAdded: true, amountPln: true, status: true, kind: true, createdAt: true },
+      select: {
+        id: true,
+        creditsAdded: true,
+        amountPln: true,
+        status: true,
+        kind: true,
+        createdAt: true,
+        stripeInvoiceId: true,
+      },
     });
+    // The Stripe id stays on the server; the UI only needs to know an invoice exists.
+    return rows.map(({ stripeInvoiceId, ...row }) => ({ ...row, hasInvoice: Boolean(stripeInvoiceId) }));
+  }
+
+  /**
+   * Fresh link to the invoice PDF (Stripe links expire, so they are never stored). Only the owner
+   * of the transaction gets it; transactions without an invoice are a 404.
+   */
+  async getInvoiceUrl(userId: string, transactionId: string): Promise<{ url: string }> {
+    const tx = await this.prisma.paymentTransaction.findUnique({
+      where: { id: transactionId },
+      select: { userId: true, stripeInvoiceId: true },
+    });
+    if (!tx || tx.userId !== userId || !tx.stripeInvoiceId)
+      throw new NotFoundException('Brak faktury dla tej płatności');
+    const stripe = this.requireStripe();
+    const invoice = await stripe.invoices.retrieve(tx.stripeInvoiceId);
+    const url: string | undefined = invoice?.invoice_pdf || invoice?.hosted_invoice_url;
+    if (!url) throw new NotFoundException('Faktura nie jest jeszcze gotowa. Spróbuj za kilka minut.');
+    return { url };
   }
 }

@@ -12,6 +12,7 @@ import Gallery from './pages/Gallery'
 import Credits from './pages/Credits'
 import Account from './pages/Account'
 import ResetPassword from './pages/ResetPassword'
+import VerifyEmail from './pages/VerifyEmail'
 import Allegro from './pages/Allegro'
 import AllegroCallback from './pages/AllegroCallback'
 import Layout from './components/Layout'
@@ -50,6 +51,7 @@ export default function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/regulamin" element={<Regulamin />} />
                 <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
                 <Route

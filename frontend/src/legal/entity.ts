@@ -16,14 +16,14 @@ export const LEGAL_ENTITY = {
 
 export const LEGAL_DATES = {
   /** Data wejścia w życie bieżącej wersji dokumentów */
-  effective: '2 października 2026 r.',
-  effectiveIso: '2026-10-02',
+  effective: '4 października 2026 r.',
+  effectiveIso: '2026-10-04',
 }
 
 export const PRICING = {
   freeCredits: 10,
   starterStyles: 3,
-  allStyles: 6,
+  allStyles: 19,
   descriptionPromptEdits: 5,
   descriptionEditPack: 15,
 }

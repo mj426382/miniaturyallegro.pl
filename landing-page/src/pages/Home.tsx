@@ -53,12 +53,12 @@ const features = [
   {
     icon: '🛒',
     title: 'Integracja z Allegro',
-    desc: 'Połącz konto sprzedawcy, pobierz zdjęcia z ofert, wygeneruj grafiki i ustaw je jako zdjęcie główne lub dodaj do galerii, bez pobierania i wgrywania plików ręcznie.',
+    desc: 'Połącz konto sprzedawcy, pobierz zdjęcia z ofert, wygeneruj grafiki i ustaw je jako zdjęcie główne lub dodaj do galerii, a tytuł i opis wyślij do oferty jednym kliknięciem.',
   },
   {
     icon: '🎯',
     title: 'Płacisz za to, co wybierzesz',
-    desc: 'Zestaw startowy to 3 style za 3 kredyty. Pozostałe z 6 stylów dogenerujesz jednym kliknięciem. Nieudane generacje zwracamy automatycznie.',
+    desc: 'Zestaw startowy to 3 style za 3 kredyty. Pozostałe z 19 stylów – także sezonowe i branżowe – dogenerujesz jednym kliknięciem. Infografiki i paczki ZIP są gratis.',
   },
   {
     icon: '📐',
@@ -84,6 +84,9 @@ const styles = [
   { name: 'Gradient', desc: 'Elegancki gradient w kolorystyce dopasowanej do produktu.', starter: false },
   { name: 'Produkt w użyciu', desc: 'Realistyczna scena pokazująca zastosowanie produktu.', starter: false },
   { name: 'Wiele ujęć', desc: 'Kolaż 3–4 ujęć z różnych stron w jednej grafice.', starter: false },
+  { name: 'Sezonowe (5)', desc: 'Boże Narodzenie, Black Friday, Walentynki, Wielkanoc i Lato – w sezonie podpowiadamy je jako pierwsze.', starter: false },
+  { name: 'Branżowe (8)', desc: 'Moda, elektronika, kosmetyki, dom i ogród, dziecięce, sport, motoryzacja oraz żywność.', starter: false },
+  { name: 'Infografiki gratis', desc: 'Cechy z ikonami albo wymiary produktu na zdjęcie dodatkowe – z poprawnym polskim tekstem.', starter: false },
 ]
 
 const packages = [
@@ -108,11 +111,11 @@ const faq = [
   },
   {
     q: 'Ile to kosztuje?',
-    a: 'Pierwsze 10 grafik jest darmowych i nie wymaga karty. Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 1,75 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
+    a: 'Pierwsze 10 grafik jest darmowych i nie wymaga karty – wystarczy potwierdzić adres e-mail. Do każdej płatności dostajesz fakturę (NIP podajesz w formularzu płatności). Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 1,75 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
   },
   {
     q: 'Jak działa integracja z Allegro?',
-    a: 'W aplikacji łączysz konto sprzedawcy przez oficjalną autoryzację Allegro (nie podajesz nam hasła). Potem przeglądasz swoje oferty, pobierasz z nich zdjęcie główne, generujesz grafiki i publikujesz je do oferty jako zdjęcie główne lub do galerii. Dostęp możesz cofnąć w każdej chwili.',
+    a: 'W aplikacji łączysz konto sprzedawcy przez oficjalną autoryzację Allegro (nie podajesz nam hasła). Potem przeglądasz swoje oferty, pobierasz z nich zdjęcie główne, generujesz grafiki i publikujesz je do oferty jako zdjęcie główne lub do galerii, a wygenerowany tytuł i opis wysyłasz do oferty jednym kliknięciem. Dostęp możesz cofnąć w każdej chwili.',
   },
   {
     q: 'Jak długo trwa generowanie?',
@@ -290,7 +293,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                6 stylów grafik – <span className="text-blue-600">Ty decydujesz, które generujesz</span>
+                19 stylów grafik – <span className="text-blue-600">Ty decydujesz, które generujesz</span>
               </h2>
               <p className="text-gray-500 mt-4 text-lg">Zestaw startowy (oznaczony) to 3 kredyty. Pozostałe style dogenerujesz, kiedy zobaczysz pierwsze wyniki.</p>
             </div>
@@ -316,7 +319,7 @@ export default function Home() {
                 Prosty i przejrzysty <span className="text-blue-600">cennik</span>
               </h2>
               <p className="text-gray-500 mt-4">
-                1 kredyt = 1 grafika, opis oferty pod SEO gratis do każdej. <span className="font-medium text-blue-600">Pierwsze 10 grafik za darmo po rejestracji.</span>
+                1 kredyt = 1 grafika, opis oferty pod SEO gratis do każdej. <span className="font-medium text-blue-600">Pierwsze 10 grafik za darmo po rejestracji i potwierdzeniu e-maila.</span>
               </p>
             </div>
 

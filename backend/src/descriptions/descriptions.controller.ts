@@ -20,7 +20,7 @@ export class DescriptionsController {
   }
 
   @Post(':imageId')
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
   @ApiOperation({
     summary:
       'Write the offer copy from the seller notes – free bonus of a finished graphic; writing again spends a prompt edit',

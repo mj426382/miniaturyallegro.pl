@@ -18,14 +18,18 @@ interface ImageCardProps {
   }
   /** When given, the card shows a delete action (the caller confirms and calls the API). */
   onDelete?: () => void
+  /** Spec 15: selection mode in the gallery – a checkbox replaces the delete action. */
+  selectable?: boolean
+  selected?: boolean
+  onToggleSelect?: () => void
 }
 
-export default function ImageCard({ image, onDelete }: ImageCardProps) {
+export default function ImageCard({ image, onDelete, selectable = false, selected = false, onToggleSelect }: ImageCardProps) {
   const completedCount = image.generations.filter((g) => g.status === 'COMPLETED').length
   const hasGenerations = image.generations.length > 0
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+    <div className={`bg-white rounded-xl border overflow-hidden hover:shadow-md transition-shadow ${selected ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-200'}`}>
       <div className="aspect-square bg-gray-100 relative overflow-hidden">
         <img src={image.originalUrl} alt="Product" className="w-full h-full object-cover" />
         {hasGenerations && (
@@ -33,7 +37,18 @@ export default function ImageCard({ image, onDelete }: ImageCardProps) {
             {completedCount}/{image.generations.length}
           </div>
         )}
-        {onDelete && (
+        {selectable && (
+          <label className="absolute top-2 left-2 bg-white/90 rounded-md p-1.5 shadow-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={onToggleSelect}
+              aria-label={`Zaznacz zdjęcie z ${new Date(image.createdAt).toLocaleDateString('pl-PL')}`}
+              className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 block"
+            />
+          </label>
+        )}
+        {onDelete && !selectable && (
           <button
             type="button"
             onClick={onDelete}

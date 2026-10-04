@@ -110,6 +110,14 @@ export class GoogleLoginDto {
   acceptedTerms?: boolean;
 }
 
+export class VerifyEmailDto {
+  @ApiProperty({ description: 'Token from the verification link' })
+  @IsString()
+  @IsNotEmpty({ message: 'Token jest wymagany' })
+  @MaxLength(256)
+  token: string;
+}
+
 export class ResetPasswordDto {
   @ApiProperty()
   @IsString()

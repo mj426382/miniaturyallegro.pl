@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Właściciel | Mateusz Janduła |
-| Data | 2026-10-03 |
+| Data | 2026-10-04 |
 | Powiązane | FR-ALG-001, NFR-SEC-006 |
 
 ## 1. Decyzje
@@ -16,13 +16,20 @@
 - Publikacja: upload do `upload.allegro.pl/sale/images`, potem PATCH oferty (zdjęcie główne albo galeria).
 - Bez konfiguracji (`ALLEGRO_CLIENT_ID`) integracja raportuje `configured: false`, UI pokazuje stan
   „nie włączona”; przycisk „Opublikuj na Allegro” na kartach pojawia się tylko po połączeniu konta.
+- **Publikacja opisu**: tytuł i opis z panelu „Opis oferty” trafiają do oferty przez PATCH
+  `/sale/product-offers/{id}` (`name`, `description.sections`). Tryb **„Zastąp opis”** (jedna sekcja z naszym
+  HTML) albo **„Dodaj na początku”** (nasza sekcja przed istniejącymi – zachowuje zdjęcia w opisie).
+  Tytuł jest aktualizowany tylko po zaznaczeniu „Zmień też tytuł”. HTML opisu jest już ograniczony do tagów
+  dozwolonych przez Allegro (`h2, p, ul, ol, li, b`). Limit Allegro: 100 sekcji. Błędy walidacji Allegro
+  (`errors[].userMessage`) wracają do użytkownika jako 400 z treścią od Allegro.
 - Odłączenie konta usuwa tokeny (z potwierdzeniem), zaimportowane zdjęcia zostają.
 
 ## 2. API
 
 `GET /allegro/status`, `GET /allegro/auth-url`, `POST /allegro/callback {code,state}`,
 `GET /allegro/offers?offset&limit&name`, `POST /allegro/import {offerId}`,
-`POST /allegro/publish {generationId, offerId, asMain}`, `DELETE /allegro/connection`.
+`POST /allegro/publish {generationId, offerId, asMain}`, `DELETE /allegro/connection`,
+`POST /allegro/offers/:offerId/description {imageId, mode: 'replace'|'prepend', updateTitle}`.
 
 ## 3. Kryteria akceptacji
 
@@ -32,3 +39,7 @@
 - **AC-ALG-004** – Given callback OAuth bez kodu, When otwarty, Then UI pokazuje błąd i wraca na stronę integracji.
 - **AC-ALG-005** – Given szyfrowanie tokenów, When ten sam tekst jest szyfrowany dwa razy, Then szyfrogramy różnią się (świeży IV), a odszyfrowanie zwraca oryginał.
 - **AC-ALG-006** – Given zły klucz lub zmodyfikowany szyfrogram, When odszyfrowanie, Then błąd.
+- **AC-ALG-007** – Given zdjęcie z opisem i połączone konto (mock), When publikacja w trybie „Zastąp” z tytułem, Then PATCH oferty zawiera `name` = tytuł i `description.sections` = jedna sekcja TEXT z HTML opisu.
+- **AC-ALG-008** – Given oferta z istniejącymi sekcjami opisu, When tryb „Dodaj na początku” bez tytułu, Then nasza sekcja jest pierwsza, istniejące zostają w kolejności, a `name` nie jest wysyłane; przy 100 istniejących sekcjach → 400.
+- **AC-ALG-009** – Given zdjęcie bez opisu albo cudze, When publikacja opisu, Then 404 i brak wywołań Allegro; błąd walidacji Allegro → 400 z komunikatem Allegro.
+- **AC-ALG-010** – Given panel opisu z połączonym kontem, When użytkownik kliknie „Opublikuj na Allegro”, wybierze ofertę i tryb, Then wywołany jest endpoint z wybranymi opcjami, a zdjęcie zaimportowane z oferty ma ją wybraną domyślnie; bez połączenia przycisku nie ma.

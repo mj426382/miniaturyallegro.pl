@@ -69,7 +69,14 @@ export default function RegulaminContent() {
               Użytkownik zobowiązany jest podać prawdziwe dane oraz chronić hasło. Za działania wykonane z użyciem Konta odpowiada Użytkownik, chyba że doszło do nich mimo zachowania należytej
               staranności.
             </li>
-            <li>Jeden Użytkownik może posiadać jedno Konto. Zakładanie wielu Kont w celu uzyskania dodatkowych darmowych Kredytów jest zabronione i może skutkować zablokowaniem Kont.</li>
+            <li>
+              Jeden Użytkownik może posiadać jedno Konto. Zakładanie wielu Kont w celu uzyskania dodatkowych darmowych Kredytów jest zabronione i może skutkować zablokowaniem Kont. Adresy e-mail
+              różniące się wyłącznie wielkością liter, kropkami w adresach Gmail albo dopiskiem „+…” traktowane są jako ten sam adres.
+            </li>
+            <li>
+              Po rejestracji Usługodawca wysyła na podany adres link potwierdzający. Generowanie Grafik i zakup Kredytów są dostępne po potwierdzeniu adresu e-mail; przy logowaniu przez Google adres
+              jest potwierdzony automatycznie.
+            </li>
             <li>
               Użytkownik może w każdej chwili usunąć Konto w ustawieniach Serwisu („Konto → Usuń konto”) lub wysyłając żądanie na adres {LEGAL_ENTITY.email}. Usunięcie Konta powoduje trwałe usunięcie
               przesłanych zdjęć, Grafik i niewykorzystanych Kredytów.
@@ -84,12 +91,16 @@ export default function RegulaminContent() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">§ 4. Kredyty, ceny i płatności</h2>
           <ol className="list-decimal list-inside space-y-2">
-            <li>Każdy nowy Użytkownik otrzymuje {PRICING.freeCredits} darmowych Kredytów. Darmowe Kredyty służą do przetestowania Serwisu i nie podlegają wymianie na pieniądze.</li>
+            <li>
+              Każdy nowy Użytkownik otrzymuje {PRICING.freeCredits} darmowych Kredytów, które może wykorzystać po potwierdzeniu adresu e-mail. Darmowe Kredyty służą do przetestowania Serwisu i nie
+              podlegają wymianie na pieniądze.
+            </li>
             <li>
               Jeden Kredyt uprawnia do wygenerowania jednej Grafiki. Domyślny zestaw startowy obejmuje {PRICING.starterStyles} style ({PRICING.starterStyles} Kredyty); Użytkownik sam wybiera, ile i
               jakie style generuje (maksymalnie {PRICING.allStyles} stylów automatycznych oraz dowolna liczba Grafik własnych).
             </li>
             <li>Kredyt jest pobierany z chwilą uruchomienia generowania. Jeżeli generowanie zakończy się błędem po stronie Serwisu, Kredyt jest automatycznie zwracany na Konto.</li>
+            <li>Eksport Grafik w formatach marketplace, infografiki (zdjęcia dodatkowe z cechami lub wymiarami produktu) oraz pobieranie Grafik i Opisów w paczce ZIP są bezpłatne.</li>
             <li>
               Opis oferty jest bezpłatnym dodatkiem do zdjęcia, dla którego wygenerowano co najmniej jedną Grafikę. Dla każdego zdjęcia Użytkownik otrzymuje {PRICING.descriptionPromptEdits}{' '}
               bezpłatnych poprawek Opisu wykonywanych przez AI na podstawie jego polecenia (ponowne wygenerowanie Opisu od nowa jest liczone jako poprawka). Kolejne pakiety po{' '}
@@ -105,7 +116,10 @@ export default function RegulaminContent() {
               natychmiastowego udostępnienia Kredytów i przyjął do wiadomości utratę prawa odstąpienia – zgoda ta jest zbierana w formularzu zakupu. W razie skutecznego odstąpienia Usługodawca zwraca
               cenę w terminie 14 dni, pomniejszoną proporcjonalnie o wartość Kredytów wykorzystanych do chwili odstąpienia.
             </li>
-            <li>Na życzenie Użytkownika Usługodawca wystawia fakturę; dane do faktury należy przesłać na adres {LEGAL_ENTITY.email} w ciągu 7 dni od zakupu.</li>
+            <li>
+              Do każdej płatności wystawiana jest faktura. Użytkownik będący przedsiębiorcą podaje nazwę firmy, adres i NIP w formularzu płatności; faktura jest dostępna w historii transakcji w
+              Serwisie. Korektę danych na fakturze można zgłosić na adres {LEGAL_ENTITY.email}.
+            </li>
             <li>
               <strong>Abonament.</strong> Użytkownik może wykupić plan miesięczny, w ramach którego na początku każdego okresu rozliczeniowego otrzymuje określoną w cenniku liczbę Kredytów. Opłata
               pobierana jest z góry za każdy miesiąc przez Stripe. Abonament odnawia się automatycznie do czasu jego anulowania, które jest możliwe w każdej chwili w panelu zarządzania subskrypcją;

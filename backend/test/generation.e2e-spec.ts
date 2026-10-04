@@ -30,9 +30,15 @@ describe('Generation & credits (integration)', () => {
   it('[AC-GEN-001] exposes the style catalogue with a 3-style starter batch', async () => {
     const { token } = await registerUser(ctx);
     const res = await ctx.http().get('/api/generation/styles').set('Authorization', `Bearer ${token}`).expect(200);
-    expect(res.body.styles).toHaveLength(6);
+    expect(res.body.styles).toHaveLength(19);
     expect(res.body.defaultStyleIds).toEqual(['white-bg', 'lifestyle-home', 'dark-luxury']);
     expect(res.body.styles[0]).not.toHaveProperty('prompt');
+    expect(res.body.styles[0]).not.toHaveProperty('season');
+    const christmas = res.body.styles.find((s: any) => s.id === 'christmas');
+    expect(christmas).toMatchObject({ category: 'seasonal', inSeason: expect.any(Boolean) });
+    expect(new Set(res.body.styles.map((s: any) => s.category))).toEqual(
+      new Set(['universal', 'seasonal', 'industry']),
+    );
   });
 
   it('[AC-GEN-002, AC-PRC-002] generates the starter batch (3 styles) by default and charges 3 free credits', async () => {

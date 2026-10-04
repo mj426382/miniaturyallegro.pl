@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { canonicalEmail } from '../auth/email-canonical';
 import { StorageService } from '../images/storage.service';
 import { GeminiService } from '../generation/gemini.service';
 import { getStyle } from '../generation/styles';
@@ -97,7 +98,9 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
     const ipHash = sha256(`${params.ip}|${this.ipSalt}`);
     const [byIp, byEmail] = await Promise.all([
       this.prisma.demoRequest.count({ where: { ipHash, createdAt: { gte: new Date(Date.now() - DAY_MS) } } }),
-      this.prisma.demoRequest.count({ where: { email: params.email } }),
+      this.prisma.demoRequest.count({
+        where: { OR: [{ emailCanonical: canonicalEmail(params.email) }, { email: params.email }] },
+      }),
     ]);
     if (byEmail >= MAX_PER_EMAIL) {
       throw new ConflictException(
@@ -115,7 +118,14 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
     const { url: imageKey } = await this.storage.uploadFile(params.buffer, 'demo.jpg', params.mimeType, 'demo');
 
     const request = await this.prisma.demoRequest.create({
-      data: { email: params.email, ipHash, imageKey, marketingOk: params.marketingOk, status: 'PENDING' },
+      data: {
+        email: params.email,
+        emailCanonical: canonicalEmail(params.email),
+        ipHash,
+        imageKey,
+        marketingOk: params.marketingOk,
+        status: 'PENDING',
+      },
     });
 
     this.process(request.id, params.buffer, params.mimeType, style.id).catch((err) =>

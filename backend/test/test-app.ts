@@ -69,13 +69,21 @@ export function uniqueEmail(prefix = 'user'): string {
 
 export const STRONG_PASSWORD = 'Str0ng!Passw0rd';
 
-export async function registerUser(ctx: TestContext, email = uniqueEmail()) {
+/**
+ * Registers through the API. By default the account is then marked as verified (as if the owner clicked
+ * the link from the e-mail, spec 13) so feature tests can generate; pass `{ verified: false }` to test the gate.
+ */
+export async function registerUser(ctx: TestContext, email = uniqueEmail(), options: { verified?: boolean } = {}) {
   const res = await ctx
     .http()
     .post('/api/auth/register')
     .send({ email, password: STRONG_PASSWORD, name: 'Test User', acceptedTerms: true })
     .expect(201);
-  return { email, token: res.body.token as string, userId: res.body.user.id as string };
+  const userId = res.body.user.id as string;
+  if (options.verified !== false) {
+    await ctx.prisma.user.update({ where: { id: userId }, data: { emailVerifiedAt: new Date() } });
+  }
+  return { email, token: res.body.token as string, userId };
 }
 
 export async function uploadImage(ctx: TestContext, token: string) {

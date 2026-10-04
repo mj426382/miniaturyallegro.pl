@@ -100,6 +100,7 @@ describe('Auth & users (integration)', () => {
   describe('password reset', () => {
     it('[AC-AUTH-007] sends a single-use reset link and allows setting a new password', async () => {
       const { email } = await registerUser(ctx);
+      ctx.mail.sent = []; // drop the sign-up verification e-mail (spec 13)
 
       await ctx.http().post('/api/auth/forgot-password').send({ email }).expect(200);
       // Unknown e-mail: same response, no mail.

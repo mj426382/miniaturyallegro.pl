@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CheckCircleIcon, CreditCardIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import type { GenerationStyleInfo } from '../../services/api'
+import { groupStartsOpen, groupStyles } from '../../utils/styles'
 
 interface Props {
   styles: GenerationStyleInfo[]
@@ -62,25 +63,60 @@ export default function StylePicker({
           : 'Zacznij od 3 najbardziej uniwersalnych stylów (zaznaczone). Pozostałe możesz dogenerować później – płacisz tylko za to, co wybierzesz.'}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
-        {styles.map((style) => {
-          const checked = selectedStyles.includes(style.id)
-          const done = generatedStyleIds.has(style.id)
+      <div className="space-y-3 mb-4">
+        {groupStyles(styles).map((group) => {
+          const grid = (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {group.styles.map((style) => {
+                const checked = selectedStyles.includes(style.id)
+                const done = generatedStyleIds.has(style.id)
+                return (
+                  <label
+                    key={style.id}
+                    className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${checked ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => onToggle(style.id)}
+                      disabled={locked}
+                      className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-2 text-sm font-medium text-gray-800">
+                        {style.name}
+                        {style.starter && !hasResults && <span className="text-[10px] uppercase tracking-wide bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">start</span>}
+                        {style.inSeason && <span className="text-[10px] uppercase tracking-wide bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Teraz</span>}
+                        {done && <CheckCircleIcon className="h-4 w-4 text-green-500" title="Już wygenerowano" />}
+                      </span>
+                      <span className="block text-xs text-gray-600 mt-0.5">{style.description}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          )
+          if (group.id === 'universal') {
+            return (
+              <div key={group.id}>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">{group.label}</p>
+                {grid}
+              </div>
+            )
+          }
+          const selectedHere = group.styles.filter((s) => selectedStyles.includes(s.id)).length
           return (
-            <label
-              key={style.id}
-              className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${checked ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-            >
-              <input type="checkbox" checked={checked} onChange={() => onToggle(style.id)} disabled={locked} className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-              <span className="min-w-0">
-                <span className="flex items-center gap-2 text-sm font-medium text-gray-800">
-                  {style.name}
-                  {style.starter && !hasResults && <span className="text-[10px] uppercase tracking-wide bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">start</span>}
-                  {done && <CheckCircleIcon className="h-4 w-4 text-green-500" title="Już wygenerowano" />}
-                </span>
-                <span className="block text-xs text-gray-600 mt-0.5">{style.description}</span>
-              </span>
-            </label>
+            <details key={group.id} open={groupStartsOpen(group, selectedStyles)} className="group rounded-lg border border-gray-200">
+              <summary className="cursor-pointer select-none px-3 py-2.5 text-sm font-medium text-gray-800 flex items-center gap-2">
+                {group.label}
+                <span className="text-xs font-normal text-gray-500">({group.styles.length})</span>
+                {selectedHere > 0 && <span className="text-xs font-normal text-blue-700">wybrane: {selectedHere}</span>}
+              </summary>
+              <div className="px-3 pb-3">
+                {group.hint && <p className="help-text mb-2">{group.hint}</p>}
+                {grid}
+              </div>
+            </details>
           )
         })}
       </div>

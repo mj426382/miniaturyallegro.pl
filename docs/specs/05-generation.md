@@ -4,13 +4,21 @@
 |---|---|
 | Status | Accepted |
 | Właściciel | Mateusz Janduła |
-| Data | 2026-10-03 |
+| Data | 2026-10-04 |
 | Powiązane | FR-GEN-001, FR-ADM-001, 02, NFR-PERF-003..005, NFR-REL-001, ADR-0002 |
 
 ## 1. Decyzje
 
-- 6 stylów; 3 `starter` (białe tło, lifestyle, ciemny luksus) to domyślny zestaw. Użytkownik wybiera
-  dowolny podzbiór; po zakończeniu partii zaznaczone są style jeszcze niewygenerowane, a panel wyboru
+- 19 stylów w trzech kategoriach: **uniwersalne** (6, w tym 3 `starter`: białe tło, lifestyle, ciemny
+  luksus – domyślny zestaw), **sezonowe** (5: Boże Narodzenie, Black Friday, Walentynki, Wielkanoc, Lato)
+  i **branżowe** (8: moda, elektronika, kosmetyki, dom i ogród, dziecięce, sport, motoryzacja, żywność).
+  Styl sezonowy ma okno dat (`MM-DD`–`MM-DD`, także przez Nowy Rok); w swoim sezonie API zwraca
+  `inSeason=true`, a UI pokazuje go na początku grupy z etykietą „Teraz”. Wszystkie style są dostępne
+  cały rok. Grupa sezonowa ma podpowiedź: „Na zdjęcia dodatkowe i kampanie – zdjęcie główne zostaw
+  na białym tle”. Style sezonowe i branżowe nie dodają tekstu ani cyfr (zasady Allegro i jakość modelu).
+  Masowe przesyłanie pokazuje te same grupy. Użytkownik wybiera
+  dowolny podzbiór; po zakończeniu partii zaznaczone są jeszcze niewygenerowane style uniwersalne (sezonowe i
+  branżowe wybiera się świadomie, żeby domyślna partia nie była droga), a panel wyboru
   zwija się, żeby wyniki były na wierzchu.
 - Pipeline: opis produktu z OpenAI (raz na zdjęcie, cache), prompty stylów w jednym wywołaniu JSON,
   obraz z Gemini 2.5 Flash Image z angielskimi regułami integralności produktu; współbieżność ograniczona
@@ -31,7 +39,7 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 
 ## 3. Kryteria akceptacji
 
-- **AC-GEN-001** – Given katalog stylów, When pobrany, Then zawiera 6 stylów i 3 identyfikatory startowe.
+- **AC-GEN-001** – Given katalog stylów, When pobrany, Then zawiera 19 stylów (6 uniwersalnych, 5 sezonowych, 8 branżowych) z unikalnymi id, kategorią i 3 identyfikatory startowe.
 - **AC-GEN-002** – Given zdjęcie, When start bez listy stylów, Then powstają 3 generacje startowe i pobierane są 3 kredyty.
 - **AC-GEN-003** – Given zdjęcie z opisem w cache, When start kolejnych stylów, Then opis nie jest tworzony ponownie, a nowe generacje kończą się sukcesem.
 - **AC-GEN-004** – Given równoległe starty, When suma generacji w toku przekroczyłaby 30, Then nadmiarowe dostają 429, a kredyty nie są pobierane.
@@ -52,4 +60,7 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 - **AC-GEN-019** – Given semafor współbieżności, When zadanie rzuci wyjątek, Then slot jest zwalniany.
 - **AC-GEN-020** – (opt-in, prawdziwe API) Given klucze, When pełny pipeline, Then powstaje dekodowalny kwadratowy obraz.
 - **AC-GEN-021** – Given generator w UI, When użytkownik użyje własnego stylu, ponowi nieudaną grafikę i oceni gotową, Then wywołane są właściwe endpointy, a usuwanie zdjęcia jest zablokowane w trakcie generowania.
+- **AC-GEN-022** – Given okno sezonu (również przechodzące przez Nowy Rok), When data w oknie lub poza nim, Then `inSeason` jest odpowiednio `true`/`false`; style niesezonowe nigdy nie są „w sezonie”.
+- **AC-GEN-023** – Given każdy styl sezonowy i branżowy, When prompt jest budowany, Then jest po angielsku, zakazuje tekstu, cyfr i logo oraz zawiera reguły integralności produktu.
+- **AC-GEN-024** – Given generator i masowe przesyłanie, When lista stylów, Then style są pogrupowane (Uniwersalne, Sezonowe, Branżowe), styl w sezonie jest pierwszy w grupie z etykietą „Teraz”, a zaznaczenie stylu sezonowego wlicza się do kosztu; po partii domyślnie zaznaczone są tylko brakujące style uniwersalne.
 - **AC-ADM-001** – Given endpointy admina, When wywołane przez konto spoza `ADMIN_EMAILS`, Then 403; dla admina zwracają przegląd operacyjny.

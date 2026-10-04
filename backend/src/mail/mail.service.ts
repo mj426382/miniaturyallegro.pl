@@ -49,7 +49,7 @@ export class MailService {
     if (!this.transporter) {
       // Never log the full body in production – it may contain reset links.
       if (process.env.NODE_ENV === 'production') {
-        this.logger.warn(`Mail not sent (SMTP not configured): "${message.subject}" to ${message.to}`);
+        this.logger.warn(`Mail not sent (SMTP not configured): "${message.subject}"`);
       } else {
         this.logger.log(`[DEV MAIL] to=${message.to} subject="${message.subject}"\n${message.text}`);
       }

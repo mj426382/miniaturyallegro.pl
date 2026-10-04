@@ -9,6 +9,7 @@ import {
   BadRequestException,
   Req,
   RawBodyRequest,
+  Param,
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -76,6 +77,15 @@ export class PaymentsController {
   @ApiOperation({ summary: 'Get payment transaction history' })
   async getHistory(@CurrentUser() user: SessionUser) {
     return this.paymentsService.getTransactionHistory(user.userId);
+  }
+
+  @Get('invoices/:transactionId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Fresh link to the Stripe invoice PDF of an own payment (404 when there is none)' })
+  async getInvoice(@CurrentUser() user: SessionUser, @Param('transactionId') transactionId: string) {
+    return this.paymentsService.getInvoiceUrl(user.userId, transactionId);
   }
 
   // Stripe retries webhooks aggressively; the per-IP throttle must not reject them.

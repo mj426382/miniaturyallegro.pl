@@ -39,11 +39,17 @@ api.interceptors.response.use(
 
 export default api
 
+export type StyleCategory = 'universal' | 'seasonal' | 'industry'
+
 export interface GenerationStyleInfo {
   id: string
   name: string
   description: string
   starter: boolean
+  /** Older API responses have no category – treated as universal. */
+  category?: StyleCategory
+  /** Seasonal styles in their season are promoted ("Teraz"). */
+  inSeason?: boolean
 }
 
 export interface StylesResponse {
@@ -60,6 +66,8 @@ export const authApi = {
   resetPassword: (token: string, password: string) => api.post('/auth/reset-password', { token, password }),
   changePassword: (currentPassword: string, newPassword: string) => api.post('/auth/change-password', { currentPassword, newPassword }),
   logout: () => api.post('/auth/logout'),
+  verifyEmail: (token: string) => api.post<{ verified: true; alreadyVerified?: boolean }>('/auth/verify-email', { token }),
+  resendVerification: () => api.post<{ sent?: boolean; alreadyVerified?: boolean }>('/auth/resend-verification'),
 }
 
 // Users
@@ -128,6 +136,29 @@ export const generationApi = {
   getById: (id: string) => api.get(`/generation/result/${id}`),
   retryGeneration: (id: string) => api.post(`/generation/retry/${id}`),
   downloadGeneration: (id: string) => api.get(`/generation/download/${id}`, { responseType: 'blob' }),
+  /** Finished graphics + offer descriptions of the given photos as one ZIP (spec 15). */
+  downloadZip: (imageIds: string[]) => api.post<Blob>('/generation/zip', { imageIds }, { responseType: 'blob' }),
+}
+
+// Infographics (spec 14)
+export interface InfographicFeature {
+  icon: string
+  text: string
+}
+
+export interface InfographicOptions {
+  template: 'features' | 'dimensions'
+  title?: string
+  features?: InfographicFeature[]
+  dimensions?: { width?: number; height?: number; depth?: number; unit: 'mm' | 'cm' | 'm'; weight?: number; weightUnit?: 'g' | 'kg' }
+  theme?: 'light' | 'dark'
+  accent?: 'red' | 'orange' | 'green' | 'blue' | 'black'
+  format?: 'png' | 'jpeg'
+}
+
+export const infographicApi = {
+  icons: () => api.get<Array<{ id: string; name: string }>>('/generation/infographic-icons'),
+  render: (generationId: string, options: InfographicOptions) => api.post<Blob>(`/generation/infographic/${generationId}`, options, { responseType: 'blob' }),
 }
 
 export type FeedbackReason = 'product-changed' | 'artifacts' | 'wrong-style' | 'composition' | 'text-or-logo' | 'other'
@@ -221,6 +252,8 @@ export const paymentsApi = {
   portal: () => api.post('/payments/portal'),
   getSubscription: () => api.get<{ subscription: SubscriptionInfo | null }>('/payments/subscription'),
   getHistory: () => api.get('/payments/history'),
+  /** Fresh link to the Stripe invoice PDF of a payment (spec 09). */
+  invoiceUrl: (transactionId: string) => api.get<{ url: string }>(`/payments/invoices/${transactionId}`),
 }
 
 // Allegro
@@ -240,4 +273,6 @@ export const allegroApi = {
   offers: (params: { offset?: number; limit?: number; name?: string } = {}) => api.get<{ offers: AllegroOffer[]; total: number }>('/allegro/offers', { params }),
   importOffer: (offerId: string) => api.post<{ id: string; offerId: string; offerName: string | null }>(`/allegro/offers/${offerId}/import`),
   publish: (offerId: string, generationId: string, position: 'first' | 'last') => api.post(`/allegro/offers/${offerId}/publish`, { generationId, position }),
+  /** Sends the photo's offer title/description to the offer (spec 08). */
+  publishDescription: (offerId: string, imageId: string, mode: 'replace' | 'prepend', updateTitle: boolean) => api.post(`/allegro/offers/${offerId}/description`, { imageId, mode, updateTitle }),
 }

@@ -8,7 +8,9 @@ import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GenerationService } from './generation.service';
 import { CustomGenerationDto, StartGenerationDto } from './generation.dto';
-import { ExportDto, FeedbackDto } from './feedback.dto';
+import { ExportDto, FeedbackDto, InfographicDto, ZipDto } from './feedback.dto';
+import { INFOGRAPHIC_ICONS } from './infographic.service';
+import { ZipService } from './zip.service';
 import { imageMimeFilter, MAX_UPLOAD_BYTES, validateImageBuffer } from '../images/image-validation';
 import { UploadedImageFile } from '../types/uploaded-file';
 
@@ -17,7 +19,10 @@ import { UploadedImageFile } from '../types/uploaded-file';
 @UseGuards(JwtAuthGuard)
 @Controller('generation')
 export class GenerationController {
-  constructor(private generationService: GenerationService) {}
+  constructor(
+    private generationService: GenerationService,
+    private zipService: ZipService,
+  ) {}
 
   @Get('styles')
   @ApiOperation({ summary: 'Available styles and the default (starter) batch' })
@@ -114,6 +119,48 @@ export class GenerationController {
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="grafika-${safeStyle}-${ratio}.${extension}"`);
     res.send(buffer);
+  }
+
+  @Get('infographic-icons')
+  @ApiOperation({ summary: 'Icons available for infographic features' })
+  getInfographicIcons() {
+    return Object.entries(INFOGRAPHIC_ICONS).map(([id, icon]) => ({ id, name: icon.name }));
+  }
+
+  @Post('infographic/:id')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: 'Render a free infographic (features or dimensions) from a finished graphic' })
+  async renderInfographic(
+    @Param('id') id: string,
+    @Body() dto: InfographicDto,
+    @CurrentUser() user: SessionUser,
+    @Res() res: ExpressResponse,
+  ) {
+    const { buffer, contentType, extension, style } = await this.generationService.renderInfographic(
+      id,
+      user.userId,
+      dto,
+    );
+    const safeStyle = style.replace(/[^a-z0-9-]/gi, '');
+    res.setHeader('Content-Type', contentType);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="infografika-${dto.template}-${safeStyle}.${extension}"`,
+    );
+    res.send(buffer);
+  }
+
+  @Post('zip')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: 'Download finished graphics and offer descriptions of the given photos as one ZIP' })
+  async downloadZip(@Body() dto: ZipDto, @CurrentUser() user: SessionUser, @Res() res: ExpressResponse) {
+    // Validation and ownership are checked before any byte is sent, so errors still come back as JSON.
+    const plan = await this.zipService.plan(user.userId, dto.imageIds);
+    const date = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="allgrafika-${date}.zip"`);
+    res.setHeader('Cache-Control', 'no-store');
+    await this.zipService.stream(plan, res);
   }
 
   @Get(':imageId/results')

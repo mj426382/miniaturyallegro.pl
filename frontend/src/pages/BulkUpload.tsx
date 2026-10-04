@@ -7,7 +7,20 @@ import toast from 'react-hot-toast'
 import { track } from '../services/analytics'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { describeRejection } from '../utils/dropzone'
-import { ArrowUpTrayIcon, PhotoIcon, CheckCircleIcon, ExclamationCircleIcon, SparklesIcon, XMarkIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
+import BulkDescriptionsModal, { BulkPhoto } from '../components/BulkDescriptionsModal'
+import { useZipDownload } from '../hooks/useZipDownload'
+import { groupStartsOpen, groupStyles } from '../utils/styles'
+import {
+  ArrowUpTrayIcon,
+  PhotoIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  SparklesIcon,
+  XMarkIcon,
+  ArrowTopRightOnSquareIcon,
+  ArchiveBoxArrowDownIcon,
+  DocumentTextIcon,
+} from '@heroicons/react/24/outline'
 
 type FileStatus = 'queued' | 'uploading' | 'generating' | 'done' | 'error'
 /** upload: store only; shared: one style set for the batch; perFile: each photo picks its own. */
@@ -43,6 +56,10 @@ export default function BulkUpload() {
   const [styles, setStyles] = useState<GenerationStyleInfo[]>([])
   const [defaultStyleIds, setDefaultStyleIds] = useState<string[]>([])
   const [sharedStyles, setSharedStyles] = useState<string[]>([])
+  /** Mode of the last finished batch – decides which follow-up actions make sense. */
+  const [lastRunMode, setLastRunMode] = useState<Mode | null>(null)
+  const [bulkPhotos, setBulkPhotos] = useState<BulkPhoto[] | null>(null)
+  const zip = useZipDownload()
 
   useEffect(() => {
     generationApi
@@ -136,6 +153,7 @@ export default function BulkUpload() {
     }
 
     setIsRunning(false)
+    setLastRunMode(snapshotMode)
     track('upload', { source: 'bulk', files: queued.length, mode: snapshotMode })
     refreshUser().catch(() => undefined)
     toast.success(snapshotMode === 'upload' ? 'Zdjęcia przesłane. Style wybierzesz z galerii dla każdego produktu.' : 'Wszystkie pliki zostały przetworzone!')
@@ -196,19 +214,42 @@ export default function BulkUpload() {
       {mode === 'shared' && styles.length > 0 && (
         <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm font-medium text-gray-700 mb-2">Style dla całej partii</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {styles.map((s) => (
-              <label key={s.id} className={`flex items-start gap-2 rounded-lg border p-2.5 cursor-pointer ${sharedStyles.includes(s.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
-                <input type="checkbox" checked={sharedStyles.includes(s.id)} onChange={() => toggleShared(s.id)} disabled={isRunning} className="mt-0.5" />
-                <span>
-                  <span className="text-sm text-gray-800">
-                    {s.name}
-                    {s.starter && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">start</span>}
-                  </span>
-                  <span className="block text-xs text-gray-600">{s.description}</span>
-                </span>
-              </label>
-            ))}
+          <div className="space-y-3">
+            {groupStyles(styles).map((group) => {
+              const grid = (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {group.styles.map((s) => (
+                    <label key={s.id} className={`flex items-start gap-2 rounded-lg border p-2.5 cursor-pointer ${sharedStyles.includes(s.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                      <input type="checkbox" checked={sharedStyles.includes(s.id)} onChange={() => toggleShared(s.id)} disabled={isRunning} className="mt-0.5" />
+                      <span>
+                        <span className="text-sm text-gray-800">
+                          {s.name}
+                          {s.starter && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">start</span>}
+                          {s.inSeason && <span className="ml-1.5 text-[10px] uppercase tracking-wide text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">Teraz</span>}
+                        </span>
+                        <span className="block text-xs text-gray-600">{s.description}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )
+              return group.id === 'universal' ? (
+                <div key={group.id}>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">{group.label}</p>
+                  {grid}
+                </div>
+              ) : (
+                <details key={group.id} open={groupStartsOpen(group, sharedStyles)} className="rounded-lg border border-gray-200">
+                  <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-gray-800">
+                    {group.label} <span className="text-xs font-normal text-gray-500">({group.styles.length})</span>
+                  </summary>
+                  <div className="px-3 pb-3">
+                    {group.hint && <p className="help-text mb-2">{group.hint}</p>}
+                    {grid}
+                  </div>
+                </details>
+              )
+            })}
           </div>
         </div>
       )}
@@ -277,20 +318,34 @@ export default function BulkUpload() {
                     )}
                   </div>
                   {mode === 'perFile' && item.status === 'queued' && (
-                    <div className="flex flex-wrap gap-1.5 mt-2 pl-[60px]">
-                      {styles.map((s) => {
-                        const on = item.styles.includes(s.id)
-                        return (
-                          <button
-                            key={s.id}
-                            type="button"
-                            onClick={() => toggleFileStyle(item.id, s.id)}
-                            disabled={isRunning}
-                            aria-pressed={on}
-                            className={`text-xs px-2 py-1 rounded-full border transition-colors ${on ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
-                          >
-                            {s.name}
-                          </button>
+                    <div className="mt-2 pl-[60px] space-y-1.5">
+                      {groupStyles(styles).map((group) => {
+                        const chips = (
+                          <div className="flex flex-wrap gap-1.5">
+                            {group.styles.map((s) => {
+                              const on = item.styles.includes(s.id)
+                              return (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  onClick={() => toggleFileStyle(item.id, s.id)}
+                                  disabled={isRunning}
+                                  aria-pressed={on}
+                                  className={`text-xs px-2 py-1 rounded-full border transition-colors ${on ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                                >
+                                  {s.name}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )
+                        return group.id === 'universal' ? (
+                          <div key={group.id}>{chips}</div>
+                        ) : (
+                          <details key={group.id} open={groupStartsOpen(group, item.styles)}>
+                            <summary className="cursor-pointer select-none text-xs text-gray-600">{group.label}</summary>
+                            <div className="mt-1.5">{chips}</div>
+                          </details>
                         )
                       })}
                     </div>
@@ -363,12 +418,35 @@ export default function BulkUpload() {
                     </Link>
                   ))}
               </div>
+              {lastRunMode && lastRunMode !== 'upload' && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <button
+                    type="button"
+                    onClick={() => zip.download(files.filter((f) => f.status === 'done' && f.imageId).map((f) => f.imageId!))}
+                    disabled={zip.isPreparing}
+                    className="btn-secondary text-sm flex items-center gap-1.5"
+                  >
+                    <ArchiveBoxArrowDownIcon className="h-4 w-4" />
+                    {zip.isPreparing ? 'Przygotowuję...' : 'Pobierz wszystko (ZIP)'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBulkPhotos(files.filter((f) => f.status === 'done' && f.imageId).map((f) => ({ id: f.imageId!, label: f.file.name })))}
+                    className="btn-primary text-sm flex items-center gap-1.5"
+                  >
+                    <DocumentTextIcon className="h-4 w-4" />
+                    Napisz opisy dla wszystkich
+                  </button>
+                </div>
+              )}
+              {lastRunMode && lastRunMode !== 'upload' && <p className="help-text mt-2">Paczka zawiera grafiki gotowe w chwili pobrania – resztę dopakujesz później z galerii.</p>}
             </div>
           )}
         </>
       )}
 
       {files.length === 0 && <div className="text-center py-8 text-gray-500 text-sm">Brak wybranych plików. Przeciągnij zdjęcia lub kliknij w strefę powyżej.</div>}
+      {bulkPhotos && <BulkDescriptionsModal photos={bulkPhotos} onClose={() => setBulkPhotos(null)} />}
     </div>
   )
 }

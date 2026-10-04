@@ -253,7 +253,7 @@ export default function DemoWidget() {
                 <a href={`${APP_URL}/register`} onClick={() => track('demo_register_click')} className="inline-block bg-yellow-400 text-gray-900 font-bold px-6 py-3 rounded-xl hover:bg-yellow-300">
                   Załóż konto – 10 grafik gratis →
                 </a>
-                <p className="text-xs text-gray-400 mt-3">W aplikacji wygenerujesz wszystkie 6 stylów, własne sceny i opublikujesz grafiki prosto do oferty Allegro.</p>
+                <p className="text-xs text-gray-400 mt-3">W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny i opublikujesz grafiki prosto do oferty Allegro.</p>
               </div>
             </div>
           ) : phase === 'slow' ? (

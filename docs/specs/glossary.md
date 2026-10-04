@@ -18,3 +18,8 @@
 | **Demo** | Jednorazowa generacja bez konta na landingu (limit per e-mail i IP). |
 | **Sesja** | JWT w cookie `ag_session` (httpOnly) + nagłówek `X-Requested-With` jako ochrona CSRF. |
 | **Landing** | Statyczna strona allgrafika.pl (SSG, blog, cennik). **Aplikacja** = app.allgrafika.pl (panel). |
+| **Adres kanoniczny** | Postać adresu e-mail do wykrywania duplikatów: małe litery, bez aliasu `+`, w Gmailu bez kropek (13) |
+| **Konto potwierdzone** | Konto, którego właściciel kliknął link z maila albo zalogował się przez Google; tylko ono generuje i płaci (13) |
+| **Infografika** | Zdjęcie dodatkowe oferty z cechami i ikonami albo wymiarami, renderowane z grafiki bez AI (14) |
+| **Styl sezonowy** | Styl z oknem dat (np. Boże Narodzenie), w sezonie wyróżniony etykietą „Teraz” (05) |
+| **Paczka ZIP** | Archiwum grafik i opisów zaznaczonych zdjęć (15) |

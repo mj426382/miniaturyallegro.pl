@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { AllegroService } from './allegro.service';
+import { AllegroService, DescriptionPublishMode } from './allegro.service';
 
 class CallbackDto {
   @IsString()
@@ -48,6 +48,20 @@ class PublishDto {
   @IsOptional()
   @IsIn(['first', 'last'])
   position?: 'first' | 'last';
+}
+
+class PublishDescriptionDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(64)
+  imageId: string;
+
+  @IsIn(['replace', 'prepend'], { message: 'Wybierz: zastąp opis albo dodaj na początku' })
+  mode: DescriptionPublishMode;
+
+  @IsOptional()
+  @IsBoolean()
+  updateTitle?: boolean;
 }
 
 @ApiTags('allegro')
@@ -101,5 +115,16 @@ export class AllegroController {
   @ApiOperation({ summary: 'Publish a generated graphic to the offer (as main photo or appended to the gallery)' })
   publish(@CurrentUser() user: SessionUser, @Param('offerId') offerId: string, @Body() dto: PublishDto) {
     return this.allegro.publishGeneration(user.userId, offerId, dto.generationId, dto.position ?? 'first');
+  }
+
+  @Post('offers/:offerId/description')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({ summary: "Send the photo's offer title/description to the Allegro offer (replace or prepend)" })
+  publishDescription(
+    @CurrentUser() user: SessionUser,
+    @Param('offerId') offerId: string,
+    @Body() dto: PublishDescriptionDto,
+  ) {
+    return this.allegro.publishDescription(user.userId, offerId, dto.imageId, dto.mode, dto.updateTitle === true);
   }
 }

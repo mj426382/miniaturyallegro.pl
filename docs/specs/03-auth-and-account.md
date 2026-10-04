@@ -14,6 +14,8 @@ odzyskać i zmienić hasło, a także usunąć konto razem z danymi (RODO).
 
 ## 2. Decyzje
 
+- Kanoniczna postać adresu, potwierdzenie e-maila i blokada generowania do potwierdzenia: zob. [13](13-email-verification.md).
+
 - Sesja: JWT w cookie `ag_session` (httpOnly, Secure, SameSite=None w produkcji), 30 dni; każde żądanie
   z cookie musi mieć `X-Requested-With: XMLHttpRequest`. `Authorization: Bearer` działa dla skryptów.
 - Hasło: min. 8 znaków, wielka i mała litera, cyfra, znak specjalny, nie zawiera e-maila. bcrypt.

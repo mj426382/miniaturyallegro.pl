@@ -15,6 +15,8 @@ import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { RegisterDto, LoginDto, GoogleLoginDto } from './auth.dto';
+import { canonicalEmail } from './email-canonical';
+import { VERIFICATION_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from './email-verification';
 
 // 12 rounds in production; tests lower it via BCRYPT_ROUNDS to stay fast.
 const BCRYPT_ROUNDS = Math.min(14, Math.max(4, Number(process.env.BCRYPT_ROUNDS) || 12));
@@ -34,6 +36,8 @@ const COMMON_PASSWORDS = [
 ];
 
 const GENERIC_RESET_MESSAGE = 'Jeśli podany email istnieje w naszym systemie, wysłaliśmy link do resetowania hasła.';
+const DUPLICATE_EMAIL_MESSAGE =
+  'Konto z tym adresem email już istnieje. Adresy różniące się wielkością liter, kropkami (Gmail) albo dopiskiem „+…” traktujemy jako ten sam adres.';
 
 export function hashResetToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -59,10 +63,12 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const email = dto.email;
+    const emailCanonical = canonicalEmail(email);
 
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    // One account per mailbox: aliases (+tag, Gmail dots, letter case) count as the same address.
+    const existing = await this.prisma.user.findFirst({ where: { OR: [{ email }, { emailCanonical }] } });
     if (existing) {
-      throw new ConflictException('Konto z tym adresem email już istnieje');
+      throw new ConflictException(DUPLICATE_EMAIL_MESSAGE);
     }
 
     this.assertPasswordNotTrivial(dto.password, email);
@@ -74,6 +80,7 @@ export class AuthService {
       user = await this.prisma.user.create({
         data: {
           email,
+          emailCanonical,
           password: hashedPassword,
           name: dto.name || null,
           termsAcceptedAt: new Date(),
@@ -82,17 +89,22 @@ export class AuthService {
       });
     } catch (error: any) {
       // Two concurrent sign-ups with the same e-mail: the unique index wins the race.
-      if (error?.code === 'P2002') throw new ConflictException('Konto z tym adresem email już istnieje');
+      if (error?.code === 'P2002') throw new ConflictException(DUPLICATE_EMAIL_MESSAGE);
       throw error;
     }
 
     this.logger.log(`Nowy użytkownik zarejestrowany: ${user.id}`);
 
-    return { user, token: this.generateToken(user.id, user.email) };
+    // A mail failure must not break the sign-up – the user can resend the link from the banner.
+    await this.sendVerificationEmail(user).catch((err) =>
+      this.logger.error(`Nie udało się wysłać linku weryfikacyjnego do użytkownika ${user.id}: ${err?.message}`),
+    );
+
+    return { user: { ...user, emailVerified: false }, token: this.generateToken(user.id, user.email) };
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const user = await this.findByEmailOrAlias(dto.email);
 
     if (!user) {
       // Run a dummy compare so response timing does not reveal whether the e-mail exists.
@@ -149,7 +161,8 @@ export class AuthService {
 
     let user = await this.prisma.user.findUnique({ where: { googleId } });
     if (!user) {
-      user = await this.prisma.user.findUnique({ where: { email } });
+      // Google verified the mailbox, so an account on any alias of it is the same person.
+      user = await this.findByEmailOrAlias(email);
     }
 
     if (!user) {
@@ -165,12 +178,31 @@ export class AuthService {
         );
       }
       const name = [payload.given_name, payload.family_name].filter(Boolean).join(' ') || null;
-      user = await this.prisma.user.create({
-        data: { email, googleId, name, password: null, termsAcceptedAt: new Date() },
-      });
+      try {
+        user = await this.prisma.user.create({
+          data: {
+            email,
+            emailCanonical: canonicalEmail(email),
+            emailVerifiedAt: new Date(),
+            googleId,
+            name,
+            password: null,
+            termsAcceptedAt: new Date(),
+          },
+        });
+      } catch (error: any) {
+        if (error?.code === 'P2002') throw new ConflictException(DUPLICATE_EMAIL_MESSAGE);
+        throw error;
+      }
       this.logger.log(`Nowy użytkownik Google zarejestrowany: ${user.id}`);
-    } else if (!user.googleId) {
-      user = await this.prisma.user.update({ where: { id: user.id }, data: { googleId } });
+    } else if (!user.googleId || !user.emailVerifiedAt) {
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ...(user.googleId ? {} : { googleId }),
+          ...(user.emailVerifiedAt ? {} : { emailVerifiedAt: new Date() }),
+        },
+      });
       this.logger.log(`Połączono konto Google z istniejącym użytkownikiem: ${user.id}`);
     }
 
@@ -185,7 +217,7 @@ export class AuthService {
    * Always responds with the same message to prevent e-mail enumeration.
    */
   async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.findByEmailOrAlias(email);
     if (!user) {
       return { message: GENERIC_RESET_MESSAGE };
     }
@@ -274,6 +306,109 @@ export class AuthService {
     });
     this.logger.log(`Hasło zmienione przez użytkownika ${userId}`);
     return { message: 'Hasło zostało zmienione.', token: this.generateToken(user.id, user.email) };
+  }
+
+  // ─── E-mail verification (spec 13) ──────────────────────────────
+
+  /** Confirms the mailbox. Does not log in – the link may be opened on another device. */
+  async verifyEmail(rawToken: string) {
+    const record = await this.prisma.emailVerificationToken.findUnique({
+      where: { tokenHash: hashResetToken(rawToken) },
+      include: { user: { select: { id: true, emailVerifiedAt: true } } },
+    });
+    if (!record) throw new BadRequestException('Link weryfikacyjny jest nieprawidłowy lub wygasł');
+    // Re-opening the link after a successful confirmation is not an error for the user.
+    if (record.user.emailVerifiedAt) return { verified: true, alreadyVerified: true };
+    if (record.usedAt || record.expiresAt < new Date()) {
+      throw new BadRequestException('Link weryfikacyjny jest nieprawidłowy lub wygasł');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.user.updateMany({
+        where: { id: record.userId, emailVerifiedAt: null },
+        data: { emailVerifiedAt: new Date() },
+      }),
+      this.prisma.emailVerificationToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
+    ]);
+    this.logger.log(`Adres e-mail potwierdzony dla użytkownika ${record.userId}`);
+    return { verified: true };
+  }
+
+  async resendVerification(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, emailVerifiedAt: true },
+    });
+    if (!user) throw new UnauthorizedException();
+    if (user.emailVerifiedAt) return { alreadyVerified: true };
+
+    const last = await this.prisma.emailVerificationToken.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+    const waitMs = last ? last.createdAt.getTime() + VERIFICATION_RESEND_COOLDOWN_MS - Date.now() : 0;
+    if (waitMs > 0) {
+      throw new HttpException(
+        `Link wysłaliśmy przed chwilą. Sprawdź skrzynkę (także spam) albo spróbuj ponownie za ${Math.ceil(waitMs / 1000)} s.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    try {
+      await this.sendVerificationEmail(user);
+    } catch (err: any) {
+      this.logger.error(`Nie udało się wysłać linku weryfikacyjnego do użytkownika ${userId}: ${err?.message}`);
+      throw new HttpException(
+        'Nie udało się wysłać wiadomości. Spróbuj ponownie za kilka minut.',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+    return { sent: true };
+  }
+
+  /** Issues a fresh single-use link (older ones stop working) and e-mails it. */
+  private async sendVerificationEmail(user: { id: string; email: string }) {
+    const rawToken = randomBytes(32).toString('base64url');
+    await this.prisma.$transaction([
+      this.prisma.emailVerificationToken.updateMany({
+        where: { userId: user.id, usedAt: null },
+        data: { usedAt: new Date() },
+      }),
+      this.prisma.emailVerificationToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: hashResetToken(rawToken),
+          expiresAt: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+        },
+      }),
+    ]);
+
+    const frontendUrl = (this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173').replace(/\/$/, '');
+    const link = `${frontendUrl}/verify-email?token=${rawToken}`;
+    await this.mailService.send({
+      to: user.email,
+      subject: 'AllGrafika – potwierdź adres e-mail',
+      text: [
+        'Cześć,',
+        '',
+        'dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować 10 darmowych grafik:',
+        link,
+        '',
+        'Link jest ważny przez 24 godziny. Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.',
+      ].join('\n'),
+      html:
+        '<p>Cześć,</p><p>dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować 10 darmowych grafik.</p>' +
+        `<p><a href="${link}">Potwierdź adres e-mail</a> (link ważny przez 24 godziny).</p>` +
+        '<p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>',
+    });
+  }
+
+  /** Exact address first (legacy duplicates keep their own account), then any alias of the same mailbox. */
+  private async findByEmailOrAlias(email: string) {
+    const exact = await this.prisma.user.findUnique({ where: { email } });
+    if (exact) return exact;
+    return this.prisma.user.findUnique({ where: { emailCanonical: canonicalEmail(email) } });
   }
 
   private assertPasswordNotTrivial(password: string, email: string) {

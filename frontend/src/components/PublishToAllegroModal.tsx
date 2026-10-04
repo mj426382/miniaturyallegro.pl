@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { XMarkIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
-import { allegroApi, AllegroOffer } from '../services/api'
+import { allegroApi } from '../services/api'
 import { track } from '../services/analytics'
+import AllegroOfferPicker, { useAllegroOffers } from './AllegroOfferPicker'
 
 interface Props {
   generationId: string
@@ -14,13 +14,10 @@ interface Props {
 }
 
 export default function PublishToAllegroModal({ generationId, style, defaultOfferId, onClose }: Props) {
-  const [offers, setOffers] = useState<AllegroOffer[]>([])
-  const [query, setQuery] = useState('')
+  const offers = useAllegroOffers()
   const [selected, setSelected] = useState<string | null>(defaultOfferId ?? null)
   const [position, setPosition] = useState<'first' | 'last'>(style === 'white-bg' ? 'first' : 'last')
-  const [isLoading, setIsLoading] = useState(true)
   const [isPublishing, setIsPublishing] = useState(false)
-  const [connected, setConnected] = useState<boolean | null>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -29,25 +26,6 @@ export default function PublishToAllegroModal({ generationId, style, defaultOffe
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
-
-  const load = async (name = '') => {
-    setIsLoading(true)
-    try {
-      const status = await allegroApi.status()
-      setConnected(status.data.connected)
-      if (!status.data.connected) return
-      const { data } = await allegroApi.offers({ limit: 50, name: name.trim() || undefined })
-      setOffers(data.offers)
-    } catch {
-      toast.error('Nie udało się pobrać ofert z Allegro')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    load()
-  }, [])
 
   const publish = async () => {
     if (!selected) return
@@ -78,44 +56,10 @@ export default function PublishToAllegroModal({ generationId, style, defaultOffe
           </button>
         </div>
 
-        {connected === false ? (
-          <p className="text-sm text-gray-600">
-            Najpierw połącz konto Allegro w zakładce{' '}
-            <Link to="/allegro" className="text-blue-600 underline">
-              Allegro
-            </Link>
-            .
-          </p>
-        ) : (
-          <>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                load(query)
-              }}
-              className="flex gap-2 mb-3"
-            >
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Szukaj oferty" className="input-field text-sm" />
-              <button type="submit" className="btn-secondary text-sm">
-                Szukaj
-              </button>
-            </form>
-            <div className="flex-1 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100 min-h-[160px]">
-              {isLoading ? (
-                <p className="p-4 text-sm text-gray-500">Ładowanie ofert...</p>
-              ) : offers.length === 0 ? (
-                <p className="p-4 text-sm text-gray-500">Brak ofert.</p>
-              ) : (
-                offers.map((o) => (
-                  <label key={o.id} className={`flex items-center gap-3 p-2 cursor-pointer ${selected === o.id ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-                    <input type="radio" name="offer" checked={selected === o.id} onChange={() => setSelected(o.id)} />
-                    {o.primaryImage && <img src={o.primaryImage} alt="" className="h-10 w-10 rounded object-cover border border-gray-200" />}
-                    <span className="text-sm text-gray-800 line-clamp-2">{o.name}</span>
-                  </label>
-                ))
-              )}
-            </div>
+        <AllegroOfferPicker state={offers} selected={selected} onSelect={setSelected} />
 
+        {offers.connected !== false && (
+          <>
             <div className="mt-4 space-y-2">
               <label className="flex items-start gap-2 text-sm text-gray-700">
                 <input type="radio" name="position" checked={position === 'first'} onChange={() => setPosition('first')} className="mt-0.5" />

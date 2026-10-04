@@ -9,6 +9,7 @@ import { useConfirm } from '../hooks/useConfirm'
 import { track } from '../services/analytics'
 import { downloadBlob, shareBlob } from '../utils/download'
 import ExportModal from '../components/ExportModal'
+import InfographicModal from '../components/InfographicModal'
 import PublishToAllegroModal from '../components/PublishToAllegroModal'
 import OfferDescriptionPanel from '../components/OfferDescriptionPanel'
 import StylePicker from '../components/generate/StylePicker'
@@ -49,6 +50,7 @@ export default function Generate() {
   const [reworkingId, setReworkingId] = useState<string | null>(null)
   const [isRework, setIsRework] = useState(false)
   const [exportTarget, setExportTarget] = useState<Generation | null>(null)
+  const [infographicTarget, setInfographicTarget] = useState<Generation | null>(null)
   const [publishTarget, setPublishTarget] = useState<Generation | null>(null)
   const [pendingShare, setPendingShare] = useState<{ blob: Blob; name: string } | null>(null)
   /** Style picker collapses once results exist so they stay in view (phones especially). */
@@ -367,6 +369,7 @@ export default function Generate() {
               onPrefetch={() => prefetchBlob(gen.id)}
               onDownload={() => downloadImage(gen)}
               onExport={() => setExportTarget(gen)}
+              onInfographic={() => setInfographicTarget(gen)}
               onRework={() => startRework(gen)}
               reworking={reworkingId === gen.id}
               onPublish={allegroConnected ? () => setPublishTarget(gen) : undefined}
@@ -383,6 +386,8 @@ export default function Generate() {
             imageId={imageId!}
             hasCompletedGraphic={completedCount > 0}
             onCreditsChanged={() => refreshUser().catch(() => undefined)}
+            allegroConnected={allegroConnected}
+            defaultOfferId={image.allegroOfferId ?? null}
             onStateChange={(has) => {
               hasDescriptionRef.current = has
             }}
@@ -414,6 +419,7 @@ export default function Generate() {
       )}
 
       {exportTarget && exportTarget.url && <ExportModal generationId={exportTarget.id} styleName={exportTarget.style} previewUrl={exportTarget.url} onClose={() => setExportTarget(null)} />}
+      {infographicTarget && <InfographicModal generationId={infographicTarget.id} imageId={imageId!} styleName={infographicTarget.style} onClose={() => setInfographicTarget(null)} />}
       {publishTarget && <PublishToAllegroModal generationId={publishTarget.id} style={publishTarget.style} defaultOfferId={image.allegroOfferId ?? null} onClose={() => setPublishTarget(null)} />}
 
       {!hasResults && (

@@ -23,6 +23,7 @@ export class UsersService {
         credits: true,
         freeCreditsUsed: true,
         termsAcceptedAt: true,
+        emailVerifiedAt: true,
         createdAt: true,
         updatedAt: true,
         password: true,
@@ -36,7 +37,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     // The hash never leaves the service – the UI only needs to know whether a password exists (Google-only accounts have none).
-    const { password, ...safeUser } = user;
+    const { password, emailVerifiedAt, ...safeUser } = user;
 
     const totalGenerations = await this.prisma.generation.count({
       where: {
@@ -45,7 +46,7 @@ export class UsersService {
       },
     });
 
-    return { ...safeUser, hasPassword: Boolean(password), totalGenerations };
+    return { ...safeUser, emailVerified: Boolean(emailVerifiedAt), hasPassword: Boolean(password), totalGenerations };
   }
 
   async findByEmail(email: string) {

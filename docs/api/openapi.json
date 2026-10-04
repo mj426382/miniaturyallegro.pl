@@ -174,6 +174,54 @@
         ]
       }
     },
+    "/api/auth/verify-email": {
+      "post": {
+        "operationId": "AuthController_verifyEmail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{verified: true, alreadyVerified?: true}"
+          },
+          "400": {
+            "description": "Token nieprawidłowy lub wygasł"
+          }
+        },
+        "summary": "Confirm the e-mail address with the token from the verification link (public)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/resend-verification": {
+      "post": {
+        "operationId": "AuthController_resendVerification",
+        "parameters": [],
+        "responses": {
+          "429": {
+            "description": "Za wcześnie na kolejny link"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a new verification link (60 s cooldown); no-op for verified accounts",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/auth/forgot-password": {
       "post": {
         "operationId": "AuthController_forgotPassword",
@@ -569,6 +617,35 @@
         ]
       }
     },
+    "/api/payments/invoices/{transactionId}": {
+      "get": {
+        "operationId": "PaymentsController_getInvoice",
+        "parameters": [
+          {
+            "name": "transactionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fresh link to the Stripe invoice PDF of an own payment (404 when there is none)",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
     "/api/payments/webhook": {
       "post": {
         "operationId": "PaymentsController_handleWebhook",
@@ -822,6 +899,95 @@
           }
         ],
         "summary": "Export a finished graphic in a marketplace format (ratio, size, promo badge)",
+        "tags": [
+          "generation"
+        ]
+      }
+    },
+    "/api/generation/infographic-icons": {
+      "get": {
+        "operationId": "GenerationController_getInfographicIcons",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Icons available for infographic features",
+        "tags": [
+          "generation"
+        ]
+      }
+    },
+    "/api/generation/infographic/{id}": {
+      "post": {
+        "operationId": "GenerationController_renderInfographic",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfographicDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Render a free infographic (features or dimensions) from a finished graphic",
+        "tags": [
+          "generation"
+        ]
+      }
+    },
+    "/api/generation/zip": {
+      "post": {
+        "operationId": "GenerationController_downloadZip",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download finished graphics and offer descriptions of the given photos as one ZIP",
         "tags": [
           "generation"
         ]
@@ -1107,6 +1273,45 @@
           }
         ],
         "summary": "Publish a generated graphic to the offer (as main photo or appended to the gallery)",
+        "tags": [
+          "allegro"
+        ]
+      }
+    },
+    "/api/allegro/offers/{offerId}/description": {
+      "post": {
+        "operationId": "AllegroController_publishDescription",
+        "parameters": [
+          {
+            "name": "offerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishDescriptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send the photo's offer title/description to the Allegro offer (replace or prepend)",
         "tags": [
           "allegro"
         ]
@@ -1447,6 +1652,18 @@
           "newPassword"
         ]
       },
+      "VerifyEmailDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Token from the verification link"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
       "ForgotPasswordDto": {
         "type": "object",
         "properties": {
@@ -1717,6 +1934,146 @@
           }
         }
       },
+      "InfographicFeatureDto": {
+        "type": "object",
+        "properties": {
+          "icon": {
+            "type": "string",
+            "enum": [
+              "check",
+              "shield",
+              "truck",
+              "battery",
+              "water",
+              "leaf",
+              "star",
+              "ruler",
+              "weight",
+              "clock",
+              "bolt",
+              "heart",
+              "gift",
+              "recycle",
+              "thermometer",
+              "wireless",
+              "thumb",
+              "sparkles",
+              "box",
+              "lock"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 48
+          }
+        },
+        "required": [
+          "icon",
+          "text"
+        ]
+      },
+      "InfographicDimensionsDto": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "depth": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "mm",
+              "cm",
+              "m"
+            ]
+          },
+          "weight": {
+            "type": "number"
+          },
+          "weightUnit": {
+            "type": "string",
+            "enum": [
+              "g",
+              "kg"
+            ]
+          }
+        },
+        "required": [
+          "unit"
+        ]
+      },
+      "InfographicDto": {
+        "type": "object",
+        "properties": {
+          "template": {
+            "type": "string",
+            "enum": [
+              "features",
+              "dimensions"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfographicFeatureDto"
+            }
+          },
+          "dimensions": {
+            "$ref": "#/components/schemas/InfographicDimensionsDto"
+          },
+          "theme": {
+            "type": "string",
+            "enum": [
+              "light",
+              "dark"
+            ]
+          },
+          "accent": {
+            "type": "string",
+            "enum": [
+              "red",
+              "orange",
+              "green",
+              "blue",
+              "black"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpeg"
+            ]
+          }
+        },
+        "required": [
+          "template"
+        ]
+      },
+      "ZipDto": {
+        "type": "object",
+        "properties": {
+          "imageIds": {
+            "description": "Photos to pack, in the order of the folders (max 50)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "imageIds"
+        ]
+      },
       "CreateDemoDto": {
         "type": "object",
         "properties": {
@@ -1751,6 +2108,10 @@
         "properties": {}
       },
       "PublishDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "PublishDescriptionDto": {
         "type": "object",
         "properties": {}
       },

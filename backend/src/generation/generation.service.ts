@@ -16,8 +16,9 @@ import { StorageService } from '../images/storage.service';
 import { GeminiService } from './gemini.service';
 import { CreditsService } from './credits.service';
 import { ExportService, ExportOptions } from './export.service';
+import { InfographicOptions, InfographicService } from './infographic.service';
 import { detectMimeTypeFromUrl, prepareForAi } from '../images/image-prep';
-import { GENERATION_STYLES, GenerationStyle, getDefaultStyleIds, getStyle } from './styles';
+import { GENERATION_STYLES, GenerationStyle, getDefaultStyleIds, getStyle, isInSeason } from './styles';
 
 /** Max concurrent image generation requests to Gemini per batch */
 const MAX_CONCURRENT = 2;
@@ -47,6 +48,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     private storageService: StorageService,
     private credits: CreditsService,
     private exportService: ExportService,
+    private infographicService: InfographicService,
     configService: ConfigService,
   ) {
     this.defaultStyleIds = getDefaultStyleIds(configService.get<string>('DEFAULT_STYLE_IDS'));
@@ -99,7 +101,14 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
 
   getStyles() {
     return {
-      styles: GENERATION_STYLES.map(({ id, name, description, starter }) => ({ id, name, description, starter })),
+      styles: GENERATION_STYLES.map(({ id, name, description, starter, category, season }) => ({
+        id,
+        name,
+        description,
+        starter,
+        category,
+        inSeason: isInSeason({ season }),
+      })),
       defaultStyleIds: this.defaultStyleIds,
     };
   }
@@ -285,6 +294,17 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     const { buffer } = await this.storageService.getFileBuffer(generation.url);
     const exported = await this.exportService.exportImage(buffer, options);
     return { ...exported, style: generation.style || 'custom' };
+  }
+
+  /** Free infographic for an additional offer photo (spec 14) – rendered, never stored. */
+  async renderInfographic(id: string, userId: string, options: InfographicOptions) {
+    const generation = await this.getOwnedGeneration(id, userId);
+    if (generation.status !== 'COMPLETED' || !generation.url) {
+      throw new HttpException('Grafika nie jest jeszcze gotowa', HttpStatus.BAD_REQUEST);
+    }
+    const { buffer } = await this.storageService.getFileBuffer(generation.url);
+    const rendered = await this.infographicService.render(buffer, options);
+    return { ...rendered, style: generation.style || 'custom' };
   }
 
   // ─── Processing pipeline ──────────────────────────────────────────

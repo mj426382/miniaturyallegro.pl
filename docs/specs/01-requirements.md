@@ -15,12 +15,17 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | ID | Wymaganie | Spec |
 |---|---|---|
 | FR-AUTH-001 | Rejestracja e-mail+hasło z akceptacją regulaminu; logowanie; Google; reset i zmiana hasła; usunięcie konta | 03 |
+| FR-AUTH-002 | Jedno konto na skrzynkę: unikalność po kanonicznej postaci adresu (wielkość liter, kropki Gmaila, aliasy `+`) | 13 |
+| FR-AUTH-003 | Potwierdzenie adresu e-mail warunkiem generowania i płatności; maile z domeny allgrafika.pl | 13 |
 | FR-UPL-001 | Przesyłanie zdjęć pojedynczo i masowo z walidacją typu, rozmiaru i zawartości | 04 |
-| FR-GEN-001 | Generowanie grafik w stylach, własny styl, przeróbka, ponowienie, ocena | 05 |
+| FR-GEN-001 | Generowanie grafik w 19 stylach (uniwersalne, sezonowe, branżowe), własny styl, przeróbka, ponowienie, ocena | 05 |
 | FR-EXP-001 | Eksport w formatach Allegro z kadrem, obrotem, korektą i plakietką; pobieranie na telefonach | 06 |
 | FR-DESC-001 | Opis oferty pod SEO z poprawkami AI i edycją ręczną | 07 |
-| FR-ALG-001 | Połączenie konta Allegro, import zdjęć z ofert, publikacja grafik | 08 |
-| FR-PAY-001 | Pakiety kredytów i abonamenty przez Stripe, zgodnie z prawem konsumenckim | 09 |
+| FR-ALG-001 | Połączenie konta Allegro, import zdjęć z ofert, publikacja grafik i opisów (tytuł + opis) | 08 |
+| FR-PAY-001 | Pakiety kredytów i abonamenty przez Stripe, zgodnie z prawem konsumenckim; faktury z NIP-em | 09 |
+| FR-INF-001 | Darmowe infografiki (cechy z ikonami, wymiary) z ukończonej grafiki | 14 |
+| FR-BAT-001 | Paczka ZIP z grafikami i opisami wielu zdjęć | 15 |
+| FR-BAT-002 | Hurtowe pisanie opisów z postępem | 15 |
 | FR-SEO-001 | Landing SSG z blogiem, cennikiem, demo i stabilnymi adresami | 10 |
 | FR-ADM-001 | Panel operatora (przegląd, statystyki ocen, wyliczenie odstąpienia) dla `ADMIN_EMAILS` | 05 |
 

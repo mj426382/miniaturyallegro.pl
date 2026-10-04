@@ -22,7 +22,7 @@ import { decrypt, deriveKey, encrypt } from '../common/crypto';
  *   GET  /sale/offers                       – list seller's offers with primary image
  *   GET  /sale/product-offers/{id}          – offer details (current images)
  *   POST https://upload.allegro.pl/sale/images – register an image by URL
- *   PATCH /sale/product-offers/{id}         – replace the images list
+ *   PATCH /sale/product-offers/{id}         – replace the images list / title / description
  */
 export interface AllegroOfferSummary {
   id: string;
@@ -33,6 +33,9 @@ export interface AllegroOfferSummary {
 }
 
 const ALLEGRO_JSON = 'application/vnd.allegro.public.v1+json';
+/** Allegro accepts at most this many description sections. */
+export const ALLEGRO_MAX_DESCRIPTION_SECTIONS = 100;
+export type DescriptionPublishMode = 'replace' | 'prepend';
 const TOKEN_REFRESH_MARGIN_MS = 60_000;
 const STATE_TTL = '10m';
 
@@ -246,6 +249,61 @@ export class AllegroService {
 
     this.logger.log(`Published generation ${generationId} to Allegro offer ${offerId} (${position})`);
     return { offerId: String(offerId), imagesCount: images.length, position };
+  }
+
+  /**
+   * Spec 08: sends the photo's offer copy to an Allegro offer. `replace` makes our HTML the whole
+   * description; `prepend` puts it before the existing sections (keeps the seller's images/text).
+   * The title is changed only when asked. Our HTML is already limited to Allegro's tags.
+   */
+  async publishDescription(
+    userId: string,
+    offerId: string,
+    imageId: string,
+    mode: DescriptionPublishMode,
+    updateTitle: boolean,
+  ) {
+    const image = await this.prisma.image.findUnique({ where: { id: imageId }, include: { offerDescription: true } });
+    // Someone else's photo looks exactly like a missing one.
+    if (!image || image.userId !== userId) throw new NotFoundException('Nie znaleziono zdjęcia');
+    const description = image.offerDescription;
+    if (!description) throw new NotFoundException('To zdjęcie nie ma jeszcze opisu oferty');
+
+    const token = await this.getAccessToken(userId);
+    const headers = { Authorization: `Bearer ${token}`, Accept: ALLEGRO_JSON, 'Content-Type': ALLEGRO_JSON };
+    const ours = { items: [{ type: 'TEXT', content: description.body }] };
+
+    let sections: unknown[] = [ours];
+    if (mode === 'prepend') {
+      const offer = await this.getOffer(token, offerId);
+      const existing: unknown[] = Array.isArray(offer?.description?.sections) ? offer.description.sections : [];
+      if (existing.length >= ALLEGRO_MAX_DESCRIPTION_SECTIONS) {
+        throw new BadRequestException(
+          `Opis tej oferty ma już ${existing.length} sekcji (limit Allegro: ${ALLEGRO_MAX_DESCRIPTION_SECTIONS}). Wybierz „Zastąp opis”.`,
+        );
+      }
+      sections = [ours, ...existing];
+    }
+
+    const body: Record<string, unknown> = { description: { sections } };
+    if (updateTitle) body.name = description.title;
+
+    try {
+      await this.http.patch(`${this.apiBase}/sale/product-offers/${encodeURIComponent(offerId)}`, body, { headers });
+    } catch (err: any) {
+      const allegroMessage: string | undefined = err?.response?.data?.errors
+        ?.map((e: any) => e?.userMessage || e?.message)
+        .filter(Boolean)
+        .join(' ');
+      this.logger.warn(`Allegro rejected description for offer ${offerId}: ${allegroMessage || err?.message}`);
+      if (err?.response?.status && err.response.status < 500) {
+        throw new BadRequestException(allegroMessage || 'Allegro odrzuciło zmianę opisu oferty');
+      }
+      throw new ServiceUnavailableException('Allegro jest chwilowo niedostępne. Spróbuj ponownie za chwilę.');
+    }
+
+    this.logger.log(`Published description of image ${imageId} to Allegro offer ${offerId} (${mode})`);
+    return { offerId: String(offerId), mode, titleUpdated: updateTitle, sections: sections.length };
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────

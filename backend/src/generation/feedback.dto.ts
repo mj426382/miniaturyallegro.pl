@@ -11,6 +11,11 @@ import {
   Max,
   IsNumber,
   ValidateNested,
+  IsArray,
+  ArrayMinSize,
+  ArrayMaxSize,
+  ArrayUnique,
+  IsPositive,
 } from 'class-validator';
 import {
   ADJUST_LIMITS,
@@ -24,6 +29,22 @@ import {
   MIN_CROP_FRACTION,
   MIN_EXPORT_SIZE,
 } from './export.service';
+import {
+  INFOGRAPHIC_ICON_IDS,
+  INFOGRAPHIC_TEMPLATES,
+  INFOGRAPHIC_THEMES,
+  InfographicTemplate,
+  InfographicTheme,
+  LENGTH_UNITS,
+  LengthUnit,
+  MAX_DIMENSION,
+  MAX_FEATURE_TEXT,
+  MAX_FEATURES,
+  MAX_TITLE,
+  WEIGHT_UNITS,
+  WeightUnit,
+} from './infographic.service';
+import { MAX_ZIP_IMAGES } from './zip.service';
 
 /** Reasons offered in the UI when a user rejects a graphic – used to tune prompts. */
 export const FEEDBACK_REASONS = [
@@ -189,4 +210,110 @@ export class ExportDto {
   @IsOptional()
   @IsIn(BADGE_POSITIONS as unknown as string[])
   badgePosition?: (typeof BADGE_POSITIONS)[number];
+}
+
+// ─── Infographics (spec 14) ─────────────────────────────────────────
+
+export class InfographicFeatureDto {
+  @ApiProperty({ enum: INFOGRAPHIC_ICON_IDS })
+  @IsIn(INFOGRAPHIC_ICON_IDS, { message: 'Nieznana ikona' })
+  icon: string;
+
+  @ApiProperty({ maxLength: MAX_FEATURE_TEXT })
+  @IsString()
+  @MaxLength(MAX_FEATURE_TEXT, { message: `Opis cechy może mieć maksymalnie ${MAX_FEATURE_TEXT} znaków` })
+  text: string;
+}
+
+export class InfographicDimensionsDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber({}, { message: 'Szerokość musi być liczbą' })
+  @IsPositive({ message: 'Szerokość musi być większa od zera' })
+  @Max(MAX_DIMENSION)
+  width?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber({}, { message: 'Wysokość musi być liczbą' })
+  @IsPositive({ message: 'Wysokość musi być większa od zera' })
+  @Max(MAX_DIMENSION)
+  height?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber({}, { message: 'Głębokość musi być liczbą' })
+  @IsPositive({ message: 'Głębokość musi być większa od zera' })
+  @Max(MAX_DIMENSION)
+  depth?: number;
+
+  @ApiProperty({ enum: LENGTH_UNITS })
+  @IsIn(LENGTH_UNITS, { message: 'Jednostka wymiarów to mm, cm albo m' })
+  unit: LengthUnit;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber({}, { message: 'Waga musi być liczbą' })
+  @IsPositive({ message: 'Waga musi być większa od zera' })
+  @Max(MAX_DIMENSION)
+  weight?: number;
+
+  @ApiProperty({ required: false, enum: WEIGHT_UNITS })
+  @IsOptional()
+  @IsIn(WEIGHT_UNITS, { message: 'Jednostka wagi to g albo kg' })
+  weightUnit?: WeightUnit;
+}
+
+export class InfographicDto {
+  @ApiProperty({ enum: INFOGRAPHIC_TEMPLATES })
+  @IsIn(INFOGRAPHIC_TEMPLATES, { message: 'Nieznany szablon infografiki' })
+  template: InfographicTemplate;
+
+  @ApiProperty({ required: false, maxLength: MAX_TITLE })
+  @IsOptional()
+  @IsString()
+  @MaxLength(MAX_TITLE, { message: `Tytuł może mieć maksymalnie ${MAX_TITLE} znaków` })
+  title?: string;
+
+  @ApiProperty({ required: false, type: [InfographicFeatureDto] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAX_FEATURES, { message: `Dodaj od 1 do ${MAX_FEATURES} cech` })
+  @ValidateNested({ each: true })
+  @Type(() => InfographicFeatureDto)
+  features?: InfographicFeatureDto[];
+
+  @ApiProperty({ required: false, type: InfographicDimensionsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => InfographicDimensionsDto)
+  dimensions?: InfographicDimensionsDto;
+
+  @ApiProperty({ required: false, enum: INFOGRAPHIC_THEMES })
+  @IsOptional()
+  @IsIn(INFOGRAPHIC_THEMES)
+  theme?: InfographicTheme;
+
+  @ApiProperty({ required: false, enum: Object.keys(BADGE_COLORS) })
+  @IsOptional()
+  @IsIn(Object.keys(BADGE_COLORS))
+  accent?: keyof typeof BADGE_COLORS;
+
+  @ApiProperty({ required: false, enum: ['png', 'jpeg'] })
+  @IsOptional()
+  @IsIn(['png', 'jpeg'])
+  format?: 'png' | 'jpeg';
+}
+
+// ─── ZIP (spec 15) ──────────────────────────────────────────────────
+
+export class ZipDto {
+  @ApiProperty({ type: [String], description: 'Photos to pack, in the order of the folders (max 50)' })
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Zaznacz co najmniej jedno zdjęcie' })
+  @ArrayMaxSize(MAX_ZIP_IMAGES, { message: `Jedna paczka może zawierać maksymalnie ${MAX_ZIP_IMAGES} zdjęć` })
+  @ArrayUnique({ message: 'Zdjęcia w paczce nie mogą się powtarzać' })
+  @IsString({ each: true })
+  @MaxLength(64, { each: true })
+  imageIds: string[];
 }

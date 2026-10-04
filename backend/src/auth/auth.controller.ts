@@ -10,6 +10,7 @@ import {
   GoogleLoginDto,
   ResetPasswordDto,
   ChangePasswordDto,
+  VerifyEmailDto,
 } from './auth.dto';
 import { clearSessionCookie, setSessionCookie } from './session-cookie';
 import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
@@ -90,6 +91,27 @@ export class AuthController {
     const result = await this.authService.changePassword(user.userId, dto.currentPassword, dto.newPassword);
     setSessionCookie(res, result.token);
     return result;
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Confirm the e-mail address with the token from the verification link (public)' })
+  @ApiResponse({ status: 200, description: '{verified: true, alreadyVerified?: true}' })
+  @ApiResponse({ status: 400, description: 'Token nieprawidłowy lub wygasł' })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto.token);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @ApiOperation({ summary: 'Send a new verification link (60 s cooldown); no-op for verified accounts' })
+  @ApiResponse({ status: 429, description: 'Za wcześnie na kolejny link' })
+  async resendVerification(@CurrentUser() user: SessionUser) {
+    return this.authService.resendVerification(user.userId);
   }
 
   @Post('forgot-password')

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import EmailVerificationBanner from './EmailVerificationBanner'
 import {
   HomeIcon,
   ArrowUpTrayIcon,
@@ -145,6 +146,7 @@ export default function Layout() {
         </header>
 
         <main className="flex-1 overflow-auto">
+          <EmailVerificationBanner />
           <Outlet />
         </main>
       </div>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { imagesApi, generationApi, GenerationStyleInfo } from '../services/api'
+import { missingUniversalStyleIds } from '../utils/styles'
 
 export interface Generation {
   id: string
@@ -86,7 +87,7 @@ export function useGenerations(imageId: string | undefined, options: Options = {
         // Returning to a photo with results: offer the styles that are still missing; a fresh photo
         // starts with the starter batch.
         const already = new Set(existing.filter((g) => g.status !== 'FAILED').map((g) => g.style))
-        setSelectedStyles(existing.length ? stylesRes.data.styles.map((s) => s.id).filter((id) => !already.has(id)) : stylesRes.data.defaultStyleIds)
+        setSelectedStyles(existing.length ? missingUniversalStyleIds(stylesRes.data.styles, already) : stylesRes.data.defaultStyleIds)
         setOpenedWithResults(existing.length > 0)
       } catch {
         toast.error('Nie udało się załadować zdjęcia')
@@ -107,7 +108,7 @@ export function useGenerations(imageId: string | undefined, options: Options = {
         wasActiveRef.current = false
         if (!pollTimedOut) {
           // Preselect only the styles that have not been generated yet – once, on completion.
-          setSelectedStyles(styles.map((s) => s.id).filter((id) => !generatedStyleIds.has(id)))
+          setSelectedStyles(missingUniversalStyleIds(styles, generatedStyleIds))
           callbacksRef.current.onBatchFinished?.()
         }
       }

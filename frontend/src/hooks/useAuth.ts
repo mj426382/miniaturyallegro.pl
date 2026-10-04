@@ -12,6 +12,8 @@ interface User {
   totalGenerations?: number
   /** False for Google-only accounts (no password set). */
   hasPassword?: boolean
+  /** Spec 13: unconfirmed accounts cannot generate or pay. Older API responses omit it (treated as confirmed). */
+  emailVerified?: boolean
   _count?: { images: number }
   createdAt: string
 }

@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { emailNotVerifiedException, isVerificationRequired } from '../auth/email-verification';
 
 export interface CreditDeduction<T = void> {
   free: number;
@@ -28,6 +29,8 @@ export interface DeductOptions<T> {
 export class CreditsService {
   private readonly logger = new Logger(CreditsService.name);
   readonly freeLimit: number;
+  /** Spec 13: unconfirmed accounts may not spend credits (switch: EMAIL_VERIFICATION_REQUIRED). */
+  readonly verificationRequired: boolean;
 
   constructor(
     private prisma: PrismaService,
@@ -35,6 +38,7 @@ export class CreditsService {
   ) {
     const configured = Number(configService.get<string>('FREE_CREDITS_LIMIT'));
     this.freeLimit = Number.isInteger(configured) && configured >= 0 ? configured : 10;
+    this.verificationRequired = isVerificationRequired(configService.get<string>('EMAIL_VERIFICATION_REQUIRED'));
   }
 
   async getBalance(userId: string) {
@@ -58,10 +62,11 @@ export class CreditsService {
     return this.prisma.$transaction(async (tx) => {
       // The row lock serialises every concurrent start of this user – the in-flight cap and
       // the balance check below are therefore exact, not best-effort.
-      const rows = await tx.$queryRaw<{ credits: number; freeCreditsUsed: number }[]>`
-        SELECT "credits", "freeCreditsUsed" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
+      const rows = await tx.$queryRaw<{ credits: number; freeCreditsUsed: number; emailVerifiedAt: Date | null }[]>`
+        SELECT "credits", "freeCreditsUsed", "emailVerifiedAt" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
       const user = rows[0];
       if (!user) throw new NotFoundException('User not found');
+      if (this.verificationRequired && !user.emailVerifiedAt) throw emailNotVerifiedException();
 
       if (options.maxActive !== undefined) {
         const active = await tx.generation.count({
