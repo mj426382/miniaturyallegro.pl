@@ -3,7 +3,8 @@ import toast from 'react-hot-toast'
 import { XMarkIcon, ShoppingBagIcon } from '@heroicons/react/24/outline'
 import { allegroApi } from '../services/api'
 import { track } from '../services/analytics'
-import AllegroOfferPicker, { useAllegroOffers } from './AllegroOfferPicker'
+import AllegroOfferPicker from './AllegroOfferPicker'
+import { useAllegroOffers } from '../hooks/useAllegroOffers'
 
 interface Props {
   imageId: string
