@@ -14,6 +14,11 @@ interface User {
   hasPassword?: boolean
   /** Spec 13: unconfirmed accounts cannot generate or pay. Older API responses omit it (treated as confirmed). */
   emailVerified?: boolean
+  /** Spec 16: tips and reminders by e-mail (opt-in) and the "batch finished" e-mail. */
+  marketingConsent?: boolean
+  notifyBatchDone?: boolean
+  /** Spec 16: address listed in ADMIN_EMAILS. */
+  isAdmin?: boolean
   _count?: { images: number }
   createdAt: string
 }
@@ -24,7 +29,7 @@ interface AuthContextType {
   token: string | null
   login: (email: string, password: string) => Promise<void>
   googleLogin: (googleToken: string, acceptedTerms?: boolean) => Promise<void>
-  register: (email: string, password: string, name: string | undefined, acceptedTerms: boolean) => Promise<void>
+  register: (email: string, password: string, name: string | undefined, acceptedTerms: boolean, marketingConsent?: boolean) => Promise<void>
   logout: () => void
   /** Re-fetches the profile (credits, counters) from the API. */
   refreshUser: () => Promise<void>
@@ -115,8 +120,8 @@ export function useAuthProvider() {
     refreshUser().catch(() => undefined)
   }
 
-  const register = async (email: string, password: string, name: string | undefined, acceptedTerms: boolean) => {
-    const { data } = await authApi.register({ email, password, name, acceptedTerms })
+  const register = async (email: string, password: string, name: string | undefined, acceptedTerms: boolean, marketingConsent = false) => {
+    const { data } = await authApi.register({ email, password, name, acceptedTerms, marketingConsent })
     setToken('cookie')
     setUser(data.user)
     refreshUser().catch(() => undefined)

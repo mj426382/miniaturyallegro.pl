@@ -59,7 +59,7 @@ export interface StylesResponse {
 
 // Auth
 export const authApi = {
-  register: (data: { email: string; password: string; name?: string; acceptedTerms: boolean }) => api.post('/auth/register', data),
+  register: (data: { email: string; password: string; name?: string; acceptedTerms: boolean; marketingConsent?: boolean }) => api.post('/auth/register', data),
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   googleLogin: (googleToken: string, acceptedTerms?: boolean) => api.post('/auth/google', { googleToken, ...(acceptedTerms ? { acceptedTerms } : {}) }),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
@@ -73,7 +73,7 @@ export const authApi = {
 // Users
 export const usersApi = {
   getMe: () => api.get('/users/me'),
-  updateProfile: (data: { name?: string }) => api.patch('/users/me', data),
+  updateProfile: (data: { name?: string; marketingConsent?: boolean; notifyBatchDone?: boolean }) => api.patch('/users/me', data),
   deleteAccount: (confirmEmail: string) => api.delete('/users/me', { data: { confirmEmail } }),
 }
 
@@ -254,6 +254,65 @@ export const paymentsApi = {
   getHistory: () => api.get('/payments/history'),
   /** Fresh link to the Stripe invoice PDF of a payment (spec 09). */
   invoiceUrl: (transactionId: string) => api.get<{ url: string }>(`/payments/invoices/${transactionId}`),
+}
+
+// Notifications (spec 16)
+export const notificationsApi = {
+  /** E-mail the owner once every graphic of these photos (>= 3) is finished. */
+  registerBatch: (imageIds: string[]) => api.post<{ id: string }>('/notifications/batches', { imageIds }),
+  unsubscribe: (token: string) => api.post<{ unsubscribed: true }>(`/notifications/unsubscribe?token=${encodeURIComponent(token)}`),
+}
+
+// Admin (spec 16)
+export interface AdminUserRow {
+  id: string
+  email: string
+  name: string | null
+  createdAt: string
+  emailVerified: boolean
+  provider: 'password' | 'google' | 'google+password'
+  images: number
+  completedGenerations: number
+  failedGenerations: number
+  lastActivityAt: string | null
+  credits: number
+  freeCreditsLeft: number
+  plan: { planId: string; name: string; status: string } | null
+  paidTotalGrosze: number
+  marketingConsent: boolean
+}
+
+export interface AdminEmailEntry {
+  id: string
+  kind: string
+  subject: string
+  body: string | null
+  sentBy: string | null
+  createdAt: string
+}
+
+export interface AdminUserDetail extends AdminUserRow {
+  subscription: { planId: string; planName: string; status: string; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean } | null
+  payments: Array<{ id: string; amountPln: number; creditsAdded: number; status: string; kind: string; createdAt: string; hasInvoice: boolean }>
+  emails: AdminEmailEntry[]
+}
+
+export interface AdminOverview {
+  users: { total: number; last30d: number }
+  generations: Record<string, number>
+  staleGenerations: number
+  revenue: { completedTransactions: number; totalGrosze: number; last30dGrosze: number; creditsSold: number }
+  subscriptions: Record<string, number>
+  demo: { leads: number; last30d: number }
+  ratedGenerations: number
+}
+
+export const adminApi = {
+  overview: () => api.get<AdminOverview>('/admin/overview'),
+  users: (params: { search?: string; page?: number; limit?: number }) =>
+    api.get<{ users: AdminUserRow[]; pagination: { page: number; limit: number; total: number; pages: number } }>('/admin/users', { params }),
+  user: (id: string) => api.get<AdminUserDetail>(`/admin/users/${id}`),
+  sendEmail: (id: string, subject: string, message: string) => api.post<AdminEmailEntry>(`/admin/users/${id}/email`, { subject, message }),
 }
 
 // Allegro

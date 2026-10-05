@@ -7,6 +7,9 @@ export interface MailMessage {
   subject: string;
   text: string;
   html?: string;
+  replyTo?: string;
+  /** Extra headers, e.g. List-Unsubscribe for marketing mail (spec 16). */
+  headers?: Record<string, string>;
 }
 
 /**

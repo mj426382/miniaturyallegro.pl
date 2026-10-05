@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { parseAdminEmails } from '../admin/admin-emails';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
 import { PaymentsService } from '../payments/payments.service';
@@ -6,12 +8,16 @@ import { PaymentsService } from '../payments/payments.service';
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
+  private readonly admins: Set<string>;
 
   constructor(
     private prisma: PrismaService,
     private storageService: StorageService,
     private paymentsService: PaymentsService,
-  ) {}
+    config: ConfigService,
+  ) {
+    this.admins = parseAdminEmails(config.get<string>('ADMIN_EMAILS'));
+  }
 
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
@@ -24,6 +30,8 @@ export class UsersService {
         freeCreditsUsed: true,
         termsAcceptedAt: true,
         emailVerifiedAt: true,
+        marketingConsentAt: true,
+        notifyBatchDone: true,
         createdAt: true,
         updatedAt: true,
         password: true,
@@ -37,7 +45,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     // The hash never leaves the service – the UI only needs to know whether a password exists (Google-only accounts have none).
-    const { password, emailVerifiedAt, ...safeUser } = user;
+    const { password, emailVerifiedAt, marketingConsentAt, ...safeUser } = user;
 
     const totalGenerations = await this.prisma.generation.count({
       where: {
@@ -46,24 +54,37 @@ export class UsersService {
       },
     });
 
-    return { ...safeUser, emailVerified: Boolean(emailVerifiedAt), hasPassword: Boolean(password), totalGenerations };
+    return {
+      ...safeUser,
+      emailVerified: Boolean(emailVerifiedAt),
+      marketingConsent: Boolean(marketingConsentAt),
+      isAdmin: this.admins.has(user.email.toLowerCase()),
+      hasPassword: Boolean(password),
+      totalGenerations,
+    };
   }
 
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  async updateProfile(id: string, data: { name?: string }) {
-    return this.prisma.user.update({
+  /** Name and notification settings (spec 16). Turning consent on records when it was given. */
+  async updateProfile(id: string, data: { name?: string; marketingConsent?: boolean; notifyBatchDone?: boolean }) {
+    const current = await this.prisma.user.findUnique({ where: { id }, select: { marketingConsentAt: true } });
+    if (!current) throw new NotFoundException('User not found');
+    const updated = await this.prisma.user.update({
       where: { id },
-      data,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        updatedAt: true,
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.notifyBatchDone !== undefined ? { notifyBatchDone: data.notifyBatchDone } : {}),
+        ...(data.marketingConsent !== undefined
+          ? { marketingConsentAt: data.marketingConsent ? (current.marketingConsentAt ?? new Date()) : null }
+          : {}),
       },
+      select: { id: true, email: true, name: true, updatedAt: true, marketingConsentAt: true, notifyBatchDone: true },
     });
+    const { marketingConsentAt, ...rest } = updated;
+    return { ...rest, marketingConsent: Boolean(marketingConsentAt) };
   }
 
   /**

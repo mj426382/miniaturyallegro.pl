@@ -1,7 +1,7 @@
 import { Controller, Get, Patch, Delete, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { IsOptional, IsString, MaxLength, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsString, MaxLength, IsNotEmpty, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -13,6 +13,16 @@ class UpdateProfileDto {
   @MaxLength(100)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   name?: string;
+
+  /** Spec 16: tips and reminders by e-mail (marketing, opt-in). */
+  @IsOptional()
+  @IsBoolean()
+  marketingConsent?: boolean;
+
+  /** Spec 16: e-mail when a bulk batch is finished. */
+  @IsOptional()
+  @IsBoolean()
+  notifyBatchDone?: boolean;
 }
 
 class DeleteAccountDto {

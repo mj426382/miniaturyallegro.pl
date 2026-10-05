@@ -24,6 +24,7 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [13-email-verification.md](13-email-verification.md) | Kanoniczny adres e-mail, potwierdzenie adresu, blokada darmowej puli, nadawca allgrafika.pl |
 | [14-infographics.md](14-infographics.md) | Infografiki z cechami i wymiarami (zdjęcia dodatkowe) |
 | [15-batch-actions.md](15-batch-actions.md) | Zaznaczanie w galerii, paczka ZIP, opisy hurtowo |
+| [16-notifications-and-admin.md](16-notifications-and-admin.md) | Maile cykliczne ze zgodą i wypisaniem, panel administratora |
 | [adr/](adr/) | Architecture Decision Records – decyzje, których nie da się wyczytać z kodu |
 | [TEMPLATE-feature-spec.md](TEMPLATE-feature-spec.md) | Szablon nowej specyfikacji |
 | [glossary.md](glossary.md) | Słownik pojęć (Kredyt, Grafika, Opis oferty, Poprawka…) |

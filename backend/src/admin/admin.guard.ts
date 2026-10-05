@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { parseAdminEmails } from './admin-emails';
 
 /**
  * Operator-only endpoints. Allowed e-mails come from ADMIN_EMAILS (comma separated);
@@ -10,12 +11,7 @@ export class AdminGuard implements CanActivate {
   private readonly admins: Set<string>;
 
   constructor(config: ConfigService) {
-    this.admins = new Set(
-      (config.get<string>('ADMIN_EMAILS') || '')
-        .split(',')
-        .map((e) => e.trim().toLowerCase())
-        .filter(Boolean),
-    );
+    this.admins = parseAdminEmails(config.get<string>('ADMIN_EMAILS'));
   }
 
   canActivate(context: ExecutionContext): boolean {

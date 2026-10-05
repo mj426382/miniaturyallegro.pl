@@ -12,31 +12,37 @@ datasource db {
 }
 
 model User {
-  id                String    @id @default(cuid())
-  email             String    @unique
+  id                 String    @id @default(cuid())
+  email              String    @unique
   /// Canonical mailbox (lower-case, no +alias, no Gmail dots) – one account per mailbox (spec 13).
   /// Legacy duplicates created before 2026-10-04 hold "<email>#legacy:<id>".
-  emailCanonical    String    @unique
+  emailCanonical     String    @unique
   /// Set when the owner clicked the verification link (or signed in with Google). Required to generate and pay.
-  emailVerifiedAt   DateTime?
-  password          String?
-  name              String?
-  googleId          String?   @unique
-  credits           Int       @default(0)
-  freeCreditsUsed   Int       @default(0)
+  emailVerifiedAt    DateTime?
+  /// Spec 16: explicit opt-in to tips and reminders (marketing e-mail); null = no consent.
+  marketingConsentAt DateTime?
+  /// Spec 16: transactional "your bulk batch is ready" e-mail; on by default.
+  notifyBatchDone    Boolean   @default(true)
+  password           String?
+  name               String?
+  googleId           String?   @unique
+  credits            Int       @default(0)
+  freeCreditsUsed    Int       @default(0)
   /// Timestamp of accepting the Terms of Service (regulamin) – required for audit (UŚUDE / RODO).
-  termsAcceptedAt   DateTime?
+  termsAcceptedAt    DateTime?
   /// Stripe customer id – created lazily on first checkout / subscription.
-  stripeCustomerId  String?   @unique
+  stripeCustomerId   String?   @unique
   /// JWTs issued before this moment are rejected (set on password reset).
-  passwordChangedAt DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  passwordChangedAt  DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   images                  Image[]
   transactions            PaymentTransaction[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  emailLog                EmailLog[]
+  notificationBatches     NotificationBatch[]
   subscription            Subscription?
   allegroConnection       AllegroConnection?
 
@@ -158,6 +164,43 @@ model EmailVerificationToken {
 
   @@index([userId])
   @@map("email_verification_tokens")
+}
+
+/// Every automatic or admin e-mail sent to a user; (userId, key) makes automatic sends idempotent (spec 16).
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String
+  /// free-credits-reminder | seasonal | batch-done | admin
+  kind      String
+  key       String
+  subject   String
+  /// Stored for admin messages only (the operator's own text).
+  body      String?
+  /// Admin e-mail address that sent the message.
+  sentBy    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([kind, createdAt])
+  @@map("email_log")
+}
+
+/// A bulk upload of >= 3 photos that should e-mail its owner once every graphic is finished (spec 16).
+model NotificationBatch {
+  id         String    @id @default(cuid())
+  userId     String
+  imageIds   String[]
+  createdAt  DateTime  @default(now())
+  /// Set when the batch is done (mailed, skipped by settings, or expired after 24 h).
+  closedAt   DateTime?
+  notifiedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([closedAt])
+  @@map("notification_batches")
 }
 
 /// Monthly plan paid through Stripe Billing; credits are granted on every paid invoice.

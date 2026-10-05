@@ -16,8 +16,8 @@ export const LEGAL_ENTITY = {
 
 export const LEGAL_DATES = {
   /** Data wejścia w życie bieżącej wersji dokumentów */
-  effective: '4 października 2026 r.',
-  effectiveIso: '2026-10-04',
+  effective: '5 października 2026 r.',
+  effectiveIso: '2026-10-05',
 }
 
 export const PRICING = {

@@ -19,6 +19,8 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+  /** Spec 16: optional, never preselected (marketing consent must be freely given). */
+  const [marketingConsent, setMarketingConsent] = useState(false)
   const [touched, setTouched] = useState({ email: false, password: false, confirmPassword: false })
   const { register, googleLogin } = useAuth()
   const navigate = useNavigate()
@@ -52,7 +54,7 @@ export default function Register() {
     setIsLoading(true)
     setError('')
     try {
-      await register(email.trim().toLowerCase(), password, name.trim() || undefined, acceptedTerms)
+      await register(email.trim().toLowerCase(), password, name.trim() || undefined, acceptedTerms, marketingConsent)
       track('register', { method: 'email' })
       navigate('/')
       toast.success('Konto zostało utworzone!')
@@ -212,6 +214,20 @@ export default function Register() {
             <Link to="/polityka-prywatnosci" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:text-blue-700 underline">
               politykę prywatności
             </Link>
+          </label>
+        </div>
+
+        <div className="flex items-start gap-3">
+          <input
+            id="marketingConsent"
+            type="checkbox"
+            checked={marketingConsent}
+            onChange={(e) => setMarketingConsent(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          />
+          <label htmlFor="marketingConsent" className="text-sm text-gray-600 cursor-pointer">
+            Chcę dostawać wskazówki i przypomnienia e-mailem (np. o niewykorzystanych darmowych kredytach i stylach sezonowych).{' '}
+            <span className="text-gray-500">Opcjonalne – zgodę mogę wycofać w każdej chwili.</span>
           </label>
         </div>
 

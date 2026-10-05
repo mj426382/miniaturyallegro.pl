@@ -66,7 +66,7 @@ test.describe('registration', () => {
     await expect(submit).toBeEnabled()
     await submit.click()
     await expect(page).toHaveURL(/\/$/)
-    expect(requests.find((r) => r.url === '/auth/register')!.body).toEqual({ email: 'nowy@allgrafika.pl', password: PASSWORD, name: 'Jan Testowy', acceptedTerms: true })
+    expect(requests.find((r) => r.url === '/auth/register')!.body).toEqual({ email: 'nowy@allgrafika.pl', password: PASSWORD, name: 'Jan Testowy', acceptedTerms: true, marketingConsent: false })
   })
 })
 

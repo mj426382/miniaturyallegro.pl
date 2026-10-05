@@ -13,6 +13,7 @@ import {
   XMarkIcon,
   Cog6ToothIcon,
   ShoppingBagIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -40,6 +41,9 @@ export default function Layout() {
 
   const closeSidebar = () => setSidebarOpen(false)
 
+  // Spec 16: the operator panel is listed only for ADMIN_EMAILS (the API enforces it anyway).
+  const items = user?.isAdmin ? [...navigation, { name: 'Admin', href: '/admin', icon: ShieldCheckIcon }] : navigation
+
   const sidebarContent = (
     <>
       <div className="p-6 border-b border-gray-200 flex items-center justify-between">
@@ -53,7 +57,7 @@ export default function Layout() {
       </div>
 
       <nav aria-label="Główna nawigacja" className="flex-1 p-4 space-y-1">
-        {navigation.map((item) => {
+        {items.map((item) => {
           const isActive = location.pathname === item.href
           return (
             <Link
@@ -122,7 +126,7 @@ export default function Layout() {
 
       {/* Mobile sidebar (slide-in) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-200 ease-in-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto transform transition-transform duration-200 ease-in-out lg:hidden ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

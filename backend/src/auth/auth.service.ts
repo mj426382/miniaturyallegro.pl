@@ -84,6 +84,7 @@ export class AuthService {
           password: hashedPassword,
           name: dto.name || null,
           termsAcceptedAt: new Date(),
+          marketingConsentAt: dto.marketingConsent === true ? new Date() : null,
         },
         select: { id: true, email: true, name: true, createdAt: true },
       });

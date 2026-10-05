@@ -1,15 +1,76 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import { Type, Transform } from 'class-transformer';
+import { IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { AdminGuard } from './admin.guard';
 import { AdminService } from './admin.service';
+import { AdminUsersService } from './admin-users.service';
+
+class ListUsersQuery {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  search?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+}
+
+class AdminEmailDto {
+  @IsString()
+  @MinLength(3, { message: 'Temat jest za krótki' })
+  @MaxLength(150, { message: 'Temat może mieć maksymalnie 150 znaków' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  subject: string;
+
+  @IsString()
+  @MinLength(10, { message: 'Treść jest za krótka' })
+  @MaxLength(5000, { message: 'Treść może mieć maksymalnie 5000 znaków' })
+  message: string;
+}
 
 @ApiTags('admin')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, AdminGuard)
 @Controller('admin')
 export class AdminController {
-  constructor(private admin: AdminService) {}
+  constructor(
+    private admin: AdminService,
+    private users: AdminUsersService,
+  ) {}
+
+  @Get('users')
+  @ApiOperation({ summary: 'Accounts with usage, plan, credits and consent (search by e-mail or name)' })
+  listUsers(@Query() query: ListUsersQuery) {
+    return this.users.list(query);
+  }
+
+  @Get('users/:id')
+  @ApiOperation({ summary: 'One account with payments and the history of e-mails sent to it' })
+  userDetail(@Param('id') id: string) {
+    return this.users.detail(id);
+  }
+
+  @Post('users/:id/email')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Send an individual message to the user (Reply-To: the admin)' })
+  sendEmail(@CurrentUser() admin: SessionUser, @Param('id') id: string, @Body() dto: AdminEmailDto) {
+    return this.users.sendEmail(admin.email, id, dto.subject, dto.message);
+  }
 
   @Get('overview')
   @ApiOperation({ summary: 'Operator dashboard: users, generations, stuck jobs, revenue, demo leads' })

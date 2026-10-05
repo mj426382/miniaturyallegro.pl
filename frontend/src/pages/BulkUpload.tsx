@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
-import { imagesApi, generationApi, GenerationStyleInfo } from '../services/api'
+import { imagesApi, generationApi, GenerationStyleInfo, notificationsApi } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 import { track } from '../services/analytics'
@@ -117,6 +117,7 @@ export default function BulkUpload() {
     setIsRunning(true)
     const snapshotMode = mode
 
+    const startedIds: string[] = []
     for (const item of queued) {
       const chosen = orderedStyles(stylesFor(item))
       updateFile(item.id, { status: 'uploading' })
@@ -138,6 +139,7 @@ export default function BulkUpload() {
       for (let attempt = 0; attempt < MAX_START_RETRIES; attempt++) {
         try {
           await generationApi.startGeneration(imageId, { styles: chosen })
+          startedIds.push(imageId)
           updateFile(item.id, { status: 'done', imageId, error: undefined })
           break
         } catch (err: any) {
@@ -154,6 +156,16 @@ export default function BulkUpload() {
 
     setIsRunning(false)
     setLastRunMode(snapshotMode)
+    // Spec 16: a batch of >= 3 photos with graphics e-mails its owner when everything is finished.
+    if (snapshotMode !== 'upload') {
+      const generated = startedIds.filter(Boolean)
+      if (generated.length >= 3 && user?.notifyBatchDone !== false) {
+        notificationsApi
+          .registerBatch(generated)
+          .then(() => toast('Wyślemy Ci maila, gdy wszystkie grafiki będą gotowe.', { icon: '✉️', duration: 6000 }))
+          .catch(() => undefined)
+      }
+    }
     track('upload', { source: 'bulk', files: queued.length, mode: snapshotMode })
     refreshUser().catch(() => undefined)
     toast.success(snapshotMode === 'upload' ? 'Zdjęcia przesłane. Style wybierzesz z galerii dla każdego produktu.' : 'Wszystkie pliki zostały przetworzone!')

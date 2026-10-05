@@ -107,6 +107,18 @@ export default function PolitykaContent() {
                   <td className="border border-gray-200 px-3 py-2">do cofnięcia zgody, nie dłużej niż 12 miesięcy</td>
                 </tr>
                 <tr className="bg-gray-50">
+                  <td className="border border-gray-200 px-3 py-2">Wskazówki i przypomnienia e-mailem dla Użytkowników (np. o niewykorzystanych darmowych kredytach, stylach sezonowych)</td>
+                  <td className="border border-gray-200 px-3 py-2">
+                    art. 6 ust. 1 lit. a – zgoda wyrażona w formularzu rejestracji lub w ustawieniach konta; można ją cofnąć w ustawieniach konta albo linkiem w każdej wiadomości
+                  </td>
+                  <td className="border border-gray-200 px-3 py-2">do cofnięcia zgody lub usunięcia konta; historia wysłanych wiadomości – do usunięcia konta</td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-200 px-3 py-2">Powiadomienie o zakończeniu generowania paczki zdjęć oraz indywidualne wiadomości obsługi klienta</td>
+                  <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. b – wykonanie umowy (powiadomienie można wyłączyć w ustawieniach konta)</td>
+                  <td className="border border-gray-200 px-3 py-2">czas posiadania konta</td>
+                </tr>
+                <tr className="bg-gray-50">
                   <td className="border border-gray-200 px-3 py-2">Integracja z Allegro (pobieranie zdjęć, publikacja grafik)</td>
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. b – wykonanie umowy</td>
                   <td className="border border-gray-200 px-3 py-2">do odłączenia konta Allegro</td>

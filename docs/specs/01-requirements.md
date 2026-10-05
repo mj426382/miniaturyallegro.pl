@@ -28,6 +28,8 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | FR-BAT-002 | Hurtowe pisanie opisów z postępem | 15 |
 | FR-SEO-001 | Landing SSG z blogiem, cennikiem, demo i stabilnymi adresami | 10 |
 | FR-ADM-001 | Panel operatora (przegląd, statystyki ocen, wyliczenie odstąpienia) dla `ADMIN_EMAILS` | 05 |
+| FR-ADM-002 | Panel administratora: lista kont, szczegóły, wiadomość do użytkownika | 16 |
+| FR-NOT-001 | Maile automatyczne: darmowe kredyty, style sezonowe (za zgodą), koniec paczki | 16 |
 
 ## Wymagania niefunkcjonalne
 
@@ -51,6 +53,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | NFR-LAW-002 | Prawo odstąpienia (art. 38 pkt 13, art. 35 u.p.k.) – zgody zbierane przed zakupem | T: AC-PAY-002/011 |
 | NFR-LAW-003 | Prawo do usunięcia danych: konto, pliki, abonament; retencja demo 30 dni | T: AC-AUTH-015, AC-PAY-010, AC-DEMO-003 |
 | NFR-LAW-004 | Opisy AI nie mogą zawierać zmyślonych parametrów ani zakazanych treści (linki, kontakt) – prompt + sanitizacja + ostrzeżenie dla użytkownika | T: AC-DESC-006; R prompt |
+| NFR-LAW-005 | Informacje handlowe e-mailem tylko po uprzedniej, dobrowolnej zgodzie z datą; wypisanie jednym kliknięciem w każdej wiadomości; maile transakcyjne do wyłączenia | T: AC-NOT-001/003/006 |
 
 ### Wydajność i koszty (NFR-PERF)
 

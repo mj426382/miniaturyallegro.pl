@@ -13,6 +13,7 @@ import { AdminModule } from './admin/admin.module';
 import { DescriptionsModule } from './descriptions/descriptions.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { HealthController } from './health/health.controller';
 import { validateEnv } from './config/env.validation';
 import { loggingModule } from './common/logging';
@@ -50,6 +51,7 @@ import { loggingModule } from './common/logging';
     DemoModule,
     AllegroModule,
     AdminModule,
+    NotificationsModule,
     DescriptionsModule,
   ],
   controllers: [HealthController],

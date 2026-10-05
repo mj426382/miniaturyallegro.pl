@@ -74,6 +74,10 @@ export default function RegulaminContent() {
               różniące się wyłącznie wielkością liter, kropkami w adresach Gmail albo dopiskiem „+…” traktowane są jako ten sam adres.
             </li>
             <li>
+              Usługodawca wysyła na adres e-mail Konta wiadomości związane z usługą (np. potwierdzenie adresu, reset hasła, zakończenie generowania paczki zdjęć). Wskazówki i przypomnienia o
+              charakterze handlowym wysyłane są wyłącznie po wyrażeniu przez Użytkownika odrębnej, dobrowolnej zgody, którą można wycofać w ustawieniach Konta lub linkiem w każdej takiej wiadomości.
+            </li>
+            <li>
               Po rejestracji Usługodawca wysyła na podany adres link potwierdzający. Generowanie Grafik i zakup Kredytów są dostępne po potwierdzeniu adresu e-mail; przy logowaniu przez Google adres
               jest potwierdzony automatycznie.
             </li>

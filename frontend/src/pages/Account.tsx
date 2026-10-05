@@ -21,6 +21,25 @@ export default function Account() {
   const [repeatPassword, setRepeatPassword] = useState('')
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState('')
+  const [savingSetting, setSavingSetting] = useState<string | null>(null)
+  /** Spec 16: switches update at once (optimistic) and roll back if the save fails. */
+  const [notify, setNotify] = useState({ marketingConsent: Boolean(user?.marketingConsent), notifyBatchDone: user?.notifyBatchDone !== false })
+
+  const saveSetting = async (key: 'marketingConsent' | 'notifyBatchDone', value: boolean) => {
+    const previous = notify[key]
+    setNotify((n) => ({ ...n, [key]: value }))
+    setSavingSetting(key)
+    try {
+      await usersApi.updateProfile({ [key]: value })
+      refreshUser().catch(() => undefined)
+      toast.success('Zapisano ustawienia powiadomień')
+    } catch {
+      setNotify((n) => ({ ...n, [key]: previous }))
+      toast.error('Nie udało się zapisać ustawień')
+    } finally {
+      setSavingSetting(null)
+    }
+  }
   const [isDeleting, setIsDeleting] = useState(false)
 
   const problems = useMemo(() => getPasswordErrors(newPassword), [newPassword])
@@ -162,6 +181,39 @@ export default function Account() {
           </>
         )}
       </form>
+
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Powiadomienia e-mail</h2>
+        <p className="text-sm text-gray-600 mb-4">Wysyłamy je z adresu no-reply@allgrafika.pl.</p>
+        <div className="space-y-3">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={notify.marketingConsent}
+              disabled={savingSetting !== null}
+              onChange={(e) => saveSetting('marketingConsent', e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">
+              <strong className="font-medium">Wskazówki i przypomnienia</strong>
+              <span className="block text-gray-500">Np. o niewykorzystanych darmowych kredytach i stylach sezonowych przed świętami. Najwyżej kilka wiadomości w roku.</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={notify.notifyBatchDone}
+              disabled={savingSetting !== null}
+              onChange={(e) => saveSetting('notifyBatchDone', e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">
+              <strong className="font-medium">Koniec dużej paczki</strong>
+              <span className="block text-gray-500">Mail, gdy wszystkie grafiki z masowego przesyłania (od 3 zdjęć) są gotowe.</span>
+            </span>
+          </label>
+        </div>
+      </div>
 
       <div className="card mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">Twoje dane</h2>

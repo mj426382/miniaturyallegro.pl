@@ -13,6 +13,8 @@ import Credits from './pages/Credits'
 import Account from './pages/Account'
 import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
+import Unsubscribe from './pages/Unsubscribe'
+import Admin from './pages/Admin'
 import Allegro from './pages/Allegro'
 import AllegroCallback from './pages/AllegroCallback'
 import Layout from './components/Layout'
@@ -52,6 +54,7 @@ export default function App() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/regulamin" element={<Regulamin />} />
                 <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
                 <Route
@@ -71,6 +74,7 @@ export default function App() {
                   <Route path="account" element={<Account />} />
                   <Route path="allegro" element={<Allegro />} />
                   <Route path="allegro/callback" element={<AllegroCallback />} />
+                  <Route path="admin" element={auth.user?.isAdmin ? <Admin /> : <Navigate to="/" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>

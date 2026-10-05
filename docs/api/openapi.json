@@ -1317,6 +1317,94 @@
         ]
       }
     },
+    "/api/admin/users": {
+      "get": {
+        "operationId": "AdminController_listUsers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Accounts with usage, plan, credits and consent (search by e-mail or name)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/users/{id}": {
+      "get": {
+        "operationId": "AdminController_userDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "One account with payments and the history of e-mails sent to it",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/users/{id}/email": {
+      "post": {
+        "operationId": "AdminController_sendEmail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send an individual message to the user (Reply-To: the admin)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/admin/overview": {
       "get": {
         "operationId": "AdminController_overview",
@@ -1383,6 +1471,60 @@
         "summary": "Suggested refund for a consumer withdrawing from a subscription (art. 35 u.p.k.)",
         "tags": [
           "admin"
+        ]
+      }
+    },
+    "/api/notifications/batches": {
+      "post": {
+        "operationId": "NotificationsController_registerBatch",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterBatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "E-mail me when every graphic of these photos is finished (bulk upload, >= 3 photos)",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/notifications/unsubscribe": {
+      "post": {
+        "operationId": "NotificationsController_unsubscribe",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Withdraw marketing consent with the token from an e-mail (no session needed)",
+        "tags": [
+          "notifications"
         ]
       }
     },
@@ -1594,6 +1736,10 @@
             "type": "boolean",
             "example": true,
             "description": "Akceptacja regulaminu i polityki prywatności"
+          },
+          "marketingConsent": {
+            "type": "boolean",
+            "description": "Spec 16: opt-in to tips and reminders by e-mail (never preselected)"
           }
         },
         "required": [
@@ -2112,6 +2258,14 @@
         "properties": {}
       },
       "PublishDescriptionDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AdminEmailDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RegisterBatchDto": {
         "type": "object",
         "properties": {}
       },

@@ -56,6 +56,11 @@ export class RegisterDto {
   @IsBoolean({ message: 'Akceptacja regulaminu jest wymagana' })
   @Equals(true, { message: 'Aby założyć konto, musisz zaakceptować regulamin' })
   acceptedTerms: boolean;
+
+  @ApiProperty({ required: false, description: 'Spec 16: opt-in to tips and reminders by e-mail (never preselected)' })
+  @IsOptional()
+  @IsBoolean()
+  marketingConsent?: boolean;
 }
 
 /** Password change from the account settings – the current password proves possession of the account. */

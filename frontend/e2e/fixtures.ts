@@ -55,6 +55,44 @@ export const DESCRIPTION = {
 
 export const PASSWORD = 'Dobre!Haslo1'
 
+/** Spec 16: rows of the admin user list. */
+export const ADMIN_USERS = [
+  {
+    id: 'u-shop',
+    email: 'sklep.kubki@example.com',
+    name: 'Ania',
+    createdAt: '2026-10-02T09:00:00.000Z',
+    emailVerified: true,
+    provider: 'google+password',
+    images: 4,
+    completedGenerations: 12,
+    failedGenerations: 1,
+    lastActivityAt: '2026-10-04T12:00:00.000Z',
+    credits: 7,
+    freeCreditsLeft: 0,
+    plan: { planId: 'sub_start', name: 'Start', status: 'active' },
+    paidTotalGrosze: 2800,
+    marketingConsent: true,
+  },
+  {
+    id: 'u-new',
+    email: 'nowy@example.com',
+    name: null,
+    createdAt: '2026-10-05T08:00:00.000Z',
+    emailVerified: false,
+    provider: 'password',
+    images: 0,
+    completedGenerations: 0,
+    failedGenerations: 0,
+    lastActivityAt: null,
+    credits: 0,
+    freeCreditsLeft: 10,
+    plan: null,
+    paidTotalGrosze: 0,
+    marketingConsent: false,
+  },
+]
+
 export interface MockOptions {
   loggedIn?: boolean
   /** Spec 13 – unconfirmed account (banner, gate). */
@@ -69,12 +107,15 @@ export interface MockOptions {
   extraImages?: any[]
   /** IMAGE was imported from this Allegro offer. */
   imageOfferId?: string
+  /** Spec 16: the account is listed in ADMIN_EMAILS. */
+  isAdmin?: boolean
 }
 
 export async function mockApp(page: Page, options: MockOptions = {}) {
   const requests: Array<{ url: string; method: string; body?: any }> = []
   let loggedIn = options.loggedIn ?? true
   let emailVerified = options.emailVerified ?? true
+  const settings = { marketingConsent: false, notifyBatchDone: true }
   const images: any[] = [IMAGE, ...(options.extraImages ?? [])]
   // Offer description state lives for the duration of the page – mirrors the API behaviour.
   let description: typeof DESCRIPTION | null = options.withDescription ? { ...DESCRIPTION } : null
@@ -89,6 +130,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     editPackCredits: 1,
   })
   let uploadCounter = 0
+  const adminEmails: any[] = []
 
   // Session is an httpOnly cookie – the SPA simply asks /users/me, which we answer as logged in.
 
@@ -98,7 +140,53 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     const path = url.pathname.replace(/^\/api/, '')
     const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
-    if (path === '/users/me' && req.method() === 'GET') return loggedIn ? json({ ...USER, hasPassword: true, emailVerified }) : json({ message: 'Unauthorized' }, 401)
+    if (path === '/users/me' && req.method() === 'GET')
+      return loggedIn ? json({ ...USER, hasPassword: true, emailVerified, ...settings, isAdmin: Boolean(options.isAdmin) }) : json({ message: 'Unauthorized' }, 401)
+    if (path === '/notifications/batches') {
+      requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
+      return json({ id: 'batch-1' }, 201)
+    }
+    if (path === '/notifications/unsubscribe') {
+      requests.push({ url: `${path}?${url.searchParams.toString()}`, method: 'POST' })
+      if (url.searchParams.get('token') !== 'unsub-token') return json({ statusCode: 400, message: 'Link wypisania jest nieprawidłowy' }, 400)
+      settings.marketingConsent = false
+      return json({ unsubscribed: true })
+    }
+    if (path.startsWith('/admin/') && !options.isAdmin) return json({ statusCode: 403, message: 'Dostęp tylko dla administratora' }, 403)
+    if (path === '/admin/overview')
+      return json({
+        users: { total: 2, last30d: 1 },
+        generations: { COMPLETED: 12 },
+        staleGenerations: 0,
+        revenue: { completedTransactions: 1, totalGrosze: 2800, last30dGrosze: 2800, creditsSold: 15 },
+        subscriptions: { active: 1 },
+        demo: { leads: 4, last30d: 2 },
+        ratedGenerations: 3,
+      })
+    if (path === '/admin/users') {
+      requests.push({ url: `${path}?${url.searchParams.toString()}`, method: 'GET' })
+      const search = (url.searchParams.get('search') || '').toLowerCase()
+      const rows = ADMIN_USERS.filter((u) => !search || u.email.includes(search))
+      return json({ users: rows, pagination: { page: 1, limit: 20, total: rows.length, pages: 1 } })
+    }
+    if (/^\/admin\/users\/[^/]+$/.test(path)) {
+      const row = ADMIN_USERS.find((u) => path.endsWith(u.id))
+      return row
+        ? json({
+            ...row,
+            subscription: null,
+            payments: [{ id: 'tx-1', amountPln: 2800, creditsAdded: 15, status: 'completed', kind: 'package', createdAt: '2026-10-03T10:00:00.000Z', hasInvoice: true }],
+            emails: adminEmails,
+          })
+        : json({ message: 'Nie znaleziono' }, 404)
+    }
+    if (/^\/admin\/users\/[^/]+\/email$/.test(path)) {
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: 'POST', body })
+      const entry = { id: `m-${adminEmails.length + 1}`, kind: 'admin', subject: body.subject, body: body.message, sentBy: USER.email, createdAt: '2026-10-05T10:00:00.000Z' }
+      adminEmails.unshift(entry)
+      return json(entry, 201)
+    }
     if (path === '/auth/resend-verification') {
       requests.push({ url: path, method: 'POST' })
       return json({ sent: true })
@@ -139,8 +227,11 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       return json({ offerId: 'off-1', mode: req.postDataJSON()?.mode, titleUpdated: Boolean(req.postDataJSON()?.updateTitle), sections: 1 }, 201)
     }
     if (path === '/users/me' && req.method() === 'PATCH') {
-      requests.push({ url: path, method: 'PATCH', body: req.postDataJSON() })
-      return json({ ...USER, hasPassword: true, name: req.postDataJSON()?.name ?? USER.name })
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: 'PATCH', body })
+      if (typeof body?.marketingConsent === 'boolean') settings.marketingConsent = body.marketingConsent
+      if (typeof body?.notifyBatchDone === 'boolean') settings.notifyBatchDone = body.notifyBatchDone
+      return json({ ...USER, hasPassword: true, ...settings, name: body?.name ?? USER.name })
     }
     if (path === '/users/me' && req.method() === 'DELETE') {
       requests.push({ url: path, method: 'DELETE', body: req.postDataJSON() })
