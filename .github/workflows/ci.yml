@@ -98,7 +98,7 @@ jobs:
         run: npm test
 
   frontend-browsers:
-    name: App frontend – downloads on iPhone / Android / desktop (Playwright)
+    name: App frontend – desktop, phones and tablets (Playwright)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -124,6 +124,60 @@ jobs:
         if: failure()
         with:
           name: playwright-traces
+          path: frontend/test-results
+          retention-days: 7
+
+  fullstack:
+    name: Full stack – browser + real backend + test database (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: allgrafika_e2e_test
+        ports:
+          - 5437:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Backend dependencies
+        working-directory: backend
+        run: |
+          npm ci
+          npx prisma generate
+      - name: Frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+      - working-directory: frontend
+        run: npx playwright install --with-deps chromium webkit
+      - name: Sign-up → e-mail link → upload → generation on the real API
+        working-directory: frontend
+        run: npm run test:e2e:fullstack
+        env:
+          CI: 'true'
+          E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5437/allgrafika_e2e_test?schema=public
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-fullstack-traces
           path: frontend/test-results
           retention-days: 7
 
@@ -154,7 +208,7 @@ jobs:
           echo "Prerendered blog posts: $(ls dist/blog | wc -l)"
 
   landing-hydration:
-    name: Landing page – hydration in real browsers (Playwright)
+    name: Landing page – hydration, budgets & demo on desktop, iPhone, Android, iPad (Playwright)
     runs-on: ubuntu-latest
     defaults:
       run:

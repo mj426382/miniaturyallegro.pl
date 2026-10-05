@@ -1,16 +1,44 @@
 /**
  * Generates public/og-image.png (1200×630) used by Open Graph / Twitter cards,
- * plus PNG favicons / apple-touch-icon from the logo.
+ * plus PNG favicons / apple-touch-icon, a small favicon.ico (16/32/48) and a display-size logo.webp
+ * from the logo – for the landing page and the app (spec 17, AC-PERF-004: favicon ≤ 16 KB, logo.webp ≤ 12 KB).
+ * logo.png stays the 500 px original (JSON-LD Organization logo, apple-touch-icon in the app).
  *
  * Run: npm run og-image   (only needed when the logo or copy changes – output is committed)
  */
 import sharp from 'sharp'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { writeFile } from 'fs/promises'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const publicDir = resolve(__dirname, '../public')
+const appPublicDir = resolve(__dirname, '../../frontend/public')
 const logoPath = resolve(publicDir, 'logo.png')
+
+/** ICO container with PNG-encoded images (supported by every current browser). */
+function buildIco(pngs) {
+  const header = Buffer.alloc(6)
+  header.writeUInt16LE(0, 0)
+  header.writeUInt16LE(1, 2)
+  header.writeUInt16LE(pngs.length, 4)
+  const entries = []
+  let offset = 6 + 16 * pngs.length
+  for (const { size, data } of pngs) {
+    const entry = Buffer.alloc(16)
+    entry.writeUInt8(size >= 256 ? 0 : size, 0)
+    entry.writeUInt8(size >= 256 ? 0 : size, 1)
+    entry.writeUInt8(0, 2)
+    entry.writeUInt8(0, 3)
+    entry.writeUInt16LE(1, 4)
+    entry.writeUInt16LE(32, 6)
+    entry.writeUInt32LE(data.length, 8)
+    entry.writeUInt32LE(offset, 12)
+    offset += data.length
+    entries.push(entry)
+  }
+  return Buffer.concat([header, ...entries, ...pngs.map((p) => p.data)])
+}
 
 const W = 1200
 const H = 630
@@ -51,6 +79,23 @@ async function main() {
       .toFile(resolve(publicDir, name))
     console.log(`✅ public/${name}`)
   }
+
+  const icoImages = []
+  for (const size of [16, 32, 48]) {
+    const data = await sharp(logoPath)
+      .resize(size, size, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
+      .png({ compressionLevel: 9, palette: true })
+      .toBuffer()
+    icoImages.push({ size, data })
+  }
+  const ico = buildIco(icoImages)
+  // The navbar shows the logo at up to 48 CSS px – 160 px covers 3x screens.
+  const logoWebp = await sharp(logoPath).resize(160, 160, { fit: 'inside' }).webp({ quality: 85 }).toBuffer()
+  for (const dir of [publicDir, appPublicDir]) {
+    await writeFile(resolve(dir, 'favicon.ico'), ico)
+    await writeFile(resolve(dir, 'logo.webp'), logoWebp)
+  }
+  console.log(`✅ favicon.ico (${ico.length} B) and logo.webp (${logoWebp.length} B) in landing-page/public and frontend/public`)
 }
 
 main().catch((err) => {

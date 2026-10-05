@@ -6,7 +6,8 @@ import { mockApp, PNG_BYTES, PASSWORD, USER } from './fixtures'
  * auth pages, dashboard (incl. API failure), upload (incl. rejected files), generator actions,
  * account settings (name, password, deletion), gallery deletion, 404, navigation and logout.
  */
-const isMobile = (page: Page) => page.viewportSize()!.width < 768
+// The sidebar collapses into a menu below the `lg` breakpoint – phones and tablets in portrait.
+const isMobile = (page: Page) => page.viewportSize()!.width < 1024
 
 async function openMenuIfMobile(page: Page) {
   if (isMobile(page)) await page.getByRole('button', { name: 'Otwórz menu' }).click()
@@ -230,7 +231,7 @@ test.describe('navigation', () => {
   })
 
   test('[AC-UI-004] the mobile menu opens, navigates and closes', async ({ page }) => {
-    test.skip(!isMobile(page), 'mobile layout only')
+    test.skip(!isMobile(page), 'collapsed-menu layout only')
     await mockApp(page)
     await page.goto('/')
     const open = page.getByRole('button', { name: 'Otwórz menu' })

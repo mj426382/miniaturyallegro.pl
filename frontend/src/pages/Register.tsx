@@ -90,7 +90,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Utwórz konto"
-      subtitle="Pierwsze 10 grafik za darmo, bez karty"
+      subtitle="10 grafik za darmo, bez karty – odblokujesz je, potwierdzając adres e-mail"
       footer={
         <>
           Masz już konto?{' '}

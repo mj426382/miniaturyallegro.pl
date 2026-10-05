@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import EmailVerificationBanner from './EmailVerificationBanner'
+import PageFallback from './PageFallback'
 import {
   HomeIcon,
   ArrowUpTrayIcon,
@@ -151,7 +152,9 @@ export default function Layout() {
 
         <main className="flex-1 overflow-auto">
           <EmailVerificationBanner />
-          <Outlet />
+          <Suspense fallback={<PageFallback />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import axios from 'axios'
 import { Link } from 'react-router-dom'
 import { track } from '../services/analytics'
 import { downloadBlob } from '../utils/download'
+import { HttpError, getBlob, getJson, postForm } from '../services/http'
 
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined) || 'https://server.allgrafika.pl/api'
 const APP_URL = 'https://app.allgrafika.pl'
@@ -66,7 +66,7 @@ export default function DemoWidget() {
   const poll = async (id: string) => {
     if (!mountedRef.current) return
     try {
-      const { data } = await axios.get<DemoResult>(`${API_URL}/demo/${id}`)
+      const data = await getJson<DemoResult>(`${API_URL}/demo/${id}`)
       if (!mountedRef.current) return
       setResult(data)
       if (data.status === 'COMPLETED') {
@@ -90,7 +90,7 @@ export default function DemoWidget() {
     if (!result?.resultUrl) return
     setIsDownloading(true)
     try {
-      const { data } = await axios.get<Blob>(result.resultUrl, { responseType: 'blob' })
+      const data = await getBlob(result.resultUrl)
       const method = await downloadBlob(data, `allgrafika-${style}.png`)
       if (method !== 'cancelled') track('demo_download', { method })
     } catch {
@@ -120,12 +120,12 @@ export default function DemoWidget() {
     const honeypot = (document.getElementById('demo-website') as HTMLInputElement | null)?.value
     if (honeypot) form.append('website', honeypot)
     try {
-      const { data } = await axios.post<{ id: string }>(`${API_URL}/demo`, form)
+      const data = await postForm<{ id: string }>(`${API_URL}/demo`, form)
       setPhase('processing')
       pollsRef.current = 0
       poll(data.id)
-    } catch (err: any) {
-      const message = err.response?.data?.message
+    } catch (err) {
+      const message = err instanceof HttpError ? err.apiMessage : undefined
       setError(Array.isArray(message) ? message.join('. ') : message || 'Nie udało się wysłać zdjęcia. Spróbuj ponownie.')
       setPhase('form')
     }

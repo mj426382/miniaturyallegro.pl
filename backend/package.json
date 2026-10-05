@@ -29,6 +29,7 @@
     "test:db:up": "docker compose -f ../infra/docker-compose.test.yml up -d",
     "test:db:down": "docker compose -f ../infra/docker-compose.test.yml down",
     "prisma:deploy": "node scripts/migrate.js",
+    "e2e:server": "ts-node --transpile-only test/e2e-server.ts",
     "test:live": "jest --config test/jest-e2e.json --runInBand test/live-ai.e2e-spec.ts",
     "openapi": "node scripts/openapi.js",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\""

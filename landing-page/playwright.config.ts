@@ -2,8 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 /**
  * Hydration smoke test for the prerendered (SSG) landing page: the static HTML must
- * hydrate without React warnings/errors in a real browser. Runs against `vite preview`
- * of the production build.
+ * hydrate without React warnings/errors in a real browser, on desktop, iPhone, Android and an
+ * iPad (spec 17). Runs against `vite preview` of the production build; bundle budgets are
+ * checked on the same build.
  */
 export default defineConfig({
   testDir: './e2e',
@@ -23,5 +24,7 @@ export default defineConfig({
   projects: [
     { name: 'desktop-chrome', use: { ...devices['Desktop Chrome'] } },
     { name: 'iphone-14', use: { ...devices['iPhone 14'] } },
+    { name: 'pixel-7', use: { ...devices['Pixel 7'] } },
+    { name: 'ipad', use: { ...devices['iPad (gen 7)'] } },
   ],
 })

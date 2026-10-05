@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { adminApi } from '../../services/api'
 import { formatDateTime } from '../../utils/format'
 import AdminGraphicTile from './AdminGraphicTile'
+import { countLabel } from '../../utils/plural'
 
 interface Props {
   userId: string
@@ -34,7 +35,7 @@ export default function AdminUserImages({ userId, styleNames }: Props) {
             <div className="min-w-0 text-sm">
               <p className="text-gray-800">Oryginał · {formatDateTime(image.createdAt)}</p>
               <p className="text-xs text-gray-500 truncate">
-                {image.generations.length} {image.generations.length === 1 ? 'grafika' : 'grafik'}
+                {countLabel(image.generations.length, 'grafika', 'grafiki', 'grafik')}
                 {image.descriptionTitle ? ` · opis: ${image.descriptionTitle}` : ' · bez opisu'}
                 {image.allegroOfferId ? ` · oferta Allegro ${image.allegroOfferId}` : ''}
               </p>

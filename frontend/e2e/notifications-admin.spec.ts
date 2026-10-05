@@ -76,11 +76,12 @@ test.describe('admin panel (spec 16)', () => {
     await page.locator('a[href="/admin"]:visible').first().click()
     await expect(page.getByRole('heading', { name: 'Panel administratora' })).toBeVisible()
     await expect(page.getByText('Konta', { exact: true })).toBeVisible()
-    await expect(page.getByText('sklep.kubki@example.com')).toBeVisible()
-    await expect(page.getByText('nowy@example.com')).toBeVisible()
+    // Cards below the lg breakpoint, a table above – role queries only see the visible variant.
+    await expect(page.getByRole('button', { name: /sklep\.kubki@example\.com/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /nowy@example\.com/ })).toBeVisible()
 
     await page.getByLabel('Szukaj użytkownika').fill('kubki')
-    await expect(page.getByText('nowy@example.com')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /nowy@example\.com/ })).toHaveCount(0)
     expect(requests.some((r) => r.url.startsWith('/admin/users?') && r.url.includes('search=kubki'))).toBe(true)
 
     await page.getByRole('button', { name: /sklep\.kubki@example\.com/ }).click()
@@ -124,7 +125,7 @@ test.describe('admin panel (spec 16)', () => {
     await page.getByRole('tab', { name: 'Grafiki' }).click()
     await expect(page.getByText('nowy@example.com')).toBeVisible()
     await page.getByLabel('Pokaż').selectOption('down')
-    await expect(page.getByText('nowy@example.com')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /nowy@example\.com/ })).toHaveCount(0)
     await expect(page.getByText('Inny powód – „zły kolor”')).toBeVisible()
     expect(requests.some((r) => r.url.startsWith('/admin/generations?') && r.url.includes('rating=down'))).toBe(true)
 

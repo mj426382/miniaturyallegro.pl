@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { usePageTitle } from '../hooks/usePageTitle'
 import toast from 'react-hot-toast'
 import { CreditCardIcon, CheckCircleIcon, XCircleIcon, SparklesIcon, ClockIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
+import { countLabel } from '../utils/plural'
 
 const FREE_LIMIT = 10
 const HIGHLIGHTED_PACKAGE = 'credits_15'
@@ -264,7 +265,7 @@ export default function Credits() {
               <div>
                 <p className="font-semibold text-gray-900">
                   Plan {subscription.planName}
-                  {subscription.creditsPerMonth ? ` · ${subscription.creditsPerMonth} kredytów / mies.` : ''}
+                  {subscription.creditsPerMonth ? ` · ${countLabel(subscription.creditsPerMonth, 'kredyt', 'kredyty', 'kredytów')} / mies.` : ''}
                 </p>
                 <p className="text-sm text-gray-600 mt-0.5">
                   Status: {subscription.active ? 'aktywny' : subscription.status}
@@ -344,7 +345,7 @@ export default function Credits() {
               <ul className="text-sm text-gray-600 space-y-1 flex-1">
                 <li className="flex items-center gap-2">
                   <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
-                  {pkg.credits} grafik
+                  {countLabel(pkg.credits, 'grafika', 'grafiki', 'grafik')}
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />

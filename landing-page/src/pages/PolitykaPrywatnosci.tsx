@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import PolitykaContent from '../legal/PolitykaContent'
+import LegalDocument from '../components/LegalDocument'
 
 export default function PolitykaPrywatnosci() {
   return (
@@ -16,7 +16,7 @@ export default function PolitykaPrywatnosci() {
       <div className="min-h-screen bg-white">
         <Navbar />
         <main className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
-          <PolitykaContent />
+          <LegalDocument doc="polityka" />
         </main>
         <Footer />
       </div>

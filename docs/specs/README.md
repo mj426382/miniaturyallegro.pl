@@ -25,6 +25,7 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [14-infographics.md](14-infographics.md) | Infografiki z cechami i wymiarami (zdjęcia dodatkowe) |
 | [15-batch-actions.md](15-batch-actions.md) | Zaznaczanie w galerii, paczka ZIP, opisy hurtowo |
 | [16-notifications-and-admin.md](16-notifications-and-admin.md) | Maile cykliczne ze zgodą i wypisaniem, panel administratora |
+| [17-devices-performance-e2e.md](17-devices-performance-e2e.md) | Tablety, budżety wydajności, poprawki UX, test full-stack na prawdziwym backendzie |
 | [adr/](adr/) | Architecture Decision Records – decyzje, których nie da się wyczytać z kodu |
 | [TEMPLATE-feature-spec.md](TEMPLATE-feature-spec.md) | Szablon nowej specyfikacji |
 | [glossary.md](glossary.md) | Słownik pojęć (Kredyt, Grafika, Opis oferty, Poprawka…) |

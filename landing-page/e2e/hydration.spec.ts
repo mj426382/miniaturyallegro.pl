@@ -17,10 +17,10 @@ async function collectConsole(page: Page) {
   return problems
 }
 
-const ROUTES = ['/', '/blog', '/blog/jak-zrobic-profesjonalne-zdjecia-allegro', '/regulamin']
+const ROUTES = ['/', '/blog', '/blog/jak-zrobic-profesjonalne-zdjecia-allegro', '/regulamin', '/polityka-prywatnosci']
 
 for (const route of ROUTES) {
-  test(`[AC-SEO-001] hydrates ${route} without React errors`, async ({ page }) => {
+  test(`[AC-SEO-001, AC-RWD-004] hydrates ${route} without React errors or horizontal scroll`, async ({ page }) => {
     const problems = await collectConsole(page)
     const response = await page.goto(route)
     expect(response?.status()).toBe(200)
@@ -35,8 +35,43 @@ for (const route of ROUTES) {
 
     const hydrationIssues = problems.filter((p) => HYDRATION_PATTERNS.some((re) => re.test(p)))
     expect(hydrationIssues, problems.join('\n')).toEqual([])
+
+    // Phones and tablets: nothing may stick out sideways (spec 17).
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow).toBeLessThanOrEqual(0)
   })
 }
+
+const LEGAL = [
+  { route: '/regulamin', lastSection: 'Postanowienia końcowe' },
+  { route: '/polityka-prywatnosci', lastSection: 'Zmiany polityki prywatności' },
+]
+
+for (const { route, lastSection } of LEGAL) {
+  test(`[AC-PERF-002] ${route} ships the full text in the HTML and hydrates the lazy chunk`, async ({ page, request }) => {
+    const html = await (await request.get(route)).text()
+    expect(html).toContain(lastSection)
+    expect(html).not.toContain('Wczytywanie dokumentu')
+
+    const problems = await collectConsole(page)
+    await page.goto(route)
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByText(lastSection).first()).toBeVisible()
+    await expect(page.getByText('Wczytywanie dokumentu')).toHaveCount(0)
+    expect(
+      problems.filter((p) => HYDRATION_PATTERNS.some((re) => re.test(p))),
+      problems.join('\n'),
+    ).toEqual([])
+  })
+}
+
+test('[AC-PERF-002] client-side navigation loads the legal document chunk', async ({ page }) => {
+  await page.goto('/blog')
+  await page.waitForLoadState('networkidle')
+  await page.locator('footer a[href="/regulamin"]').first().click()
+  await expect(page).toHaveURL(/\/regulamin$/)
+  await expect(page.getByText('Postanowienia końcowe').first()).toBeVisible()
+})
 
 test('[AC-SEO-002] prerendered HTML carries the per-route SEO head', async ({ page }) => {
   await page.goto('/blog/jak-zrobic-profesjonalne-zdjecia-allegro')

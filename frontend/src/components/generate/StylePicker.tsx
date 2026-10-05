@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { CheckCircleIcon, CreditCardIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import type { GenerationStyleInfo } from '../../services/api'
 import { groupStartsOpen, groupStyles } from '../../utils/styles'
+import { countLabel } from '../../utils/plural'
 
 interface Props {
   styles: GenerationStyleInfo[]
@@ -140,7 +141,7 @@ export default function StylePicker({
       <div className="flex flex-wrap items-center gap-3">
         <button onClick={onStart} disabled={isStarting || locked || selectedCount === 0} className="btn-primary flex items-center gap-2">
           <SparklesIcon className="h-5 w-5" />
-          {isStarting ? 'Uruchamianie...' : locked ? 'Generowanie w toku...' : `Generuj ${selectedCount} ${selectedCount === 1 ? 'grafikę' : selectedCount < 5 ? 'grafiki' : 'grafik'}`}
+          {isStarting ? 'Uruchamianie...' : locked ? 'Generowanie w toku...' : `Generuj ${countLabel(selectedCount, 'grafikę', 'grafiki', 'grafik')}`}
         </button>
         <span className={`text-xs flex items-center gap-1 ${canAfford ? 'text-gray-500' : 'text-red-500'}`}>
           <CreditCardIcon className="h-3.5 w-3.5" />

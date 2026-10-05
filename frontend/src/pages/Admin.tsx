@@ -6,6 +6,7 @@ import { usePageTitle } from '../hooks/usePageTitle'
 import AdminUserModal from '../components/AdminUserModal'
 import AdminGenerationsFeed from '../components/admin/AdminGenerationsFeed'
 import { formatDateTime as dateTime, formatZl as zl } from '../utils/format'
+import { countLabel } from '../utils/plural'
 
 const PAGE_SIZE = 20
 
@@ -107,62 +108,106 @@ export default function Admin() {
               </button>
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-              <table className="w-full text-sm min-w-[900px]">
-                <thead className="bg-gray-50 border-b border-gray-100 text-left text-gray-500">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Użytkownik</th>
-                    <th className="px-4 py-3 font-medium">Rejestracja</th>
-                    <th className="px-4 py-3 font-medium">Grafiki</th>
-                    <th className="px-4 py-3 font-medium">Plan</th>
-                    <th className="px-4 py-3 font-medium">Kredyty</th>
-                    <th className="px-4 py-3 font-medium">Wpłaty</th>
-                    <th className="px-4 py-3 font-medium">Zgoda</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {users.isLoading ? (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                        Ładowanie…
-                      </td>
-                    </tr>
-                  ) : users.data?.users.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                        Brak użytkowników{query ? ` dla „${query}”` : ''}.
-                      </td>
-                    </tr>
-                  ) : (
-                    users.data?.users.map((u) => (
-                      <tr key={u.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <button type="button" onClick={() => setOpenUserId(u.id)} className="text-left">
-                            <span className="block font-medium text-blue-700 hover:underline break-all">{u.email}</span>
-                            <span className="block text-xs text-gray-500">
-                              {u.name ? `${u.name} · ` : ''}
-                              {PROVIDER[u.provider]}
-                              {!u.emailVerified && <span className="ml-1 text-amber-700">· niepotwierdzony</span>}
+            <>
+              {/* Phones and tablets: one card per account instead of a wide table (spec 17, AC-RWD-003). */}
+              <ul aria-label="Użytkownicy" className="lg:hidden space-y-3">
+                {users.isLoading ? (
+                  <li className="text-center text-gray-500 py-8">Ładowanie…</li>
+                ) : users.data?.users.length === 0 ? (
+                  <li className="text-center text-gray-500 py-8">Brak użytkowników{query ? ` dla „${query}”` : ''}.</li>
+                ) : (
+                  users.data?.users.map((u) => (
+                    <li key={u.id}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenUserId(u.id)}
+                        data-testid="admin-user-card"
+                        className="w-full text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300"
+                      >
+                        <span className="block font-medium text-blue-700 break-all">{u.email}</span>
+                        <span className="block text-xs text-gray-500 mt-0.5">
+                          {u.name ? `${u.name} · ` : ''}
+                          {PROVIDER[u.provider]} · {dateTime(u.createdAt)}
+                          {!u.emailVerified && <span className="ml-1 text-amber-700">· niepotwierdzony</span>}
+                        </span>
+                        <span className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                          <span>
+                            <span className="block text-gray-500">Grafiki</span>
+                            <span className="block text-sm font-semibold text-gray-900">{u.completedGenerations}</span>
+                          </span>
+                          <span>
+                            <span className="block text-gray-500">Plan</span>
+                            <span className="block text-sm font-semibold text-gray-900 truncate">{u.plan ? u.plan.name : 'brak'}</span>
+                          </span>
+                          <span>
+                            <span className="block text-gray-500">Kredyty</span>
+                            <span className="block text-sm font-semibold text-gray-900">
+                              {u.credits} <span className="font-normal text-gray-500">+ {u.freeCreditsLeft}</span>
                             </span>
-                          </button>
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+              <div className="hidden lg:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
+                <table className="w-full text-sm min-w-[900px]">
+                  <thead className="bg-gray-50 border-b border-gray-100 text-left text-gray-500">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Użytkownik</th>
+                      <th className="px-4 py-3 font-medium">Rejestracja</th>
+                      <th className="px-4 py-3 font-medium">Grafiki</th>
+                      <th className="px-4 py-3 font-medium">Plan</th>
+                      <th className="px-4 py-3 font-medium">Kredyty</th>
+                      <th className="px-4 py-3 font-medium">Wpłaty</th>
+                      <th className="px-4 py-3 font-medium">Zgoda</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {users.isLoading ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                          Ładowanie…
                         </td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{dateTime(u.createdAt)}</td>
-                        <td className="px-4 py-3 text-gray-700">
-                          {u.completedGenerations}
-                          <span className="text-xs text-gray-500"> / {u.images} zdj.</span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-700">{u.plan ? `${u.plan.name} (${u.plan.status})` : 'brak'}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
-                          {u.credits} <span className="text-xs text-gray-500">+ {u.freeCreditsLeft} darm.</span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{zl(u.paidTotalGrosze)}</td>
-                        <td className="px-4 py-3">{u.marketingConsent ? <span className="text-green-700">tak</span> : <span className="text-gray-500">nie</span>}</td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : users.data?.users.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                          Brak użytkowników{query ? ` dla „${query}”` : ''}.
+                        </td>
+                      </tr>
+                    ) : (
+                      users.data?.users.map((u) => (
+                        <tr key={u.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            <button type="button" onClick={() => setOpenUserId(u.id)} className="text-left">
+                              <span className="block font-medium text-blue-700 hover:underline break-all">{u.email}</span>
+                              <span className="block text-xs text-gray-500">
+                                {u.name ? `${u.name} · ` : ''}
+                                {PROVIDER[u.provider]}
+                                {!u.emailVerified && <span className="ml-1 text-amber-700">· niepotwierdzony</span>}
+                              </span>
+                            </button>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{dateTime(u.createdAt)}</td>
+                          <td className="px-4 py-3 text-gray-700">
+                            {u.completedGenerations}
+                            <span className="text-xs text-gray-500"> / {u.images} zdj.</span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-700">{u.plan ? `${u.plan.name} (${u.plan.status})` : 'brak'}</td>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                            {u.credits} <span className="text-xs text-gray-500">+ {u.freeCreditsLeft} darm.</span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{zl(u.paidTotalGrosze)}</td>
+                          <td className="px-4 py-3">{u.marketingConsent ? <span className="text-green-700">tak</span> : <span className="text-gray-500">nie</span>}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {users.data && users.data.pagination.pages > 1 && (
@@ -171,7 +216,7 @@ export default function Admin() {
                 Poprzednia
               </button>
               <span className="text-gray-600">
-                Strona {users.data.pagination.page} z {users.data.pagination.pages} · {users.data.pagination.total} kont
+                Strona {users.data.pagination.page} z {users.data.pagination.pages} · {countLabel(users.data.pagination.total, 'konto', 'konta', 'kont')}
               </span>
               <button type="button" onClick={() => setPage((p) => p + 1)} disabled={page >= users.data.pagination.pages} className="btn-secondary text-sm">
                 Następna

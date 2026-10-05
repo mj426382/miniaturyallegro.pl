@@ -10,6 +10,7 @@ import { describeRejection } from '../utils/dropzone'
 import BulkDescriptionsModal, { BulkPhoto } from '../components/BulkDescriptionsModal'
 import { useZipDownload } from '../hooks/useZipDownload'
 import { groupStartsOpen, groupStyles } from '../utils/styles'
+import { countLabel } from '../utils/plural'
 import {
   ArrowUpTrayIcon,
   PhotoIcon,
@@ -284,7 +285,7 @@ export default function BulkUpload() {
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
               <span className="text-sm font-medium text-gray-700">
-                {files.length} {files.length === 1 ? 'plik' : 'pliki/plików'}
+                {countLabel(files.length, 'plik', 'pliki', 'plików')}
                 {doneCount > 0 && (
                   <span className="text-green-600 ml-2">
                     • {doneCount} {mode === 'upload' ? 'przesłane' : 'gotowe'}
@@ -414,7 +415,7 @@ export default function BulkUpload() {
           {!isRunning && doneCount > 0 && (
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
               <p className="text-sm font-medium text-green-800 mb-2">
-                ✅ {doneCount} {doneCount === 1 ? 'produkt' : 'produktów'} {mode === 'upload' ? 'przesłano – wybierz style dla każdego z nich' : 'gotowych — generowanie grafik trwa w tle'}
+                ✅ {countLabel(doneCount, 'produkt', 'produkty', 'produktów')} {mode === 'upload' ? 'przesłano – wybierz style dla każdego z nich' : 'gotowe — generowanie grafik trwa w tle'}
               </p>
               <div className="flex flex-wrap gap-2">
                 {files

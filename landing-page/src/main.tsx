@@ -5,6 +5,7 @@ import App from './App.tsx'
 import './index.css'
 import { initAnalytics } from './services/analytics'
 import { loadPost } from './data/blogLoader'
+import { LEGAL_PATHS, loadLegal } from './data/legalLoader'
 
 initAnalytics()
 
@@ -18,9 +19,11 @@ const app = (
 )
 
 // Production pages are prerendered (SSG) – hydrate instead of re-rendering from scratch.
-// An article page first fetches its own body chunk so the hydrated tree equals the static HTML.
-const articleSlug = window.location.pathname.match(/^\/blog\/([a-z0-9-]+)\/?$/)?.[1]
-const ready = articleSlug ? loadPost(articleSlug).catch(() => null) : Promise.resolve(null)
+// Article and legal pages first fetch their content chunk so the hydrated tree equals the static HTML.
+const path = window.location.pathname.replace(/\/$/, '') || '/'
+const articleSlug = path.match(/^\/blog\/([a-z0-9-]+)$/)?.[1]
+const legalDoc = LEGAL_PATHS[path]
+const ready: Promise<unknown> = articleSlug ? loadPost(articleSlug).catch(() => null) : legalDoc ? loadLegal(legalDoc).catch(() => null) : Promise.resolve(null)
 
 ready.then(() => {
   if (container.hasChildNodes()) {

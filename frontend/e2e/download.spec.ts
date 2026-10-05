@@ -4,11 +4,12 @@ import { mockApp, IMAGE } from './fixtures'
 /**
  * Downloading generated graphics must work on every platform our sellers use:
  * desktop browsers save a file, phones get the native share sheet ("Zapisz obraz").
- * Each test runs on all configured devices (desktop Chrome/Safari, iPhone 14, Pixel 7).
+ * Each test runs on all configured devices (desktop Chrome/Safari, iPhone 14, Pixel 7, iPad, Galaxy Tab).
+ * "Mobile" here is the platform (iOS/Android user agent, touch), not the screen width – tablets share too.
  */
 
-function isMobile(page: Page) {
-  return page.viewportSize()!.width < 768
+function isMobile() {
+  return Boolean(test.info().project.use.isMobile)
 }
 
 /** The export lives in the card's overflow menu. */
@@ -40,7 +41,7 @@ async function installShareSpy(page: Page, options: { canShare: boolean } = { ca
 
 test.describe('download of a generated graphic', () => {
   test('[AC-EXP-009] desktop browsers save the file with the style name', async ({ page }) => {
-    test.skip(isMobile(page), 'desktop behaviour only')
+    test.skip(isMobile(), 'desktop behaviour only')
     const { requests } = await mockApp(page)
     await openGenerator(page)
 
@@ -55,7 +56,7 @@ test.describe('download of a generated graphic', () => {
   })
 
   test('[AC-EXP-010] phones (iPhone / Android) get the native share sheet with an image file', async ({ page }) => {
-    test.skip(!isMobile(page), 'mobile behaviour only')
+    test.skip(!isMobile(), 'mobile behaviour only')
     await installShareSpy(page)
     await mockApp(page)
     await openGenerator(page)
@@ -68,7 +69,7 @@ test.describe('download of a generated graphic', () => {
   })
 
   test('[AC-EXP-011] phones without file sharing still get the image (download or new tab)', async ({ page, context }) => {
-    test.skip(!isMobile(page), 'mobile behaviour only')
+    test.skip(!isMobile(), 'mobile behaviour only')
     await installShareSpy(page, { canShare: false })
     await mockApp(page)
     await openGenerator(page)
@@ -88,7 +89,7 @@ test.describe('download of a generated graphic', () => {
 
 test.describe('export in marketplace formats', () => {
   test('[AC-EXP-012] exports a 4:3 gallery JPEG with a promo badge', async ({ page }) => {
-    const mobile = isMobile(page)
+    const mobile = isMobile()
     if (mobile) await installShareSpy(page)
     const { requests } = await mockApp(page)
     await openGenerator(page)
@@ -119,7 +120,7 @@ test.describe('export in marketplace formats', () => {
   })
 
   test('[AC-EXP-013] sends rotation and tone corrections with the export', async ({ page }) => {
-    const mobile = isMobile(page)
+    const mobile = isMobile()
     if (mobile) await installShareSpy(page)
     const { requests } = await mockApp(page)
     await openGenerator(page)
@@ -151,7 +152,7 @@ test.describe('export in marketplace formats', () => {
   })
 
   test('[AC-EXP-014] lets the seller frame a 3:4 crop instead of getting white bars', async ({ page }) => {
-    const mobile = isMobile(page)
+    const mobile = isMobile()
     if (mobile) await installShareSpy(page)
     const { requests } = await mockApp(page)
     await openGenerator(page)

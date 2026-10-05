@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { adminApi } from '../../services/api'
 import AdminGraphicTile from './AdminGraphicTile'
+import { countLabel } from '../../utils/plural'
 
 interface Props {
   styleNames: Record<string, string>
@@ -50,7 +51,7 @@ export default function AdminGenerationsFeed({ styleNames, onOpenUser }: Props) 
             </option>
           ))}
         </select>
-        {query.data && <span className="text-sm text-gray-500">{query.data.pagination.total} grafik</span>}
+        {query.data && <span className="text-sm text-gray-500">{countLabel(query.data.pagination.total, 'grafika', 'grafiki', 'grafik')}</span>}
       </div>
 
       {query.isLoading ? (

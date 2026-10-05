@@ -9,7 +9,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
-            <img src="/logo.webp" alt="AllGrafika.pl" className="h-9 w-auto mix-blend-multiply" />
+            <img src="/logo.webp" alt="AllGrafika.pl" width={36} height={36} className="h-9 w-auto mix-blend-multiply" />
             <span>AllGrafika</span>
           </Link>
 

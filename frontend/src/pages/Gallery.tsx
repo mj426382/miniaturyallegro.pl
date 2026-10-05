@@ -9,6 +9,7 @@ import { useZipDownload } from '../hooks/useZipDownload'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useConfirm } from '../hooks/useConfirm'
 import { ArrowUpTrayIcon, ArchiveBoxArrowDownIcon, CheckCircleIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
+import { countLabel } from '../utils/plural'
 
 const PAGE_SIZE = 12
 
@@ -75,7 +76,7 @@ export default function Gallery() {
       <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Galeria zdjęć</h1>
-          <p className="text-gray-500 mt-1">{total} przesłanych zdjęć</p>
+          <p className="text-gray-500 mt-1">{countLabel(total, 'przesłane zdjęcie', 'przesłane zdjęcia', 'przesłanych zdjęć')}</p>
         </div>
         <div className="flex items-center gap-2">
           {total > 0 && !selecting && (
@@ -108,7 +109,7 @@ export default function Gallery() {
       )}
 
       {images.isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="bg-gray-200 rounded-xl aspect-square animate-pulse" />
           ))}
@@ -131,7 +132,7 @@ export default function Gallery() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {images.data?.images.map((image) => (
               <ImageCard key={image.id} image={image} onDelete={() => deleteImage(image)} selectable={selecting} selected={selected.has(image.id)} onToggleSelect={() => toggle(image)} />
             ))}

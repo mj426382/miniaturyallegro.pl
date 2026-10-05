@@ -59,11 +59,12 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 
 | ID | Wymaganie | Weryfikacja |
 |---|---|---|
-| NFR-PERF-001 | Landing: Lighthouse mobile perf ≥ 90, SEO = 100, LCP ≤ 2,5 s na stronie głównej, blogu i wpisie | M (ostatni pomiar: 99 / 98 / 93) |
+| NFR-PERF-001 | Landing: Lighthouse mobile perf ≥ 90, SEO = 100, LCP ≤ 2,5 s na stronie głównej, blogu i wpisie | M (pomiar 2026-10-05 przed poprawkami: 84–86 / 86 / 86); T: AC-PERF-001/002/004 |
 | NFR-PERF-002 | Hydratacja bez błędów React na każdej trasie landingu | T: AC-SEO-001 |
 | NFR-PERF-003 | Generacja jednej grafiki ≤ 60 s p95; status widoczny w UI bez odświeżania (polling ≤ 4 s) | M: logi; T: AC-GEN-021 |
 | NFR-PERF-004 | Koszt AI na kredyt ≤ 0,20 zł; współbieżność Gemini ograniczona semaforem (`GEMINI_MAX_CONCURRENT`) | M; T: AC-GEN-019 |
 | NFR-PERF-005 | Kredyty rozliczane atomowo (blokada wiersza), limit 30 generacji w toku na użytkownika | T: AC-GEN-004/006 |
+| NFR-PERF-006 | Budżety pakietów (gzip): JS strony głównej landingu ≤ 110 KB, wejściowy JS aplikacji ≤ 150 KB, chunk ≤ 120 KB, favicon ≤ 16 KB | T: AC-PERF-001/003/004 |
 
 ### Niezawodność (NFR-REL)
 
@@ -83,6 +84,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | NFR-UX-001 | Każdy ekran działa na 360 px; pobieranie na iPhone/Android przez arkusz udostępniania | T: AC-EXP-010/011, AC-UI-004 |
 | NFR-UX-002 | Stany błędu API z „Spróbuj ponownie”, nigdy mylone ze stanem pustym | T: AC-UI-006 |
 | NFR-UX-003 | Akcje destrukcyjne za potwierdzeniem; błąd renderu pokazuje ekran awaryjny | T: AC-UPL-015/017; R |
+| NFR-UX-004 | Telefony, tablety (iPad, Galaxy Tab) i desktop: brak przewijania w poziomie, poprawna odmiana liczebników | T: AC-RWD-001..004, AC-UX-001 |
 
 ### Utrzymanie (NFR-DEV)
 
@@ -90,10 +92,11 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 |---|---|---|
 | NFR-DEV-001 | Każde AC ma test; `scripts/check-spec-coverage.js` zielony w CI | CI job `specs` |
 | NFR-DEV-002 | Kontrakt OpenAPI wersjonowany i zgodny z kodem | T: AC-API-001 |
-| NFR-DEV-003 | CI: backend unit+e2e, frontend lint+unit+Playwright (4 profile)+axe, landing build+hydratacja | CI |
+| NFR-DEV-003 | CI: backend unit+e2e, frontend lint+unit+Playwright (6 profili: 2 desktop, 2 telefony, 2 tablety)+axe, landing build+hydratacja (4 profile) | CI |
 | NFR-DEV-004 | Test z prawdziwym Gemini/OpenAI uruchamiany opt-in (`npm run test:live`) | T: AC-GEN-020 |
 | NFR-DEV-005 | Zależności produkcyjne bez podatności wysokich/krytycznych w zależnościach bezpośrednich; `npm audit --omit=dev` w przeglądzie co miesiąc | R |
 | NFR-DEV-006 | Formatowanie (Prettier) i lint (ESLint z `react`, `jsx-a11y`) wymuszone w CI; wersja Node z `.nvmrc`/`engines` | CI |
+| NFR-DEV-007 | Test full-stack: przeglądarka + prawdziwy backend + baza testowa, atrapy tylko dla AI i poczty, kod atrap poza obrazem produkcyjnym | T: AC-E2E-001..003; CI |
 | NFR-REL-005 | Każde żądanie ma `x-request-id`; błędy 5xx logowane z kontekstem i raportowane do Sentry, gdy skonfigurowane | T: AC-SEC-008; R |
 
 ## Kryteria akceptacji (przekrojowe)

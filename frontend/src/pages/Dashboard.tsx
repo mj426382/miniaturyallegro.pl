@@ -23,9 +23,9 @@ export default function Dashboard() {
         <p className="text-gray-500 mt-1">Generuj profesjonalne grafiki produktowe dla swoich ofert na Allegro</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
-        <div className="card">
+      {/* Stats – the call-to-action takes its own row until the screen fits three cards (tablets, spec 17). */}
+      <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8 items-start" data-testid="dashboard-stats">
+        <div className="card p-4 sm:p-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
               <ArrowUpTrayIcon className="h-6 w-6 text-blue-600" />
@@ -37,7 +37,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card">
+        <div className="card p-4 sm:p-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
               <SparklesIcon className="h-6 w-6 text-purple-600" />
@@ -49,11 +49,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card bg-gradient-to-r from-blue-600 to-indigo-600 border-0 col-span-2 md:col-span-1">
-          <div className="text-white">
-            <p className="font-semibold mb-1">Dodaj nowe zdjęcie</p>
-            <p className="text-blue-100 text-sm mb-3">Prześlij zdjęcie produktu i wygeneruj profesjonalne grafiki w wybranych stylach</p>
-            <Link to="/upload" className="inline-flex items-center gap-2 bg-white text-blue-600 rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-50 transition-colors">
+        <div className="card bg-gradient-to-r from-blue-600 to-indigo-600 border-0 col-span-2 xl:col-span-1">
+          <div className="text-white flex flex-col sm:flex-row xl:flex-col sm:items-center xl:items-start gap-3 sm:gap-6 xl:gap-3">
+            <div className="flex-1">
+              <p className="font-semibold mb-1">Dodaj nowe zdjęcie</p>
+              <p className="text-blue-100 text-sm">Prześlij zdjęcie produktu i wygeneruj profesjonalne grafiki w wybranych stylach</p>
+            </div>
+            <Link
+              to="/upload"
+              className="inline-flex items-center gap-2 bg-white text-blue-600 rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-50 transition-colors self-start sm:self-auto xl:self-start whitespace-nowrap"
+            >
               <ArrowUpTrayIcon className="h-4 w-4" />
               Prześlij zdjęcie
             </Link>
@@ -71,7 +76,7 @@ export default function Dashboard() {
         </div>
 
         {images.isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-gray-200 rounded-xl aspect-square animate-pulse" />
             ))}
@@ -92,7 +97,7 @@ export default function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {images.data?.images.map((image) => (
               <ImageCard key={image.id} image={image} />
             ))}

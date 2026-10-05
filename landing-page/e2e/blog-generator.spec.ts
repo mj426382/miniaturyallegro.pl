@@ -15,7 +15,10 @@ const postFile = resolve(landing, `src/data/blogPosts/${sample.slug}.ts`)
 const sitemap = resolve(landing, 'public/sitemap.xml')
 
 test.describe('daily blog generator', () => {
-  test.skip(({ browserName }) => browserName !== 'chromium', 'runs once – it does not depend on the browser')
+  // Runs once: it does not depend on the device, and parallel runs would race on the same files.
+  test.beforeEach(() => {
+    test.skip(test.info().project.name !== 'desktop-chrome', 'device-independent')
+  })
 
   test('[AC-SEO-004] dry run writes a valid post, lists it in the index and refreshes the sitemap', () => {
     const sitemapBefore = readFileSync(sitemap, 'utf-8')

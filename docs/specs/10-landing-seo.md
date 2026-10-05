@@ -22,7 +22,7 @@
 
 ## 2. Kryteria akceptacji
 
-- **AC-SEO-001** – Given prerenderowana trasa (`/`, `/blog`, wpis, `/regulamin`), When otwarta w przeglądarce, Then hydratacja przebiega bez błędów ani ostrzeżeń React, a `<h1>` jest widoczne przed hydratacją.
+- **AC-SEO-001** – Given prerenderowana trasa (`/`, `/blog`, wpis, `/regulamin`, `/polityka-prywatnosci`), When otwarta w przeglądarce, Then hydratacja przebiega bez błędów ani ostrzeżeń React, a `<h1>` jest widoczne przed hydratacją.
 - **AC-SEO-002** – Given wpis bloga, When pobrany HTML, Then tytuł, canonical i JSON-LD `Article` są poprawne dla tej trasy.
 - **AC-SEO-003** – Given strona główna po hydratacji, When użytkownik wypełni e-mail w demo bez pliku i zgody, Then przycisk pozostaje nieaktywny (widget interaktywny).
 - **AC-DEMO-001** – Given poprawny e-mail i zdjęcie, When demo, Then powstaje jedna grafika, wynik idzie e-mailem, a limity per e-mail i IP zwracają 429.

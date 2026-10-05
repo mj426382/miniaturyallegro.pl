@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import RegulaminContent from '../legal/RegulaminContent'
+import LegalDocument from '../components/LegalDocument'
 
 export default function Regulamin() {
   return (
@@ -16,7 +16,7 @@ export default function Regulamin() {
       <div className="min-h-screen bg-white">
         <Navbar />
         <main className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
-          <RegulaminContent />
+          <LegalDocument doc="regulamin" />
         </main>
         <Footer />
       </div>
