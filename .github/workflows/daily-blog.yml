@@ -19,6 +19,10 @@ jobs:
       pull-requests: write
       models: read
 
+    # `secrets` is not allowed in a step's `if:` (GitHub rejects the whole workflow) – expose a flag instead.
+    env:
+      HAS_PAT: ${{ secrets.PAT_TOKEN != '' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,5 +40,5 @@ jobs:
         run: python3 landing-page/scripts/generate-blog-post.py
 
       - name: Warn when the PR cannot trigger CI
-        if: ${{ secrets.PAT_TOKEN == '' }}
+        if: env.HAS_PAT != 'true'
         run: echo "::warning::PAT_TOKEN secret is not set – the blog PR was opened with GITHUB_TOKEN, so CI will not run on it and auto-merge stays disabled."
