@@ -9,8 +9,10 @@ import PasswordInput from '../components/PasswordInput'
 import FormAlert from '../components/FormAlert'
 import { track } from '../services/analytics'
 import { getPasswordErrors, getPasswordStrength } from '../utils/password'
+import { googleSignInAvailable } from '../platform/native'
 
 export default function Register() {
+  const showGoogle = googleSignInAvailable()
   usePageTitle('Rejestracja')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -100,40 +102,45 @@ export default function Register() {
         </>
       }
     >
-      {!acceptedTerms && <p className="help-text text-center mb-2">Aby kontynuować przez Google, najpierw zaakceptuj regulamin poniżej.</p>}
-      <div className={acceptedTerms ? '' : 'opacity-50 pointer-events-none'} aria-disabled={!acceptedTerms}>
-        <GoogleLoginButton
-          onSuccess={async (credentialResponse) => {
-            if (!credentialResponse.credential) return
-            if (!acceptedTerms) {
-              setError('Zaakceptuj regulamin, aby założyć konto')
-              return
-            }
-            setIsLoading(true)
-            setError('')
-            try {
-              await googleLogin(credentialResponse.credential, true)
-              track('register', { method: 'google' })
-              navigate('/')
-              toast.success('Zalogowano przez Google!')
-            } catch (err: any) {
-              setError(describeError(err, 'Logowanie Google nie powiodło się'))
-            } finally {
-              setIsLoading(false)
-            }
-          }}
-          onError={() => setError('Logowanie Google nie powiodło się. Spróbuj ponownie.')}
-        />
-      </div>
+      {/* Spec 18: Google sign-in needs native OAuth client ids – hidden in the Android/iOS app for now. */}
+      {showGoogle && (
+        <>
+          {!acceptedTerms && <p className="help-text text-center mb-2">Aby kontynuować przez Google, najpierw zaakceptuj regulamin poniżej.</p>}
+          <div className={acceptedTerms ? '' : 'opacity-50 pointer-events-none'} aria-disabled={!acceptedTerms}>
+            <GoogleLoginButton
+              onSuccess={async (credentialResponse) => {
+                if (!credentialResponse.credential) return
+                if (!acceptedTerms) {
+                  setError('Zaakceptuj regulamin, aby założyć konto')
+                  return
+                }
+                setIsLoading(true)
+                setError('')
+                try {
+                  await googleLogin(credentialResponse.credential, true)
+                  track('register', { method: 'google' })
+                  navigate('/')
+                  toast.success('Zalogowano przez Google!')
+                } catch (err: any) {
+                  setError(describeError(err, 'Logowanie Google nie powiodło się'))
+                } finally {
+                  setIsLoading(false)
+                }
+              }}
+              onError={() => setError('Logowanie Google nie powiodło się. Spróbuj ponownie.')}
+            />
+          </div>
 
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-gray-500">lub</span>
-        </div>
-      </div>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500">lub</span>
+            </div>
+          </div>
+        </>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {error && <FormAlert>{error}</FormAlert>}

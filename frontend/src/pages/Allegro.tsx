@@ -6,6 +6,7 @@ import { allegroApi, AllegroOffer } from '../services/api'
 import { track } from '../services/analytics'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useConfirm } from '../hooks/useConfirm'
+import { isNativeApp, openInSystemBrowser, webUrl } from '../platform/native'
 
 const PAGE_SIZE = 20
 
@@ -56,6 +57,11 @@ export default function Allegro() {
   }, [])
 
   const connect = async () => {
+    // Spec 18: the OAuth callback returns to the web domain, so the app connects Allegro in the browser.
+    if (isNativeApp()) {
+      openInSystemBrowser(webUrl('/allegro')).catch(() => toast.error('Nie udało się otworzyć przeglądarki'))
+      return
+    }
     try {
       const { data } = await allegroApi.authUrl()
       track('allegro_connect_start')

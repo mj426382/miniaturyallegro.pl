@@ -30,6 +30,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | FR-ADM-001 | Panel operatora (przegląd, statystyki ocen, wyliczenie odstąpienia) dla `ADMIN_EMAILS` | 05 |
 | FR-ADM-002 | Panel administratora: lista kont, szczegóły, wiadomość do użytkownika | 16 |
 | FR-NOT-001 | Maile automatyczne: darmowe kredyty, style sezonowe (za zgodą), koniec paczki | 16 |
+| FR-MOB-001 | Aplikacje Android i iOS 1:1 z webem (Capacitor), zakupy przez stronę, info na landingu | 18 |
 
 ## Wymagania niefunkcjonalne
 

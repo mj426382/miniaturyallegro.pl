@@ -6,3 +6,6 @@ test-results
 src/data/blogIndex.ts
 src/data/samples.ts
 public
+dist-native
+android
+ios

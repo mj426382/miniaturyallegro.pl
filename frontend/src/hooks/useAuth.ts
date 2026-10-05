@@ -2,6 +2,8 @@ import { useState, useEffect, createContext, useContext, useCallback } from 'rea
 import { authApi, usersApi, setUnauthorizedHandler } from '../services/api'
 import { queryClient } from '../lib/queryClient'
 import { setReportingUser } from '../services/errorReporting'
+import { clearSessionToken, loadSessionToken, setSessionToken } from '../platform/sessionToken'
+import { isNativeApp, onAppResume } from '../platform/native'
 
 interface User {
   id: string
@@ -72,7 +74,10 @@ export function useAuthProvider() {
   useEffect(() => {
     clearLegacyStorage()
     let cancelled = false
-    refreshUser()
+    // Native apps first restore their Bearer token (spec 18); on the web this resolves immediately.
+    loadSessionToken()
+      .catch(() => null)
+      .then(() => refreshUser())
       .catch(() => {
         if (!cancelled) {
           setToken(null)
@@ -87,6 +92,26 @@ export function useAuthProvider() {
     }
   }, [refreshUser])
 
+  // Spec 18, AC-MOB-005: back in the foreground (e.g. after paying or confirming the e-mail in the
+  // browser) the app re-reads credits and the verification status.
+  useEffect(() => {
+    if (!user || !isNativeApp()) return
+    let unsubscribe: (() => void) | null = null
+    let active = true
+    onAppResume(() => {
+      refreshUser().catch(() => undefined)
+    })
+      .then((off) => {
+        if (active) unsubscribe = off
+        else off()
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+      unsubscribe?.()
+    }
+  }, [user, refreshUser])
+
   // Once logged in, any later 401 (expired cookie, password reset elsewhere) drops the session and
   // sends the user to /login. The handler is armed ONLY for an authenticated session – otherwise the
   // bootstrap 401 of an anonymous visitor would bounce /register and /reset-password to /login.
@@ -99,6 +124,7 @@ export function useAuthProvider() {
     setUnauthorizedHandler(() => {
       queryClient.clear()
       setReportingUser(null)
+      clearSessionToken().catch(() => undefined)
       setToken(null)
       setUser(null)
       if (window.location.pathname !== '/login') window.location.href = '/login'
@@ -108,6 +134,7 @@ export function useAuthProvider() {
 
   const login = async (email: string, password: string) => {
     const { data } = await authApi.login({ email, password })
+    await setSessionToken(data.token)
     setToken('cookie')
     setUser(data.user)
     refreshUser().catch(() => undefined)
@@ -115,6 +142,7 @@ export function useAuthProvider() {
 
   const googleLogin = async (googleToken: string, acceptedTerms?: boolean) => {
     const { data } = await authApi.googleLogin(googleToken, acceptedTerms)
+    await setSessionToken(data.token)
     setToken('cookie')
     setUser(data.user)
     refreshUser().catch(() => undefined)
@@ -122,13 +150,18 @@ export function useAuthProvider() {
 
   const register = async (email: string, password: string, name: string | undefined, acceptedTerms: boolean, marketingConsent = false) => {
     const { data } = await authApi.register({ email, password, name, acceptedTerms, marketingConsent })
+    await setSessionToken(data.token)
     setToken('cookie')
     setUser(data.user)
     refreshUser().catch(() => undefined)
   }
 
   const logout = () => {
-    authApi.logout().catch(() => undefined)
+    // The request still carries the native Bearer token; it is dropped once the API has answered.
+    authApi
+      .logout()
+      .catch(() => undefined)
+      .finally(() => clearSessionToken().catch(() => undefined))
     // Cached server state belongs to the previous session – never show it to the next user.
     queryClient.clear()
     setReportingUser(null)

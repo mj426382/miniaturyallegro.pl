@@ -9,11 +9,10 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import { parseBool, parseList } from './config/env.validation';
+import { parseBool } from './config/env.validation';
+import { buildCorsOrigins, DEFAULT_CORS_ORIGINS } from './common/cors';
 
-export const DEFAULT_CORS_ORIGINS = ['https://app.allgrafika.pl', 'https://allgrafika.pl', 'https://www.allgrafika.pl'];
-
-const DEV_CORS_ORIGINS = ['http://localhost:5173', 'http://localhost:5174'];
+export { DEFAULT_CORS_ORIGINS };
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -58,10 +57,8 @@ async function bootstrap() {
     }),
   );
 
-  const corsOrigins = [
-    ...parseList(process.env.CORS_ORIGINS, DEFAULT_CORS_ORIGINS),
-    ...(isProd ? [] : DEV_CORS_ORIGINS),
-  ];
+  // Web domains (or CORS_ORIGINS), the Android/iOS app origins (spec 18) and, outside production, Vite.
+  const corsOrigins = buildCorsOrigins(process.env);
   app.enableCors({
     origin: corsOrigins,
     credentials: true,

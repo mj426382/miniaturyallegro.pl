@@ -2,7 +2,7 @@ module.exports = {
   root: true,
   env: { browser: true, es2020: true },
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'plugin:react/recommended', 'plugin:react/jsx-runtime', 'plugin:react-hooks/recommended', 'plugin:jsx-a11y/recommended'],
-  ignorePatterns: ['dist', 'node_modules', 'playwright-report', 'test-results', '.eslintrc.cjs'],
+  ignorePatterns: ['dist', 'dist-native', 'android', 'ios', 'node_modules', 'playwright-report', 'test-results', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   plugins: ['react-refresh'],
   settings: { react: { version: 'detect' } },

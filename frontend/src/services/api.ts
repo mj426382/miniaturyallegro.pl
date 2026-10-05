@@ -1,10 +1,14 @@
 import axios from 'axios'
 import { reportError } from './errorReporting'
+import { getSessionToken } from '../platform/sessionToken'
 
 /**
  * The session lives in an httpOnly cookie set by the API (not readable by JS, so an XSS
  * cannot steal it). Every request carries the custom header the backend requires for
  * cookie-authenticated calls – that header is the CSRF defence.
+ *
+ * Spec 18: inside the Android/iOS app the session is a Bearer token instead (see platform/sessionToken);
+ * on the web getSessionToken() is always null, so web requests are unchanged.
  */
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -13,6 +17,12 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   },
+})
+
+api.interceptors.request.use((config) => {
+  const token = getSessionToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
 })
 
 /** Set by useAuth after the session bootstrap; lets the 401 handler avoid redirect loops. */

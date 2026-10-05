@@ -13,6 +13,7 @@ out/
 .env
 .env.*
 !.env.example
+!frontend/.env.native
 .env.local
 .env.development.local
 .env.test.local
@@ -71,3 +72,8 @@ frontend/playwright-report/
 frontend/playwright/.cache/
 landing-page/test-results/
 landing-page/playwright-report/
+
+# Capacitor (spec 18): web assets copied into the native projects are build output
+frontend/dist-native/
+frontend/android/app/src/main/assets/public/
+frontend/ios/App/App/public/

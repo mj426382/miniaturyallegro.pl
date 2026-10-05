@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import BeforeAfter from '../components/BeforeAfter'
 import DemoWidget from '../components/DemoWidget'
+import MobileAppTeaser from '../components/MobileAppTeaser'
 import { blogIndex } from '../data/blogIndex'
 import { samplePairs } from '../data/samples'
 import { track } from '../services/analytics'
@@ -366,6 +367,9 @@ export default function Home() {
             <p className="text-center text-sm text-gray-400 mt-6">Bezpieczne płatności przez Stripe (karta; BLIK dla pakietów jednorazowych) · Nieudane generacje zwracamy automatycznie</p>
           </div>
         </section>
+
+        {/* Spec 18: mobile apps announcement */}
+        <MobileAppTeaser />
 
         {/* FAQ */}
         <section id="faq" className="py-20 bg-gray-50">

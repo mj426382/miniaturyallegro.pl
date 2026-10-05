@@ -8,6 +8,7 @@ import { usePageTitle } from '../hooks/usePageTitle'
 import toast from 'react-hot-toast'
 import { CreditCardIcon, CheckCircleIcon, XCircleIcon, SparklesIcon, ClockIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
 import { countLabel } from '../utils/plural'
+import { isNativeApp, nativePurchaseMode, openInSystemBrowser, webUrl } from '../platform/native'
 
 const FREE_LIMIT = 10
 const HIGHLIGHTED_PACKAGE = 'credits_15'
@@ -72,6 +73,19 @@ export default function Credits() {
   /** Stripe invoice links expire, so a fresh one is requested on every click (spec 09). */
   const openInvoice = async (transactionId: string) => {
     setOpeningInvoice(transactionId)
+    if (isNativeApp()) {
+      // Spec 18: the WebView has no tabs – the invoice opens in the system browser.
+      try {
+        const { data } = await paymentsApi.invoiceUrl(transactionId)
+        await openInSystemBrowser(data.url)
+      } catch (err: any) {
+        const message = err.response?.data?.message
+        toast.error(Array.isArray(message) ? message.join('. ') : message || 'Nie udało się otworzyć faktury')
+      } finally {
+        setOpeningInvoice(null)
+      }
+      return
+    }
     // Opened synchronously inside the click so the browser does not block it as a pop-up.
     const tab = window.open('', '_blank')
     if (tab) tab.opener = null
@@ -86,6 +100,12 @@ export default function Credits() {
     } finally {
       setOpeningInvoice(null)
     }
+  }
+  /** Spec 18: the Android/iOS apps never sell credits – purchases happen on the web (or are hidden). */
+  const nativeMode = isNativeApp() ? nativePurchaseMode() : null
+  const showPurchases = nativeMode !== 'hidden'
+  const openWebCredits = () => {
+    openInSystemBrowser(webUrl('/credits')).catch(() => toast.error('Nie udało się otworzyć przeglądarki'))
   }
   const [acceptedWaiver, setAcceptedWaiver] = useState(false)
   const [acceptedSubscriptionTerms, setAcceptedSubscriptionTerms] = useState(false)
@@ -133,6 +153,7 @@ export default function Credits() {
   }
 
   const handleBuy = async (packageId: string) => {
+    if (nativeMode) return openWebCredits()
     if (redirecting) return
     if (!acceptedWaiver) {
       nudge(waiverRef, 'Zaznacz zgodę na natychmiastowe udostępnienie kredytów, aby przejść do płatności.')
@@ -154,6 +175,7 @@ export default function Credits() {
   }
 
   const handleSubscribe = async (planId: string) => {
+    if (nativeMode) return openWebCredits()
     if (redirecting) return
     if (!acceptedSubscriptionTerms) {
       nudge(subscriptionTermsRef, 'Zaznacz zgodę na rozpoczęcie świadczenia usługi abonamentowej, aby przejść do płatności.')
@@ -175,6 +197,7 @@ export default function Credits() {
   }
 
   const openPortal = async () => {
+    if (nativeMode) return openWebCredits()
     setIsOpeningPortal(true)
     try {
       const { data } = await paymentsApi.portal()
@@ -255,8 +278,14 @@ export default function Credits() {
         </div>
       </div>
 
+      {nativeMode === 'web-link' && (
+        <p role="note" className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+          Płatności obsługujemy na stronie app.allgrafika.pl – przycisk otworzy przeglądarkę. Kupione kredyty pojawią się tutaj automatycznie.
+        </p>
+      )}
+
       {/* Subscription */}
-      {(plans.length > 0 || subscription) && (
+      {showPurchases && (plans.length > 0 || subscription) && (
         <div className="mb-10">
           <h2 className="text-lg font-semibold text-gray-800 mb-1">Abonament miesięczny</h2>
           <p className="text-sm text-gray-500 mb-4">Dla sklepów, które dodają produkty regularnie: kredyty co miesiąc w niższej cenie, anulujesz w każdej chwili.</p>
@@ -277,7 +306,7 @@ export default function Credits() {
               </button>
             </div>
           )}
-          {!subscription?.active && plans.length > 0 && (
+          {!nativeMode && !subscription?.active && plans.length > 0 && (
             <label ref={subscriptionTermsRef} className="flex items-start gap-3 bg-white border border-gray-200 rounded-xl p-4 mb-4 cursor-pointer">
               <input
                 type="checkbox"
@@ -315,58 +344,70 @@ export default function Credits() {
       )}
 
       {/* Packages */}
-      <h2 className="text-lg font-semibold text-gray-800 mb-1">Pakiety jednorazowe</h2>
-      <p className="text-sm text-gray-500 mb-4">Bez zobowiązań – kup, kiedy potrzebujesz.</p>
+      {showPurchases && (
+        <>
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">Pakiety jednorazowe</h2>
+          <p className="text-sm text-gray-500 mb-4">Bez zobowiązań – kup, kiedy potrzebujesz.</p>
 
-      {/* Consumer-law consent (art. 38 pkt 13 ustawy o prawach konsumenta) – before the buttons, not after */}
-      <label ref={waiverRef} className="flex items-start gap-3 bg-white border border-gray-200 rounded-xl p-4 mb-4 cursor-pointer">
-        <input type="checkbox" checked={acceptedWaiver} onChange={(e) => setAcceptedWaiver(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-        <span className="text-sm text-gray-600">
-          Żądam natychmiastowego udostępnienia kredytów po opłaceniu zamówienia i przyjmuję do wiadomości, że z chwilą ich udostępnienia tracę prawo do odstąpienia od umowy w terminie 14 dni (art. 38
-          pkt 13 ustawy o prawach konsumenta). Niewykorzystane kredyty nie wygasają. Szczegóły w{' '}
-          <Link to="/regulamin" target="_blank" className="text-blue-600 underline">
-            regulaminie
-          </Link>
-          .
-        </span>
-      </label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-        {packages.map((pkg) => {
-          const highlighted = pkg.id === HIGHLIGHTED_PACKAGE
-          return (
-            <div key={pkg.id} className={`relative bg-white rounded-xl border-2 p-6 flex flex-col gap-4 transition-shadow hover:shadow-md ${highlighted ? 'border-blue-500' : 'border-gray-200'}`}>
-              {highlighted && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">Popularny</span>}
-              <div>
-                <p className="text-xl font-bold text-gray-900">{pkg.label}</p>
-                <p className="text-3xl font-bold text-blue-600 mt-1">{pkg.priceLabel}</p>
-                <p className="text-sm text-gray-500 mt-0.5">{(pkg.priceGrosze / 100 / pkg.credits).toFixed(2)} zł / kredyt · brutto</p>
-                {pkg.savingLabel && <p className="text-xs text-green-700 font-medium mt-1">{pkg.savingLabel}</p>}
-              </div>
-              <ul className="text-sm text-gray-600 space-y-1 flex-1">
-                <li className="flex items-center gap-2">
-                  <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
-                  {countLabel(pkg.credits, 'grafika', 'grafiki', 'grafik')}
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
-                  Nigdy nie wygasają
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
-                  Bezpieczna płatność Stripe
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
-                  Faktura VAT – NIP podasz w formularzu płatności
-                </li>
-              </ul>
-              <button onClick={() => handleBuy(pkg.id)} disabled={buyingPackageId === pkg.id || redirecting} className={highlighted ? 'btn-primary w-full' : 'btn-secondary w-full'}>
-                {buyingPackageId === pkg.id ? 'Przekierowuję...' : `Kup ${pkg.label}`}
-              </button>
-            </div>
-          )
-        })}
-      </div>
+          {/* Consumer-law consent (art. 38 pkt 13 ustawy o prawach konsumenta) – before the buttons, not after.
+          In the native app the consent is given on the web checkout page instead. */}
+          {!nativeMode && (
+            <label ref={waiverRef} className="flex items-start gap-3 bg-white border border-gray-200 rounded-xl p-4 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={acceptedWaiver}
+                onChange={(e) => setAcceptedWaiver(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-600">
+                Żądam natychmiastowego udostępnienia kredytów po opłaceniu zamówienia i przyjmuję do wiadomości, że z chwilą ich udostępnienia tracę prawo do odstąpienia od umowy w terminie 14 dni
+                (art. 38 pkt 13 ustawy o prawach konsumenta). Niewykorzystane kredyty nie wygasają. Szczegóły w{' '}
+                <Link to="/regulamin" target="_blank" className="text-blue-600 underline">
+                  regulaminie
+                </Link>
+                .
+              </span>
+            </label>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+            {packages.map((pkg) => {
+              const highlighted = pkg.id === HIGHLIGHTED_PACKAGE
+              return (
+                <div key={pkg.id} className={`relative bg-white rounded-xl border-2 p-6 flex flex-col gap-4 transition-shadow hover:shadow-md ${highlighted ? 'border-blue-500' : 'border-gray-200'}`}>
+                  {highlighted && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">Popularny</span>}
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">{pkg.label}</p>
+                    <p className="text-3xl font-bold text-blue-600 mt-1">{pkg.priceLabel}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{(pkg.priceGrosze / 100 / pkg.credits).toFixed(2)} zł / kredyt · brutto</p>
+                    {pkg.savingLabel && <p className="text-xs text-green-700 font-medium mt-1">{pkg.savingLabel}</p>}
+                  </div>
+                  <ul className="text-sm text-gray-600 space-y-1 flex-1">
+                    <li className="flex items-center gap-2">
+                      <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
+                      {countLabel(pkg.credits, 'grafika', 'grafiki', 'grafik')}
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
+                      Nigdy nie wygasają
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
+                      Bezpieczna płatność Stripe
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircleIcon className="h-4 w-4 text-green-500 shrink-0" />
+                      Faktura VAT – NIP podasz w formularzu płatności
+                    </li>
+                  </ul>
+                  <button onClick={() => handleBuy(pkg.id)} disabled={buyingPackageId === pkg.id || redirecting} className={highlighted ? 'btn-primary w-full' : 'btn-secondary w-full'}>
+                    {buyingPackageId === pkg.id ? 'Przekierowuję...' : `Kup ${pkg.label}`}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
 
       {/* Transaction history */}
       {transactions.length > 0 ? (

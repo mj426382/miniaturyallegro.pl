@@ -6,8 +6,10 @@ import GoogleLoginButton from '../components/GoogleLoginButton'
 import AuthLayout from '../components/AuthLayout'
 import PasswordInput from '../components/PasswordInput'
 import FormAlert from '../components/FormAlert'
+import { googleSignInAvailable } from '../platform/native'
 
 export default function Login() {
+  const showGoogle = googleSignInAvailable()
   usePageTitle('Logowanie')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -64,77 +66,82 @@ export default function Login() {
         </>
       }
     >
-      <GoogleLoginButton
-        onSuccess={async (credentialResponse: { credential?: string }) => {
-          if (!credentialResponse.credential) return
-          setError('')
-          setIsLoading(true)
-          try {
-            await googleLogin(credentialResponse.credential, acceptedTerms || undefined)
-            navigate('/')
-          } catch (err: any) {
-            if (err.response?.data?.code === 'TERMS_REQUIRED') {
-              // New account: the backend refuses to create it without explicit acceptance.
-              setPendingGoogleCredential(credentialResponse.credential)
-              setNeedsTerms(true)
-            } else {
-              setError(describeError(err, 'Logowanie Google nie powiodło się'))
-            }
-          } finally {
-            setIsLoading(false)
-          }
-        }}
-        onError={() => setError('Logowanie Google nie powiodło się. Spróbuj ponownie.')}
-      />
-      {needsTerms && (
-        <div className="mt-4 alert-info flex-col">
-          <p className="font-medium">To Twoje pierwsze logowanie – założymy Ci konto.</p>
-          <label className="flex items-start gap-2 text-sm text-gray-700 mt-2">
-            <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5" />
-            <span>
-              Akceptuję{' '}
-              <Link to="/regulamin" target="_blank" className="underline">
-                regulamin
-              </Link>{' '}
-              oraz{' '}
-              <Link to="/polityka-prywatnosci" target="_blank" className="underline">
-                politykę prywatności
-              </Link>
-              .
-            </span>
-          </label>
-          <button
-            type="button"
-            disabled={!acceptedTerms || isLoading || !pendingGoogleCredential}
-            onClick={async () => {
-              if (!pendingGoogleCredential) return
+      {/* Spec 18: Google sign-in needs native OAuth client ids – hidden in the Android/iOS app for now. */}
+      {showGoogle && (
+        <>
+          <GoogleLoginButton
+            onSuccess={async (credentialResponse: { credential?: string }) => {
+              if (!credentialResponse.credential) return
+              setError('')
               setIsLoading(true)
               try {
-                await googleLogin(pendingGoogleCredential, true)
+                await googleLogin(credentialResponse.credential, acceptedTerms || undefined)
                 navigate('/')
               } catch (err: any) {
-                setError(describeError(err, 'Nie udało się założyć konta. Zaloguj się przez Google ponownie.'))
-                setPendingGoogleCredential(null)
-                setNeedsTerms(false)
+                if (err.response?.data?.code === 'TERMS_REQUIRED') {
+                  // New account: the backend refuses to create it without explicit acceptance.
+                  setPendingGoogleCredential(credentialResponse.credential)
+                  setNeedsTerms(true)
+                } else {
+                  setError(describeError(err, 'Logowanie Google nie powiodło się'))
+                }
               } finally {
                 setIsLoading(false)
               }
             }}
-            className="btn-primary w-full mt-3"
-          >
-            Załóż konto przez Google
-          </button>
-        </div>
-      )}
+            onError={() => setError('Logowanie Google nie powiodło się. Spróbuj ponownie.')}
+          />
+          {needsTerms && (
+            <div className="mt-4 alert-info flex-col">
+              <p className="font-medium">To Twoje pierwsze logowanie – założymy Ci konto.</p>
+              <label className="flex items-start gap-2 text-sm text-gray-700 mt-2">
+                <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5" />
+                <span>
+                  Akceptuję{' '}
+                  <Link to="/regulamin" target="_blank" className="underline">
+                    regulamin
+                  </Link>{' '}
+                  oraz{' '}
+                  <Link to="/polityka-prywatnosci" target="_blank" className="underline">
+                    politykę prywatności
+                  </Link>
+                  .
+                </span>
+              </label>
+              <button
+                type="button"
+                disabled={!acceptedTerms || isLoading || !pendingGoogleCredential}
+                onClick={async () => {
+                  if (!pendingGoogleCredential) return
+                  setIsLoading(true)
+                  try {
+                    await googleLogin(pendingGoogleCredential, true)
+                    navigate('/')
+                  } catch (err: any) {
+                    setError(describeError(err, 'Nie udało się założyć konta. Zaloguj się przez Google ponownie.'))
+                    setPendingGoogleCredential(null)
+                    setNeedsTerms(false)
+                  } finally {
+                    setIsLoading(false)
+                  }
+                }}
+                className="btn-primary w-full mt-3"
+              >
+                Załóż konto przez Google
+              </button>
+            </div>
+          )}
 
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-gray-500">lub</span>
-        </div>
-      </div>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500">lub</span>
+            </div>
+          </div>
+        </>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {error && <FormAlert>{error}</FormAlert>}

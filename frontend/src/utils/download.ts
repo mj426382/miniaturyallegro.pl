@@ -10,7 +10,11 @@
  *   1. mobile + navigator.share with file support  → share sheet ("Zapisz obraz")
  *   2. `<a download>` with an object URL            → desktop & Android fallback
  *   3. iOS without share support                    → open the blob in a new tab
+ * Inside the Android/iOS app (spec 18) the file goes to the native share sheet instead.
  */
+import { isNativeApp } from '../platform/native'
+import { shareFileNatively } from '../platform/nativeFiles'
+
 export type DownloadMethod = 'share' | 'cancelled' | 'share-rejected' | 'anchor' | 'anchor-ios' | 'open-tab'
 
 /** The slice of `window` the helper needs – injectable for tests. */
@@ -65,6 +69,10 @@ function anchorDownload(blob: Blob, filename: string, doc: Document, win: Window
 
 /** Opens the native share sheet for an already-downloaded blob. Call it directly from a click handler. */
 export async function shareBlob(blob: Blob, filename: string, env: DownloadEnv = currentEnv()): Promise<boolean> {
+  if (isNativeApp()) {
+    await shareFileNatively(blob, sanitizeFilename(filename))
+    return true
+  }
   if (!env.share) return false
   const file = new File([blob], sanitizeFilename(filename), { type: blob.type || 'image/png' })
   const data: ShareData = { files: [file], title: file.name }
@@ -89,6 +97,7 @@ export async function downloadBlob(
   win: WindowLike = window as unknown as WindowLike,
 ): Promise<DownloadMethod> {
   const safeName = sanitizeFilename(filename)
+  if (isNativeApp()) return shareFileNatively(blob, safeName)
   const { ios, mobile } = detectPlatform(env)
 
   if (mobile && env.share) {
