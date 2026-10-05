@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { adminApi, AdminUserRow } from '../services/api'
+import { adminApi, AdminUserRow, generationApi } from '../services/api'
 import { usePageTitle } from '../hooks/usePageTitle'
 import AdminUserModal from '../components/AdminUserModal'
+import AdminGenerationsFeed from '../components/admin/AdminGenerationsFeed'
 import { formatDateTime as dateTime, formatZl as zl } from '../utils/format'
 
 const PAGE_SIZE = 20
@@ -17,6 +18,9 @@ export default function Admin() {
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [openUserId, setOpenUserId] = useState<string | null>(null)
+  const [tab, setTab] = useState<'users' | 'graphics'>('users')
+  const styles = useQuery({ queryKey: ['styles'], queryFn: () => generationApi.getStyles().then((r) => r.data), staleTime: 60 * 60 * 1000 })
+  const styleNames = Object.fromEntries((styles.data?.styles ?? []).map((s) => [s.id, s.name]))
 
   // Search as you type, but not on every keystroke.
   useEffect(() => {
@@ -60,99 +64,124 @@ export default function Admin() {
             ))}
       </div>
 
-      <div className="relative mb-4 max-w-md">
-        <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Szukaj po adresie e-mail lub imieniu"
-          aria-label="Szukaj użytkownika"
-          className="input-field pl-9"
-        />
+      <div className="flex border-b border-gray-200 mb-4" role="tablist" aria-label="Widok panelu">
+        {(
+          [
+            ['users', 'Użytkownicy'],
+            ['graphics', 'Grafiki'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px ${tab === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {users.isError ? (
-        <div role="alert" className="text-center py-10 bg-white rounded-xl border border-red-200">
-          <p className="text-gray-700 mb-3">Nie udało się pobrać listy użytkowników.</p>
-          <button onClick={() => users.refetch()} className="btn-secondary">
-            Spróbuj ponownie
-          </button>
-        </div>
+      {tab === 'graphics' ? (
+        <AdminGenerationsFeed styleNames={styleNames} onOpenUser={setOpenUserId} />
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-sm min-w-[900px]">
-            <thead className="bg-gray-50 border-b border-gray-100 text-left text-gray-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Użytkownik</th>
-                <th className="px-4 py-3 font-medium">Rejestracja</th>
-                <th className="px-4 py-3 font-medium">Grafiki</th>
-                <th className="px-4 py-3 font-medium">Plan</th>
-                <th className="px-4 py-3 font-medium">Kredyty</th>
-                <th className="px-4 py-3 font-medium">Wpłaty</th>
-                <th className="px-4 py-3 font-medium">Zgoda</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {users.isLoading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                    Ładowanie…
-                  </td>
-                </tr>
-              ) : users.data?.users.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                    Brak użytkowników{query ? ` dla „${query}”` : ''}.
-                  </td>
-                </tr>
-              ) : (
-                users.data?.users.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <button type="button" onClick={() => setOpenUserId(u.id)} className="text-left">
-                        <span className="block font-medium text-blue-700 hover:underline break-all">{u.email}</span>
-                        <span className="block text-xs text-gray-500">
-                          {u.name ? `${u.name} · ` : ''}
-                          {PROVIDER[u.provider]}
-                          {!u.emailVerified && <span className="ml-1 text-amber-700">· niepotwierdzony</span>}
-                        </span>
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{dateTime(u.createdAt)}</td>
-                    <td className="px-4 py-3 text-gray-700">
-                      {u.completedGenerations}
-                      <span className="text-xs text-gray-500"> / {u.images} zdj.</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-700">{u.plan ? `${u.plan.name} (${u.plan.status})` : 'brak'}</td>
-                    <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
-                      {u.credits} <span className="text-xs text-gray-500">+ {u.freeCreditsLeft} darm.</span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{zl(u.paidTotalGrosze)}</td>
-                    <td className="px-4 py-3">{u.marketingConsent ? <span className="text-green-700">tak</span> : <span className="text-gray-500">nie</span>}</td>
+        <>
+          <div className="relative mb-4 max-w-md">
+            <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Szukaj po adresie e-mail lub imieniu"
+              aria-label="Szukaj użytkownika"
+              className="input-field pl-9"
+            />
+          </div>
+
+          {users.isError ? (
+            <div role="alert" className="text-center py-10 bg-white rounded-xl border border-red-200">
+              <p className="text-gray-700 mb-3">Nie udało się pobrać listy użytkowników.</p>
+              <button onClick={() => users.refetch()} className="btn-secondary">
+                Spróbuj ponownie
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full text-sm min-w-[900px]">
+                <thead className="bg-gray-50 border-b border-gray-100 text-left text-gray-500">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Użytkownik</th>
+                    <th className="px-4 py-3 font-medium">Rejestracja</th>
+                    <th className="px-4 py-3 font-medium">Grafiki</th>
+                    <th className="px-4 py-3 font-medium">Plan</th>
+                    <th className="px-4 py-3 font-medium">Kredyty</th>
+                    <th className="px-4 py-3 font-medium">Wpłaty</th>
+                    <th className="px-4 py-3 font-medium">Zgoda</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {users.isLoading ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        Ładowanie…
+                      </td>
+                    </tr>
+                  ) : users.data?.users.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                        Brak użytkowników{query ? ` dla „${query}”` : ''}.
+                      </td>
+                    </tr>
+                  ) : (
+                    users.data?.users.map((u) => (
+                      <tr key={u.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <button type="button" onClick={() => setOpenUserId(u.id)} className="text-left">
+                            <span className="block font-medium text-blue-700 hover:underline break-all">{u.email}</span>
+                            <span className="block text-xs text-gray-500">
+                              {u.name ? `${u.name} · ` : ''}
+                              {PROVIDER[u.provider]}
+                              {!u.emailVerified && <span className="ml-1 text-amber-700">· niepotwierdzony</span>}
+                            </span>
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{dateTime(u.createdAt)}</td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {u.completedGenerations}
+                          <span className="text-xs text-gray-500"> / {u.images} zdj.</span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">{u.plan ? `${u.plan.name} (${u.plan.status})` : 'brak'}</td>
+                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                          {u.credits} <span className="text-xs text-gray-500">+ {u.freeCreditsLeft} darm.</span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{zl(u.paidTotalGrosze)}</td>
+                        <td className="px-4 py-3">{u.marketingConsent ? <span className="text-green-700">tak</span> : <span className="text-gray-500">nie</span>}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {users.data && users.data.pagination.pages > 1 && (
+            <nav aria-label="Strony listy użytkowników" className="flex items-center justify-center gap-3 mt-4 text-sm">
+              <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary text-sm">
+                Poprzednia
+              </button>
+              <span className="text-gray-600">
+                Strona {users.data.pagination.page} z {users.data.pagination.pages} · {users.data.pagination.total} kont
+              </span>
+              <button type="button" onClick={() => setPage((p) => p + 1)} disabled={page >= users.data.pagination.pages} className="btn-secondary text-sm">
+                Następna
+              </button>
+            </nav>
+          )}
+        </>
       )}
 
-      {users.data && users.data.pagination.pages > 1 && (
-        <nav aria-label="Strony listy użytkowników" className="flex items-center justify-center gap-3 mt-4 text-sm">
-          <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary text-sm">
-            Poprzednia
-          </button>
-          <span className="text-gray-600">
-            Strona {users.data.pagination.page} z {users.data.pagination.pages} · {users.data.pagination.total} kont
-          </span>
-          <button type="button" onClick={() => setPage((p) => p + 1)} disabled={page >= users.data.pagination.pages} className="btn-secondary text-sm">
-            Następna
-          </button>
-        </nav>
-      )}
-
-      {openUserId && <AdminUserModal userId={openUserId} onClose={() => setOpenUserId(null)} />}
+      {openUserId && <AdminUserModal userId={openUserId} styleNames={styleNames} onClose={() => setOpenUserId(null)} />}
     </div>
   )
 }

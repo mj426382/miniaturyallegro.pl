@@ -119,6 +119,13 @@ export default function PolitykaContent() {
                   <td className="border border-gray-200 px-3 py-2">czas posiadania konta</td>
                 </tr>
                 <tr className="bg-gray-50">
+                  <td className="border border-gray-200 px-3 py-2">
+                    Wgląd administratora w przesłane zdjęcia i wygenerowane grafiki – obsługa zgłoszeń, kontrola jakości usługi, przeciwdziałanie nadużyciom (każdy wgląd jest rejestrowany)
+                  </td>
+                  <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. f – prawnie uzasadniony interes Administratora</td>
+                  <td className="border border-gray-200 px-3 py-2">czas przechowywania zdjęć na koncie</td>
+                </tr>
+                <tr>
                   <td className="border border-gray-200 px-3 py-2">Integracja z Allegro (pobieranie zdjęć, publikacja grafik)</td>
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. b – wykonanie umowy</td>
                   <td className="border border-gray-200 px-3 py-2">do odłączenia konta Allegro</td>

@@ -1317,6 +1317,55 @@
         ]
       }
     },
+    "/api/admin/users/{id}/images": {
+      "get": {
+        "operationId": "AdminController_userImages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A user's photos with all their graphics (signed links); every view is logged",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/generations": {
+      "get": {
+        "operationId": "AdminController_generations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Latest graphics of all users, filterable by status and rating (quality review)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/admin/users": {
       "get": {
         "operationId": "AdminController_listUsers",

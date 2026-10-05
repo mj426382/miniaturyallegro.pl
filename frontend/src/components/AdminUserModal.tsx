@@ -5,9 +5,11 @@ import { XMarkIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
 import { adminApi } from '../services/api'
 import { formatDateTime, formatZl } from '../utils/format'
 import FormAlert from './FormAlert'
+import AdminUserImages from './admin/AdminUserImages'
 
 interface Props {
   userId: string
+  styleNames?: Record<string, string>
   onClose: () => void
 }
 
@@ -24,13 +26,14 @@ const MESSAGE_MIN = 10
 const MESSAGE_MAX = 5000
 
 /** Spec 16: one account with usage, payments, mail history and an individual message form. */
-export default function AdminUserModal({ userId, onClose }: Props) {
+export default function AdminUserModal({ userId, styleNames = {}, onClose }: Props) {
   const queryClient = useQueryClient()
   const closeRef = useRef<HTMLButtonElement>(null)
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
+  const [tab, setTab] = useState<'details' | 'images'>('details')
 
   useEffect(() => {
     closeRef.current?.focus()
@@ -86,6 +89,29 @@ export default function AdminUserModal({ userId, onClose }: Props) {
         {detail.isError && <FormAlert>Nie udało się pobrać danych użytkownika.</FormAlert>}
 
         {u && (
+          <div className="flex border-b border-gray-200 mb-4" role="tablist" aria-label="Widok konta">
+            {(
+              [
+                ['details', 'Szczegóły'],
+                ['images', `Zdjęcia (${u.images})`],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={tab === id}
+                onClick={() => setTab(id)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {u && tab === 'images' && <AdminUserImages userId={userId} styleNames={styleNames} />}
+
+        {u && tab === 'details' && (
           <>
             <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 text-sm">
               {[

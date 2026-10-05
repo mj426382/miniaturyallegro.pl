@@ -169,6 +169,55 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       const rows = ADMIN_USERS.filter((u) => !search || u.email.includes(search))
       return json({ users: rows, pagination: { page: 1, limit: 20, total: rows.length, pages: 1 } })
     }
+    if (/^\/admin\/users\/[^/]+\/images$/.test(path)) {
+      requests.push({ url: path, method: 'GET' })
+      return json({
+        images: [
+          {
+            id: 'img-a',
+            originalUrl: '/api/uploads/originals/a.jpg',
+            createdAt: '2026-10-04T10:00:00.000Z',
+            allegroOfferId: null,
+            descriptionTitle: 'Kubek ceramiczny 350 ml',
+            generations: [
+              { id: 'g-a1', style: 'white-bg', status: 'COMPLETED', url: '/api/uploads/generated/a1.png', rating: -1, ratingReason: 'artifacts', createdAt: '2026-10-04T10:01:00.000Z' },
+              { id: 'g-a2', style: 'dark-luxury', status: 'FAILED', url: null, rating: null, ratingReason: null, createdAt: '2026-10-04T10:01:00.000Z' },
+            ],
+          },
+        ],
+        pagination: { page: 1, limit: 12, total: 1, pages: 1 },
+      })
+    }
+    if (path === '/admin/generations') {
+      requests.push({ url: `${path}?${url.searchParams.toString()}`, method: 'GET' })
+      const all = [
+        {
+          id: 'g-a1',
+          style: 'white-bg',
+          status: 'COMPLETED',
+          url: '/api/uploads/generated/a1.png',
+          rating: -1,
+          ratingReason: 'other: zły kolor',
+          createdAt: '2026-10-04T10:01:00.000Z',
+          image: { id: 'img-a', originalUrl: '/api/uploads/originals/a.jpg' },
+          user: { id: 'u-shop', email: 'sklep.kubki@example.com' },
+        },
+        {
+          id: 'g-b1',
+          style: 'gradient-bg',
+          status: 'COMPLETED',
+          url: '/api/uploads/generated/b1.png',
+          rating: null,
+          ratingReason: null,
+          createdAt: '2026-10-04T09:00:00.000Z',
+          image: { id: 'img-b', originalUrl: '/api/uploads/originals/b.jpg' },
+          user: { id: 'u-new', email: 'nowy@example.com' },
+        },
+      ]
+      const rating = url.searchParams.get('rating')
+      const rows = rating === 'down' ? all.filter((g) => g.rating === -1) : all
+      return json({ generations: rows, pagination: { page: 1, limit: 24, total: rows.length, pages: 1 } })
+    }
     if (/^\/admin\/users\/[^/]+$/.test(path)) {
       const row = ADMIN_USERS.find((u) => path.endsWith(u.id))
       return row

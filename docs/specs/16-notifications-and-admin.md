@@ -45,6 +45,12 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
   data rejestracji, potwierdzenie, sposób logowania, liczba zdjęć i gotowych grafik, plan, kredyty
   (zakupione saldo i wykorzystana darmowa pula), suma płatności, zgoda marketingowa, ostatnia aktywność.
   Wyszukiwanie po adresie i nazwie, 20 na stronę. Szczegóły: płatności i historia wysłanych maili.
+- **Podgląd zdjęć i grafik** (dodane 2026-10-05): w szczegółach konta zakładka ze zdjęciami użytkownika
+  i wszystkimi ich grafikami (status, styl, ocena z powodem), 12 zdjęć na stronę; osobny widok „Grafiki”
+  z ostatnimi grafikami wszystkich kont (24 na stronę) z filtrem statusu i oceny (np. tylko „kciuk w dół”)
+  do kontroli jakości. Pełny rozmiar otwiera się w nowej karcie (podpisany link). Każde otwarcie podglądu
+  jest logowane z adresem administratora (rozliczalność, RODO art. 5 ust. 2). Podstawa przetwarzania:
+  prawnie uzasadniony interes – obsługa zgłoszeń, kontrola jakości, przeciwdziałanie nadużyciom.
 - **Wiadomość do użytkownika** – indywidualna wiadomość od właściciela (temat 3–150, treść 10–5000 znaków),
   wysyłana z `no-reply@allgrafika.pl` z `Reply-To` na adres administratora, zapisana w historii. Panel
   przypomina, że to nie jest kanał do promocji – te wymagają zgody, którą panel pokazuje.
@@ -79,6 +85,9 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - **AC-ADM-003** – Given konta z grafikami, płatnościami i planem, When lista z wyszukiwaniem i stronicowaniem, Then wiersze mają adres, potwierdzenie, sposób logowania, liczbę zdjęć i gotowych grafik, plan, kredyty, sumę płatności i zgodę, posortowane od najnowszych.
 - **AC-ADM-004** – Given konto, When szczegóły, Then są płatności i historia maili; nieznane id → 404.
 - **AC-ADM-005** – Given administrator, When wysyła wiadomość do użytkownika, Then mail idzie na adres konta z `Reply-To` administratora, treść jest bezpiecznie zakodowana w HTML, wpis trafia do historii; za krótki temat lub treść → 400.
+- **AC-ADM-007** – Given konto ze zdjęciami i grafikami, When administrator pobiera jego zdjęcia, Then dostaje stronę zdjęć z podpisanymi linkami do oryginału i grafik (status, styl, ocena, powód) od najnowszych, a podgląd jest zapisany w logu z adresem administratora; zwykły użytkownik → 403, nieznane konto → 404.
+- **AC-ADM-008** – Given grafiki wielu kont, When administrator przegląda ostatnie grafiki z filtrem statusu lub oceny, Then lista zawiera tylko pasujące grafiki od najnowszych, każdą z adresem konta, podpisanym linkiem i miniaturą oryginału, ze stronicowaniem; zły filtr → 400.
+- **AC-ADM-009** – Given panel administratora, When administrator otwiera zakładkę zdjęć konta i widok „Grafiki” z filtrem „kciuk w dół”, Then widzi miniatury z linkiem do pełnego rozmiaru, status i powód oceny; z karty grafiki przechodzi do szczegółów konta.
 - **AC-ADM-006** – Given administrator w aplikacji, When otwiera „Admin”, szuka konta, otwiera szczegóły i wysyła wiadomość, Then widzi dane konta i potwierdzenie wysyłki; zwykły użytkownik nie widzi pozycji „Admin”.
 
 ## 7. API
@@ -87,7 +96,8 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - `POST /notifications/unsubscribe?token=…` (publiczny, akceptuje też `application/x-www-form-urlencoded` z `List-Unsubscribe=One-Click`) → 200 `{unsubscribed: true}`.
 - `PATCH /users/me {name?, marketingConsent?, notifyBatchDone?}`; `GET /users/me` + `marketingConsent`, `notifyBatchDone`, `isAdmin`.
 - `POST /auth/register` + opcjonalne `marketingConsent: boolean`.
-- `GET /admin/users?search&page&limit`, `GET /admin/users/:id`, `POST /admin/users/:id/email {subject, message}` (JWT + administrator).
+- `GET /admin/users?search&page&limit`, `GET /admin/users/:id`, `POST /admin/users/:id/email {subject, message}`,
+  `GET /admin/users/:id/images?page&limit`, `GET /admin/generations?page&limit&status&rating=up|down|rated` (JWT + administrator).
 
 ## 8. Dane i migracje
 
@@ -105,7 +115,7 @@ powiadomienia o paczkach włączone.
 
 ## 10. Wpływ na dokumenty
 
-Polityka prywatności: cel „informacje handlowe e-mailem” na podstawie zgody, powiadomienia o paczkach na
+Polityka prywatności: podgląd treści przez administratora (art. 6 ust. 1 lit. f), cel „informacje handlowe e-mailem” na podstawie zgody, powiadomienia o paczkach na
 podstawie umowy, okres przechowywania historii maili. Regulamin: powiadomienia i ich wyłączanie.
 
 ## 12. Plan testów

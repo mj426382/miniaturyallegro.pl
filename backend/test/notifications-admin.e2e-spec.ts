@@ -12,6 +12,7 @@ import { NotificationsService, isSendingHour, seasonCampaignKey } from '../src/n
 import { AdminGuard } from '../src/admin/admin.guard';
 import { UsersService } from '../src/users/users.service';
 import { getStyle } from '../src/generation/styles';
+import { AdminContentService } from '../src/admin/admin-content.service';
 
 /** Spec 16 – automatic e-mails with consent, unsubscribe, admin panel. */
 describe('Notifications & admin panel (integration)', () => {
@@ -436,6 +437,91 @@ describe('Notifications & admin panel (integration)', () => {
         body: message.trim(),
       });
       expect(detail.body.subscription).toBeNull();
+    });
+    async function userWithGraphics(email?: string) {
+      const user = await registerUser(ctx, email);
+      const image = await uploadImage(ctx, user.token);
+      await ctx
+        .http()
+        .post(`/api/generation/${image.id}/start`)
+        .set(auth(user.token))
+        .send({ styles: ['white-bg', 'dark-luxury'] })
+        .expect(201);
+      const generations = await waitForGenerations(ctx, image.id);
+      return { ...user, imageId: image.id, generations };
+    }
+
+    it('[AC-ADM-007] shows the photos of a user with every graphic and logs the view', async () => {
+      const admin = await asAdmin();
+      const shop = await userWithGraphics();
+      const [first] = shop.generations;
+      await ctx.prisma.generation.update({ where: { id: first.id }, data: { rating: -1, ratingReason: 'artifacts' } });
+      await ctx.prisma.offerDescription.create({
+        data: { imageId: shop.imageId, title: 'Kubek 350 ml', body: '<p>Opis kubka testowego.</p>' },
+      });
+      const logSpy = jest.spyOn((ctx.app.get(AdminContentService) as any).logger, 'log');
+
+      await ctx.http().get(`/api/admin/users/${shop.userId}/images`).set(auth(shop.token)).expect(403);
+      await ctx.http().get('/api/admin/users/nope/images').set(auth(admin.token)).expect(404);
+      const res = await ctx.http().get(`/api/admin/users/${shop.userId}/images`).set(auth(admin.token)).expect(200);
+
+      expect(res.body.pagination).toMatchObject({ page: 1, total: 1 });
+      const [image] = res.body.images;
+      expect(image).toMatchObject({ id: shop.imageId, descriptionTitle: 'Kubek 350 ml' });
+      expect(image.originalUrl).toMatch(/^http:\/\/localhost:3000\/api\/uploads\/|^\/api\/uploads\//);
+      expect(image.generations).toHaveLength(2);
+      expect(image.generations.find((g: any) => g.id === first.id)).toMatchObject({
+        status: 'COMPLETED',
+        rating: -1,
+        ratingReason: 'artifacts',
+      });
+      expect(image.generations[0].url).toBeTruthy();
+      expect(image).not.toHaveProperty('description');
+      expect(logSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Admin ${admin.email} viewed images of user ${shop.userId}`),
+      );
+      logSpy.mockRestore();
+    });
+
+    it('[AC-ADM-008] lists the latest graphics of all users with status and rating filters', async () => {
+      const admin = await asAdmin();
+      const a = await userWithGraphics('a.shop@example.com');
+      const b = await userWithGraphics('b.shop@example.com');
+      await ctx.prisma.generation.update({
+        where: { id: a.generations[0].id },
+        data: { rating: -1, ratingReason: 'product-changed' },
+      });
+      await ctx.prisma.generation.update({ where: { id: b.generations[1].id }, data: { rating: 1 } });
+      await ctx.prisma.generation.create({ data: { imageId: b.imageId, style: 'gradient-bg', status: 'FAILED' } });
+
+      const all = await ctx.http().get('/api/admin/generations').set(auth(admin.token)).expect(200);
+      expect(all.body.pagination.total).toBe(5);
+      expect(all.body.generations[0].status).toBe('FAILED'); // newest first
+      for (const g of all.body.generations) {
+        expect(g.user.email).toMatch(/@example\.com$/);
+        expect(g.image.originalUrl).toBeTruthy();
+      }
+
+      const down = await ctx.http().get('/api/admin/generations?rating=down').set(auth(admin.token)).expect(200);
+      expect(down.body.generations).toEqual([
+        expect.objectContaining({
+          id: a.generations[0].id,
+          rating: -1,
+          ratingReason: 'product-changed',
+          user: { id: a.userId, email: 'a.shop@example.com' },
+        }),
+      ]);
+      const rated = await ctx.http().get('/api/admin/generations?rating=rated').set(auth(admin.token)).expect(200);
+      expect(rated.body.pagination.total).toBe(2);
+      const failed = await ctx.http().get('/api/admin/generations?status=FAILED').set(auth(admin.token)).expect(200);
+      expect(failed.body.generations.map((g: any) => g.url)).toEqual([null]);
+      const paged = await ctx.http().get('/api/admin/generations?limit=2&page=3').set(auth(admin.token)).expect(200);
+      expect(paged.body.generations).toHaveLength(1);
+      expect(paged.body.pagination).toMatchObject({ page: 3, pages: 3 });
+
+      await ctx.http().get('/api/admin/generations?rating=meh').set(auth(admin.token)).expect(400);
+      await ctx.http().get('/api/admin/generations?status=DONE').set(auth(admin.token)).expect(400);
+      await ctx.http().get('/api/admin/generations').set(auth(a.token)).expect(403);
     });
   });
 });

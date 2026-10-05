@@ -107,4 +107,28 @@ test.describe('admin panel (spec 16)', () => {
     await page.goto('/admin')
     await expect(page).toHaveURL(/\/$/)
   })
+
+  test('[AC-ADM-009] the admin browses the photos of a user and the latest graphics with a rating filter', async ({ page }) => {
+    const { requests } = await mockApp(page, { isAdmin: true })
+    await page.goto('/admin')
+    await page.getByRole('button', { name: /sklep\.kubki@example\.com/ }).click()
+    const dialog = page.getByRole('dialog', { name: 'sklep.kubki@example.com' })
+    await dialog.getByRole('tab', { name: /Zdjęcia/ }).click()
+    await expect(dialog.getByText('opis: Kubek ceramiczny 350 ml')).toBeVisible()
+    await expect(dialog.getByRole('link', { name: 'Pełny rozmiar: Białe tło' })).toHaveAttribute('href', '/api/uploads/generated/a1.png')
+    await expect(dialog.getByText('Błędy / artefakty na grafice')).toBeVisible()
+    await expect(dialog.getByText(/nieudana/)).toBeVisible()
+    expect(requests.some((r) => r.url === '/admin/users/u-shop/images')).toBe(true)
+    await dialog.getByRole('button', { name: 'Zamknij', exact: true }).click()
+
+    await page.getByRole('tab', { name: 'Grafiki' }).click()
+    await expect(page.getByText('nowy@example.com')).toBeVisible()
+    await page.getByLabel('Pokaż').selectOption('down')
+    await expect(page.getByText('nowy@example.com')).toHaveCount(0)
+    await expect(page.getByText('Inny powód – „zły kolor”')).toBeVisible()
+    expect(requests.some((r) => r.url.startsWith('/admin/generations?') && r.url.includes('rating=down'))).toBe(true)
+
+    await page.getByRole('button', { name: 'sklep.kubki@example.com' }).click()
+    await expect(page.getByRole('dialog', { name: 'sklep.kubki@example.com' })).toBeVisible()
+  })
 })

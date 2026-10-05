@@ -307,7 +307,35 @@ export interface AdminOverview {
   ratedGenerations: number
 }
 
+export interface AdminGraphic {
+  id: string
+  style: string | null
+  status: string
+  url: string | null
+  rating: number | null
+  ratingReason: string | null
+  createdAt: string
+}
+
+export interface AdminUserImage {
+  id: string
+  originalUrl: string
+  createdAt: string
+  allegroOfferId: string | null
+  descriptionTitle: string | null
+  generations: AdminGraphic[]
+}
+
+export interface AdminFeedGraphic extends AdminGraphic {
+  image: { id: string; originalUrl: string }
+  user: { id: string; email: string }
+}
+
+type Paged<K extends string, T> = { [key in K]: T[] } & { pagination: { page: number; limit: number; total: number; pages: number } }
+
 export const adminApi = {
+  userImages: (id: string, page = 1) => api.get<Paged<'images', AdminUserImage>>(`/admin/users/${id}/images`, { params: { page } }),
+  generations: (params: { page?: number; status?: string; rating?: 'up' | 'down' | 'rated' }) => api.get<Paged<'generations', AdminFeedGraphic>>('/admin/generations', { params }),
   overview: () => api.get<AdminOverview>('/admin/overview'),
   users: (params: { search?: string; page?: number; limit?: number }) =>
     api.get<{ users: AdminUserRow[]; pagination: { page: number; limit: number; total: number; pages: number } }>('/admin/users', { params }),
