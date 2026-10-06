@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockApp, PASSWORD, PNG_BYTES } from './fixtures'
+import { IMAGE, mockApp, PASSWORD, PNG_BYTES } from './fixtures'
 
 /** Browser coverage for spec 16 – consent, notification settings, unsubscribe, batch watch, admin panel. */
 
@@ -131,5 +131,32 @@ test.describe('admin panel (spec 16)', () => {
 
     await page.getByRole('button', { name: 'sklep.kubki@example.com' }).click()
     await expect(page.getByRole('dialog', { name: 'sklep.kubki@example.com' })).toBeVisible()
+  })
+})
+
+test.describe('admin without a credit limit (spec 16)', () => {
+  test('[AC-ADM-012] the admin sees "bez limitu" and can generate with an empty balance', async ({ page }) => {
+    await mockApp(page, { isAdmin: true, noCredits: true })
+    await page.goto(`/generate/${IMAGE.id}`)
+    await expect(page.getByRole('heading', { name: 'Generator grafik produktowych' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Kredyty: bez limitu' }).first()).toBeAttached()
+    // The photo already has graphics, so the style picker starts collapsed.
+    await page.getByRole('button', { name: 'Pokaż style' }).click()
+    await expect(page.getByText('Konto administratora – bez limitu kredytów')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Generuj \d+ grafik/ })).toBeEnabled()
+    await expect(page.getByText(/\(masz 0\)/)).toHaveCount(0)
+
+    await page.goto('/credits')
+    await expect(page.getByRole('status').filter({ hasText: 'Konto administratora' })).toBeVisible()
+  })
+
+  test('[AC-ADM-012] a regular account with an empty balance sees the shortfall and no admin notice', async ({ page }) => {
+    await mockApp(page, { noCredits: true })
+    await page.goto(`/generate/${IMAGE.id}`)
+    await expect(page.getByRole('heading', { name: 'Generator grafik produktowych' })).toBeVisible()
+    await page.getByRole('button', { name: 'Pokaż style' }).click()
+    // The cost hint warns about the empty balance (the API answers 402 if they try anyway).
+    await expect(page.getByText(/\(masz 0\)/)).toBeVisible()
+    await expect(page.getByText(/bez limitu/i)).toHaveCount(0)
   })
 })

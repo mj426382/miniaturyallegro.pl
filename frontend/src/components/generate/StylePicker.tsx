@@ -19,6 +19,8 @@ interface Props {
   onStart: () => void
   isStarting: boolean
   freeLeft: number
+  /** Spec 16: admin accounts are not limited by credits. */
+  unlimited?: boolean
   paidCredits: number
 }
 
@@ -44,17 +46,20 @@ export default function StylePicker({
   isStarting,
   freeLeft,
   paidCredits,
+  unlimited = false,
 }: Props) {
   const selectedCount = selectedStyles.length
   const costHint =
     selectedCount === 0
       ? 'Wybierz co najmniej jeden styl'
-      : freeLeft >= selectedCount
-        ? `${selectedCount} ${creditsWord(selectedCount)} z darmowej puli (zostanie ${freeLeft - selectedCount})`
-        : freeLeft > 0
-          ? `${freeLeft} z darmowej puli + ${selectedCount - freeLeft} płatne`
-          : `${selectedCount} ${creditsWord(selectedCount)} (masz ${paidCredits})`
-  const canAfford = selectedCount > 0 && freeLeft + paidCredits >= selectedCount
+      : unlimited
+        ? 'Konto administratora – bez limitu kredytów'
+        : freeLeft >= selectedCount
+          ? `${selectedCount} ${creditsWord(selectedCount)} z darmowej puli (zostanie ${freeLeft - selectedCount})`
+          : freeLeft > 0
+            ? `${freeLeft} z darmowej puli + ${selectedCount - freeLeft} płatne`
+            : `${selectedCount} ${creditsWord(selectedCount)} (masz ${paidCredits})`
+  const canAfford = selectedCount > 0 && (unlimited || freeLeft + paidCredits >= selectedCount)
 
   return (
     <div className="p-5">

@@ -109,6 +109,8 @@ export interface MockOptions {
   imageOfferId?: string
   /** Spec 16: the account is listed in ADMIN_EMAILS. */
   isAdmin?: boolean
+  /** Free pool used up and no paid credits. */
+  noCredits?: boolean
 }
 
 export async function mockApp(page: Page, options: MockOptions = {}) {
@@ -141,7 +143,17 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     const json = (body: unknown, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
 
     if (path === '/users/me' && req.method() === 'GET')
-      return loggedIn ? json({ ...USER, hasPassword: true, emailVerified, ...settings, isAdmin: Boolean(options.isAdmin) }) : json({ message: 'Unauthorized' }, 401)
+      return loggedIn
+        ? json({
+            ...USER,
+            hasPassword: true,
+            emailVerified,
+            ...settings,
+            ...(options.noCredits ? { credits: 0, freeCreditsUsed: 10 } : {}),
+            isAdmin: Boolean(options.isAdmin),
+            unlimitedCredits: Boolean(options.isAdmin),
+          })
+        : json({ message: 'Unauthorized' }, 401)
     if (path === '/notifications/batches') {
       requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
       return json({ id: 'batch-1' }, 201)

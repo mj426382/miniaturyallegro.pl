@@ -64,7 +64,7 @@ async function loadCreditsPage(): Promise<CreditsPageData> {
 export default function Credits() {
   usePageTitle('Kredyty')
   const [searchParams, setSearchParams] = useSearchParams()
-  const { refreshUser } = useAuth()
+  const { refreshUser, user } = useAuth()
   const page = useQuery({ queryKey: ['credits-page'], queryFn: loadCreditsPage })
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [buyingPackageId, setBuyingPackageId] = useState<string | null>(null)
@@ -243,6 +243,12 @@ export default function Credits() {
         1 kredyt = 1 wygenerowana grafika. Zestaw startowy to 3 kredyty, każdy kolejny styl (z 19, także sezonowe i branżowe) to 1 kredyt. Opis oferty pod SEO jest gratis do każdego zdjęcia z gotową
         grafiką (5 poprawek AI w cenie, kolejne 15 poprawek = 1 kredyt).
       </p>
+
+      {user?.unlimitedCredits && (
+        <p role="status" className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">
+          Konto administratora – generujesz bez limitu kredytów. Saldo poniżej się nie zmienia.
+        </p>
+      )}
 
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">

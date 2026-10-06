@@ -12,10 +12,12 @@ interface Props {
   isGenerating: boolean
   freeLeft: number
   paidCredits: number
+  /** Spec 16: admin accounts are not limited by credits. */
+  unlimited?: boolean
 }
 
 /** Custom style tab: a Polish prompt plus an optional reference photo (or a graphic to rework). */
-export default function CustomStyleForm({ prompt, onPromptChange, referencePreview, isRework, inputRef, onFile, onStart, isGenerating, freeLeft, paidCredits }: Props) {
+export default function CustomStyleForm({ prompt, onPromptChange, referencePreview, isRework, inputRef, onFile, onStart, isGenerating, freeLeft, paidCredits, unlimited = false }: Props) {
   return (
     <div className="p-5">
       <p className="text-sm text-gray-500 mb-4">
@@ -80,7 +82,8 @@ export default function CustomStyleForm({ prompt, onPromptChange, referencePrevi
           {isGenerating ? 'Uruchamianie...' : 'Generuj grafikę'}
         </button>
         <span className="text-xs text-gray-500 flex items-center gap-1">
-          <CreditCardIcon className="h-3.5 w-3.5" />1 kredyt {freeLeft > 0 ? '(z darmowej puli)' : `(masz ${paidCredits})`}
+          <CreditCardIcon className="h-3.5 w-3.5" />
+          {unlimited ? 'Bez limitu kredytów' : `1 kredyt ${freeLeft > 0 ? '(z darmowej puli)' : `(masz ${paidCredits})`}`}
         </span>
       </div>
     </div>

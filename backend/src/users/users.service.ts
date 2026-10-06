@@ -59,6 +59,8 @@ export class UsersService {
       emailVerified: Boolean(emailVerifiedAt),
       marketingConsent: Boolean(marketingConsentAt),
       isAdmin: this.admins.has(user.email.toLowerCase()),
+      // Spec 16, AC-ADM-012: admins generate without a credit limit (see CreditsService).
+      unlimitedCredits: this.admins.has(user.email.toLowerCase()),
       hasPassword: Boolean(password),
       totalGenerations,
     };

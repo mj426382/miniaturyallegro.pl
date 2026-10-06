@@ -110,7 +110,8 @@ export default function BulkUpload() {
   const totalCredits = useMemo(() => queued.reduce((sum, f) => sum + stylesFor(f).length, 0), [queued, mode, sharedStyles]) // eslint-disable-line react-hooks/exhaustive-deps
   const freeLeft = Math.max(0, FREE_LIMIT - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
-  const canAfford = totalCredits <= freeLeft + paidCredits
+  const unlimited = Boolean(user?.unlimitedCredits)
+  const canAfford = unlimited || totalCredits <= freeLeft + paidCredits
   const missingStyles = mode !== 'upload' && queued.some((f) => stylesFor(f).length === 0)
 
   const startAll = async () => {
@@ -393,10 +394,7 @@ export default function BulkUpload() {
                       {totalCredits} {creditsWord(totalCredits)}
                     </span>
                     {canAfford ? (
-                      <span className="text-gray-500">
-                        {' '}
-                        · masz {freeLeft} darmowych + {paidCredits} zakupionych
-                      </span>
+                      <span className="text-gray-500"> {unlimited ? '· konto administratora – bez limitu' : `· masz ${freeLeft} darmowych + ${paidCredits} zakupionych`}</span>
                     ) : (
                       <span className="text-red-600">
                         {' '}

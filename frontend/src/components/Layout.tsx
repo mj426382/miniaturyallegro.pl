@@ -82,7 +82,9 @@ export default function Layout() {
           <Link to="/credits" onClick={closeSidebar} className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
             <CreditCardIcon className="h-4 w-4 text-blue-600 shrink-0" />
             <div className="flex-1 min-w-0">
-              {(user.freeCreditsUsed ?? 0) < FREE_LIMIT ? (
+              {user.unlimitedCredits ? (
+                <p className="text-xs text-blue-700 font-medium">Kredyty: bez limitu</p>
+              ) : (user.freeCreditsUsed ?? 0) < FREE_LIMIT ? (
                 <p className="text-xs text-blue-700 font-medium">
                   Darmowe: {FREE_LIMIT - (user.freeCreditsUsed ?? 0)} / {FREE_LIMIT}
                 </p>

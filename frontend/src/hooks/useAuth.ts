@@ -21,6 +21,8 @@ interface User {
   notifyBatchDone?: boolean
   /** Spec 16: address listed in ADMIN_EMAILS. */
   isAdmin?: boolean
+  /** Spec 16, AC-ADM-012: admin accounts generate without spending credits. */
+  unlimitedCredits?: boolean
   _count?: { images: number }
   createdAt: string
 }

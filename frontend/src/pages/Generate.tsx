@@ -103,6 +103,7 @@ export default function Generate() {
 
   const freeLeft = Math.max(0, FREE_LIMIT - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
+  const unlimited = Boolean(user?.unlimitedCredits)
   const locked = hasActive && !pollTimedOut
 
   const prefetchBlob = (genId: string) => {
@@ -279,7 +280,7 @@ export default function Generate() {
         <div className="ml-auto flex items-center gap-2 shrink-0">
           <Link to="/credits" className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg">
             <CreditCardIcon className="h-4 w-4" />
-            {freeLeft > 0 ? `Darmowe: ${freeLeft}` : `Kredyty: ${paidCredits}`}
+            {unlimited ? 'Kredyty: bez limitu' : freeLeft > 0 ? `Darmowe: ${freeLeft}` : `Kredyty: ${paidCredits}`}
           </Link>
           <button
             type="button"
@@ -341,6 +342,7 @@ export default function Generate() {
             isStarting={isStarting}
             freeLeft={freeLeft}
             paidCredits={paidCredits}
+            unlimited={unlimited}
           />
         ) : (
           <CustomStyleForm
@@ -354,6 +356,7 @@ export default function Generate() {
             isGenerating={isCustomGenerating}
             freeLeft={freeLeft}
             paidCredits={paidCredits}
+            unlimited={unlimited}
           />
         )}
       </div>
