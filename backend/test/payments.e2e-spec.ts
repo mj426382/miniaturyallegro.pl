@@ -91,6 +91,7 @@ describe('Payments (integration)', () => {
       mode: 'payment',
       customer: 'cus_test_1',
       metadata: { userId, packageId: 'credits_15', credits: '15' },
+      payment_intent_data: { statement_descriptor_suffix: 'ALLGRAFIKA' },
     });
     expect(createdSessions[0].line_items[0].price_data.unit_amount).toBe(2800);
     expect(createdCustomers[0]).toMatchObject({ email, metadata: { userId } });

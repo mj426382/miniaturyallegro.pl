@@ -68,6 +68,14 @@ export class PaymentsService {
     return (this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173').replace(/\/$/, '');
   }
 
+  /**
+   * The Stripe account is shared with the JAN-MAT shop, so card statements name the shop:
+   * "<ACCOUNT PREFIX>* ALLGRAFIKA". Prefix + suffix must fit 22 characters.
+   */
+  private statementDescriptorSuffix(): string {
+    return this.configService.get<string>('STRIPE_STATEMENT_DESCRIPTOR_SUFFIX') || 'ALLGRAFIKA';
+  }
+
   // ─── Catalogue ────────────────────────────────────────────────────
 
   getPackages() {
@@ -110,6 +118,7 @@ export class PaymentsService {
       mode: 'payment',
       // Payment methods (card, BLIK, Przelewy24...) are managed in the Stripe dashboard.
       customer: customerId,
+      payment_intent_data: { statement_descriptor_suffix: this.statementDescriptorSuffix() },
       ...INVOICE_DETAILS_COLLECTION,
       invoice_creation: {
         enabled: true,
