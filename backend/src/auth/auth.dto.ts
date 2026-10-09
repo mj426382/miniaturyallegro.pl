@@ -61,6 +61,15 @@ export class RegisterDto {
   @IsOptional()
   @IsBoolean()
   marketingConsent?: boolean;
+
+  @ApiProperty({
+    required: false,
+    description: 'Spec 20: referral code from the link /register?ref=<code> (unknown codes are ignored)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  referralCode?: string;
 }
 
 /** Password change from the account settings – the current password proves possession of the account. */
@@ -113,6 +122,15 @@ export class GoogleLoginDto {
   @IsOptional()
   @IsBoolean()
   acceptedTerms?: boolean;
+
+  @ApiProperty({
+    required: false,
+    description: 'Spec 20: referral code from the link /register?ref=<code> (unknown codes are ignored)',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  referralCode?: string;
 }
 
 export class VerifyEmailDto {

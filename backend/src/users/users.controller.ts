@@ -6,6 +6,7 @@ import { Transform } from 'class-transformer';
 import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
+import { ReferralsService } from '../referrals/referrals.service';
 
 class UpdateProfileDto {
   @IsOptional()
@@ -38,7 +39,16 @@ class DeleteAccountDto {
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private referrals: ReferralsService,
+  ) {}
+
+  @Get('me/referral')
+  @ApiOperation({ summary: 'Spec 20: referral link (code created on first use) and the programme results' })
+  async getReferral(@CurrentUser() user: SessionUser) {
+    return this.referrals.summary(user.userId);
+  }
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })

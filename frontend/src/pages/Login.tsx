@@ -7,10 +7,13 @@ import AuthLayout from '../components/AuthLayout'
 import PasswordInput from '../components/PasswordInput'
 import FormAlert from '../components/FormAlert'
 import { googleSignInAvailable } from '../platform/native'
+import { captureReferralFromUrl } from '../utils/referral'
 
 export default function Login() {
   const showGoogle = googleSignInAvailable()
   usePageTitle('Logowanie')
+  // Spec 20: keep a referral code when the visitor reaches the login page first (Google may create the account here).
+  useState(() => captureReferralFromUrl())
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)

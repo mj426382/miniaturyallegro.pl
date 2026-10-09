@@ -278,6 +278,26 @@
         ]
       }
     },
+    "/api/users/me/referral": {
+      "get": {
+        "operationId": "UsersController_getReferral",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Spec 20: referral link (code created on first use) and the programme results",
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/api/users/me": {
       "get": {
         "operationId": "UsersController_getProfile",
@@ -1848,6 +1868,10 @@
           "marketingConsent": {
             "type": "boolean",
             "description": "Spec 16: opt-in to tips and reminders by e-mail (never preselected)"
+          },
+          "referralCode": {
+            "type": "string",
+            "description": "Spec 20: referral code from the link /register?ref=<code> (unknown codes are ignored)"
           }
         },
         "required": [
@@ -1884,6 +1908,10 @@
           "acceptedTerms": {
             "type": "boolean",
             "description": "Akceptacja regulaminu (wymagana tylko dla nowych kont)"
+          },
+          "referralCode": {
+            "type": "string",
+            "description": "Spec 20: referral code from the link /register?ref=<code> (unknown codes are ignored)"
           }
         },
         "required": [

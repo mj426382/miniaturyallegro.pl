@@ -106,6 +106,12 @@ export default function RegulaminContent() {
               zasadom co Kredyty zakupione, z wyjątkiem zwrotu ceny.
             </li>
             <li>
+              Program poleceń: Użytkownik może udostępniać swój link polecający. Gdy nowa osoba założy Konto z tego linku i potwierdzi adres e-mail (przy rejestracji przez Google – z chwilą założenia
+              Konta), polecający i polecony otrzymują nieodpłatnie po {PRICING.referralBonus} Kredyty. Polecający otrzymuje nagrodę za maksymalnie {PRICING.referralMaxRewards} polecone Konta.
+              Polecanie samego siebie, zakładanie Kont na cudze lub fikcyjne adresy oraz rozsyłanie linku w sposób stanowiący spam są zabronione; Usługodawca może w takim przypadku cofnąć przyznane
+              Kredyty.
+            </li>
+            <li>
               Jeden Kredyt uprawnia do wygenerowania jednej Grafiki. Domyślny zestaw startowy obejmuje {PRICING.starterStyles} style ({PRICING.starterStyles} Kredyty); Użytkownik sam wybiera, ile i
               jakie style generuje (maksymalnie {PRICING.allStyles} stylów automatycznych oraz dowolna liczba Grafik własnych).
             </li>

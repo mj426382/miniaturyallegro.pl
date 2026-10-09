@@ -117,6 +117,13 @@ export default function PaywallModal({ open, onClose, missing }: Props) {
           )}
         </ul>
         <p className="text-xs text-gray-500 mt-3">Płacisz BLIK-iem, kartą lub innymi metodami Stripe. Faktura VAT – NIP podasz w formularzu płatności.</p>
+        <p className="text-sm text-gray-700 mt-3 border-t border-gray-100 pt-3">
+          Wolisz za darmo?{' '}
+          <Link to="/account#polecenia" onClick={onClose} className="text-blue-600 underline">
+            Poleć AllGrafika znajomemu
+          </Link>{' '}
+          – oboje dostaniecie po 3 grafiki.
+        </p>
       </div>
     </div>
   )

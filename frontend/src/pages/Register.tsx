@@ -10,10 +10,13 @@ import FormAlert from '../components/FormAlert'
 import { track } from '../services/analytics'
 import { getPasswordErrors, getPasswordStrength } from '../utils/password'
 import { googleSignInAvailable } from '../platform/native'
+import { captureReferralFromUrl } from '../utils/referral'
 
 export default function Register() {
   const showGoogle = googleSignInAvailable()
   usePageTitle('Rejestracja')
+  // Spec 20: /register?ref=<code> – remembered until the account exists (also across the login page and Google).
+  const [referralCode] = useState(() => captureReferralFromUrl())
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -102,6 +105,11 @@ export default function Register() {
         </>
       }
     >
+      {referralCode && (
+        <p role="status" className="mb-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-900">
+          🎁 Masz zaproszenie od znajomego: po potwierdzeniu adresu e-mail dostaniesz <strong>3 dodatkowe grafiki</strong> gratis.
+        </p>
+      )}
       {/* Spec 18: Google sign-in needs native OAuth client ids – hidden in the Android/iOS app for now. */}
       {showGoogle && (
         <>

@@ -79,9 +79,10 @@ export interface StylesResponse {
 
 // Auth
 export const authApi = {
-  register: (data: { email: string; password: string; name?: string; acceptedTerms: boolean; marketingConsent?: boolean }) => api.post('/auth/register', data),
+  register: (data: { email: string; password: string; name?: string; acceptedTerms: boolean; marketingConsent?: boolean; referralCode?: string }) => api.post('/auth/register', data),
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
-  googleLogin: (googleToken: string, acceptedTerms?: boolean) => api.post('/auth/google', { googleToken, ...(acceptedTerms ? { acceptedTerms } : {}) }),
+  googleLogin: (googleToken: string, acceptedTerms?: boolean, referralCode?: string) =>
+    api.post('/auth/google', { googleToken, ...(acceptedTerms ? { acceptedTerms } : {}), ...(referralCode ? { referralCode } : {}) }),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, password: string) => api.post('/auth/reset-password', { token, password }),
   changePassword: (currentPassword: string, newPassword: string) => api.post('/auth/change-password', { currentPassword, newPassword }),
@@ -90,8 +91,20 @@ export const authApi = {
   resendVerification: () => api.post<{ sent?: boolean; alreadyVerified?: boolean }>('/auth/resend-verification'),
 }
 
+export interface ReferralSummary {
+  code: string
+  link: string
+  bonus: number
+  maxRewards: number
+  referred: number
+  rewarded: number
+  creditsEarned: number
+}
+
 // Users
 export const usersApi = {
+  /** Spec 20: referral link and results. */
+  referral: () => api.get<ReferralSummary>('/users/me/referral'),
   getMe: () => api.get('/users/me'),
   updateProfile: (data: { name?: string; marketingConsent?: boolean; notifyBatchDone?: boolean }) => api.patch('/users/me', data),
   deleteAccount: (confirmEmail: string) => api.delete('/users/me', { data: { confirmEmail } }),

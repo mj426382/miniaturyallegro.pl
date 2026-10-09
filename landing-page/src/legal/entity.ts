@@ -28,6 +28,9 @@ export const PRICING = {
   /** Spec 19: first-purchase welcome pack. */
   welcomePackCredits: 5,
   welcomePackPrice: '5 zł',
+  /** Spec 20: referral programme. */
+  referralBonus: 3,
+  referralMaxRewards: 25,
   starterStyles: 3,
   allStyles: 19,
   descriptionPromptEdits: 5,

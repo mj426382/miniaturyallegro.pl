@@ -4,6 +4,7 @@ import { queryClient } from '../lib/queryClient'
 import { setReportingUser } from '../services/errorReporting'
 import { clearSessionToken, loadSessionToken, setSessionToken } from '../platform/sessionToken'
 import { isNativeApp, onAppResume } from '../platform/native'
+import { clearReferral, storedReferral } from '../utils/referral'
 
 interface User {
   id: string
@@ -145,7 +146,9 @@ export function useAuthProvider() {
   }
 
   const googleLogin = async (googleToken: string, acceptedTerms?: boolean) => {
-    const { data } = await authApi.googleLogin(googleToken, acceptedTerms)
+    // Spec 20: a referral code from /register?ref=… counts only when Google creates a new account.
+    const { data } = await authApi.googleLogin(googleToken, acceptedTerms, storedReferral() ?? undefined)
+    clearReferral()
     await setSessionToken(data.token)
     setToken('cookie')
     setUser(data.user)
@@ -153,7 +156,9 @@ export function useAuthProvider() {
   }
 
   const register = async (email: string, password: string, name: string | undefined, acceptedTerms: boolean, marketingConsent = false) => {
-    const { data } = await authApi.register({ email, password, name, acceptedTerms, marketingConsent })
+    const referralCode = storedReferral() ?? undefined
+    const { data } = await authApi.register({ email, password, name, acceptedTerms, marketingConsent, ...(referralCode ? { referralCode } : {}) })
+    clearReferral()
     await setSessionToken(data.token)
     setToken('cookie')
     setUser(data.user)

@@ -30,6 +30,12 @@ model User {
   freeCreditsUsed    Int       @default(0)
   /// Spec 19: size of this account's free pool, fixed at sign-up (accounts before 2026-10-09: 10).
   freeCreditsLimit   Int       @default(10)
+  /// Spec 20: random referral code (no personal data), created on first use.
+  referralCode       String?   @unique
+  /// Spec 20: the account whose link was used at sign-up.
+  referredById       String?
+  /// Spec 20: when the referral bonus was paid (after the e-mail was confirmed) – paid once.
+  referralRewardedAt DateTime?
   /// Timestamp of accepting the Terms of Service (regulamin) – required for audit (UŚUDE / RODO).
   termsAcceptedAt    DateTime?
   /// Stripe customer id – created lazily on first checkout / subscription.
@@ -46,9 +52,12 @@ model User {
   emailLog                EmailLog[]
   notificationBatches     NotificationBatch[]
   creditGrants            CreditGrant[]
+  referredBy              User?                    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals               User[]                   @relation("Referrals")
   subscription            Subscription?
   allegroConnection       AllegroConnection?
 
+  @@index([referredById])
   @@map("users")
 }
 

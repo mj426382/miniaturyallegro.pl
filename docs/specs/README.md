@@ -28,6 +28,7 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [17-devices-performance-e2e.md](17-devices-performance-e2e.md) | Tablety, budżety wydajności, poprawki UX, test full-stack na prawdziwym backendzie |
 | [18-mobile-apps.md](18-mobile-apps.md) | Aplikacje Android i iOS (Capacitor), sesja Bearer, zakupy przez stronę, info na landingu |
 | [19-monetization.md](19-monetization.md) | Darmowa pula 5, pakiet powitalny, oferta przy braku kredytów, ponowienie płatności, kredyty od admina |
+| [20-referrals.md](20-referrals.md) | Program poleceń: link z kodem, nagroda po potwierdzeniu e-maila, sekcja w koncie |
 | [adr/](adr/) | Architecture Decision Records – decyzje, których nie da się wyczytać z kodu |
 | [TEMPLATE-feature-spec.md](TEMPLATE-feature-spec.md) | Szablon nowej specyfikacji |
 | [glossary.md](glossary.md) | Słownik pojęć (Kredyt, Grafika, Opis oferty, Poprawka…) |

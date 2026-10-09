@@ -163,6 +163,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
             unlimitedCredits: Boolean(options.isAdmin),
           })
         : json({ message: 'Unauthorized' }, 401)
+    if (path === '/users/me/referral') return json({ code: 'abc23xyz', link: 'http://localhost:4173/register?ref=abc23xyz', bonus: 3, maxRewards: 25, referred: 2, rewarded: 1, creditsEarned: 3 })
     if (path === '/notifications/batches') {
       requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
       return json({ id: 'batch-1' }, 201)

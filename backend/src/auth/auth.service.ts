@@ -18,6 +18,7 @@ import { RegisterDto, LoginDto, GoogleLoginDto } from './auth.dto';
 import { canonicalEmail } from './email-canonical';
 import { VERIFICATION_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from './email-verification';
 import { freeCreditsForNewAccounts } from '../generation/credits.service';
+import { ReferralsService } from '../referrals/referrals.service';
 
 // 12 rounds in production; tests lower it via BCRYPT_ROUNDS to stay fast.
 const BCRYPT_ROUNDS = Math.min(14, Math.max(4, Number(process.env.BCRYPT_ROUNDS) || 12));
@@ -57,6 +58,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
+    private referrals: ReferralsService,
   ) {
     this.googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     this.googleClient = new OAuth2Client(this.googleClientId);
@@ -79,6 +81,7 @@ export class AuthService {
     this.assertPasswordNotTrivial(dto.password, email);
 
     const hashedPassword = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+    const referredById = await this.referrals.resolveReferrer(dto.referralCode);
 
     let user: { id: string; email: string; name: string | null; createdAt: Date };
     try {
@@ -91,6 +94,7 @@ export class AuthService {
           termsAcceptedAt: new Date(),
           marketingConsentAt: dto.marketingConsent === true ? new Date() : null,
           freeCreditsLimit: this.freeCreditsLimit,
+          referredById,
         },
         select: { id: true, email: true, name: true, createdAt: true },
       });
@@ -196,6 +200,7 @@ export class AuthService {
             password: null,
             termsAcceptedAt: new Date(),
             freeCreditsLimit: this.freeCreditsLimit,
+            referredById: await this.referrals.resolveReferrer(dto.referralCode),
           },
         });
       } catch (error: any) {
@@ -203,6 +208,8 @@ export class AuthService {
         throw error;
       }
       this.logger.log(`Nowy użytkownik Google zarejestrowany: ${user.id}`);
+      // Spec 20: Google confirms the address, so the referral bonus is paid right away.
+      await this.referrals.rewardIfEligible(user.id);
     } else if (!user.googleId || !user.emailVerifiedAt) {
       user = await this.prisma.user.update({
         where: { id: user.id },
@@ -212,6 +219,8 @@ export class AuthService {
         },
       });
       this.logger.log(`Połączono konto Google z istniejącym użytkownikiem: ${user.id}`);
+      // A referred account confirmed through Google instead of the e-mail link (spec 20).
+      await this.referrals.rewardIfEligible(user.id);
     }
 
     return {
@@ -339,6 +348,8 @@ export class AuthService {
       this.prisma.emailVerificationToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
     ]);
     this.logger.log(`Adres e-mail potwierdzony dla użytkownika ${record.userId}`);
+    // Spec 20, AC-REF-002: the referral bonus is paid once the referred address is confirmed.
+    await this.referrals.rewardIfEligible(record.userId);
     return { verified: true };
   }
 

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { UserCircleIcon, TrashIcon, KeyIcon } from '@heroicons/react/24/outline'
 import { getPasswordErrors } from '../utils/password'
 import PasswordInput from '../components/PasswordInput'
+import ReferralCard from '../components/ReferralCard'
 
 export default function Account() {
   usePageTitle('Ustawienia konta')
@@ -107,6 +108,10 @@ export default function Account() {
   return (
     <div className="px-4 py-6 sm:p-8 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Ustawienia konta</h1>
+
+      <div className="mb-6">
+        <ReferralCard />
+      </div>
 
       <form onSubmit={saveName} className="card mb-6">
         <div className="flex items-center gap-3 mb-4">
