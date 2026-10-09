@@ -13,6 +13,9 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
     baseURL: 'http://localhost:4174',
+    // Spec 21: the build has a test Google Ads ID, so the cookie banner exists; every test except
+    // e2e/google-ads.spec.ts starts with the decision "refused" so the banner never covers the page.
+    storageState: { cookies: [{ name: 'ag_consent', value: 'ads=0', domain: 'localhost', path: '/', expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' }], origins: [] },
     trace: 'retain-on-failure',
   },
   webServer: {
@@ -20,6 +23,7 @@ export default defineConfig({
     url: 'http://localhost:4174',
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
+    env: { VITE_GOOGLE_ADS_ID: 'AW-TEST', VITE_GOOGLE_ADS_SIGNUP_LABEL: 'signup-test', VITE_GOOGLE_ADS_PURCHASE_LABEL: 'purchase-test' },
   },
   projects: [
     { name: 'desktop-chrome', use: { ...devices['Desktop Chrome'] } },

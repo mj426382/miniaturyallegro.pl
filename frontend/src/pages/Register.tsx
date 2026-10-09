@@ -8,6 +8,7 @@ import AuthLayout from '../components/AuthLayout'
 import PasswordInput from '../components/PasswordInput'
 import FormAlert from '../components/FormAlert'
 import { track } from '../services/analytics'
+import { trackAdsConversion } from '../consent/googleAds'
 import { getPasswordErrors, getPasswordStrength } from '../utils/password'
 import { googleSignInAvailable } from '../platform/native'
 import { captureReferralFromUrl } from '../utils/referral'
@@ -61,6 +62,7 @@ export default function Register() {
     try {
       await register(email.trim().toLowerCase(), password, name.trim() || undefined, acceptedTerms, marketingConsent)
       track('register', { method: 'email' })
+      trackAdsConversion('signup')
       navigate('/')
       toast.success('Konto zostało utworzone!')
     } catch (err: any) {
@@ -127,6 +129,7 @@ export default function Register() {
                 try {
                   await googleLogin(credentialResponse.credential, true)
                   track('register', { method: 'google' })
+                  trackAdsConversion('signup')
                   navigate('/')
                   toast.success('Zalogowano przez Google!')
                 } catch (err: any) {

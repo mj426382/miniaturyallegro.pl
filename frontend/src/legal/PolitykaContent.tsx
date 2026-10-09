@@ -1,4 +1,5 @@
 import { LEGAL_ENTITY, LEGAL_DATES, PROCESSORS } from './entity'
+import { ADS_CONFIGURED, openCookieSettings } from '../consent/googleAds'
 
 /**
  * Treść polityki prywatności – współdzielona przez landing page i aplikację.
@@ -133,6 +134,11 @@ export default function PolitykaContent() {
                   <td className="border border-gray-200 px-3 py-2">do odłączenia konta Allegro</td>
                 </tr>
                 <tr>
+                  <td className="border border-gray-200 px-3 py-2">Pomiar skuteczności reklam Google Ads (pliki cookies reklamowe – tylko po Twojej zgodzie)</td>
+                  <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. a RODO – zgoda (oraz art. 399 Prawa komunikacji elektronicznej)</td>
+                  <td className="border border-gray-200 px-3 py-2">do wycofania zgody; pliki cookies Google Ads wygasają po maks. 90 dniach</td>
+                </tr>
+                <tr>
                   <td className="border border-gray-200 px-3 py-2">Statystyki użycia (Plausible/Umami – bez cookies, bez identyfikacji osób)</td>
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. f – prawnie uzasadniony interes</td>
                   <td className="border border-gray-200 px-3 py-2">dane zagregowane</td>
@@ -179,9 +185,22 @@ export default function PolitykaContent() {
             </li>
           </ul>
           <p className="mt-3">
-            Do statystyk odwiedzin używamy narzędzia bez plików cookies i bez identyfikacji użytkowników (Plausible lub Umami; dane są agregowane i nie są łączone z Twoim kontem). Nie używamy
-            marketingowych plików cookies; jeśli to się zmieni, poprosimy Cię o zgodę przed ich uruchomieniem.
+            Do statystyk odwiedzin używamy narzędzia bez plików cookies i bez identyfikacji użytkowników (Plausible lub Umami; dane są agregowane i nie są łączone z Twoim kontem).
           </p>
+          <p className="mt-3">
+            <strong>Reklamy Google Ads (tylko za zgodą):</strong> jeśli klikniesz „Akceptuję” na pasku cookies, uruchamiamy tag Google Ads, który zapisuje pliki <code>_gcl_aw</code> i{' '}
+            <code>_gcl_au</code> (do 90 dni) na domenie allgrafika.pl, aby sprawdzić, czy wizyta z reklamy zakończyła się rejestracją lub zakupem. Google otrzymuje identyfikator kliknięcia reklamy,
+            rodzaj konwersji i wartość zakupu – nie przekazujemy mu Twojego adresu e-mail ani innych danych konta. Bez zgody skrypt Google w ogóle się nie ładuje. Twoją decyzję zapisujemy w pliku{' '}
+            <code>ag_consent</code> (180 dni), wspólnym dla allgrafika.pl i app.allgrafika.pl. Zgodę możesz w każdej chwili wycofać – nie wpływa to na zgodność z prawem przetwarzania przed jej
+            wycofaniem.
+          </p>
+          {ADS_CONFIGURED && (
+            <p className="mt-3">
+              <button type="button" onClick={openCookieSettings} className="text-blue-600 hover:underline font-medium">
+                Ustawienia cookies – zmień swoją decyzję
+              </button>
+            </p>
+          )}
         </section>
 
         <section>

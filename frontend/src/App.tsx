@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import CookieBanner from './consent/CookieBanner'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import ScrollToTop from './components/ScrollToTop'
 import Login from './pages/Login'
@@ -86,6 +87,7 @@ export default function App() {
                   </Route>
                 </Routes>
               </Suspense>
+              <CookieBanner />
             </BrowserRouter>
           </ConfirmProvider>
         </AuthContext.Provider>

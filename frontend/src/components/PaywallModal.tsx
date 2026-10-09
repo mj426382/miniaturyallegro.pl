@@ -49,7 +49,7 @@ export default function PaywallModal({ open, onClose, missing }: Props) {
     setBuying(pkg.id)
     track('paywall_checkout', { packageId: pkg.id })
     try {
-      const redirected = await startPackageCheckout(pkg.id)
+      const redirected = await startPackageCheckout(pkg.id, pkg.priceGrosze)
       if (!redirected) setBuying(null)
     } catch (err: any) {
       const message = err.response?.data?.message

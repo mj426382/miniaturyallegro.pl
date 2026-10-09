@@ -6,6 +6,7 @@ import BlogPostPage from './pages/BlogPost'
 import Regulamin from './pages/Regulamin'
 import PolitykaPrywatnosci from './pages/PolitykaPrywatnosci'
 import NotFound from './pages/NotFound'
+import CookieBanner from './consent/CookieBanner'
 import SeoLanding from './pages/SeoLanding'
 import { seoPages } from './data/seoPages'
 
@@ -31,6 +32,7 @@ export default function App() {
     <BrowserRouter>
       <ScrollToTop />
       <AppRoutes />
+      <CookieBanner />
     </BrowserRouter>
   )
 }

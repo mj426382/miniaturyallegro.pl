@@ -4,10 +4,12 @@ import { HelmetProvider } from 'react-helmet-async'
 import App from './App.tsx'
 import './index.css'
 import { initAnalytics } from './services/analytics'
+import { initGoogleAds } from './consent/googleAds'
 import { loadPost } from './data/blogLoader'
 import { LEGAL_PATHS, loadLegal } from './data/legalLoader'
 
 initAnalytics()
+initGoogleAds()
 
 const container = document.getElementById('root')!
 const app = (

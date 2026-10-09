@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { usersApi, paymentsApi, SubscriptionPlan, SubscriptionInfo, CreditPackageInfo } from '../services/api'
-import { lastCheckoutPackage, rememberCheckoutPackage } from '../utils/checkout'
+import { lastCheckoutPackage, rememberCheckoutPackage, rememberCheckoutValue, takeCheckoutValuePln } from '../utils/checkout'
+import { trackAdsConversion } from '../consent/googleAds'
 import { track } from '../services/analytics'
 import { useAuth } from '../hooks/useAuth'
 import { usePageTitle } from '../hooks/usePageTitle'
@@ -141,6 +142,7 @@ export default function Credits() {
     if (success) {
       toast.success('Płatność przyjęta! Kredyty pojawią się na koncie w ciągu kilku sekund.', { duration: 6000 })
       track('purchase', { type: searchParams.get('subscribed') === '1' ? 'subscription' : 'package' })
+      trackAdsConversion('purchase', takeCheckoutValuePln())
     }
     // Drop the flags so a refresh / back navigation does not re-fire toasts, polling and analytics.
     if (success || canceled) setSearchParams({}, { replace: true })
@@ -178,6 +180,7 @@ export default function Credits() {
       const { data } = await paymentsApi.createCheckout(packageId, true)
       if (data.url) {
         rememberCheckoutPackage(packageId)
+        rememberCheckoutValue([...(page.data?.packages ?? []), ...(page.data?.welcome ? [page.data.welcome] : [])].find((p) => p.id === packageId)?.priceGrosze)
         setRedirecting(true) // keep buttons disabled while the browser navigates – no second session
         window.location.href = data.url
         return
@@ -200,6 +203,7 @@ export default function Credits() {
     try {
       const { data } = await paymentsApi.subscribe(planId, true)
       if (data.url) {
+        rememberCheckoutValue(page.data?.plans.find((p) => p.id === planId)?.priceGrosze)
         setRedirecting(true)
         window.location.href = data.url
         return

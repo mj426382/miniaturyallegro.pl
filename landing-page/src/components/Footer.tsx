@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { LEGAL_ENTITY } from '../legal/entity'
 import { seoPages } from '../data/seoPages'
+import { ADS_CONFIGURED, openCookieSettings } from '../consent/googleAds'
 
 const CONTACT_EMAIL = 'kontakt@allgrafika.pl'
 
@@ -74,6 +75,13 @@ export default function Footer() {
                   Regulamin
                 </Link>
               </li>
+              {ADS_CONFIGURED && (
+                <li>
+                  <button type="button" onClick={openCookieSettings} className="hover:text-white transition-colors">
+                    Ustawienia cookies
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </div>

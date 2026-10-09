@@ -75,6 +75,12 @@ export const PROCESSORS = [
     url: 'https://policies.google.com/privacy',
   },
   {
+    name: 'Google Ireland Limited / Google LLC (Google Ads)',
+    role: 'pomiar skuteczności reklam (konwersje: rejestracja, zakup) – wyłącznie po zgodzie na pliki cookies reklamowe',
+    location: 'Irlandia / USA – transfer na podstawie EU-U.S. Data Privacy Framework',
+    url: 'https://policies.google.com/technologies/ads',
+  },
+  {
     name: 'Plausible Insights OÜ (Estonia) lub własna instancja Umami',
     role: 'statystyki odwiedzin bez plików cookies i bez identyfikacji osób (dane zagregowane)',
     location: 'Unia Europejska',
