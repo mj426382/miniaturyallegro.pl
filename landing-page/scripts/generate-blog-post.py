@@ -233,6 +233,86 @@ vercel_cfg = json.loads((LANDING / "vercel.json").read_text(encoding="utf-8"))
 redirected = {r["source"].removeprefix("/blog/") for r in vercel_cfg.get("redirects", [])}
 
 
+TITLE_RANGE = (40, 58)
+EXCERPT_RANGE = (120, 155)
+MIN_WORDS = 700  # the prompt asks for 900-1200; below this the article is expanded, not rejected
+
+
+def word_count(text):
+    return len(re.sub(r"<[^>]+>", " ", text or "").split())
+
+
+def shorten(text, limit):
+    """Last resort: cut at a separator or word boundary within the limit, without a dangling separator."""
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    for sep in (" – ", " — ", ": ", "? ", " - "):
+        head = text.split(sep)[0].strip()
+        if len(head) >= limit * 0.55 and len(head) <= limit:
+            return head + ("?" if sep == "? " else "")
+    words = text[: limit + 1].rsplit(" ", 1)[0].split()
+    # Never end on a conjunction or preposition ("…proporcje i", "…i nie").
+    dangling = {"i", "a", "o", "w", "z", "na", "do", "od", "po", "dla", "oraz", "lub", "czy", "jak", "nie", "to", "we", "ze"}
+    while len(words) > 3 and words[-1].lower().strip(",;:") in dangling:
+        words.pop()
+    return re.sub(r"[\s,;:–—-]+$", "", " ".join(words))
+
+
+def ask_field(field, instruction, article):
+    """A short follow-up call that rewrites one field; None when the model does not deliver."""
+    system = "Jesteś redaktorem SEO. Odpowiadasz WYŁĄCZNIE obiektem JSON z jednym polem."
+    prompt = (
+        f"{instruction}\nObecna wartość pola {field}: {article.get(field, '')!r}\n"
+        f"Temat artykułu: {article.get('title', '')}\nZwróć JSON: {{\"{field}\": \"...\"}}"
+    )
+    fixed = generate_online(prompt, system)
+    value = fixed.get(field) if isinstance(fixed, dict) else None
+    return value.strip() if isinstance(value, str) and value.strip() else None
+
+
+def repair(article):
+    """Fix what a model reliably gets wrong instead of discarding a good article (title/excerpt length,
+    too short content). Topic, duplicates and content rules are still judged by article_problem()."""
+    if DRY_RUN or not isinstance(article, dict):
+        return article
+    lo, hi = TITLE_RANGE
+    for _ in range(2):
+        if lo - 10 <= len(article.get("title", "")) <= hi:
+            break
+        print(f"Repairing title ({len(article.get('title', ''))} chars)")
+        new = ask_field("title", f"Przepisz tytuł tak, aby miał od {lo} do {hi} znaków (policz znaki!), fraza główna na początku, bez cudzysłowów.", article)
+        if new:
+            article["title"] = new
+    if len(article.get("title", "")) > hi:
+        article["title"] = shorten(article["title"], hi)
+    elo, ehi = EXCERPT_RANGE
+    for _ in range(2):
+        if elo - 20 <= len(article.get("excerpt", "")) <= ehi:
+            break
+        print(f"Repairing excerpt ({len(article.get('excerpt', ''))} chars)")
+        new = ask_field("excerpt", f"Przepisz meta description tak, aby miał od {elo} do {ehi} znaków (policz znaki!): fraza główna, korzyść, zachęta.", article)
+        if new:
+            article["excerpt"] = new
+    if len(article.get("excerpt", "")) > ehi:
+        article["excerpt"] = shorten(article["excerpt"], ehi)
+    for _ in range(2):
+        words = word_count(article.get("content", ""))
+        if words >= MIN_WORDS:
+            break
+        print(f"Expanding content ({words} words)")
+        expanded = ask_field(
+            "content",
+            f"Rozbuduj ten artykuł do 950-1200 słów (teraz ma {words}): dodaj konkretne kroki, przykłady oznaczone jako "
+            "hipotetyczne, checklistę i sekcję najczęstszych pytań. Zachowaj tytuł, ton, linki i zakończenie. "
+            "Format: Markdown (## nagłówki, - listy, **pogrubienia**, linki [tekst](url)). Nie wymyślaj liczb ani wyników.",
+            article,
+        )
+        if expanded and word_count(expanded) > words:
+            article["content"] = expanded
+    return article
+
+
 def article_problem(article):
     """None when the article can be published, otherwise the reason (fed back to the model)."""
     slug = str(article.get("slug", ""))
@@ -250,12 +330,12 @@ def article_problem(article):
     if re.search(r"<\s*/?\s*[a-z]+[^>]*>", body):
         return "treść zawiera HTML – tylko Markdown"
     if not DRY_RUN:
-        if not 30 <= len(article["title"]) <= 62:
-            return f"tytuł ma {len(article['title'])} znaków – wymagane 40-58"
-        if not 100 <= len(article["excerpt"]) <= 165:
-            return f"excerpt ma {len(article['excerpt'])} znaków – wymagane 120-155"
-        if len(body.split()) < 650:
-            return f"za krótka treść ({len(body.split())} słów) – wymagane 900-1200"
+        if not TITLE_RANGE[0] - 10 <= len(article["title"]) <= TITLE_RANGE[1]:
+            return f"tytuł ma {len(article['title'])} znaków – wymagane {TITLE_RANGE[0]}-{TITLE_RANGE[1]}"
+        if not EXCERPT_RANGE[0] - 20 <= len(article["excerpt"]) <= EXCERPT_RANGE[1] + 5:
+            return f"excerpt ma {len(article['excerpt'])} znaków – wymagane {EXCERPT_RANGE[0]}-{EXCERPT_RANGE[1]}"
+        if word_count(body) < MIN_WORDS:
+            return f"za krótka treść ({word_count(body)} słów) – wymagane 900-1200"
     if (articles_dir / f"{slug}.ts").exists():
         return f"DUPLICATE: post '{slug}' already exists"
     # Topic and content against every post, plus retired (merged) posts by topic.
@@ -278,14 +358,14 @@ def parse_article(raw):
         return None
 
 
-def ask(url, headers, model, json_format, user_prompt):
+def ask(url, headers, model, json_format, user_prompt, system=None):
     """One chat completion; returns the message text or None (and logs why)."""
     import requests  # only needed online
 
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT + SEO_RULES},
+            {"role": "system", "content": system or (SYSTEM_PROMPT + SEO_RULES)},
             {"role": "user", "content": user_prompt},
         ],
         "max_tokens": 4000,
@@ -328,7 +408,7 @@ def providers():
     return out
 
 
-def generate_online(user_prompt):
+def generate_online(user_prompt, system=None):
     import time
 
     attempts = providers()
@@ -336,7 +416,7 @@ def generate_online(user_prompt):
         print("ERROR: neither OPENAI_API_KEY nor MODELS_TOKEN / GITHUB_TOKEN is set")
         sys.exit(1)
     for i, (url, headers, model, json_format) in enumerate(attempts):
-        raw = ask(url, headers, model, json_format, user_prompt)
+        raw = ask(url, headers, model, json_format, user_prompt, system)
         if raw:
             article = parse_article(raw)
             if article:
@@ -369,6 +449,7 @@ else:
         if not candidate:
             print("ERROR: no usable answer from the AI providers")
             sys.exit(1)
+        candidate = repair(candidate)
         problem = article_problem(candidate)
         if not problem:
             article = candidate
