@@ -15,9 +15,9 @@ import OfferDescriptionPanel from '../components/OfferDescriptionPanel'
 import StylePicker from '../components/generate/StylePicker'
 import CustomStyleForm from '../components/generate/CustomStyleForm'
 import ResultCard from '../components/generate/ResultCard'
+import PaywallModal from '../components/PaywallModal'
+import ConsentPrompt from '../components/ConsentPrompt'
 import { SparklesIcon, CreditCardIcon, Squares2X2Icon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
-
-const FREE_LIMIT = 10
 
 type Tab = 'auto' | 'custom'
 
@@ -101,7 +101,7 @@ export default function Generate() {
       .catch(() => setAllegroConnected(false))
   }, [])
 
-  const freeLeft = Math.max(0, FREE_LIMIT - (user?.freeCreditsUsed ?? 0))
+  const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 10) - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
   const unlimited = Boolean(user?.unlimitedCredits)
   const locked = hasActive && !pollTimedOut
@@ -118,10 +118,19 @@ export default function Generate() {
     return promise
   }
 
+  /** Spec 19, AC-MON-003: a missing balance opens the offer instead of an error. */
+  const [paywall, setPaywall] = useState<{ missing: number } | null>(null)
+  const needsPaywall = (cost: number) => {
+    if (unlimited || freeLeft + paidCredits >= cost) return false
+    setPaywall({ missing: cost - freeLeft - paidCredits })
+    return true
+  }
+
   const handleCreditsError = (err: any, fallback: string) => {
     if (err.response?.status === 402) {
-      toast.error(err.response.data?.message || 'Brak kredytów', { duration: 6000 })
-      navigate('/credits')
+      const body = err.response.data ?? {}
+      setPaywall({ missing: Math.max(1, Number(body.creditsRequired ?? 1) - Number(body.creditsAvailable ?? 0)) })
+      refreshUser().catch(() => undefined)
     } else {
       const message = err.response?.data?.message
       toast.error(Array.isArray(message) ? message.join('. ') : message || fallback)
@@ -132,6 +141,7 @@ export default function Generate() {
 
   const startGeneration = async () => {
     if (!selectedStyles.length || isStarting || hasActive) return
+    if (needsPaywall(selectedStyles.length)) return
     setIsStarting(true)
     try {
       const { data } = await generationApi.startGeneration(imageId!, { styles: selectedStyles, basePrompt: basePrompt.trim() || undefined })
@@ -163,6 +173,7 @@ export default function Generate() {
 
   const startCustomGeneration = async () => {
     if (customPrompt.trim().length < 3 || isCustomGenerating) return
+    if (needsPaywall(1)) return
     setIsCustomGenerating(true)
     try {
       const { data } = await generationApi.startCustomGeneration(imageId!, customPrompt.trim(), referenceFile || undefined, isRework)
@@ -267,6 +278,7 @@ export default function Generate() {
 
   return (
     <div className="px-4 py-6 sm:p-8 max-w-5xl mx-auto">
+      <PaywallModal open={paywall !== null} missing={paywall?.missing} onClose={() => setPaywall(null)} />
       {/* Header: product image + title */}
       <div className="flex items-center gap-4 mb-6">
         <img src={image.originalUrl} alt="Zdjęcie produktu" className="w-20 h-20 object-cover rounded-xl border border-gray-200 shrink-0" />
@@ -382,6 +394,9 @@ export default function Generate() {
           ))}
         </div>
       )}
+
+      {/* Spec 19, AC-MON-005: ask for marketing consent right after the first finished graphics – never before. */}
+      {completedCount > 0 && <ConsentPrompt />}
 
       {hasResults && (
         <div ref={descriptionRef}>

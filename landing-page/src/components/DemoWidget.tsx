@@ -251,7 +251,7 @@ export default function DemoWidget() {
                   {isDownloading ? 'Pobieram...' : 'Pobierz'}
                 </button>
                 <a href={`${APP_URL}/register`} onClick={() => track('demo_register_click')} className="inline-block bg-yellow-400 text-gray-900 font-bold px-6 py-3 rounded-xl hover:bg-yellow-300">
-                  Załóż konto – 10 grafik gratis →
+                  Załóż konto – 5 grafik gratis →
                 </a>
                 <p className="text-xs text-gray-400 mt-3">W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny i opublikujesz grafiki prosto do oferty Allegro.</p>
               </div>
@@ -264,7 +264,7 @@ export default function DemoWidget() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-700 font-medium">Nie udało się wygenerować grafiki.</p>
-              <p className="text-sm text-gray-500 mt-1">Spróbuj z innym zdjęciem albo załóż darmowe konto – tam masz 10 prób.</p>
+              <p className="text-sm text-gray-500 mt-1">Spróbuj z innym zdjęciem albo załóż darmowe konto – tam masz 5 prób.</p>
               <button
                 onClick={() => {
                   setPhase('form')

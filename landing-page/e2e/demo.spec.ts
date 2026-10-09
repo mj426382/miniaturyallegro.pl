@@ -25,7 +25,7 @@ test('[AC-PERF-005] the demo posts multipart form data with fetch and shows the 
   await page.locator('#demo label').filter({ hasText: 'Akceptuję' }).locator('input[type="checkbox"]').check()
   await page.getByRole('button', { name: 'Wygeneruj darmową grafikę' }).click()
 
-  await expect(page.getByAltText('Po')).toBeVisible()
+  await expect(page.getByAltText('Po', { exact: true })).toBeVisible()
   expect(posted).not.toBeNull()
   expect(posted!.contentType).toMatch(/^multipart\/form-data; boundary=/)
   expect(posted!.body).toContain('name="email"')

@@ -60,7 +60,7 @@ export class AdminUsersService {
   async detail(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId }, select: this.userSelect });
     if (!user) throw new NotFoundException('Nie znaleziono użytkownika');
-    const [stats, payments, emails, subscription] = await Promise.all([
+    const [stats, payments, emails, subscription, grants] = await Promise.all([
       this.statsFor([userId]),
       this.prisma.paymentTransaction.findMany({
         where: { userId },
@@ -83,6 +83,12 @@ export class AdminUsersService {
         select: { id: true, kind: true, subject: true, body: true, sentBy: true, createdAt: true },
       }),
       this.prisma.subscription.findUnique({ where: { userId } }),
+      this.prisma.creditGrant.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { id: true, amount: true, reason: true, grantedBy: true, createdAt: true },
+      }),
     ]);
     return {
       ...this.toRow(user, stats.get(userId)),
@@ -97,7 +103,27 @@ export class AdminUsersService {
         : null,
       payments: payments.map(({ stripeInvoiceId, ...p }) => ({ ...p, hasInvoice: Boolean(stripeInvoiceId) })),
       emails,
+      creditGrants: grants,
     };
+  }
+
+  /** Spec 19, AC-MON-006: credits as a gift or for support, recorded with the operator's address. */
+  async grantCredits(adminEmail: string, userId: string, amount: number, reason: string) {
+    const exists = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    if (!exists) throw new NotFoundException('Nie znaleziono użytkownika');
+    const [user, grant] = await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { credits: { increment: amount } },
+        select: { credits: true },
+      }),
+      this.prisma.creditGrant.create({
+        data: { userId, amount, reason: reason.trim(), grantedBy: adminEmail },
+        select: { id: true, amount: true, reason: true, grantedBy: true, createdAt: true },
+      }),
+    ]);
+    this.logger.log(`Admin granted ${amount} credit(s) to user ${userId}`);
+    return { credits: user.credits, grant };
   }
 
   /** Individual message from the operator; replies go straight to the operator's mailbox. */
@@ -146,6 +172,7 @@ export class AdminUsersService {
     password: true,
     credits: true,
     freeCreditsUsed: true,
+    freeCreditsLimit: true,
     marketingConsentAt: true,
     subscription: { select: { planId: true, status: true } },
     _count: { select: { images: true } },
@@ -166,7 +193,7 @@ export class AdminUsersService {
       failedGenerations: stats?.failedGenerations ?? 0,
       lastActivityAt: stats?.lastGenerationAt ?? null,
       credits: user.credits,
-      freeCreditsLeft: Math.max(0, this.credits.freeLimit - user.freeCreditsUsed),
+      freeCreditsLeft: Math.max(0, user.freeCreditsLimit - user.freeCreditsUsed),
       plan: sub ? { planId: sub.planId, name: findPlan(sub.planId)?.name ?? sub.planId, status: sub.status } : null,
       paidTotalGrosze: stats?.paidTotalGrosze ?? 0,
       marketingConsent: Boolean(user.marketingConsentAt),

@@ -59,7 +59,7 @@ const svg = `
   <text x="80" y="335" font-family="Inter, Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#fde047">generowane przez AI</text>
   <text x="80" y="415" font-family="Inter, Arial, Helvetica, sans-serif" font-size="32" font-weight="500" fill="#dbeafe">Z jednego zdjęcia produktu – 6 stylów, produkt wierny oryginałowi</text>
   <text x="80" y="545" font-family="Inter, Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#ffffff">allgrafika.pl</text>
-  <text x="320" y="545" font-family="Inter, Arial, Helvetica, sans-serif" font-size="30" font-weight="400" fill="#bfdbfe">· pierwsze 10 grafik za darmo</text>
+  <text x="320" y="545" font-family="Inter, Arial, Helvetica, sans-serif" font-size="30" font-weight="400" fill="#bfdbfe">· pierwsze 5 grafik za darmo</text>
 </svg>`
 
 async function main() {

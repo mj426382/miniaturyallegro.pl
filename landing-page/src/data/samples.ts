@@ -8,4 +8,26 @@ export interface SamplePair {
   style: string | null
 }
 
-export const samplePairs: SamplePair[] = []
+export const samplePairs: SamplePair[] = [
+  {
+    "id": "podstawka-tablet",
+    "before": "/samples/podstawka-tablet-before.webp",
+    "after": "/samples/podstawka-tablet-after.webp",
+    "title": "Podstawka do tabletu – Akcesoria",
+    "style": "Białe tło"
+  },
+  {
+    "id": "projektor",
+    "before": "/samples/projektor-before.webp",
+    "after": "/samples/projektor-after.webp",
+    "title": "Projektor – Elektronika",
+    "style": "Białe tło"
+  },
+  {
+    "id": "rolki",
+    "before": "/samples/rolki-before.webp",
+    "after": "/samples/rolki-after.webp",
+    "title": "Rolki – Sport i turystyka",
+    "style": "Białe tło"
+  }
+]

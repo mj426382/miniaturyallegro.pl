@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { CREDIT_PACKAGES, SUBSCRIPTION_PLANS, findPackage, findPlan, SubscriptionPlan } from './plans';
+import { CREDIT_PACKAGES, SUBSCRIPTION_PLANS, WELCOME_PACKAGE, findPackage, findPlan, SubscriptionPlan } from './plans';
 import { emailNotVerifiedException, isVerificationRequired } from '../auth/email-verification';
 
 // Stripe v22 CJS – use require to avoid TS namespace issues
@@ -82,6 +82,19 @@ export class PaymentsService {
     return CREDIT_PACKAGES;
   }
 
+  /** Spec 19, AC-MON-002: the welcome pack is offered until the first paid transaction. */
+  async getWelcomeOffer(userId: string) {
+    const available = await this.isWelcomeEligible(userId);
+    return { available, package: available ? WELCOME_PACKAGE : null };
+  }
+
+  private async isWelcomeEligible(userId: string): Promise<boolean> {
+    const paid = await this.prisma.paymentTransaction.count({
+      where: { userId, status: TRANSACTION_STATUS.completed },
+    });
+    return paid === 0;
+  }
+
   getPlans() {
     return SUBSCRIPTION_PLANS.map((plan) => ({
       id: plan.id,
@@ -112,6 +125,9 @@ export class PaymentsService {
     if (!pkg) throw new BadRequestException('Nieprawidłowy pakiet');
 
     await this.assertCanPurchase(userId);
+    if (pkg.welcome && !(await this.isWelcomeEligible(userId))) {
+      throw new BadRequestException('Pakiet powitalny jest dostępny tylko przy pierwszym zakupie');
+    }
     const customerId = await this.ensureCustomer(userId);
 
     const session = await stripe.checkout.sessions.create({

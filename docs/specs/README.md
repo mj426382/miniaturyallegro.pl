@@ -27,6 +27,7 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [16-notifications-and-admin.md](16-notifications-and-admin.md) | Maile cykliczne ze zgodą i wypisaniem, panel administratora |
 | [17-devices-performance-e2e.md](17-devices-performance-e2e.md) | Tablety, budżety wydajności, poprawki UX, test full-stack na prawdziwym backendzie |
 | [18-mobile-apps.md](18-mobile-apps.md) | Aplikacje Android i iOS (Capacitor), sesja Bearer, zakupy przez stronę, info na landingu |
+| [19-monetization.md](19-monetization.md) | Darmowa pula 5, pakiet powitalny, oferta przy braku kredytów, ponowienie płatności, kredyty od admina |
 | [adr/](adr/) | Architecture Decision Records – decyzje, których nie da się wyczytać z kodu |
 | [TEMPLATE-feature-spec.md](TEMPLATE-feature-spec.md) | Szablon nowej specyfikacji |
 | [glossary.md](glossary.md) | Słownik pojęć (Kredyt, Grafika, Opis oferty, Poprawka…) |

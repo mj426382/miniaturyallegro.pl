@@ -74,8 +74,9 @@ export default function RegulaminContent() {
               różniące się wyłącznie wielkością liter, kropkami w adresach Gmail albo dopiskiem „+…” traktowane są jako ten sam adres.
             </li>
             <li>
-              Usługodawca wysyła na adres e-mail Konta wiadomości związane z usługą (np. potwierdzenie adresu, reset hasła, zakończenie generowania paczki zdjęć). Wskazówki i przypomnienia o
-              charakterze handlowym wysyłane są wyłącznie po wyrażeniu przez Użytkownika odrębnej, dobrowolnej zgody, którą można wycofać w ustawieniach Konta lub linkiem w każdej takiej wiadomości.
+              Usługodawca wysyła na adres e-mail Konta wiadomości związane z usługą (np. potwierdzenie adresu, reset hasła, zakończenie generowania paczki zdjęć). Wskazówki, przypomnienia i oferty
+              (np. zniżki na Kredyty) o charakterze handlowym wysyłane są wyłącznie po wyrażeniu przez Użytkownika odrębnej, dobrowolnej zgody, którą można wycofać w ustawieniach Konta lub linkiem w
+              każdej takiej wiadomości.
             </li>
             <li>
               Po rejestracji Usługodawca wysyła na podany adres link potwierdzający. Generowanie Grafik i zakup Kredytów są dostępne po potwierdzeniu adresu e-mail; przy logowaniu przez Google adres
@@ -96,8 +97,13 @@ export default function RegulaminContent() {
           <h2 className="text-xl font-semibold text-gray-900 mb-3">§ 4. Kredyty, ceny i płatności</h2>
           <ol className="list-decimal list-inside space-y-2">
             <li>
-              Każdy nowy Użytkownik otrzymuje {PRICING.freeCredits} darmowych Kredytów, które może wykorzystać po potwierdzeniu adresu e-mail. Darmowe Kredyty służą do przetestowania Serwisu i nie
-              podlegają wymianie na pieniądze.
+              Każdy nowy Użytkownik otrzymuje {PRICING.freeCredits} darmowych Kredytów, które może wykorzystać po potwierdzeniu adresu e-mail. Konta założone przed {PRICING.freeCreditsLegacyBefore}{' '}
+              zachowują dotychczasową pulę {PRICING.freeCreditsLegacy} darmowych Kredytów. Darmowe Kredyty służą do przetestowania Serwisu i nie podlegają wymianie na pieniądze.
+            </li>
+            <li>
+              Przy pierwszym zakupie Użytkownik, który nie opłacił wcześniej żadnego zamówienia, może jednorazowo kupić pakiet powitalny {PRICING.welcomePackCredits} Kredytów w cenie{' '}
+              {PRICING.welcomePackPrice}. Usługodawca może też przyznać Użytkownikowi dodatkowe Kredyty nieodpłatnie (np. w ramach promocji lub obsługi zgłoszenia); takie Kredyty podlegają tym samym
+              zasadom co Kredyty zakupione, z wyjątkiem zwrotu ceny.
             </li>
             <li>
               Jeden Kredyt uprawnia do wygenerowania jednej Grafiki. Domyślny zestaw startowy obejmuje {PRICING.starterStyles} style ({PRICING.starterStyles} Kredyty); Użytkownik sam wybiera, ile i

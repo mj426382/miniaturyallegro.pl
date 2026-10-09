@@ -107,7 +107,9 @@ export default function PolitykaContent() {
                   <td className="border border-gray-200 px-3 py-2">do cofnięcia zgody, nie dłużej niż 12 miesięcy</td>
                 </tr>
                 <tr className="bg-gray-50">
-                  <td className="border border-gray-200 px-3 py-2">Wskazówki i przypomnienia e-mailem dla Użytkowników (np. o niewykorzystanych darmowych kredytach, stylach sezonowych)</td>
+                  <td className="border border-gray-200 px-3 py-2">
+                    Wskazówki, przypomnienia i oferty e-mailem dla Użytkowników (np. o niewykorzystanych darmowych kredytach, stylach sezonowych, zniżkach na kredyty)
+                  </td>
                   <td className="border border-gray-200 px-3 py-2">
                     art. 6 ust. 1 lit. a – zgoda wyrażona w formularzu rejestracji lub w ustawieniach konta; można ją cofnąć w ustawieniach konta albo linkiem w każdej wiadomości
                   </td>

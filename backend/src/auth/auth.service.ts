@@ -17,6 +17,7 @@ import { MailService } from '../mail/mail.service';
 import { RegisterDto, LoginDto, GoogleLoginDto } from './auth.dto';
 import { canonicalEmail } from './email-canonical';
 import { VERIFICATION_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from './email-verification';
+import { freeCreditsForNewAccounts } from '../generation/credits.service';
 
 // 12 rounds in production; tests lower it via BCRYPT_ROUNDS to stay fast.
 const BCRYPT_ROUNDS = Math.min(14, Math.max(4, Number(process.env.BCRYPT_ROUNDS) || 12));
@@ -59,7 +60,11 @@ export class AuthService {
   ) {
     this.googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     this.googleClient = new OAuth2Client(this.googleClientId);
+    this.freeCreditsLimit = freeCreditsForNewAccounts(this.configService.get<string>('FREE_CREDITS_LIMIT'));
   }
+
+  /** Spec 19: free pool for accounts created now (stored on the account). */
+  private readonly freeCreditsLimit: number;
 
   async register(dto: RegisterDto) {
     const email = dto.email;
@@ -85,6 +90,7 @@ export class AuthService {
           name: dto.name || null,
           termsAcceptedAt: new Date(),
           marketingConsentAt: dto.marketingConsent === true ? new Date() : null,
+          freeCreditsLimit: this.freeCreditsLimit,
         },
         select: { id: true, email: true, name: true, createdAt: true },
       });
@@ -189,6 +195,7 @@ export class AuthService {
             name,
             password: null,
             termsAcceptedAt: new Date(),
+            freeCreditsLimit: this.freeCreditsLimit,
           },
         });
       } catch (error: any) {
@@ -393,13 +400,13 @@ export class AuthService {
       text: [
         'Cześć,',
         '',
-        'dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować 10 darmowych grafik:',
+        `dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} darmowych grafik:`,
         link,
         '',
         'Link jest ważny przez 24 godziny. Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.',
       ].join('\n'),
       html:
-        '<p>Cześć,</p><p>dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować 10 darmowych grafik.</p>' +
+        `<p>Cześć,</p><p>dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} darmowych grafik.</p>` +
         `<p><a href="${link}">Potwierdź adres e-mail</a> (link ważny przez 24 godziny).</p>` +
         '<p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>',
     });

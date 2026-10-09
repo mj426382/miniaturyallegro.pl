@@ -104,7 +104,7 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
     ]);
     if (byEmail >= MAX_PER_EMAIL) {
       throw new ConflictException(
-        'Ten adres e-mail skorzystał już z darmowego demo. Załóż konto, aby otrzymać 10 darmowych grafik.',
+        'Ten adres e-mail skorzystał już z darmowego demo. Załóż konto, aby otrzymać darmowe grafiki na start.',
       );
     }
     if (byIp >= MAX_PER_IP_PER_DAY) {

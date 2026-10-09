@@ -30,6 +30,16 @@ export class PaymentsController {
     return this.paymentsService.getPackages();
   }
 
+  @Get('welcome-offer')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'First-purchase welcome pack (5 credits for 5 zł) – available until the first paid transaction',
+  })
+  getWelcomeOffer(@CurrentUser() user: SessionUser) {
+    return this.paymentsService.getWelcomeOffer(user.userId);
+  }
+
   @Get('plans')
   @ApiOperation({ summary: 'Get monthly subscription plans (available = Stripe price configured)' })
   getPlans() {

@@ -55,7 +55,7 @@ Dzięki niemu zaoszczędzisz czas i pieniądze, które wcześniej pochłaniały 
 ## Co możesz zrobić już teraz?
 
 - Przeanalizuj swoje obecne miniaturki produktów spożywczych na Allegro i zidentyfikuj ich słabe punkty.
-- Zarejestruj się w [AllGrafika.pl](https://app.allgrafika.pl/register) i skorzystaj z pierwszych 10 darmowych grafik.
+- Zarejestruj się w [AllGrafika.pl](https://app.allgrafika.pl/register) i skorzystaj z pierwszych 5 darmowych grafik.
 - Przetestuj różne style miniaturek i monitoruj, który z nich przynosi najlepsze wyniki.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)

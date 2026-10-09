@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { imagesApi } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 import ImageCard from '../components/ImageCard'
+import ConsentPrompt from '../components/ConsentPrompt'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { ArrowUpTrayIcon, SparklesIcon } from '@heroicons/react/24/outline'
 
@@ -22,6 +23,8 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold text-gray-900">Witaj, {user?.name || 'Użytkowniku'}! 👋</h1>
         <p className="text-gray-500 mt-1">Generuj profesjonalne grafiki produktowe dla swoich ofert na Allegro</p>
       </div>
+
+      <ConsentPrompt />
 
       {/* Stats – the call-to-action takes its own row until the screen fits three cards (tablets, spec 17). */}
       <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8 items-start" data-testid="dashboard-stats">

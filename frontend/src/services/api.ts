@@ -62,6 +62,16 @@ export interface GenerationStyleInfo {
   inSeason?: boolean
 }
 
+export interface CreditPackageInfo {
+  id: string
+  credits: number
+  priceGrosze: number
+  label: string
+  priceLabel: string
+  savingLabel: string | null
+  welcome?: boolean
+}
+
 export interface StylesResponse {
   styles: GenerationStyleInfo[]
   defaultStyleIds: string[]
@@ -256,6 +266,8 @@ export interface SubscriptionInfo {
 
 export const paymentsApi = {
   getPackages: () => api.get('/payments/packages'),
+  /** Spec 19: first-purchase welcome pack (5 credits for 5 zł) while the account has no paid transaction. */
+  welcomeOffer: () => api.get<{ available: boolean; package: CreditPackageInfo | null }>('/payments/welcome-offer'),
   getPlans: () => api.get<SubscriptionPlan[]>('/payments/plans'),
   createCheckout: (packageId: string, acceptedWithdrawalWaiver: boolean) => api.post('/payments/checkout', { packageId, acceptedWithdrawalWaiver }),
   subscribe: (planId: string, acceptedWithdrawalWaiver: boolean) => api.post('/payments/subscribe', { planId, acceptedWithdrawalWaiver }),
@@ -305,6 +317,16 @@ export interface AdminUserDetail extends AdminUserRow {
   subscription: { planId: string; planName: string; status: string; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean } | null
   payments: Array<{ id: string; amountPln: number; creditsAdded: number; status: string; kind: string; createdAt: string; hasInvoice: boolean }>
   emails: AdminEmailEntry[]
+  /** Spec 19: credits given by an administrator. */
+  creditGrants?: AdminCreditGrant[]
+}
+
+export interface AdminCreditGrant {
+  id: string
+  amount: number
+  reason: string
+  grantedBy: string
+  createdAt: string
 }
 
 export interface AdminOverview {
@@ -351,6 +373,7 @@ export const adminApi = {
     api.get<{ users: AdminUserRow[]; pagination: { page: number; limit: number; total: number; pages: number } }>('/admin/users', { params }),
   user: (id: string) => api.get<AdminUserDetail>(`/admin/users/${id}`),
   sendEmail: (id: string, subject: string, message: string) => api.post<AdminEmailEntry>(`/admin/users/${id}/email`, { subject, message }),
+  grantCredits: (id: string, amount: number, reason: string) => api.post<{ credits: number; grant: AdminCreditGrant }>(`/admin/users/${id}/credits`, { amount, reason }),
 }
 
 // Allegro

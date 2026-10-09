@@ -6,6 +6,7 @@ import { adminApi } from '../services/api'
 import { formatDateTime, formatZl } from '../utils/format'
 import FormAlert from './FormAlert'
 import AdminUserImages from './admin/AdminUserImages'
+import AdminGrantCredits from './admin/AdminGrantCredits'
 
 interface Props {
   userId: string
@@ -150,6 +151,8 @@ export default function AdminUserModal({ userId, styleNames = {}, onClose }: Pro
                 ))}
               </ul>
             )}
+
+            <AdminGrantCredits userId={userId} grants={u.creditGrants ?? []} onGranted={() => queryClient.invalidateQueries({ queryKey: ['admin', 'user', userId] })} />
 
             <h3 className="text-sm font-semibold text-gray-800 mb-2">Wysłane maile</h3>
             {u.emails.length === 0 ? (

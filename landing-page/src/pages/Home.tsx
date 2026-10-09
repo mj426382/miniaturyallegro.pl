@@ -15,7 +15,7 @@ const OG_IMAGE = `${SITE_URL}/og-image.png`
 
 const PAGE_TITLE = 'Miniaturki Allegro z AI – lepsze zdjęcia ofert w kilka minut | AllGrafika.pl'
 const PAGE_DESCRIPTION =
-  'Oferta nie klika, bo konkurent ma ładniejsze zdjęcia? Prześlij zdjęcie z telefonu, a AI zrobi z niego profesjonalną miniaturkę Allegro. Produkt zostaje wierny oryginałowi. Wypróbuj bez konta, pierwsze 10 grafik za darmo.'
+  'Oferta nie klika, bo konkurent ma ładniejsze zdjęcia? Prześlij zdjęcie z telefonu, a AI zrobi z niego profesjonalną miniaturkę Allegro. Produkt zostaje wierny oryginałowi. Wypróbuj bez konta, pierwsze 5 grafik za darmo.'
 
 const pains = [
   {
@@ -112,7 +112,7 @@ const faq = [
   },
   {
     q: 'Ile to kosztuje?',
-    a: 'Pierwsze 10 grafik jest darmowych i nie wymaga karty – wystarczy potwierdzić adres e-mail. Do każdej płatności dostajesz fakturę (NIP podajesz w formularzu płatności). Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 1,75 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
+    a: 'Pierwsze 5 grafik jest darmowych i nie wymaga karty – wystarczy potwierdzić adres e-mail. Do każdej płatności dostajesz fakturę (NIP podajesz w formularzu płatności). Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 1,75 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
   },
   {
     q: 'Jak działa integracja z Allegro?',
@@ -146,7 +146,7 @@ const structuredData = [
     url: APP_URL,
     description: PAGE_DESCRIPTION,
     offers: [
-      { '@type': 'Offer', price: '0', priceCurrency: 'PLN', description: 'Pierwsze 10 grafik za darmo' },
+      { '@type': 'Offer', price: '0', priceCurrency: 'PLN', description: 'Pierwsze 5 grafik za darmo' },
       { '@type': 'Offer', price: '10', priceCurrency: 'PLN', description: 'Pakiet 5 kredytów' },
       { '@type': 'Offer', price: '28', priceCurrency: 'PLN', description: 'Pakiet 15 kredytów' },
       { '@type': 'Offer', price: '70', priceCurrency: 'PLN', description: 'Pakiet 40 kredytów' },
@@ -215,7 +215,7 @@ export default function Home() {
                 onClick={() => track('hero_register_click')}
                 className="bg-white/10 text-white font-medium px-8 py-4 rounded-xl text-lg hover:bg-white/20 transition-colors border border-white/20"
               >
-                Załóż konto – 10 grafik gratis
+                Załóż konto – 5 grafik gratis
               </a>
             </div>
             <p className="mt-6 text-blue-200 text-sm">Bez karty • Bez konta do pierwszej próby • Gotowe w kilka minut</p>
@@ -320,7 +320,7 @@ export default function Home() {
                 Prosty i przejrzysty <span className="text-blue-600">cennik</span>
               </h2>
               <p className="text-gray-500 mt-4">
-                1 kredyt = 1 grafika, opis oferty pod SEO gratis do każdej. <span className="font-medium text-blue-600">Pierwsze 10 grafik za darmo po rejestracji i potwierdzeniu e-maila.</span>
+                1 kredyt = 1 grafika, opis oferty pod SEO gratis do każdej. <span className="font-medium text-blue-600">Pierwsze 5 grafik za darmo po rejestracji i potwierdzeniu e-maila.</span>
               </p>
             </div>
 
@@ -418,13 +418,13 @@ export default function Home() {
         <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Zrób pierwsze miniaturki Allegro już dziś</h2>
-            <p className="text-blue-100 text-lg mb-8">Sprawdź na jednym produkcie bez konta albo załóż darmowe konto i wygeneruj 10 grafik bez podawania karty.</p>
+            <p className="text-blue-100 text-lg mb-8">Sprawdź na jednym produkcie bez konta albo załóż darmowe konto i wygeneruj 5 grafik bez podawania karty.</p>
             <a
               href={`${APP_URL}/register`}
               onClick={() => track('cta_register_click')}
               className="inline-block bg-yellow-400 text-gray-900 font-bold px-10 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
             >
-              Rejestracja za darmo – 10 grafik gratis →
+              Rejestracja za darmo – 5 grafik gratis →
             </a>
           </div>
         </section>

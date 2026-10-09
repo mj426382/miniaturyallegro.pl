@@ -12,6 +12,8 @@ export interface CreditPackage {
   label: string;
   priceLabel: string;
   savingLabel: string | null;
+  /** Spec 19: one-time welcome offer – only for accounts without a paid transaction. */
+  welcome?: boolean;
 }
 
 export const CREDIT_PACKAGES: CreditPackage[] = [
@@ -33,6 +35,20 @@ export const CREDIT_PACKAGES: CreditPackage[] = [
     savingLabel: 'Oszczędzasz 10 zł',
   },
 ];
+
+/**
+ * Spec 19: first-purchase offer (usually 10 zł). Not part of the public catalogue – the server
+ * decides eligibility (`GET /payments/welcome-offer`, checked again when the session is created).
+ */
+export const WELCOME_PACKAGE: CreditPackage = {
+  id: 'welcome_5',
+  credits: 5,
+  priceGrosze: 500,
+  label: 'Pakiet powitalny – 5 kredytów',
+  priceLabel: '5 zł',
+  savingLabel: 'Pierwszy zakup -50%',
+  welcome: true,
+};
 
 export interface SubscriptionPlan {
   id: string;
@@ -68,7 +84,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 ];
 
 export function findPackage(id: string): CreditPackage | undefined {
-  return CREDIT_PACKAGES.find((p) => p.id === id);
+  return [...CREDIT_PACKAGES, WELCOME_PACKAGE].find((p) => p.id === id);
 }
 
 export function findPlan(id: string): SubscriptionPlan | undefined {

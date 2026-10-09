@@ -27,8 +27,6 @@ const navigation = [
   { name: 'Konto', href: '/account', icon: Cog6ToothIcon },
 ]
 
-const FREE_LIMIT = 10
-
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -84,9 +82,9 @@ export default function Layout() {
             <div className="flex-1 min-w-0">
               {user.unlimitedCredits ? (
                 <p className="text-xs text-blue-700 font-medium">Kredyty: bez limitu</p>
-              ) : (user.freeCreditsUsed ?? 0) < FREE_LIMIT ? (
+              ) : (user.freeCreditsUsed ?? 0) < (user.freeCreditsLimit ?? 10) ? (
                 <p className="text-xs text-blue-700 font-medium">
-                  Darmowe: {FREE_LIMIT - (user.freeCreditsUsed ?? 0)} / {FREE_LIMIT}
+                  Darmowe: {(user.freeCreditsLimit ?? 10) - (user.freeCreditsUsed ?? 0)} / {user.freeCreditsLimit ?? 10}
                 </p>
               ) : (
                 <p className="text-xs text-blue-700 font-medium">

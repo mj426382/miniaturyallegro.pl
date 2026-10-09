@@ -213,21 +213,20 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           lte: new Date(now.getTime() - FREE_REMINDER_AFTER_MS),
           gte: new Date(now.getTime() - FREE_REMINDER_MAX_ACCOUNT_AGE_MS),
         },
-        freeCreditsUsed: { lt: this.credits.freeLimit },
+        // Prisma cannot compare two columns – fetch the window and keep accounts with free credits left.
         emailLog: { none: { key: 'free-credits-reminder' } },
       },
-      select: { id: true, email: true, name: true, freeCreditsUsed: true },
+      select: { id: true, email: true, name: true, freeCreditsUsed: true, freeCreditsLimit: true },
       orderBy: { createdAt: 'asc' },
-      take: quota,
     });
     let sent = 0;
-    for (const user of users) {
-      const left = this.credits.freeLimit - user.freeCreditsUsed;
+    for (const user of users.filter((u) => u.freeCreditsUsed < u.freeCreditsLimit).slice(0, quota)) {
+      const left = user.freeCreditsLimit - user.freeCreditsUsed;
       const content = renderEmail({
         heading: `Masz jeszcze ${left} ${left === 1 ? 'darmową grafikę' : left < 5 ? 'darmowe grafiki' : 'darmowych grafik'}`,
         paragraphs: [
           `Cześć${user.name ? ` ${user.name}` : ''},`,
-          `na Twoim koncie AllGrafika czeka ${left} z ${this.credits.freeLimit} darmowych grafik. Wgraj zdjęcie produktu, a w kilka minut dostaniesz miniatury zgodne z wymaganiami Allegro – na białym tle, w aranżacji albo w stylu sezonowym.`,
+          `na Twoim koncie AllGrafika czeka ${left} z ${user.freeCreditsLimit} darmowych grafik. Wgraj zdjęcie produktu, a w kilka minut dostaniesz miniatury zgodne z wymaganiami Allegro – na białym tle, w aranżacji albo w stylu sezonowym.`,
           'Do każdego zdjęcia z grafiką napiszemy też gratis opis oferty pod SEO Allegro.',
         ],
         cta: { label: 'Wygeneruj grafiki', url: `${this.frontendUrl}/upload` },

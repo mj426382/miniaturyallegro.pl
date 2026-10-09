@@ -7,7 +7,7 @@ test.describe('e-mail notifications (spec 16)', () => {
   test('[AC-NOT-007] the marketing consent at sign-up is optional, unticked and sent when ticked', async ({ page }) => {
     const { requests } = await mockApp(page, { loggedIn: false })
     await page.goto('/register')
-    const consent = page.getByLabel(/Chcę dostawać wskazówki i przypomnienia/)
+    const consent = page.getByLabel(/Chcę dostawać e-mailem zniżki na kredyty/)
     await expect(consent).not.toBeChecked()
 
     await page.getByLabel('Email').fill('nowy@example.com')
@@ -22,7 +22,7 @@ test.describe('e-mail notifications (spec 16)', () => {
   test('[AC-NOT-007] account settings switch both notifications and save immediately', async ({ page }) => {
     const { requests } = await mockApp(page)
     await page.goto('/account')
-    const tips = page.getByLabel(/Wskazówki i przypomnienia/)
+    const tips = page.getByLabel(/Wskazówki, przypomnienia i zniżki/)
     const batch = page.getByLabel(/Koniec dużej paczki/)
     await expect(tips).not.toBeChecked()
     await expect(batch).toBeChecked()

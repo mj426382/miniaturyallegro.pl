@@ -28,6 +28,8 @@ model User {
   googleId           String?   @unique
   credits            Int       @default(0)
   freeCreditsUsed    Int       @default(0)
+  /// Spec 19: size of this account's free pool, fixed at sign-up (accounts before 2026-10-09: 10).
+  freeCreditsLimit   Int       @default(10)
   /// Timestamp of accepting the Terms of Service (regulamin) – required for audit (UŚUDE / RODO).
   termsAcceptedAt    DateTime?
   /// Stripe customer id – created lazily on first checkout / subscription.
@@ -43,6 +45,7 @@ model User {
   emailVerificationTokens EmailVerificationToken[]
   emailLog                EmailLog[]
   notificationBatches     NotificationBatch[]
+  creditGrants            CreditGrant[]
   subscription            Subscription?
   allegroConnection       AllegroConnection?
 
@@ -254,4 +257,20 @@ model DemoRequest {
   @@index([emailCanonical])
   @@index([ipHash, createdAt])
   @@map("demo_requests")
+}
+
+/// Spec 19: credits added by an administrator (gift or support), kept for accountability.
+model CreditGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Int
+  reason    String
+  /// Admin e-mail address that granted the credits.
+  grantedBy String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("credit_grants")
 }

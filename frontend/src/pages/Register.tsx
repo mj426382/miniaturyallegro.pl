@@ -92,7 +92,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Utwórz konto"
-      subtitle="10 grafik za darmo, bez karty – odblokujesz je, potwierdzając adres e-mail"
+      subtitle="5 grafik za darmo, bez karty – odblokujesz je, potwierdzając adres e-mail"
       footer={
         <>
           Masz już konto?{' '}
@@ -233,8 +233,8 @@ export default function Register() {
             className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
           <label htmlFor="marketingConsent" className="text-sm text-gray-600 cursor-pointer">
-            Chcę dostawać wskazówki i przypomnienia e-mailem (np. o niewykorzystanych darmowych kredytach i stylach sezonowych).{' '}
-            <span className="text-gray-500">Opcjonalne – zgodę mogę wycofać w każdej chwili.</span>
+            Chcę dostawać e-mailem zniżki na kredyty, porady i przypomnienia (np. o stylach sezonowych przed świętami).{' '}
+            <span className="text-gray-500">Bez spamu – kilka wiadomości w roku, wypis jednym kliknięciem. Opcjonalne.</span>
           </label>
         </div>
 

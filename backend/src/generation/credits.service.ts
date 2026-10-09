@@ -21,7 +21,8 @@ export interface DeductOptions<T> {
 /**
  * Credit accounting.
  *
- * Every new account gets FREE_CREDITS_LIMIT free generations; afterwards one
+ * Every new account gets FREE_CREDITS_LIMIT free generations (stored on the account at sign-up as
+ * `freeCreditsLimit`, so changing the setting never shrinks an existing pool – spec 19); afterwards one
  * credit = one generated graphic. Deductions run inside a transaction with a
  * row lock so concurrent requests (e.g. bulk upload, double clicks) can never
  * drive the balance negative or over-spend the free pool.
@@ -32,6 +33,7 @@ export interface DeductOptions<T> {
 @Injectable()
 export class CreditsService {
   private readonly logger = new Logger(CreditsService.name);
+  /** Free pool given to accounts created now (FREE_CREDITS_LIMIT); each account keeps its own `freeCreditsLimit`. */
   readonly freeLimit: number;
   /** Spec 13: unconfirmed accounts may not spend credits (switch: EMAIL_VERIFICATION_REQUIRED). */
   readonly verificationRequired: boolean;
@@ -41,8 +43,7 @@ export class CreditsService {
     private prisma: PrismaService,
     configService: ConfigService,
   ) {
-    const configured = Number(configService.get<string>('FREE_CREDITS_LIMIT'));
-    this.freeLimit = Number.isInteger(configured) && configured >= 0 ? configured : 10;
+    this.freeLimit = freeCreditsForNewAccounts(configService.get<string>('FREE_CREDITS_LIMIT'));
     this.verificationRequired = isVerificationRequired(configService.get<string>('EMAIL_VERIFICATION_REQUIRED'));
     this.admins = parseAdminEmails(configService.get<string>('ADMIN_EMAILS'));
   }
@@ -55,13 +56,13 @@ export class CreditsService {
   async getBalance(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { credits: true, freeCreditsUsed: true },
+      select: { credits: true, freeCreditsUsed: true, freeCreditsLimit: true },
     });
     if (!user) throw new NotFoundException('User not found');
     return {
       paid: user.credits,
-      freeLeft: Math.max(0, this.freeLimit - user.freeCreditsUsed),
-      freeLimit: this.freeLimit,
+      freeLeft: Math.max(0, user.freeCreditsLimit - user.freeCreditsUsed),
+      freeLimit: user.freeCreditsLimit,
     };
   }
 
@@ -74,8 +75,14 @@ export class CreditsService {
       // The row lock serialises every concurrent start of this user – the in-flight cap and
       // the balance check below are therefore exact, not best-effort.
       const rows = await tx.$queryRaw<
-        { email: string; credits: number; freeCreditsUsed: number; emailVerifiedAt: Date | null }[]
-      >`SELECT "email", "credits", "freeCreditsUsed", "emailVerifiedAt" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
+        {
+          email: string;
+          credits: number;
+          freeCreditsUsed: number;
+          freeCreditsLimit: number;
+          emailVerifiedAt: Date | null;
+        }[]
+      >`SELECT "email", "credits", "freeCreditsUsed", "freeCreditsLimit", "emailVerifiedAt" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
       const user = rows[0];
       if (!user) throw new NotFoundException('User not found');
       if (this.verificationRequired && !user.emailVerifiedAt) throw emailNotVerifiedException();
@@ -97,7 +104,7 @@ export class CreditsService {
         return { free: 0, paid: 0, result };
       }
 
-      const freeLeft = Math.max(0, this.freeLimit - user.freeCreditsUsed);
+      const freeLeft = Math.max(0, user.freeCreditsLimit - user.freeCreditsUsed);
       const free = Math.min(count, freeLeft);
       const paid = count - free;
 
@@ -159,6 +166,12 @@ export class CreditsService {
       this.logger.error(`Failed to refund credits for user ${userId}`, err);
     }
   }
+}
+
+/** FREE_CREDITS_LIMIT as an integer 0–100 (validated at start-up); default 5 since spec 19. */
+export function freeCreditsForNewAccounts(value: string | undefined): number {
+  const configured = Number(value);
+  return value !== undefined && value !== '' && Number.isInteger(configured) && configured >= 0 ? configured : 5;
 }
 
 function plural(n: number): string {

@@ -28,6 +28,7 @@ export class UsersService {
         name: true,
         credits: true,
         freeCreditsUsed: true,
+        freeCreditsLimit: true,
         termsAcceptedAt: true,
         emailVerifiedAt: true,
         marketingConsentAt: true,

@@ -11,6 +11,7 @@ import BulkDescriptionsModal, { BulkPhoto } from '../components/BulkDescriptions
 import { useZipDownload } from '../hooks/useZipDownload'
 import { groupStartsOpen, groupStyles } from '../utils/styles'
 import { countLabel } from '../utils/plural'
+import PaywallModal from '../components/PaywallModal'
 import {
   ArrowUpTrayIcon,
   PhotoIcon,
@@ -29,7 +30,6 @@ type Mode = 'upload' | 'shared' | 'perFile'
 
 const MAX_START_RETRIES = 12
 const RETRY_DELAY_MS = 20_000
-const FREE_LIMIT = 10
 
 interface FileItem {
   id: string
@@ -108,14 +108,21 @@ export default function BulkUpload() {
 
   const queued = files.filter((f) => f.status === 'queued')
   const totalCredits = useMemo(() => queued.reduce((sum, f) => sum + stylesFor(f).length, 0), [queued, mode, sharedStyles]) // eslint-disable-line react-hooks/exhaustive-deps
-  const freeLeft = Math.max(0, FREE_LIMIT - (user?.freeCreditsUsed ?? 0))
+  const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 10) - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
   const unlimited = Boolean(user?.unlimitedCredits)
   const canAfford = unlimited || totalCredits <= freeLeft + paidCredits
   const missingStyles = mode !== 'upload' && queued.some((f) => stylesFor(f).length === 0)
 
+  /** Spec 19, AC-MON-003: not enough credits opens the offer (with the welcome pack) instead of blocking. */
+  const [paywallMissing, setPaywallMissing] = useState<number | null>(null)
+
   const startAll = async () => {
     if (!queued.length || missingStyles) return
+    if (mode !== 'upload' && !canAfford) {
+      setPaywallMissing(totalCredits - freeLeft - paidCredits)
+      return
+    }
     setIsRunning(true)
     const snapshotMode = mode
 
@@ -202,6 +209,7 @@ export default function BulkUpload() {
 
   return (
     <div className="px-4 py-6 sm:p-8 max-w-3xl mx-auto">
+      <PaywallModal open={paywallMissing !== null} missing={paywallMissing ?? undefined} onClose={() => setPaywallMissing(null)} />
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Masowe przesyłanie zdjęć</h1>
         <p className="text-gray-500 mt-1">Prześlij wiele zdjęć naraz. Zdecyduj, czy od razu generować grafiki i w jakich stylach – płacisz tylko za to, co wybierzesz.</p>
@@ -371,11 +379,7 @@ export default function BulkUpload() {
 
           {/* Cost + action */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <button
-              onClick={startAll}
-              disabled={isRunning || queuedCount === 0 || missingStyles || (mode !== 'upload' && !canAfford)}
-              className="btn-primary flex items-center justify-center gap-2 flex-1"
-            >
+            <button onClick={startAll} disabled={isRunning || queuedCount === 0 || missingStyles} className="btn-primary flex items-center justify-center gap-2 flex-1">
               {mode === 'upload' ? <ArrowUpTrayIcon className="h-5 w-5" /> : <SparklesIcon className="h-5 w-5" />}
               {isRunning ? `Przetwarzanie... (${activeCount} w toku)` : mode === 'upload' ? `Prześlij (${queuedCount})` : `Prześlij i generuj (${queuedCount})`}
             </button>

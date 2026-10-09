@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { usersApi, paymentsApi, SubscriptionPlan, SubscriptionInfo } from '../services/api'
+import { usersApi, paymentsApi, SubscriptionPlan, SubscriptionInfo, CreditPackageInfo } from '../services/api'
+import { lastCheckoutPackage, rememberCheckoutPackage } from '../utils/checkout'
 import { track } from '../services/analytics'
 import { useAuth } from '../hooks/useAuth'
 import { usePageTitle } from '../hooks/usePageTitle'
@@ -10,7 +11,6 @@ import { CreditCardIcon, CheckCircleIcon, XCircleIcon, SparklesIcon, ClockIcon, 
 import { countLabel } from '../utils/plural'
 import { isNativeApp, nativePurchaseMode, openInSystemBrowser, webUrl } from '../platform/native'
 
-const FREE_LIMIT = 10
 const HIGHLIGHTED_PACKAGE = 'credits_15'
 
 interface Package {
@@ -39,7 +39,10 @@ interface CreditsPageData {
   subscription: SubscriptionInfo | null
   credits: number
   freeCreditsUsed: number
+  /** Spec 19: the account's own free pool (5 or 10). */
+  freeCreditsLimit: number
   transactions: Transaction[]
+  welcome: CreditPackageInfo | null
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -50,13 +53,23 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 }
 
 async function loadCreditsPage(): Promise<CreditsPageData> {
-  const [pkgRes, userRes, histRes, plansRes, subRes] = await Promise.all([paymentsApi.getPackages(), usersApi.getMe(), paymentsApi.getHistory(), paymentsApi.getPlans(), paymentsApi.getSubscription()])
+  const [pkgRes, userRes, histRes, plansRes, subRes, welcomeRes] = await Promise.all([
+    paymentsApi.getPackages(),
+    usersApi.getMe(),
+    paymentsApi.getHistory(),
+    paymentsApi.getPlans(),
+    paymentsApi.getSubscription(),
+    // An older API without the endpoint simply means "no welcome offer".
+    paymentsApi.welcomeOffer().catch(() => ({ data: { available: false, package: null } })),
+  ])
   return {
     packages: pkgRes.data as Package[],
     plans: plansRes.data.filter((p) => p.available),
     subscription: subRes.data.subscription,
     credits: userRes.data.credits,
     freeCreditsUsed: userRes.data.freeCreditsUsed,
+    freeCreditsLimit: userRes.data.freeCreditsLimit ?? 10,
+    welcome: welcomeRes.data.available ? welcomeRes.data.package : null,
     transactions: histRes.data as Transaction[],
   }
 }
@@ -121,13 +134,14 @@ export default function Credits() {
 
   const success = searchParams.get('success') === '1' || searchParams.get('subscribed') === '1'
   const canceled = searchParams.get('canceled') === '1'
+  /** Spec 19, AC-MON-004: after an abandoned or failed payment (e.g. an expired BLIK code) offer a retry. */
+  const [retry, setRetry] = useState<{ packageId: string | null } | null>(() => (canceled ? { packageId: lastCheckoutPackage() } : null))
 
   useEffect(() => {
     if (success) {
       toast.success('Płatność przyjęta! Kredyty pojawią się na koncie w ciągu kilku sekund.', { duration: 6000 })
       track('purchase', { type: searchParams.get('subscribed') === '1' ? 'subscription' : 'package' })
     }
-    if (canceled) toast.error('Płatność anulowana.')
     // Drop the flags so a refresh / back navigation does not re-fire toasts, polling and analytics.
     if (success || canceled) setSearchParams({}, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -163,6 +177,7 @@ export default function Credits() {
     try {
       const { data } = await paymentsApi.createCheckout(packageId, true)
       if (data.url) {
+        rememberCheckoutPackage(packageId)
         setRedirecting(true) // keep buttons disabled while the browser navigates – no second session
         window.location.href = data.url
         return
@@ -233,6 +248,7 @@ export default function Credits() {
 
   const { packages, plans, subscription, transactions } = page.data
   const freeUsed = page.data.freeCreditsUsed
+  const FREE_LIMIT = page.data.freeCreditsLimit
   const freeLeft = Math.max(0, FREE_LIMIT - freeUsed)
   const paidCredits = page.data.credits
 
@@ -243,6 +259,23 @@ export default function Credits() {
         1 kredyt = 1 wygenerowana grafika. Zestaw startowy to 3 kredyty, każdy kolejny styl (z 19, także sezonowe i branżowe) to 1 kredyt. Opis oferty pod SEO jest gratis do każdego zdjęcia z gotową
         grafiką (5 poprawek AI w cenie, kolejne 15 poprawek = 1 kredyt).
       </p>
+
+      {retry && (
+        <div role="status" className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-semibold">Płatność nie została dokończona</p>
+          <p className="mt-1">Kod BLIK jest ważny tylko 2 minuty – wygeneruj nowy w aplikacji banku i spróbuj jeszcze raz. Możesz też zapłacić kartą. Nic nie zostało pobrane z Twojego konta.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {retry.packageId && (
+              <button type="button" onClick={() => handleBuy(retry.packageId!)} disabled={redirecting} className="btn-primary text-sm">
+                Spróbuj ponownie
+              </button>
+            )}
+            <button type="button" onClick={() => setRetry(null)} className="btn-secondary text-sm">
+              Zamknij
+            </button>
+          </div>
+        </div>
+      )}
 
       {user?.unlimitedCredits && (
         <p role="status" className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">
@@ -374,6 +407,20 @@ export default function Credits() {
                 .
               </span>
             </label>
+          )}
+          {page.data.welcome && (
+            <div data-testid="welcome-offer" className="mb-4 rounded-xl border-2 border-yellow-400 bg-yellow-50 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-yellow-800">Tylko przy pierwszym zakupie</p>
+                <p className="text-lg font-bold text-gray-900 mt-1">{page.data.welcome.label}</p>
+                <p className="text-sm text-gray-600">
+                  {page.data.welcome.priceLabel} zamiast 10 zł · {(page.data.welcome.priceGrosze / 100 / page.data.welcome.credits).toFixed(2).replace('.', ',')} zł za grafikę
+                </p>
+              </div>
+              <button type="button" onClick={() => handleBuy(page.data.welcome!.id)} disabled={buyingPackageId === page.data.welcome.id || redirecting} className="btn-primary whitespace-nowrap">
+                {buyingPackageId === page.data.welcome.id ? 'Przekierowuję...' : `Kup za ${page.data.welcome.priceLabel}`}
+              </button>
+            </div>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
             {packages.map((pkg) => {

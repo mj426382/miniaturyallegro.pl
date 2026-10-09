@@ -111,6 +111,12 @@ export interface MockOptions {
   isAdmin?: boolean
   /** Free pool used up and no paid credits. */
   noCredits?: boolean
+  /** Spec 19: the account has a paid transaction, so no welcome pack is offered. */
+  hasPurchased?: boolean
+  /** Spec 19: free pool of the account (default 10, accounts from 2026-10-09: 5). */
+  freeCreditsLimit?: number
+  /** Spec 19: the user already said yes or no to marketing e-mails. */
+  marketingConsent?: boolean
 }
 
 export async function mockApp(page: Page, options: MockOptions = {}) {
@@ -133,6 +139,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
   })
   let uploadCounter = 0
   const adminEmails: any[] = []
+  const adminGrants: any[] = []
 
   // Session is an httpOnly cookie – the SPA simply asks /users/me, which we answer as logged in.
 
@@ -149,7 +156,9 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
             hasPassword: true,
             emailVerified,
             ...settings,
-            ...(options.noCredits ? { credits: 0, freeCreditsUsed: 10 } : {}),
+            freeCreditsLimit: options.freeCreditsLimit ?? 10,
+            ...(options.marketingConsent !== undefined ? { marketingConsent: options.marketingConsent } : {}),
+            ...(options.noCredits ? { credits: 0, freeCreditsUsed: options.freeCreditsLimit ?? 10 } : {}),
             isAdmin: Boolean(options.isAdmin),
             unlimitedCredits: Boolean(options.isAdmin),
           })
@@ -238,8 +247,16 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
             subscription: null,
             payments: [{ id: 'tx-1', amountPln: 2800, creditsAdded: 15, status: 'completed', kind: 'package', createdAt: '2026-10-03T10:00:00.000Z', hasInvoice: true }],
             emails: adminEmails,
+            creditGrants: adminGrants,
           })
         : json({ message: 'Nie znaleziono' }, 404)
+    }
+    if (/^\/admin\/users\/[^/]+\/credits$/.test(path)) {
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: 'POST', body })
+      const grant = { id: `g-${adminGrants.length + 1}`, amount: body.amount, reason: body.reason, grantedBy: USER.email, createdAt: '2026-10-09T10:00:00.000Z' }
+      adminGrants.unshift(grant)
+      return json({ credits: body.amount, grant }, 201)
     }
     if (/^\/admin\/users\/[^/]+\/email$/.test(path)) {
       const body = req.postDataJSON()
@@ -362,6 +379,15 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       requests.push({ url: path, method: req.method(), body: req.postDataJSON() })
       return json({ url: 'http://localhost:4173/credits?success=1' }, 201)
     }
+    if (path === '/payments/welcome-offer')
+      return json(
+        options.hasPurchased
+          ? { available: false, package: null }
+          : {
+              available: true,
+              package: { id: 'welcome_5', credits: 5, priceGrosze: 500, label: 'Pakiet powitalny – 5 kredytów', priceLabel: '5 zł', savingLabel: 'Pierwszy zakup -50%', welcome: true },
+            },
+      )
     if (path === '/payments/packages') return json([{ id: 'credits_5', credits: 5, priceGrosze: 1000, label: '5 kredytów', priceLabel: '10 zł', savingLabel: null }])
     if (path === '/payments/history') return json(options.history ?? [])
     if (path === '/generation/styles') return json(STYLES)

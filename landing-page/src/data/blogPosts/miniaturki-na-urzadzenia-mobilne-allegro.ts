@@ -57,7 +57,7 @@ Przetestuj swoje grafiki, wykonując poniższe kroki:
 
 ## Dostosuj swoje grafiki z AllGrafika.pl
 
-Teraz, gdy wiesz, jak ważne jest dopasowanie miniaturek do urządzeń mobilnych, czas zacząć działać. Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz automatycznie wygenerować profesjonalne miniaturki dostosowane do smartfonów. Zarejestruj się już dziś i skorzystaj z 10 darmowych grafik na dobry początek.
+Teraz, gdy wiesz, jak ważne jest dopasowanie miniaturek do urządzeń mobilnych, czas zacząć działać. Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz automatycznie wygenerować profesjonalne miniaturki dostosowane do smartfonów. Zarejestruj się już dziś i skorzystaj z 5 darmowych grafik na dobry początek.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,

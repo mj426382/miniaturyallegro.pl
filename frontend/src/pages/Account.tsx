@@ -195,8 +195,8 @@ export default function Account() {
               className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-sm text-gray-700">
-              <strong className="font-medium">Wskazówki i przypomnienia</strong>
-              <span className="block text-gray-500">Np. o niewykorzystanych darmowych kredytach i stylach sezonowych przed świętami. Najwyżej kilka wiadomości w roku.</span>
+              <strong className="font-medium">Wskazówki, przypomnienia i zniżki</strong>
+              <span className="block text-gray-500">Np. zniżki na kredyty, niewykorzystane darmowe kredyty i style sezonowe przed świętami. Najwyżej kilka wiadomości w roku.</span>
             </span>
           </label>
           <label className="flex items-start gap-3 cursor-pointer">

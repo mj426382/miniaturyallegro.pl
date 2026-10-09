@@ -64,7 +64,7 @@ Sprzedawca zdecydował się na długoterminowe stosowanie stylu **dark luxury**,
 
 ## Jak zacząć?
 
-Dostosowanie kolorów miniaturek nie musi być skomplikowane ani kosztowne. Narzędzie takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) pozwala na szybkie tworzenie wielu wersji miniaturek o różnych stylach i kolorach. Zarejestruj się, wypróbuj pierwsze 10 grafik za darmo i sprawdź, jak optymalne kolory mogą zwiększyć Twoją sprzedaż na Allegro.
+Dostosowanie kolorów miniaturek nie musi być skomplikowane ani kosztowne. Narzędzie takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) pozwala na szybkie tworzenie wielu wersji miniaturek o różnych stylach i kolorach. Zarejestruj się, wypróbuj pierwsze 5 grafik za darmo i sprawdź, jak optymalne kolory mogą zwiększyć Twoją sprzedaż na Allegro.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,

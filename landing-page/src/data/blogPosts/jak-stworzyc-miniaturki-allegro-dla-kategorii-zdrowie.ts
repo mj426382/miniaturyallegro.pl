@@ -46,7 +46,7 @@ Dzięki [AllGrafika.pl](https://app.allgrafika.pl/register) możesz w prosty spo
 - Wgraj zdjęcie produktu w formacie JPG, PNG lub WebP.
 - Wybierz preferowany styl, na przykład białe tło lub minimalistyczny.
 - Otrzymaj 12 profesjonalnych wariantów miniaturki w mniej niż minutę.
-- Skorzystaj z pierwszych 10 darmowych generacji, aby przetestować różne opcje.
+- Skorzystaj z pierwszych 5 darmowych generacji, aby przetestować różne opcje.
 
 ## Optymalizacja miniaturek dla wyników wyszukiwania Allegro
 

@@ -77,7 +77,7 @@ SYSTEM_PROMPT = (
     "- Pozwala kadrować, obracać i poprawiać grafiki w formatach Allegro (1:1, 4:3, 16:9, 3:4) i dodać plakietkę promocyjną\n"
     "- Pisze opis oferty pod SEO Allegro (tytuł do 75 znaków, opis, frazy) – pierwszy opis gratis do każdego zdjęcia z gotową grafiką\n"
     "- Przechowuje wygenerowane grafiki bezpiecznie w chmurze\n"
-    "- Kosztuje 1,75-2 zł za grafikę (1 kredyt = 1 grafika), pierwsze 10 grafik jest bezpłatnych\n"
+    "- Kosztuje 1,75-2 zł za grafikę (1 kredyt = 1 grafika), pierwsze 5 grafik jest bezpłatnych\n"
     "- Oszczędza czas i pieniądze vs. tradycyjna sesja fotograficzna (kilkaset zł za produkt)\n\n"
     "DOSTĘPNE STYLE MINIATUREK (wplataj naturalnie — max 2-3 wzmianki na artykuł; NIE wymyślaj innych):\n"
     "- Białe tło — zgodne z wymaganiami zdjęcia głównego Allegro (zestaw startowy)\n"

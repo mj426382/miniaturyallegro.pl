@@ -70,6 +70,20 @@ class AdminEmailDto {
   message: string;
 }
 
+class GrantCreditsDto {
+  @Type(() => Number)
+  @IsInt({ message: 'Liczba kredytów musi być całkowita' })
+  @Min(1, { message: 'Dodaj co najmniej 1 kredyt' })
+  @Max(100, { message: 'Jednorazowo można dodać maksymalnie 100 kredytów' })
+  amount: number;
+
+  @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @MinLength(3, { message: 'Podaj powód (min. 3 znaki)' })
+  @MaxLength(200, { message: 'Powód może mieć maksymalnie 200 znaków' })
+  reason: string;
+}
+
 @ApiTags('admin')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -110,6 +124,13 @@ export class AdminController {
   @ApiOperation({ summary: 'Send an individual message to the user (Reply-To: the admin)' })
   sendEmail(@CurrentUser() admin: SessionUser, @Param('id') id: string, @Body() dto: AdminEmailDto) {
     return this.users.sendEmail(admin.email, id, dto.subject, dto.message);
+  }
+
+  @Post('users/:id/credits')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Add credits to an account (gift or support) – recorded in credit_grants' })
+  grantCredits(@CurrentUser() admin: SessionUser, @Param('id') id: string, @Body() dto: GrantCreditsDto) {
+    return this.users.grantCredits(admin.email, id, dto.amount, dto.reason);
   }
 
   @Get('overview')

@@ -11,6 +11,8 @@ interface User {
   name?: string
   credits: number
   freeCreditsUsed: number
+  /** Spec 19: this account's free pool (5 for accounts created from 2026-10-09, 10 before). */
+  freeCreditsLimit?: number
   totalGenerations?: number
   /** False for Google-only accounts (no password set). */
   hasPassword?: boolean

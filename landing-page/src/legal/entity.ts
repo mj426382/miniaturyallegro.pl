@@ -16,12 +16,18 @@ export const LEGAL_ENTITY = {
 
 export const LEGAL_DATES = {
   /** Data wejścia w życie bieżącej wersji dokumentów */
-  effective: '5 października 2026 r.',
-  effectiveIso: '2026-10-05',
+  effective: '9 października 2026 r.',
+  effectiveIso: '2026-10-09',
 }
 
 export const PRICING = {
-  freeCredits: 10,
+  freeCredits: 5,
+  /** Spec 19: accounts created before the change keep the pool they were promised. */
+  freeCreditsLegacy: 10,
+  freeCreditsLegacyBefore: '9 października 2026 r.',
+  /** Spec 19: first-purchase welcome pack. */
+  welcomePackCredits: 5,
+  welcomePackPrice: '5 zł',
   starterStyles: 3,
   allStyles: 19,
   descriptionPromptEdits: 5,
