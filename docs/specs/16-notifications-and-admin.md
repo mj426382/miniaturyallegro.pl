@@ -52,7 +52,7 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
   jest logowane z adresem administratora (rozliczalność, RODO art. 5 ust. 2). Podstawa przetwarzania:
   prawnie uzasadniony interes – obsługa zgłoszeń, kontrola jakości, przeciwdziałanie nadużyciom.
 - **Wiadomość do użytkownika** – indywidualna wiadomość od właściciela (temat 3–150, treść 10–5000 znaków),
-  wysyłana z `no-reply@allgrafika.pl` z `Reply-To` na adres administratora, zapisana w historii. Panel
+  wysyłana z `no-reply@allgrafika.pl` z `Reply-To: kontakt@allgrafika.pl`, zapisana w historii. Panel
   przypomina, że to nie jest kanał do promocji – te wymagają zgody, którą panel pokazuje.
 - **Administrator bez limitu kredytów** (dodane 2026-10-06):
   - Konto z `ADMIN_EMAILS` generuje grafiki, własne style i przeróbki oraz dokupuje pakiety poprawek
@@ -92,13 +92,14 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - **AC-ADM-002** – Given konto spoza `ADMIN_EMAILS`, When wywołuje endpointy panelu, Then 403; `/users/me` zwraca `isAdmin=true` tylko administratorowi.
 - **AC-ADM-003** – Given konta z grafikami, płatnościami i planem, When lista z wyszukiwaniem i stronicowaniem, Then wiersze mają adres, potwierdzenie, sposób logowania, liczbę zdjęć i gotowych grafik, plan, kredyty, sumę płatności i zgodę, posortowane od najnowszych.
 - **AC-ADM-004** – Given konto, When szczegóły, Then są płatności i historia maili; nieznane id → 404.
-- **AC-ADM-005** – Given administrator, When wysyła wiadomość do użytkownika, Then mail idzie na adres konta z `Reply-To` administratora, treść jest bezpiecznie zakodowana w HTML, wpis trafia do historii; za krótki temat lub treść → 400.
+- **AC-ADM-005** – Given administrator, When wysyła wiadomość do użytkownika, Then mail idzie na adres konta z `Reply-To: kontakt@allgrafika.pl` (nie na prywatny adres administratora), treść jest bezpiecznie zakodowana w HTML, wpis trafia do historii; za krótki temat lub treść → 400.
 - **AC-ADM-007** – Given konto ze zdjęciami i grafikami, When administrator pobiera jego zdjęcia, Then dostaje stronę zdjęć z podpisanymi linkami do oryginału i grafik (status, styl, ocena, powód) od najnowszych, a podgląd jest zapisany w logu z adresem administratora; zwykły użytkownik → 403, nieznane konto → 404.
 - **AC-ADM-008** – Given grafiki wielu kont, When administrator przegląda ostatnie grafiki z filtrem statusu lub oceny, Then lista zawiera tylko pasujące grafiki od najnowszych, każdą z adresem konta, podpisanym linkiem i miniaturą oryginału, ze stronicowaniem; zły filtr → 400.
 - **AC-ADM-009** – Given panel administratora, When administrator otwiera zakładkę zdjęć konta i widok „Grafiki” z filtrem „kciuk w dół”, Then widzi miniatury z linkiem do pełnego rozmiaru, status i powód oceny; z karty grafiki przechodzi do szczegółów konta.
 - **AC-ADM-010** – Given potwierdzone konto z `ADMIN_EMAILS` z zerowym saldem i wykorzystaną darmową pulą, When generuje grafiki (style, własny styl, przeróbka) lub kupuje pakiet poprawek opisu, Then operacja się udaje, a `credits` i `freeCreditsUsed` się nie zmieniają; zwykłe konto w tej samej sytuacji dostaje 402.
 - **AC-ADM-011** – Given konto administratora, When jego grafika kończy się błędem, Then saldo się nie zmienia (brak zwrotu), a limit generacji w toku i wymóg potwierdzenia e-maila obowiązują jak u innych.
 - **AC-ADM-012** – Given administrator w aplikacji, When widzi saldo (menu, generator, masowe przesyłanie, Kredyty), Then widzi „Bez limitu”, a przyciski generowania nie są blokowane brakiem kredytów; `/users/me` zwraca `unlimitedCredits=true` tylko administratorowi.
+- **AC-ADM-013** – Given dowolny mail aplikacji (weryfikacja, reset hasła, demo, przypomnienia, wiadomość administratora), When wysyłka przez SMTP, Then nadawca to `MAIL_FROM`, a `Reply-To` to `MAIL_REPLY_TO` (domyślnie `kontakt@allgrafika.pl`); jawny `replyTo` w wiadomości ma pierwszeństwo.
 - **AC-ADM-006** – Given administrator w aplikacji, When otwiera „Admin”, szuka konta, otwiera szczegóły i wysyła wiadomość, Then widzi dane konta i potwierdzenie wysyłki; zwykły użytkownik nie widzi pozycji „Admin”.
 
 ## 7. API
@@ -120,7 +121,9 @@ powiadomienia o paczkach włączone.
 
 ## 9. Wymagania niefunkcjonalne
 
-- Maile z `no-reply@allgrafika.pl` (SPF, DKIM, DMARC – 13). Błąd SMTP nie zapisuje wpisu w `email_log`
+- Maile z `no-reply@allgrafika.pl` (SPF, DKIM, DMARC – 13), każdy z `Reply-To: kontakt@allgrafika.pl`
+  (zmienna `MAIL_REPLY_TO`; dodane 2026-10-09) – odpowiedź użytkownika nigdy nie trafia w próżnię ani na
+  prywatny adres administratora. Błąd SMTP nie zapisuje wpisu w `email_log`
   (następny przebieg ponowi), zadanie nie przerywa się na jednym błędzie.
 - Panel nie pokazuje haseł ani tokenów; dane osobowe tylko dla administratora (RODO art. 32).
 

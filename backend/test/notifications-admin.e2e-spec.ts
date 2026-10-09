@@ -422,7 +422,9 @@ describe('Notifications & admin panel (integration)', () => {
 
       expect(ctx.mail.sent).toHaveLength(1);
       const mail = ctx.mail.sent[0];
-      expect(mail).toMatchObject({ to: user.email, subject: 'Pytanie o grafiki', replyTo: admin.email });
+      expect(mail).toMatchObject({ to: user.email, subject: 'Pytanie o grafiki' });
+      // Replies go to kontakt@ (MailService default, AC-ADM-013), never to the admin's own address.
+      expect(mail.replyTo).toBeUndefined();
       expect(mail.html).toContain('Cześć Ania,');
       expect(mail.html).toContain('&lt;b&gt;grafiki&lt;/b&gt;');
       expect(mail.html).not.toContain('<b>grafiki</b>');

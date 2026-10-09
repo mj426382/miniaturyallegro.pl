@@ -121,7 +121,7 @@ export class AdminController {
 
   @Post('users/:id/email')
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @ApiOperation({ summary: 'Send an individual message to the user (Reply-To: the admin)' })
+  @ApiOperation({ summary: 'Send an individual message to the user (Reply-To: kontakt@allgrafika.pl)' })
   sendEmail(@CurrentUser() admin: SessionUser, @Param('id') id: string, @Body() dto: AdminEmailDto) {
     return this.users.sendEmail(admin.email, id, dto.subject, dto.message);
   }

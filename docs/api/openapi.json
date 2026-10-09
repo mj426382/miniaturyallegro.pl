@@ -1488,7 +1488,7 @@
             "bearer": []
           }
         ],
-        "summary": "Send an individual message to the user (Reply-To: the admin)",
+        "summary": "Send an individual message to the user (Reply-To: kontakt@allgrafika.pl)",
         "tags": [
           "admin"
         ]

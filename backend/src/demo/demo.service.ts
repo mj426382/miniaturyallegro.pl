@@ -17,6 +17,7 @@ import { getStyle } from '../generation/styles';
 import { MailService } from '../mail/mail.service';
 import { prepareForAi } from '../images/image-prep';
 import { sha256 } from '../common/crypto';
+import { freeCreditsForNewAccounts } from '../generation/credits.service';
 
 /** Hard caps – the demo is a lead magnet, not a free tier. */
 const MAX_PER_IP_PER_DAY = 2;
@@ -33,6 +34,8 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
   private readonly ipSalt: string;
   private readonly landingUrl: string;
   private readonly frontendUrl: string;
+  /** Free graphics a new account gets – the demo e-mail promises exactly this many. */
+  private readonly freeCredits: number;
   private readonly enabled: boolean;
 
   constructor(
@@ -45,6 +48,7 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
     this.ipSalt = config.get<string>('JWT_SECRET') || 'demo-salt';
     this.landingUrl = (config.get<string>('LANDING_URL') || 'https://allgrafika.pl').replace(/\/$/, '');
     this.frontendUrl = (config.get<string>('FRONTEND_URL') || 'http://localhost:5173').replace(/\/$/, '');
+    this.freeCredits = freeCreditsForNewAccounts(config.get<string>('FREE_CREDITS_LIMIT'));
     this.enabled = (config.get<string>('DEMO_ENABLED') ?? 'true') !== 'false';
   }
 
@@ -170,10 +174,13 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
       // The result is already stored and visible on the page – an e-mail failure must not undo that.
       // Transactional by default; the promotional line is added only with explicit marketing consent (art. 10 UŚUDE).
       const promo = request.marketingOk
-        ? [`Załóż darmowe konto, aby wygenerować 10 kolejnych grafik bez karty: ${this.frontendUrl}/register`, '']
+        ? [
+            `Załóż darmowe konto, aby wygenerować ${this.freeCredits} kolejnych grafik bez karty: ${this.frontendUrl}/register`,
+            '',
+          ]
         : [];
       const promoHtml = request.marketingOk
-        ? `<p><a href="${this.frontendUrl}/register">Załóż darmowe konto</a>, aby wygenerować 10 kolejnych grafik bez karty.</p>`
+        ? `<p><a href="${this.frontendUrl}/register">Załóż darmowe konto</a>, aby wygenerować ${this.freeCredits} kolejnych grafik bez karty.</p>`
         : '';
       await this.mail
         .send({

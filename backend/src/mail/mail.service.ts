@@ -23,6 +23,7 @@ export class MailService {
   private readonly logger = new Logger(MailService.name);
   private transporter: nodemailer.Transporter | null = null;
   private readonly from: string;
+  private readonly replyTo: string;
 
   constructor(private configService: ConfigService) {
     const host = configService.get<string>('SMTP_HOST');
@@ -30,6 +31,8 @@ export class MailService {
     const user = configService.get<string>('SMTP_USER');
     const pass = configService.get<string>('SMTP_PASS');
     this.from = configService.get<string>('MAIL_FROM') || 'AllGrafika <no-reply@allgrafika.pl>';
+    // Spec 16, AC-ADM-013: replies to no-reply@ land in the shared support mailbox.
+    this.replyTo = configService.get<string>('MAIL_REPLY_TO') || 'kontakt@allgrafika.pl';
 
     if (host) {
       this.transporter = nodemailer.createTransport({
@@ -58,6 +61,6 @@ export class MailService {
       }
       return;
     }
-    await this.transporter.sendMail({ from: this.from, ...message });
+    await this.transporter.sendMail({ from: this.from, replyTo: this.replyTo, ...message });
   }
 }

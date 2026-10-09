@@ -126,7 +126,7 @@ export class AdminUsersService {
     return { credits: user.credits, grant };
   }
 
-  /** Individual message from the operator; replies go straight to the operator's mailbox. */
+  /** Individual message from the operator; replies go to the shared support mailbox (MailService Reply-To). */
   async sendEmail(adminEmail: string, userId: string, subject: string, message: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -144,7 +144,7 @@ export class AdminUsersService {
       footer: ['Odpowiedz na tę wiadomość – trafi bezpośrednio do zespołu AllGrafika.'],
     });
     try {
-      await this.mail.send({ to: user.email, subject, text: content.text, html: content.html, replyTo: adminEmail });
+      await this.mail.send({ to: user.email, subject, text: content.text, html: content.html });
     } catch (err: any) {
       this.logger.error(`Admin message to user ${userId} failed: ${err?.message}`);
       throw new HttpException(
