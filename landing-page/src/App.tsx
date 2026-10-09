@@ -6,6 +6,8 @@ import BlogPostPage from './pages/BlogPost'
 import Regulamin from './pages/Regulamin'
 import PolitykaPrywatnosci from './pages/PolitykaPrywatnosci'
 import NotFound from './pages/NotFound'
+import SeoLanding from './pages/SeoLanding'
+import { seoPages } from './data/seoPages'
 
 /** Route table shared by the browser app and the prerender (SSG) script. */
 export function AppRoutes() {
@@ -16,6 +18,9 @@ export function AppRoutes() {
       <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route path="/regulamin" element={<Regulamin />} />
       <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
+      {seoPages.map((p) => (
+        <Route key={p.path} path={p.path} element={<SeoLanding page={p} />} />
+      ))}
       <Route path="*" element={<NotFound />} />
     </Routes>
   )

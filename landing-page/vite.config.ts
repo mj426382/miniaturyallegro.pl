@@ -37,6 +37,7 @@ function getBlogPosts(): PostMeta[] {
 
 function buildSitemapXml(): string {
   const posts = getBlogPosts()
+  const seoSource = fs.readFileSync(path.resolve(__dirname, 'src/data/seoPages.ts'), 'utf-8')
   const mostRecent =
     posts
       .map((p) => p.lastmod)
@@ -46,6 +47,13 @@ function buildSitemapXml(): string {
   const staticPages = [
     { loc: BASE_URL, lastmod: new Date().toISOString().split('T')[0], priority: '1.0', changefreq: 'weekly' },
     { loc: `${BASE_URL}/blog`, lastmod: mostRecent, priority: '0.9', changefreq: 'weekly' },
+    // SEO landing pages (spec 10, AC-SEO-007) – one `path:` line per page in src/data/seoPages.ts
+    ...[...seoSource.matchAll(/^\s*path: '(\/[a-z0-9-]+)',$/gm)].map((m) => ({
+      loc: `${BASE_URL}${m[1]}`,
+      lastmod: seoSource.match(/SEO_PAGES_UPDATED = '([\d-]+)'/)?.[1] ?? mostRecent,
+      priority: '0.9',
+      changefreq: 'monthly',
+    })),
   ]
 
   const allUrls = [

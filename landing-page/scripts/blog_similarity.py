@@ -92,3 +92,19 @@ def keyword_taken(keyword: str, corpus: list):
         if len(k & title) / len(k) >= KEYWORD_LIMIT:
             return old
     return None
+
+
+def reserved_by(keyword: str, reserved: list):
+    """The landing-page phrase that owns this keyword (spec 10, AC-SEO-008), or None.
+
+    Both directions must overlap: a shared generic stem ("zdjęcia", "produkt") alone does not take a guide topic away
+    from the blog, only a phrase that is essentially the same query does.
+    """
+    k = set(stems(keyword))
+    if len(k) < 2:
+        return None
+    for item in reserved:
+        r = set(stems(item["title"]))
+        if r and len(k & r) / len(k) >= KEYWORD_LIMIT and len(k & r) / len(r) >= KEYWORD_LIMIT:
+            return item
+    return None

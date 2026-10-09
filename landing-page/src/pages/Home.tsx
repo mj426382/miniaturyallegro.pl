@@ -13,9 +13,9 @@ const SITE_URL = 'https://allgrafika.pl'
 const APP_URL = 'https://app.allgrafika.pl'
 const OG_IMAGE = `${SITE_URL}/og-image.png`
 
-const PAGE_TITLE = 'Miniaturki Allegro z AI – lepsze zdjęcia ofert w kilka minut | AllGrafika.pl'
-const PAGE_DESCRIPTION =
-  'Oferta nie klika, bo konkurent ma ładniejsze zdjęcia? Prześlij zdjęcie z telefonu, a AI zrobi z niego profesjonalną miniaturkę Allegro. Produkt zostaje wierny oryginałowi. Wypróbuj bez konta, pierwsze 5 grafik za darmo.'
+// Spec 10, AC-SEO-008: the title carries the head terms (grafiki, miniatury, zdjęcia Allegro) within 60 characters.
+const PAGE_TITLE = 'Grafiki, miniatury i zdjęcia Allegro z AI | AllGrafika.pl'
+const PAGE_DESCRIPTION = 'Zamień zdjęcie z telefonu na grafikę Allegro: AI robi miniatury i zdjęcia ofert na białym tle lub w aranżacji, a produkt zostaje wierny. 5 grafik za darmo.'
 
 const pains = [
   {
@@ -200,12 +200,12 @@ export default function Home() {
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center">
             <span className="inline-block bg-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-6">Dla sprzedawców Allegro, którzy nie mają czasu i budżetu na sesje zdjęciowe</span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
-              Twoja oferta nie klika?
+              Grafiki i miniaturki Allegro
               <br />
-              <span className="text-yellow-300">Zacznij od miniaturki.</span>
+              <span className="text-yellow-300">ze zdjęcia z telefonu</span>
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-              Prześlij zwykłe zdjęcie z telefonu, a AI zrobi z niego profesjonalną miniaturkę Allegro w kilka minut. Zmieniamy tylko tło i światło, a kształt, kolory i logo produktu są chronione
+              Twoja oferta nie klika? Zamień zwykłe zdjęcie z telefonu na profesjonalną grafikę Allegro w kilka minut. Zmieniamy tylko tło i światło, a kształt, kolory i logo produktu są chronione
               regułami integralności. Bez fotografa, bez grafika, bez czekania.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

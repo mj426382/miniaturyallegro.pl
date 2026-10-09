@@ -68,7 +68,10 @@ async function main() {
     .map((f) => extractField(readFileSync(resolve(blogDir, f), 'utf-8'), 'slug'))
     .filter(Boolean)
 
-  const routes = ['/', '/blog', '/regulamin', '/polityka-prywatnosci', ...slugs.map((s) => `/blog/${s}`)]
+  const seoPaths = [...readFileSync(resolve(__dirname, '../src/data/seoPages.ts'), 'utf-8').matchAll(/^\s*path: '(\/[a-z0-9-]+)',$/gm)].map((m) => m[1])
+  if (seoPaths.length === 0) throw new Error('No SEO landing pages found in src/data/seoPages.ts')
+
+  const routes = ['/', '/blog', '/regulamin', '/polityka-prywatnosci', ...seoPaths, ...slugs.map((s) => `/blog/${s}`)]
   console.log(`\n🔄 Prerendering ${routes.length} routes…`)
 
   for (const route of routes) {

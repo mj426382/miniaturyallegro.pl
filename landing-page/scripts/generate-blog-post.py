@@ -171,10 +171,20 @@ USER_PROMPT = (
 
 # ── Duplicate detection (spec 10, AC-SEO-006) ───────────────────────
 sys.path.insert(0, str(LANDING / "scripts"))
-from blog_similarity import duplicate_reason, keyword_taken  # noqa: E402
+from blog_similarity import duplicate_reason, keyword_taken, reserved_by  # noqa: E402
 from check_blog_duplicates import load_posts  # noqa: E402
 
 corpus = load_posts()
+
+# Keyword landing pages (spec 10, AC-SEO-007/008): their phrases belong to them, the blog links to them instead.
+SEO_PAGES_SRC = (LANDING / "src/data/seoPages.ts").read_text(encoding="utf-8")
+LANDING_PAGES = [
+    {"path": m.group(1), "h1": m.group(2), "keywords": re.findall(r"'([^']+)'", m.group(3))}
+    for m in re.finditer(r"path: '(/[a-z0-9-]+)',.*?h1: '([^']+)',.*?keywords: \[([^\]]*)\]", SEO_PAGES_SRC, re.S)
+]
+assert LANDING_PAGES, "no landing pages parsed from src/data/seoPages.ts"
+RESERVED = [{"slug": p["path"].strip("/"), "title": kw, "path": p["path"]} for p in LANDING_PAGES for kw in p["keywords"]]
+LANDING_LINKS = "".join(f"   - [{p['h1']}](https://allgrafika.pl{p['path']}) – {', '.join(p['keywords'][:2])}\n" for p in LANDING_PAGES)
 
 # ── Keyword plan (the blog has to bring search traffic) ────────────
 KEYWORDS_FILE = LANDING / "scripts/blog-keywords.json"
@@ -185,6 +195,12 @@ plan = json.loads(KEYWORDS_FILE.read_text(encoding="utf-8")) if KEYWORDS_FILE.ex
 target = None
 for k in plan:
     if k["keyword"] in used_set:
+        continue
+    reserved = reserved_by(k["keyword"], RESERVED)
+    if reserved:
+        print(f"Keyword reserved for the landing page {reserved['path']} – skipping: {k['keyword']}")
+        if not DRY_RUN:
+            used_keywords.append({"keyword": k["keyword"], "slug": reserved["slug"], "date": date_iso, "covered": True})
         continue
     covered = keyword_taken(k["keyword"], corpus)
     if covered:
@@ -213,6 +229,10 @@ SEO_RULES = (
     "- Sekcja '## Najczęstsze pytania' z 3 pytaniami jako '### Pytanie?' i krótką odpowiedzią "
     "(pytania to inne zapytania długiego ogona związane z frazą).\n"
     "- Jedna sekcja z listą kontrolną (checklistą) do zastosowania od razu.\n"
+    "- Jeśli temat dotyczy zdjęć z AI, białego tła albo przygotowania zdjęć produktu, dodaj w treści dokładnie 1 "
+    "naturalny link do pasującej strony narzędzia (opisowy tekst linku, nie 'kliknij tutaj'):\n"
+    + LANDING_LINKS
+    + "- Nie pisz artykułu, którego fraza główna to zapytanie obsługiwane przez stronę narzędzia z listy powyżej.\n"
 )
 
 ALLOWED_CATEGORIES = {"Poradniki", "Technologia", "Styl i design", "E-commerce", "Optymalizacja"}
@@ -541,6 +561,10 @@ sitemap_entries = [
     sitemap_url("https://allgrafika.pl/", most_recent, "weekly", "1.0"),
     sitemap_url("https://allgrafika.pl/blog", most_recent, "weekly", "0.9"),
 ]
+# Same entries as scripts/generate-sitemap.js, which the build runs again before the commit.
+SEO_PAGES_UPDATED = re.search(r"SEO_PAGES_UPDATED = '([\d-]+)'", SEO_PAGES_SRC).group(1)
+for p in LANDING_PAGES:
+    sitemap_entries.append(sitemap_url(f"https://allgrafika.pl{p['path']}", SEO_PAGES_UPDATED, "monthly", "0.9"))
 for p in sorted(all_posts_meta, key=lambda x: x["lastmod"], reverse=True):
     sitemap_entries.append(sitemap_url(f"https://allgrafika.pl/blog/{p['slug']}", p["lastmod"], "monthly", "0.7"))
 sitemap_xml = (

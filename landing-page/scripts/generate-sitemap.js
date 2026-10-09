@@ -48,9 +48,18 @@ const mostRecentPostDate =
 
 // ── Static pages ──────────────────────────────────────────────────────────────
 
+const seoSource = readFileSync(resolve(__dirname, '../src/data/seoPages.ts'), 'utf-8')
+
 const staticPages = [
   { path: '/', lastmod: new Date().toISOString().split('T')[0], priority: '1.0', changefreq: 'weekly' },
   { path: '/blog', lastmod: mostRecentPostDate, priority: '0.9', changefreq: 'weekly' },
+  // SEO landing pages (spec 10, AC-SEO-007) – one `path:` line per page in src/data/seoPages.ts
+  ...[...seoSource.matchAll(/^\s*path: '(\/[a-z0-9-]+)',$/gm)].map((m) => ({
+    path: m[1],
+    lastmod: seoSource.match(/SEO_PAGES_UPDATED = '([\d-]+)'/)[1],
+    priority: '0.9',
+    changefreq: 'monthly',
+  })),
 ]
 
 // ── Build ─────────────────────────────────────────────────────────────────────

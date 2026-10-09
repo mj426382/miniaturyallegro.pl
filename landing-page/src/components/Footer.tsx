@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { LEGAL_ENTITY } from '../legal/entity'
+import { seoPages } from '../data/seoPages'
 
 const CONTACT_EMAIL = 'kontakt@allgrafika.pl'
 
@@ -35,6 +36,13 @@ export default function Footer() {
                   FAQ
                 </Link>
               </li>
+              {seoPages.map((p) => (
+                <li key={p.path}>
+                  <Link to={p.path} className="hover:text-white transition-colors">
+                    {p.h1}
+                  </Link>
+                </li>
+              ))}
               <li>
                 <Link to="/blog" className="hover:text-white transition-colors">
                   Blog
