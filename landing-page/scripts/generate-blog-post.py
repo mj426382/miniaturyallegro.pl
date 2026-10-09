@@ -174,56 +174,71 @@ if DRY_RUN:
 else:
     import requests  # only needed online
 
-    token = os.environ.get("MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    if not token:
-        print("ERROR: MODELS_TOKEN / GITHUB_TOKEN not set")
-        sys.exit(1)
     import time
 
-    # GitHub Models sometimes answers 200 with an empty or non-JSON body (seen 2026-10-06..08).
-    # Retry with a pause, then fall back to a second model; log enough to diagnose the next failure.
-    MODELS = ["openai/gpt-4o", "openai/gpt-4.1"]
+    def ask(url, headers, model, json_format):
+        """One chat completion; returns the message text or None (and logs why)."""
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": USER_PROMPT},
+            ],
+            "max_tokens": 3500,
+            "temperature": 0.85,
+            "stream": False,
+        }
+        if json_format:
+            payload["response_format"] = {"type": "json_object"}
+        try:
+            resp = requests.post(url, headers={**headers, "Content-Type": "application/json"}, json=payload, timeout=180)
+        except requests.RequestException as e:
+            print(f"{model}: request failed ({type(e).__name__})")
+            return None
+        ctype = resp.headers.get("content-type", "?")
+        print(f"{model} (json_format={json_format}): HTTP {resp.status_code}, {ctype}, {len(resp.content)} bytes")
+        if resp.status_code != 200:
+            print(resp.text[:300])
+            return None
+        try:
+            return resp.json()["choices"][0]["message"]["content"].strip() or None
+        except (ValueError, KeyError, IndexError, TypeError, AttributeError) as e:
+            print(f"Unusable response ({type(e).__name__}): {resp.text[:200]!r}")
+            return None
+
+    # Providers in order. GitHub Models answered a bare "OK" (text/plain) on 2026-10-09 without the
+    # current API headers; OpenAI directly is used only when the OPENAI_API_KEY secret exists.
+    attempts = []
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key:
+        attempts.append(("https://api.openai.com/v1/chat/completions", {"Authorization": f"Bearer {openai_key}"}, "gpt-4.1", True))
+    token = os.environ.get("MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        gh_headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        for model in ("openai/gpt-4.1", "openai/gpt-4o"):
+            attempts.append(("https://models.github.ai/inference/chat/completions", gh_headers, model, True))
+            attempts.append(("https://models.github.ai/inference/chat/completions", gh_headers, model, False))
+    if not attempts:
+        print("ERROR: neither OPENAI_API_KEY nor MODELS_TOKEN / GITHUB_TOKEN is set")
+        sys.exit(1)
+
     raw = None
-    for model in MODELS:
-        for attempt in range(1, 4):
-            try:
-                resp = requests.post(
-                    "https://models.github.ai/inference/chat/completions",
-                    headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json"},
-                    json={
-                        "model": model,
-                        "messages": [
-                            {"role": "system", "content": SYSTEM_PROMPT},
-                            {"role": "user", "content": USER_PROMPT},
-                        ],
-                        "max_tokens": 3500,
-                        "temperature": 0.85,
-                        "response_format": {"type": "json_object"},
-                        "stream": False,
-                    },
-                    timeout=180,
-                )
-            except requests.RequestException as e:
-                print(f"{model} attempt {attempt}: request failed ({type(e).__name__})")
-                time.sleep(20 * attempt)
-                continue
-            ctype = resp.headers.get("content-type", "?")
-            print(f"{model} attempt {attempt}: API status {resp.status_code}, content-type {ctype}, {len(resp.content)} bytes")
-            if resp.status_code != 200:
-                print(resp.text[:500])
-                time.sleep(20 * attempt)
-                continue
-            try:
-                raw = resp.json()["choices"][0]["message"]["content"].strip()
-                break
-            except (ValueError, KeyError, IndexError, TypeError, AttributeError) as e:
-                print(f"Unusable response ({type(e).__name__}): {resp.text[:300]!r}")
-                time.sleep(20 * attempt)
+    for i, (url, headers, model, json_format) in enumerate(attempts):
+        raw = ask(url, headers, model, json_format)
         if raw:
             break
+        if i < len(attempts) - 1:
+            time.sleep(15)
     if not raw:
-        print("ERROR: no usable answer from GitHub Models after retries")
+        print("ERROR: no usable answer from the AI providers")
         sys.exit(1)
+    # Without response_format the model may wrap the JSON in prose – keep the outermost object.
+    if not raw.lstrip().startswith("{") and "{" in raw and "}" in raw:
+        raw = raw[raw.index("{"): raw.rindex("}") + 1]
     raw = re.sub(r"^```\w*\n?", "", raw)
     raw = re.sub(r"\n?```$", "", raw)
     try:

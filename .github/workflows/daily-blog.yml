@@ -34,6 +34,8 @@ jobs:
         env:
           # GitHub Models accepts the workflow token (permission `models: read`).
           MODELS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: with this secret the bot calls OpenAI directly and uses GitHub Models only as a fallback.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           # A PAT lets the PR trigger CI; without it the PR is still opened but checks will not run.
           GH_TOKEN: ${{ secrets.PAT_TOKEN != '' && secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
           BLOG_DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
