@@ -1,14 +1,22 @@
 name: 📝 Daily blog post (GPT) — AllGrafika.pl
 
+# Fully automatic: the bot writes one SEO article a day (targeting the next keyword from
+# landing-page/scripts/blog-keywords.json), the landing page is built and prerendered as a safety
+# check, and only then the post is pushed to main – Vercel deploys it. No pull request to merge.
+
 on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Nie wołaj API ani nie twórz PR – użyj przykładowego artykułu i tylko sprawdź generator"
+        description: "Bez API i bez publikacji – przykładowy artykuł, tylko sprawdzenie generatora i buildu"
         type: boolean
         default: false
   schedule:
-    - cron: "0 6 * * *"   # codziennie 06:00 UTC
+    - cron: "0 6 * * *" # codziennie 06:00 UTC
+
+concurrency:
+  group: daily-blog
+  cancel-in-progress: false
 
 jobs:
   generate-blog:
@@ -16,31 +24,68 @@ jobs:
 
     permissions:
       contents: write
-      pull-requests: write
       models: read
-
-    # `secrets` is not allowed in a step's `if:` (GitHub rejects the whole workflow) – expose a flag instead.
-    env:
-      HAS_PAT: ${{ secrets.PAT_TOKEN != '' }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: pip install requests -q
 
-      - name: Generate blog post, update registry and create PR
+      - name: Write the article (AI)
+        id: article
         env:
           # GitHub Models accepts the workflow token (permission `models: read`).
           MODELS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Optional: with this secret the bot calls OpenAI directly and uses GitHub Models only as a fallback.
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # A PAT lets the PR trigger CI; without it the PR is still opened but checks will not run.
-          GH_TOKEN: ${{ secrets.PAT_TOKEN != '' && secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
           BLOG_DRY_RUN: ${{ inputs.dry_run == true && '1' || '0' }}
+          BLOG_PUBLISH: direct
         run: python3 landing-page/scripts/generate-blog-post.py
 
-      - name: Warn when the PR cannot trigger CI
-        if: env.HAS_PAT != 'true'
-        run: echo "::warning::PAT_TOKEN secret is not set – the blog PR was opened with GITHUB_TOKEN, so CI will not run on it and auto-merge stays disabled."
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: landing-page/package-lock.json
+
+      - name: Build and prerender the landing page (refuses broken posts and missing redirects)
+        working-directory: landing-page
+        run: |
+          npm ci
+          npm run build
+
+      - name: The new article page was prerendered
+        if: steps.article.outputs.slug != ''
+        working-directory: landing-page
+        run: |
+          test -f "dist/blog/${{ steps.article.outputs.slug }}/index.html"
+          grep -q 'rel="canonical" href="https://allgrafika.pl/blog/${{ steps.article.outputs.slug }}"' "dist/blog/${{ steps.article.outputs.slug }}/index.html"
+
+      - name: Publish to main (Vercel deploys the landing page)
+        if: steps.article.outputs.slug != '' && inputs.dry_run != true
+        env:
+          TITLE: ${{ steps.article.outputs.title }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add landing-page/src/data landing-page/public/sitemap.xml landing-page/scripts/blog-keywords-used.json
+          git commit -m "feat(blog): ${TITLE} ($(date -u +%F))"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 15
+          done
+          echo "::error::Could not push the article to main"
+          exit 1
+
+      - name: Wait until the article is live
+        if: steps.article.outputs.slug != '' && inputs.dry_run != true
+        run: |
+          url="https://allgrafika.pl/blog/${{ steps.article.outputs.slug }}"
+          for i in $(seq 1 40); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$url")
+            if [ "$code" = "200" ]; then echo "Live: $url"; exit 0; fi
+            sleep 15
+          done
+          echo "::warning::$url is not live after 10 minutes – check the Vercel deployment"

@@ -10,6 +10,9 @@ Environment:
   GH_TOKEN      token for `gh` (a PAT so that CI runs on the PR; falls back to GITHUB_TOKEN)
   BLOG_DRY_RUN  "1" = no API call, no git/gh – the article comes from BLOG_FIXTURE (JSON file)
   BLOG_FIXTURE  path to a JSON article used in dry runs (default: scripts/fixtures/blog-post.sample.json)
+  OPENAI_API_KEY  optional – OpenAI is tried first, GitHub Models is the fallback
+  BLOG_OPENAI_URL optional – OpenAI-compatible endpoint (tests point it at a local fake)
+  BLOG_PUBLISH  "direct" = write the files and stop; the workflow builds the site and pushes to main
 """
 import json
 import os
@@ -103,7 +106,7 @@ SYSTEM_PROMPT = (
     "   tylko z podaniem publicznego źródła (nazwa + rok), inaczej ich nie używaj.\n"
     "5. SEO On-Page: główna fraza kluczowa w tytule, excercie i pierwszym H2.\n"
     "   Frazy LSI rozsiane naturalnie w treści. NIE powtarzaj frazy kluczowej mechanicznie.\n"
-    "6. Długość: 600-800 słów treści (pole 'content') — więcej niż dotychczas.\n"
+    "6. Długość: 900-1200 słów treści (pole 'content').\n"
     "7. FORMAT pola 'content' — WYŁĄCZNIE liniowy Markdown bez HTML:\n"
     "   - Nagłówek H2: linia zaczynająca się od '## ' (dwa hashe i spacja)\n"
     "   - Nagłówek H3: linia zaczynająca się od '### ' (trzy hashe i spacja)\n"
@@ -158,123 +161,43 @@ USER_PROMPT = (
     "w DOKŁADNIE tym formacie:\n"
     "{\n"
     '  "slug": "slug-bez-polskich-znakow-zaczyna-sie-od-litery-max-60-znakow",\n'
-    '  "title": "Tytuł SEO 60-70 znaków z główną frazą kluczową",\n'
-    '  "excerpt": "Opis 150-180 znaków z główną frazą SEO. Zachęca do przeczytania artykułu.",\n'
+    '  "title": "Tytuł SEO 40-58 znaków zaczynający się od frazy głównej",\n'
+    '  "excerpt": "Meta description 120-155 znaków z frazą główną, korzyścią i zachętą.",\n'
     '  "category": "jedna z: Poradniki / Technologia / Styl i design / E-commerce / Optymalizacja",\n'
     '  "readTime": 6,\n'
     '  "content": "## Nagłówek sekcji\\n\\nTekst akapitu z **pogrubieniem**.\\n\\n## Kolejna sekcja..."\n'
     "}"
 )
 
-# ── Obtain the article: GitHub Models or a fixture (dry run) ────────
-if DRY_RUN:
-    fixture = Path(os.environ.get("BLOG_FIXTURE") or (LANDING / "scripts/fixtures/blog-post.sample.json"))
-    article = json.loads(fixture.read_text(encoding="utf-8"))
-    print(f"DRY RUN – article from {fixture}")
-else:
-    import requests  # only needed online
+# ── Keyword plan (the blog has to bring search traffic) ────────────
+KEYWORDS_FILE = LANDING / "scripts/blog-keywords.json"
+USED_FILE = LANDING / "scripts/blog-keywords-used.json"
+used_keywords = json.loads(USED_FILE.read_text(encoding="utf-8")) if USED_FILE.exists() else []
+used_set = {u["keyword"] for u in used_keywords}
+plan = json.loads(KEYWORDS_FILE.read_text(encoding="utf-8")) if KEYWORDS_FILE.exists() else []
+target = next((k for k in plan if k["keyword"] not in used_set), None)
+KEYWORD_PROMPT = (
+    (
+        "\n\nFRAZA GŁÓWNA TEGO ARTYKUŁU (realne zapytanie sprzedawców w Google – artykuł ma na nie "
+        f"odpowiadać lepiej niż konkurencja):\n- fraza: \"{target['keyword']}\"\n- kąt: {target['angle']}\n"
+        "Tytuł zaczyna się od tej frazy (odmiana dozwolona), slug to fraza bez polskich znaków.\n"
+    )
+    if target
+    else ""
+)
+SEO_RULES = (
+    "\n\nZASADY POD RUCH Z GOOGLE (obowiązkowe):\n"
+    "- title: 40-58 znaków (do tytułu doklejamy ' | AllGrafika.pl'), fraza główna na początku, konkret "
+    "(liczba, rok 2026 albo korzyść), bez clickbaitu.\n"
+    "- excerpt: 120-155 znaków – to meta description: fraza główna + korzyść + zachęta.\n"
+    "- Pierwsze 2 zdania pod pierwszym H2 odpowiadają wprost na zapytanie (pod featured snippet).\n"
+    "- Długość pola content: 900-1200 słów, konkretne instrukcje zamiast ogólników.\n"
+    "- Sekcja '## Najczęstsze pytania' z 3 pytaniami jako '### Pytanie?' i krótką odpowiedzią "
+    "(pytania to inne zapytania długiego ogona związane z frazą).\n"
+    "- Jedna sekcja z listą kontrolną (checklistą) do zastosowania od razu.\n"
+)
 
-    import time
-
-    def ask(url, headers, model, json_format):
-        """One chat completion; returns the message text or None (and logs why)."""
-        payload = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": USER_PROMPT},
-            ],
-            "max_tokens": 3500,
-            "temperature": 0.85,
-            "stream": False,
-        }
-        if json_format:
-            payload["response_format"] = {"type": "json_object"}
-        try:
-            resp = requests.post(url, headers={**headers, "Content-Type": "application/json"}, json=payload, timeout=180)
-        except requests.RequestException as e:
-            print(f"{model}: request failed ({type(e).__name__})")
-            return None
-        ctype = resp.headers.get("content-type", "?")
-        print(f"{model} (json_format={json_format}): HTTP {resp.status_code}, {ctype}, {len(resp.content)} bytes")
-        if resp.status_code != 200:
-            print(resp.text[:300])
-            return None
-        try:
-            return resp.json()["choices"][0]["message"]["content"].strip() or None
-        except (ValueError, KeyError, IndexError, TypeError, AttributeError) as e:
-            print(f"Unusable response ({type(e).__name__}): {resp.text[:200]!r}")
-            return None
-
-    # Providers in order. GitHub Models answered a bare "OK" (text/plain) on 2026-10-09 without the
-    # current API headers; OpenAI directly is used only when the OPENAI_API_KEY secret exists.
-    attempts = []
-    openai_key = os.environ.get("OPENAI_API_KEY")
-    if openai_key:
-        attempts.append(("https://api.openai.com/v1/chat/completions", {"Authorization": f"Bearer {openai_key}"}, "gpt-4.1", True))
-    token = os.environ.get("MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    if token:
-        gh_headers = {
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        }
-        for model in ("openai/gpt-4.1", "openai/gpt-4o"):
-            attempts.append(("https://models.github.ai/inference/chat/completions", gh_headers, model, True))
-            attempts.append(("https://models.github.ai/inference/chat/completions", gh_headers, model, False))
-    if not attempts:
-        print("ERROR: neither OPENAI_API_KEY nor MODELS_TOKEN / GITHUB_TOKEN is set")
-        sys.exit(1)
-
-    raw = None
-    for i, (url, headers, model, json_format) in enumerate(attempts):
-        raw = ask(url, headers, model, json_format)
-        if raw:
-            break
-        if i < len(attempts) - 1:
-            time.sleep(15)
-    if not raw:
-        print("ERROR: no usable answer from the AI providers")
-        sys.exit(1)
-    # Without response_format the model may wrap the JSON in prose – keep the outermost object.
-    if not raw.lstrip().startswith("{") and "{" in raw and "}" in raw:
-        raw = raw[raw.index("{"): raw.rindex("}") + 1]
-    raw = re.sub(r"^```\w*\n?", "", raw)
-    raw = re.sub(r"\n?```$", "", raw)
-    try:
-        article = json.loads(raw.strip())
-    except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}\nRaw: {raw[:500]}")
-        sys.exit(1)
-
-slug = article["slug"]
-
-# ── Validation of model-controlled fields ──────────────────────────
 ALLOWED_CATEGORIES = {"Poradniki", "Technologia", "Styl i design", "E-commerce", "Optymalizacja"}
-if not re.fullmatch(r"[a-z][a-z0-9-]{2,59}", slug):
-    print(f"❌ Invalid slug from model: {slug!r}")
-    sys.exit(1)
-if article.get("category") not in ALLOWED_CATEGORIES:
-    print(f"❌ Invalid category from model: {article.get('category')!r}")
-    sys.exit(1)
-for field_name in ("title", "excerpt", "content"):
-    if not str(article.get(field_name, "")).strip():
-        print(f"❌ Missing field from model: {field_name}")
-        sys.exit(1)
-body = article.get("content", "")
-# Fabricated "sales grew by 40%" claims are an unfair commercial practice – refuse them unless sourced.
-if re.search(r"(wzros|zwiększ|spad|popraw)\w*[^.\n]{0,40}\bo\s+\d{1,3}\s?%", body, flags=re.I) and "źródło" not in body.lower():
-    print("❌ Article contains an unsourced percentage claim – rejected.")
-    sys.exit(1)
-if re.search(r"<\s*/?\s*[a-z]+[^>]*>", body):
-    print("❌ Article content contains HTML – rejected (Markdown only).")
-    sys.exit(1)
-
-# ── Duplicate guards ────────────────────────────────────────────────
-if (articles_dir / f"{slug}.ts").exists():
-    print(f"⚠️  Post '{slug}' already exists — skipping to avoid duplicate.")
-    sys.exit(0)
-
 STOPWORDS = {"jak", "na", "i", "w", "z", "do", "dla", "o", "a", "sie", "się", "czy", "co",
              "allegro", "miniaturki", "miniaturke", "miniaturka", "miniaturek", "grafiki", "grafik"}
 
@@ -284,25 +207,170 @@ def tokens(text):
     return {t for t in text.split() if len(t) > 2 and t not in STOPWORDS}
 
 
-new_tokens = tokens(slug.replace("-", " ") + " " + article["title"])
 retired_path = LANDING / "src/data/retired-slugs.json"
 retired_entries = []
 if retired_path.exists():
     retired_entries = [{"slug": r, "title": r.replace("-", " ")} for r in json.loads(retired_path.read_text(encoding="utf-8"))]
-for e in existing + retired_entries:
-    old_tokens = tokens(e["slug"].replace("-", " ") + " " + e["title"])
-    if not new_tokens or not old_tokens:
-        continue
-    jaccard = len(new_tokens & old_tokens) / len(new_tokens | old_tokens)
-    if jaccard >= 0.5:
-        print(f"⚠️  Topic too similar to existing post '{e['slug']}' (similarity {jaccard:.2f}) — skipping.")
-        sys.exit(0)
-
 vercel_cfg = json.loads((LANDING / "vercel.json").read_text(encoding="utf-8"))
 redirected = {r["source"].removeprefix("/blog/") for r in vercel_cfg.get("redirects", [])}
-if slug in redirected:
-    print(f"⚠️  Slug '{slug}' is a permanent redirect of a consolidated post — skipping.")
-    sys.exit(0)
+
+
+def article_problem(article):
+    """None when the article can be published, otherwise the reason (fed back to the model)."""
+    slug = str(article.get("slug", ""))
+    if not re.fullmatch(r"[a-z][a-z0-9-]{2,59}", slug):
+        return f"niepoprawny slug {slug!r} (tylko a-z, 0-9, myślniki, max 60 znaków, zaczyna się od litery)"
+    if article.get("category") not in ALLOWED_CATEGORIES:
+        return f"niedozwolona kategoria {article.get('category')!r}"
+    for field_name in ("title", "excerpt", "content"):
+        if not str(article.get(field_name, "")).strip():
+            return f"brak pola {field_name}"
+    body = article.get("content", "")
+    # Fabricated "sales grew by 40%" claims are an unfair commercial practice – refuse them unless sourced.
+    if re.search(r"(wzros|zwiększ|spad|popraw)\w*[^.\n]{0,40}\bo\s+\d{1,3}\s?%", body, flags=re.I) and "źródło" not in body.lower():
+        return "artykuł zawiera procentowy wzrost lub spadek bez źródła – usuń liczby procentowe"
+    if re.search(r"<\s*/?\s*[a-z]+[^>]*>", body):
+        return "treść zawiera HTML – tylko Markdown"
+    if not DRY_RUN:
+        if not 30 <= len(article["title"]) <= 62:
+            return f"tytuł ma {len(article['title'])} znaków – wymagane 40-58"
+        if not 100 <= len(article["excerpt"]) <= 165:
+            return f"excerpt ma {len(article['excerpt'])} znaków – wymagane 120-155"
+        if len(body.split()) < 650:
+            return f"za krótka treść ({len(body.split())} słów) – wymagane 900-1200"
+    if (articles_dir / f"{slug}.ts").exists():
+        return f"DUPLICATE: post '{slug}' already exists"
+    new_tokens = tokens(slug.replace("-", " ") + " " + article["title"])
+    for e in existing + retired_entries:
+        old_tokens = tokens(e["slug"].replace("-", " ") + " " + e["title"])
+        if not new_tokens or not old_tokens:
+            continue
+        jaccard = len(new_tokens & old_tokens) / len(new_tokens | old_tokens)
+        if jaccard >= 0.5:
+            return f"temat zbyt podobny do istniejącego wpisu '{e['slug']}' – wybierz inny kąt"
+    if slug in redirected:
+        return f"slug '{slug}' jest przekierowaniem połączonego wpisu – wybierz inny"
+    return None
+
+
+def parse_article(raw):
+    # Without response_format the model may wrap the JSON in prose or a code fence – keep the outer object.
+    if not raw.lstrip().startswith("{") and "{" in raw and "}" in raw:
+        raw = raw[raw.index("{"): raw.rindex("}") + 1]
+    try:
+        return json.loads(raw.strip())
+    except json.JSONDecodeError as e:
+        print(f"JSON parse error: {e}\nRaw: {raw[:300]}")
+        return None
+
+
+def ask(url, headers, model, json_format, user_prompt):
+    """One chat completion; returns the message text or None (and logs why)."""
+    import requests  # only needed online
+
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT + SEO_RULES},
+            {"role": "user", "content": user_prompt},
+        ],
+        "max_tokens": 4000,
+        "temperature": 0.8,
+        "stream": False,
+    }
+    if json_format:
+        payload["response_format"] = {"type": "json_object"}
+    try:
+        resp = requests.post(url, headers={**headers, "Content-Type": "application/json"}, json=payload, timeout=180)
+    except requests.RequestException as e:
+        print(f"{model}: request failed ({type(e).__name__})")
+        return None
+    ctype = resp.headers.get("content-type", "?")
+    print(f"{model} (json_format={json_format}): HTTP {resp.status_code}, {ctype}, {len(resp.content)} bytes")
+    if resp.status_code != 200:
+        print(resp.text[:300])
+        return None
+    try:
+        return resp.json()["choices"][0]["message"]["content"].strip() or None
+    except (ValueError, KeyError, IndexError, TypeError, AttributeError) as e:
+        print(f"Unusable response ({type(e).__name__}): {resp.text[:200]!r}")
+        return None
+
+
+def providers():
+    # GitHub Models answered a bare "OK" (text/plain) on 2026-10-09 without the current API headers;
+    # OpenAI directly is tried first when the OPENAI_API_KEY secret exists.
+    out = []
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key:
+        openai_url = os.environ.get("BLOG_OPENAI_URL", "https://api.openai.com/v1/chat/completions")
+        out.append((openai_url, {"Authorization": f"Bearer {openai_key}"}, "gpt-4.1", True))
+    token = os.environ.get("MODELS_TOKEN") or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if token:
+        gh_headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+        for model in ("openai/gpt-4.1", "openai/gpt-4o"):
+            out.append(("https://models.github.ai/inference/chat/completions", gh_headers, model, True))
+            out.append(("https://models.github.ai/inference/chat/completions", gh_headers, model, False))
+    return out
+
+
+def generate_online(user_prompt):
+    import time
+
+    attempts = providers()
+    if not attempts:
+        print("ERROR: neither OPENAI_API_KEY nor MODELS_TOKEN / GITHUB_TOKEN is set")
+        sys.exit(1)
+    for i, (url, headers, model, json_format) in enumerate(attempts):
+        raw = ask(url, headers, model, json_format, user_prompt)
+        if raw:
+            article = parse_article(raw)
+            if article:
+                return article
+        if i < len(attempts) - 1:
+            time.sleep(10)
+    return None
+
+
+# ── Obtain the article: AI (up to 3 drafts with feedback) or a fixture (dry run) ──
+if DRY_RUN:
+    fixture = Path(os.environ.get("BLOG_FIXTURE") or (LANDING / "scripts/fixtures/blog-post.sample.json"))
+    print(f"DRY RUN – article from {fixture}")
+    article = json.loads(fixture.read_text(encoding="utf-8"))
+    problem = article_problem(article)
+    if problem:
+        if problem.startswith("DUPLICATE"):
+            print(f"⚠️  Post '{article['slug']}' already exists — skipping to avoid duplicate.")
+            sys.exit(0)
+        print(f"❌ {problem}")
+        sys.exit(1)
+else:
+    if target:
+        print(f"Target keyword: {target['keyword']}")
+    feedback = ""
+    article = None
+    keyword_block = KEYWORD_PROMPT
+    for draft in range(1, 4):
+        candidate = generate_online(USER_PROMPT + keyword_block + feedback)
+        if not candidate:
+            print("ERROR: no usable answer from the AI providers")
+            sys.exit(1)
+        problem = article_problem(candidate)
+        if not problem:
+            article = candidate
+            break
+        print(f"Draft {draft} rejected: {problem}")
+        if keyword_block and ("zbyt podobny" in problem or problem.startswith("DUPLICATE")):
+            # The planned keyword is already covered by an older post – free topic instead; the keyword is
+            # still recorded as used below, so the plan moves on tomorrow.
+            print("Target keyword overlaps an existing post – switching to a free topic")
+            keyword_block = ""
+        feedback = f"\n\nPOPRZEDNIA PROPOZYCJA ZOSTAŁA ODRZUCONA: {problem}. Popraw to w nowej wersji."
+    if not article:
+        print("ERROR: no acceptable article after 3 drafts")
+        sys.exit(1)
+
+slug = article["slug"]
 
 
 # ── Write TS article file ───────────────────────────────────────────
@@ -381,6 +449,20 @@ sitemap_xml = (
 )
 (LANDING / "public/sitemap.xml").write_text(sitemap_xml, encoding="utf-8")
 print(f"✅ sitemap.xml updated ({len(all_posts_meta)} blog posts)")
+
+# ── Keyword bookkeeping & publishing ────────────────────────────────
+if target and not DRY_RUN:
+    used_keywords.append({"keyword": target["keyword"], "slug": slug, "date": date_iso})
+    USED_FILE.write_text(json.dumps(used_keywords, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+if os.environ.get("BLOG_PUBLISH") == "direct" and not DRY_RUN:
+    # The workflow builds the landing page and pushes to main only when the build passes.
+    out = os.environ.get("GITHUB_OUTPUT")
+    if out:
+        with open(out, "a", encoding="utf-8") as fh:
+            fh.write(f"slug={slug}\ntitle={article['title']}\n")
+    print(f"✅ Article written: {slug} – the workflow builds and publishes it")
+    sys.exit(0)
 
 # ── Git & PR ────────────────────────────────────────────────────────
 commit_msg = f"feat(blog): {article['title']} ({date_iso})"
