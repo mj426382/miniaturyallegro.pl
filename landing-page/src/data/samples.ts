@@ -10,11 +10,18 @@ export interface SamplePair {
 
 export const samplePairs: SamplePair[] = [
   {
-    "id": "podstawka-tablet",
-    "before": "/samples/podstawka-tablet-before.webp",
-    "after": "/samples/podstawka-tablet-after.webp",
-    "title": "Podstawka do tabletu – Akcesoria",
+    "id": "bluza-biala",
+    "before": "/samples/bluza-biala-before.webp",
+    "after": "/samples/bluza-biala-after.webp",
+    "title": "Bluza z kapturem – Odzież",
     "style": "Białe tło"
+  },
+  {
+    "id": "bluza-w-parku",
+    "before": "/samples/bluza-w-parku-before.webp",
+    "after": "/samples/bluza-w-parku-after.webp",
+    "title": "Bluza z kapturem – Odzież",
+    "style": "Produkt w użyciu"
   },
   {
     "id": "projektor",

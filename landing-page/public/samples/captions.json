@@ -1,5 +1,6 @@
 {
-  "rolki": { "title": "Rolki – Sport i turystyka", "style": "Białe tło" },
+  "bluza-biala": { "title": "Bluza z kapturem – Odzież", "style": "Białe tło" },
+  "bluza-w-parku": { "title": "Bluza z kapturem – Odzież", "style": "Produkt w użyciu" },
   "projektor": { "title": "Projektor – Elektronika", "style": "Białe tło" },
-  "podstawka-tablet": { "title": "Podstawka do tabletu – Akcesoria", "style": "Białe tło" }
+  "rolki": { "title": "Rolki – Sport i turystyka", "style": "Białe tło" }
 }

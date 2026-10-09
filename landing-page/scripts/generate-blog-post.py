@@ -71,7 +71,7 @@ SYSTEM_PROMPT = (
     "Aplikacja webowa, która:\n"
     "- Przyjmuje zdjęcie produktu (JPG, PNG, WebP) od sprzedawcy\n"
     "- Generuje grafiki w wybranych przez użytkownika stylach: domyślnie zestaw startowy 3 stylów, "
-    "łącznie dostępnych jest 6 stylów automatycznych + własny prompt\n"
+    "łącznie dostępnych jest 19 stylów (uniwersalne, sezonowe i branżowe) + własny prompt\n"
     "- Produkt pozostaje wierny oryginałowi (AI zmienia tylko tło, scenę i oświetlenie)\n"
     "- Umożliwia własny prompt po polsku z opcjonalnym zdjęciem referencyjnym oraz przeróbkę gotowej grafiki\n"
     "- Pozwala kadrować, obracać i poprawiać grafiki w formatach Allegro (1:1, 4:3, 16:9, 3:4) i dodać plakietkę promocyjną\n"
@@ -178,26 +178,52 @@ else:
     if not token:
         print("ERROR: MODELS_TOKEN / GITHUB_TOKEN not set")
         sys.exit(1)
-    resp = requests.post(
-        "https://models.github.ai/inference/chat/completions",
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        json={
-            "model": "openai/gpt-4o",
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": USER_PROMPT},
-            ],
-            "max_tokens": 3500,
-            "temperature": 0.85,
-            "response_format": {"type": "json_object"},
-        },
-        timeout=180,
-    )
-    print(f"API status: {resp.status_code}")
-    if resp.status_code != 200:
-        print(resp.text)
+    import time
+
+    # GitHub Models sometimes answers 200 with an empty or non-JSON body (seen 2026-10-06..08).
+    # Retry with a pause, then fall back to a second model; log enough to diagnose the next failure.
+    MODELS = ["openai/gpt-4o", "openai/gpt-4.1"]
+    raw = None
+    for model in MODELS:
+        for attempt in range(1, 4):
+            try:
+                resp = requests.post(
+                    "https://models.github.ai/inference/chat/completions",
+                    headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json"},
+                    json={
+                        "model": model,
+                        "messages": [
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "user", "content": USER_PROMPT},
+                        ],
+                        "max_tokens": 3500,
+                        "temperature": 0.85,
+                        "response_format": {"type": "json_object"},
+                        "stream": False,
+                    },
+                    timeout=180,
+                )
+            except requests.RequestException as e:
+                print(f"{model} attempt {attempt}: request failed ({type(e).__name__})")
+                time.sleep(20 * attempt)
+                continue
+            ctype = resp.headers.get("content-type", "?")
+            print(f"{model} attempt {attempt}: API status {resp.status_code}, content-type {ctype}, {len(resp.content)} bytes")
+            if resp.status_code != 200:
+                print(resp.text[:500])
+                time.sleep(20 * attempt)
+                continue
+            try:
+                raw = resp.json()["choices"][0]["message"]["content"].strip()
+                break
+            except (ValueError, KeyError, IndexError, TypeError, AttributeError) as e:
+                print(f"Unusable response ({type(e).__name__}): {resp.text[:300]!r}")
+                time.sleep(20 * attempt)
+        if raw:
+            break
+    if not raw:
+        print("ERROR: no usable answer from GitHub Models after retries")
         sys.exit(1)
-    raw = resp.json()["choices"][0]["message"]["content"].strip()
     raw = re.sub(r"^```\w*\n?", "", raw)
     raw = re.sub(r"\n?```$", "", raw)
     try:

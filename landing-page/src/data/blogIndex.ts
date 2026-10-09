@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "99",
+    "slug": "zdjecie-produktu-w-folii-i-opakowaniu-allegro",
+    "title": "Zdjęcie produktu w folii i opakowaniu na Allegro – jak zrobić z niego miniaturkę",
+    "excerpt": "Produkt przyszedł w worku foliowym albo w kartonie i nie chcesz go rozpakowywać? Zobacz, jak sfotografować go telefonem, żeby miniaturka Allegro wyglądała profesjonalnie.",
+    "publishedAt": "2026-10-09",
+    "modifiedAt": "2026-10-09",
+    "author": "AllGrafika.pl",
+    "readTime": 5,
+    "category": "Optymalizacja"
+  },
+  {
     "id": "98",
     "slug": "jak-wykorzystac-ai-do-miniaturek-allegro",
     "title": "Jak Wykorzystać AI do Tworzenia Skutecznych Miniaturek na Allegro",

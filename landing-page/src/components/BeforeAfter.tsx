@@ -41,7 +41,8 @@ export default function BeforeAfter({ pairs }: { pairs: SamplePair[] }) {
           </h2>
           <p className="text-gray-500 mt-4 text-lg">Prawdziwe przykłady wygenerowane w AllGrafika. Przesuń suwak, aby porównać.</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* 4 or 8 pairs fill four columns; otherwise three, so no card is left alone in a row. */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${pairs.length % 4 === 0 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
           {pairs.map((pair) => (
             <Slider key={pair.id} pair={pair} />
           ))}
