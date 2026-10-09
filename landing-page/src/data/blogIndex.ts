@@ -25,6 +25,17 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "Poradniki"
   },
   {
+    "id": "101",
+    "slug": "wymiary-zdjec-allegro-rozmiary-piksele-waga-bledy",
+    "title": "Wymiary zdjęć Allegro rozmiary piksele i błędy 2026",
+    "excerpt": "Wymiary zdjęć Allegro – sprawdź aktualne rozmiary, wagę plików i uniknij błędów przy wgrywaniu grafik. Konkretne wskazówki na 2026!",
+    "publishedAt": "2026-10-09",
+    "modifiedAt": "2026-10-09",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Technologia"
+  },
+  {
     "id": "99",
     "slug": "zdjecie-produktu-w-folii-i-opakowaniu-allegro",
     "title": "Zdjęcie produktu w folii i opakowaniu na Allegro – jak zrobić z niego miniaturkę",
