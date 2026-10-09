@@ -6,7 +6,7 @@ const post: BlogPostData = {
   title: 'Jak przygotować zdjęcie wejściowe do AI miniaturek Allegro? Praktyczny poradnik',
   excerpt: 'Dowiedz się, jak przygotować zdjęcie produktu do AI, aby uzyskać profesjonalne miniaturki Allegro i uniknąć typowych błędów. Prosty poradnik krok po kroku.',
   content: `
-## Kiedy jedno zdjęcie decyduje o efekcie — sytuacja sprzedawcy
+## Kiedy jedno zdjęcie decyduje o efekcie — sytuacja sprzedawcy
 
 Wyobraź sobie, że właśnie dodałeś do swojego sklepu online nowy produkt i chcesz szybko stworzyć atrakcyjne miniaturki na Allegro. Masz zdjęcie robione telefonem na szybko — ale czy to wystarczy, żeby AI wygenerowało profesjonalną grafikę? Nawet najlepsze narzędzie, jak [AllGrafika.pl](https://app.allgrafika.pl/register), nie poprawi wszystkiego, jeśli zdjęcie wejściowe odbiega od kilku podstawowych standardów. Jak sprawić, by Twój produkt wyglądał najlepiej już na pierwszym etapie?
 

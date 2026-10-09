@@ -6,3 +6,4 @@ test-results
 src/data/blogIndex.ts
 src/data/samples.ts
 public
+scripts/blog-keywords-used.json

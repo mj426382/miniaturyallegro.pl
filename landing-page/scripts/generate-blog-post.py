@@ -384,6 +384,13 @@ else:
         print("ERROR: no acceptable article after 3 drafts")
         sys.exit(1)
 
+# Models like non-breaking and thin spaces; ESLint (no-irregular-whitespace) rejects them – normalise.
+IRREGULAR_SPACE = re.compile("[   -     　]")
+ZERO_WIDTH = re.compile("[​﻿]")
+for _field in ("title", "excerpt", "content"):
+    if isinstance(article.get(_field), str):
+        article[_field] = ZERO_WIDTH.sub("", IRREGULAR_SPACE.sub(" ", article[_field]))
+
 slug = article["slug"]
 
 

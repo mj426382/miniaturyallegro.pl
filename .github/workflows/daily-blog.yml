@@ -53,10 +53,13 @@ jobs:
       - name: No duplicate blog posts (topic or content)
         run: python3 landing-page/scripts/check_blog_duplicates.py
 
-      - name: Build and prerender the landing page (refuses broken posts and missing redirects)
+      - name: Lint, format, build and prerender the landing page (same gates as CI)
         working-directory: landing-page
         run: |
           npm ci
+          # The same gates as the CI landing job – a post that fails them never reaches main.
+          npm run lint
+          npm run format:check
           npm run build
 
       - name: The new article page was prerendered
