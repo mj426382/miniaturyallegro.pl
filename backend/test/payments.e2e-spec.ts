@@ -57,7 +57,39 @@ describe('Payments (integration)', () => {
 
   it('[AC-PAY-001] lists packages publicly', async () => {
     const res = await ctx.http().get('/api/payments/packages').expect(200);
-    expect(res.body.map((p: any) => p.id)).toEqual(['credits_5', 'credits_15', 'credits_40']);
+    expect(res.body.map((p: any) => p.id)).toEqual(['credits_5', 'credits_15', 'credits_40', 'credits_200']);
+  });
+
+  it('[AC-PRC-009] the 200-credit pack costs 99 zł and adds 200 credits after payment', async () => {
+    const res = await ctx.http().get('/api/payments/packages').expect(200);
+    expect(res.body.find((p: any) => p.id === 'credits_200')).toMatchObject({
+      credits: 200,
+      priceGrosze: 9900,
+      priceLabel: '99 zł',
+    });
+
+    const { token, userId } = await registerUser(ctx);
+    await ctx
+      .http()
+      .post('/api/payments/checkout')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ packageId: 'credits_200', acceptedWithdrawalWaiver: true })
+      .expect(201);
+    const session = createdSessions.at(-1);
+    expect(session.line_items[0].price_data.unit_amount).toBe(9900);
+    const { payload, signature } = signedWebhook(stripe, {
+      id: 'evt_200',
+      type: 'checkout.session.completed',
+      data: { object: { id: session.id, payment_status: 'paid', metadata: session.metadata } },
+    });
+    await ctx
+      .http()
+      .post('/api/payments/webhook')
+      .set('stripe-signature', signature)
+      .set('Content-Type', 'application/json')
+      .send(payload)
+      .expect(200);
+    expect((await getCredits(ctx, userId)).credits).toBe(200);
   });
 
   it('[AC-PAY-002] requires the consumer-law withdrawal waiver before checkout', async () => {

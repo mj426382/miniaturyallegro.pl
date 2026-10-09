@@ -94,6 +94,7 @@ const packages = [
   { name: 'Pakiet Startowy', credits: 5, price: '10', perCredit: '2,00 zł / grafikę', saving: null },
   { name: 'Pakiet Popularny', credits: 15, price: '28', perCredit: '1,87 zł / grafikę', saving: 'Oszczędzasz 2 zł vs. pakiet 5', highlighted: true },
   { name: 'Pakiet Pro', credits: 40, price: '70', perCredit: '1,75 zł / grafikę', saving: 'Oszczędzasz 10 zł vs. pakiet 5' },
+  { name: 'Pakiet Biznes', credits: 200, price: '99', perCredit: '0,50 zł / grafikę', saving: 'Najniższa cena za grafikę' },
 ]
 
 const plans = [
@@ -112,7 +113,7 @@ const faq = [
   },
   {
     q: 'Ile to kosztuje?',
-    a: 'Pierwsze 5 grafik jest darmowych i nie wymaga karty – wystarczy potwierdzić adres e-mail. Do każdej płatności dostajesz fakturę (NIP podajesz w formularzu płatności). Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 1,75 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
+    a: 'Pierwsze 5 grafik jest darmowych i nie wymaga karty – wystarczy potwierdzić adres e-mail. Do każdej płatności dostajesz fakturę (NIP podajesz w formularzu płatności). Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 0,50 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
   },
   {
     q: 'Jak działa integracja z Allegro?',
@@ -150,6 +151,7 @@ const structuredData = [
       { '@type': 'Offer', price: '10', priceCurrency: 'PLN', description: 'Pakiet 5 kredytów' },
       { '@type': 'Offer', price: '28', priceCurrency: 'PLN', description: 'Pakiet 15 kredytów' },
       { '@type': 'Offer', price: '70', priceCurrency: 'PLN', description: 'Pakiet 40 kredytów' },
+      { '@type': 'Offer', price: '99', priceCurrency: 'PLN', description: 'Pakiet 200 kredytów' },
       { '@type': 'Offer', price: '49', priceCurrency: 'PLN', description: 'Abonament Start – 40 grafik miesięcznie' },
       { '@type': 'Offer', price: '149', priceCurrency: 'PLN', description: 'Abonament Pro – 150 grafik miesięcznie' },
     ],
@@ -325,7 +327,7 @@ export default function Home() {
             </div>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-1">Abonament miesięczny</h3>
-            <p className="text-sm text-gray-500 mb-5">Najtaniej za grafikę. Kredyty co miesiąc, anulujesz w każdej chwili w panelu Stripe.</p>
+            <p className="text-sm text-gray-500 mb-5">Kredyty co miesiąc dla sklepów, które dodają produkty regularnie. Anulujesz w każdej chwili w panelu Stripe.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
               {plans.map((plan) => (
                 <div key={plan.name} className={`rounded-2xl p-8 ${plan.highlighted ? 'bg-blue-600 text-white ring-4 ring-blue-300' : 'bg-white border border-gray-200'}`}>
@@ -348,17 +350,19 @@ export default function Home() {
 
             <h3 className="text-xl font-semibold text-gray-900 mb-1">Pakiety jednorazowe</h3>
             <p className="text-sm text-gray-500 mb-5">Bez zobowiązań. Kredyty nie wygasają.</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {packages.map((pkg) => (
-                <div key={pkg.name} className="rounded-2xl p-6 bg-white border border-gray-200">
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-lg font-bold text-gray-900">{pkg.name}</h4>
-                    {pkg.saving && <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">{pkg.saving}</span>}
-                  </div>
-                  <span className="text-3xl font-extrabold text-gray-900">{pkg.price} zł</span>
-                  <span className="text-sm ml-2 text-gray-500">za {pkg.credits} kredytów</span>
+                <div key={pkg.name} className="rounded-2xl p-6 bg-white border border-gray-200 flex flex-col">
+                  <h4 className="text-lg font-bold text-gray-900">{pkg.name}</h4>
+                  <p className="min-h-[1.75rem] mt-1 mb-2">
+                    {pkg.saving && <span className="inline-block text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700">{pkg.saving}</span>}
+                  </p>
+                  <p>
+                    <span className="text-3xl font-extrabold text-gray-900">{pkg.price} zł</span>
+                    <span className="text-sm ml-2 text-gray-500">za {pkg.credits} kredytów</span>
+                  </p>
                   <p className="text-xs text-gray-400 mt-1 mb-5">{pkg.perCredit} · ceny brutto</p>
-                  <a href={`${APP_URL}/credits`} className="block text-center py-2.5 px-6 rounded-xl font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors">
+                  <a href={`${APP_URL}/credits`} className="mt-auto block text-center py-2.5 px-6 rounded-xl font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors">
                     Kup {pkg.credits} kredytów
                   </a>
                 </div>

@@ -34,6 +34,15 @@ export const CREDIT_PACKAGES: CreditPackage[] = [
     priceLabel: '70 zł',
     savingLabel: 'Oszczędzasz 10 zł',
   },
+  {
+    // 0,50 zł per graphic for shops with many products (spec 02, AC-PRC-009).
+    id: 'credits_200',
+    credits: 200,
+    priceGrosze: 9900,
+    label: '200 kredytów',
+    priceLabel: '99 zł',
+    savingLabel: 'Tylko 0,50 zł za grafikę',
+  },
 ];
 
 /**
