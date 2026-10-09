@@ -77,3 +77,6 @@ landing-page/playwright-report/
 frontend/dist-native/
 frontend/android/app/src/main/assets/public/
 frontend/ios/App/App/public/
+
+# Python bytecode (blog bot helpers)
+__pycache__/

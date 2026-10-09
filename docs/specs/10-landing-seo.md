@@ -30,3 +30,4 @@
 - **AC-DEMO-003** – Given żądania demo starsze niż 30 dni, When sprzątanie, Then wiersze i pliki znikają.
 - **AC-SEO-004** – Given generator bloga uruchomiony w trybie testowym z przykładowym artykułem, When zakończy pracę, Then powstaje plik wpisu z poprawnym slugiem i linkiem końcowym, wpis pojawia się dokładnie raz w generowanym indeksie, a sitemapa zawiera jego adres.
 - **AC-SEO-005** – Given wpis o tym samym slugu już istnieje, When generator uruchomi się ponownie, Then kończy pracę bez zmian z komunikatem o duplikacie.
+- **AC-SEO-006** – Given wpis, którego temat (tytuł, slug, nagłówki – z uwzględnieniem polskiej odmiany) albo treść pokrywa się z istniejącym wpisem, When generator go przygotuje albo build sprawdzi bloga, Then wpis jest odrzucony (bot prosi model o inny temat), a fraza z planu już pokryta przez istniejący wpis jest pomijana bez pisania artykułu (kanibalizacja słów kluczowych).

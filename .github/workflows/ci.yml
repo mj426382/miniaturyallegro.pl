@@ -246,6 +246,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
+      - name: No duplicate blog posts (topic or content)
+        run: python3 scripts/check_blog_duplicates.py
       - run: npm run build
       - name: Verify prerendered output
         run: |

@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "100",
+    "slug": "jak-przygotowac-zdjecie-wejsciowe-do-ai-miniaturek-allegro",
+    "title": "Jak przygotować zdjęcie wejściowe do AI miniaturek Allegro? Praktyczny poradnik",
+    "excerpt": "Dowiedz się, jak przygotować zdjęcie produktu do AI, aby uzyskać profesjonalne miniaturki Allegro i uniknąć typowych błędów. Prosty poradnik krok po kroku.",
+    "publishedAt": "2026-10-09",
+    "modifiedAt": "2026-10-09",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Poradniki"
+  },
+  {
     "id": "99",
     "slug": "zdjecie-produktu-w-folii-i-opakowaniu-allegro",
     "title": "Zdjęcie produktu w folii i opakowaniu na Allegro – jak zrobić z niego miniaturkę",

@@ -169,13 +169,31 @@ USER_PROMPT = (
     "}"
 )
 
+# ── Duplicate detection (spec 10, AC-SEO-006) ───────────────────────
+sys.path.insert(0, str(LANDING / "scripts"))
+from blog_similarity import duplicate_reason, keyword_taken  # noqa: E402
+from check_blog_duplicates import load_posts  # noqa: E402
+
+corpus = load_posts()
+
 # ── Keyword plan (the blog has to bring search traffic) ────────────
 KEYWORDS_FILE = LANDING / "scripts/blog-keywords.json"
 USED_FILE = LANDING / "scripts/blog-keywords-used.json"
 used_keywords = json.loads(USED_FILE.read_text(encoding="utf-8")) if USED_FILE.exists() else []
 used_set = {u["keyword"] for u in used_keywords}
 plan = json.loads(KEYWORDS_FILE.read_text(encoding="utf-8")) if KEYWORDS_FILE.exists() else []
-target = next((k for k in plan if k["keyword"] not in used_set), None)
+target = None
+for k in plan:
+    if k["keyword"] in used_set:
+        continue
+    covered = keyword_taken(k["keyword"], corpus)
+    if covered:
+        print(f"Keyword already covered by /blog/{covered['slug']} – skipping: {k['keyword']}")
+        if not DRY_RUN:
+            used_keywords.append({"keyword": k["keyword"], "slug": covered["slug"], "date": date_iso, "covered": True})
+        continue
+    target = k
+    break
 KEYWORD_PROMPT = (
     (
         "\n\nFRAZA GŁÓWNA TEGO ARTYKUŁU (realne zapytanie sprzedawców w Google – artykuł ma na nie "
@@ -240,14 +258,10 @@ def article_problem(article):
             return f"za krótka treść ({len(body.split())} słów) – wymagane 900-1200"
     if (articles_dir / f"{slug}.ts").exists():
         return f"DUPLICATE: post '{slug}' already exists"
-    new_tokens = tokens(slug.replace("-", " ") + " " + article["title"])
-    for e in existing + retired_entries:
-        old_tokens = tokens(e["slug"].replace("-", " ") + " " + e["title"])
-        if not new_tokens or not old_tokens:
-            continue
-        jaccard = len(new_tokens & old_tokens) / len(new_tokens | old_tokens)
-        if jaccard >= 0.5:
-            return f"temat zbyt podobny do istniejącego wpisu '{e['slug']}' – wybierz inny kąt"
+    # Topic and content against every post, plus retired (merged) posts by topic.
+    reason = duplicate_reason(article, corpus + [dict(e, content="") for e in retired_entries])
+    if reason:
+        return reason
     if slug in redirected:
         return f"slug '{slug}' jest przekierowaniem połączonego wpisu – wybierz inny"
     return None
@@ -360,7 +374,7 @@ else:
             article = candidate
             break
         print(f"Draft {draft} rejected: {problem}")
-        if keyword_block and ("zbyt podobny" in problem or problem.startswith("DUPLICATE")):
+        if keyword_block and ("zbyt podobn" in problem or problem.startswith("DUPLICATE")):
             # The planned keyword is already covered by an older post – free topic instead; the keyword is
             # still recorded as used below, so the plan moves on tomorrow.
             print("Target keyword overlaps an existing post – switching to a free topic")

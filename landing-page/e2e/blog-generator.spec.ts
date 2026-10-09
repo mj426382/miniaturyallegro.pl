@@ -61,4 +61,32 @@ test.describe('daily blog generator', () => {
       writeFileSync(sitemap, sitemapBefore, 'utf-8')
     }
   })
+
+  test('[AC-SEO-006] a rewrite of an existing post is rejected and the blog has no duplicates', () => {
+    // The whole blog passes the build-time guard.
+    const guard = execFileSync('python3', [resolve(landing, 'scripts/check_blog_duplicates.py')], { env: { ...process.env, PYTHONIOENCODING: 'utf-8' }, encoding: 'utf-8' })
+    expect(guard).toContain('No duplicate blog posts')
+
+    // A "new" article that reuses an existing one with a reworded title and slug.
+    const source = readFileSync(resolve(landing, 'src/data/blogPosts/jak-napisac-skuteczny-tytul-aukcji-allegro.ts'), 'utf-8')
+    const content = source.match(/content:\s*`([\s\S]*?)`\s*,?\s*\n/)![1]
+    const fixture = resolve(landing, 'test-results/duplicate-article.json')
+    writeFileSync(
+      fixture,
+      JSON.stringify({ slug: 'skuteczny-tytul-oferty-allegro-poradnik', title: 'Skuteczny tytuł oferty Allegro – jak go napisać', excerpt: 'x', category: 'Poradniki', readTime: 5, content }),
+      'utf-8',
+    )
+    const sitemapBefore = readFileSync(sitemap, 'utf-8')
+    let output = ''
+    try {
+      execFileSync('python3', [script], { env: { ...process.env, BLOG_DRY_RUN: '1', BLOG_FIXTURE: fixture, PYTHONIOENCODING: 'utf-8' }, encoding: 'utf-8' })
+    } catch (err: any) {
+      output = String(err.stdout)
+    } finally {
+      writeFileSync(sitemap, sitemapBefore, 'utf-8')
+      unlinkSync(fixture)
+    }
+    expect(output).toMatch(/zbyt podobn\w+ do (istniejącego )?wpisu 'jak-napisac-skuteczny-tytul-aukcji-allegro'/)
+    expect(existsSync(resolve(landing, 'src/data/blogPosts/skuteczny-tytul-oferty-allegro-poradnik.ts'))).toBe(false)
+  })
 })

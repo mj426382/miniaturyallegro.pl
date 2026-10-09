@@ -50,6 +50,9 @@ jobs:
           cache: npm
           cache-dependency-path: landing-page/package-lock.json
 
+      - name: No duplicate blog posts (topic or content)
+        run: python3 landing-page/scripts/check_blog_duplicates.py
+
       - name: Build and prerender the landing page (refuses broken posts and missing redirects)
         working-directory: landing-page
         run: |
