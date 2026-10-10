@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "102",
+    "slug": "jak-usunac-tlo-ze-zdjecia-produktu",
+    "title": "Jak usunąć tło ze zdjęcia produktu poradnik darmowe i AI",
+    "excerpt": "Jak usunąć tło ze zdjęcia produktu – darmowe metody i AI. Dowiedz się, które rozwiązanie wybrać i kiedy zwykłe usuwanie tła to za mało.",
+    "publishedAt": "2026-10-10",
+    "modifiedAt": "2026-10-10",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Technologia"
+  },
+  {
     "id": "100",
     "slug": "jak-przygotowac-zdjecie-wejsciowe-do-ai-miniaturek-allegro",
     "title": "Jak przygotować zdjęcie wejściowe do AI miniaturek Allegro? Praktyczny poradnik",
