@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '100',
   slug: 'jak-przygotowac-zdjecie-wejsciowe-do-ai-miniaturek-allegro',
-  title: 'Jak przygotować zdjęcie wejściowe do AI miniaturek Allegro? Praktyczny poradnik',
+  title: 'Jak przygotować zdjęcie do AI miniaturek Allegro?',
   excerpt: 'Dowiedz się, jak przygotować zdjęcie produktu do AI, aby uzyskać profesjonalne miniaturki Allegro i uniknąć typowych błędów. Prosty poradnik krok po kroku.',
   content: `
 ## Kiedy jedno zdjęcie decyduje o efekcie — sytuacja sprzedawcy

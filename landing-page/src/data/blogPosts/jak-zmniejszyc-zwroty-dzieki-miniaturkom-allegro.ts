@@ -25,7 +25,17 @@ Miniaturki produktów na Allegro to pierwsze, co widzą potencjalni klienci. **N
 
 ## Automatyzacja procesów i rola AI
 
-Narzędzia takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) umożliwiają automatyczne generowanie profesjonalnych miniaturek w różnych stylach. Dzięki dedykowanemu AI możesz mieć pewność, że każdy produkt zostanie zoptymalizowany pod kątem wizualnym i opisowym, co zmniejsza ryzyko nieporozumień.
+Narzędzia takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) pozwalają szybko przygotować grafiki w różnych stylach z jednego zdjęcia. Produkt pozostaje taki jak na Twoim zdjęciu – AI zmienia tło, scenę i oświetlenie – ale i tak zawsze porównaj gotową grafikę z prawdziwym egzemplarzem przed publikacją.
+
+## Co najczęściej powoduje zwroty i reklamacje przez zdjęcia?
+
+- **Inny kolor niż w rzeczywistości:** ciepłe światło żarówki, filtry i mocna edycja. Fotografuj w neutralnym świetle dziennym i nie podkręcaj nasycenia.
+- **Brak skali:** kupujący nie wie, czy przedmiot ma 10 czy 30 cm. Dodaj zdjęcie w dłoni, we wnętrzu albo obok przedmiotu o znanej wielkości.
+- **Brak ujęć z różnych stron:** pokaż przód, tył, bok i spód – szczególnie przy odzieży, obuwiu, meblach i częściach.
+- **Rekwizyty, których nie ma w zestawie:** dekoracje i akcesoria na zdjęciu sugerują, że są w cenie. Na zdjęciu głównym pokazuj tylko to, co kupujący dostanie.
+- **Niewidoczne wady lub ślady użytkowania:** przy towarze używanym lub outletowym pokaż je wprost – to chroni przed reklamacją „niezgodny z opisem”.
+
+Wskazówki, co pokazać w poszczególnych branżach, znajdziesz w poradniku [miniaturki Allegro dla kategorii](https://allgrafika.pl/blog/miniaturki-allegro-dla-kategorii-poradnik).
 
 ## Jak testować miniaturki pod kątem zwrotów?
 
@@ -40,6 +50,7 @@ Profesjonalnie wykonane miniaturki Allegro mogą znacząco zmniejszyć liczbę z
 [← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-23',
+  modifiedAt: '2026-10-11',
   readTime: 6,
   category: 'E-commerce',
 }

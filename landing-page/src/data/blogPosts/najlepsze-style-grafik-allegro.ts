@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '2',
   slug: 'najlepsze-style-grafik-allegro',
-  title: 'Przewodnik po 6 stylach grafik Allegro — kiedy użyć każdego z nich',
+  title: 'Najlepsze style grafik Allegro – kiedy użyć każdego z nich',
   excerpt: 'Białe tło, lifestyle, dark luxury, minimalizm, flat lay czy studio? Dowiedz się, czym różnią się style grafik na Allegro i który wybrać dla swojego produktu.',
   content: `
 ## Styl grafiki decyduje o pierwszym wrażeniu

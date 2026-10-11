@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '31',
   slug: 'koszty-fotografii-produktowej-vs-ai-roi',
-  title: 'Koszty fotografii produktowej: Studio vs. AI — Kalkulacja ROI',
+  title: 'Koszty fotografii produktowej: studio vs AI – ROI',
   excerpt: 'Porównaj koszty tradycyjnych sesji fotograficznych ze zautomatyzowanym rozwiązaniem AI i dowiedz się, jak obliczyć ROI dla Twojego sklepu na Allegro.',
   content: `
 ## Dlaczego warto analizować koszty fotografii produktowej?

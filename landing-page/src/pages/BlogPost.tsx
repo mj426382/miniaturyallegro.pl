@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { blogIndex } from '../data/blogIndex'
 import { getCachedPost, loadPost, postExists } from '../data/blogLoader'
+import { pageTitle } from '../utils/pageTitle'
 
 const SITE_URL = 'https://allgrafika.pl'
 
@@ -127,7 +128,7 @@ export default function BlogPostPage() {
   return (
     <>
       <Helmet>
-        <title>{post.title} | AllGrafika.pl</title>
+        <title>{pageTitle(post.title)}</title>
         <meta name="description" content={post.excerpt} />
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
         <link rel="canonical" href={canonicalUrl} />

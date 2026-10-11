@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '93',
   slug: 'psychologia-kompozycji-miniaturek-allegro',
-  title: 'Psychologia kompozycji: Jak tworzyć miniaturki Allegro, które sprzedają',
+  title: 'Psychologia kompozycji miniaturek Allegro, które sprzedają',
   excerpt: 'Dowiedz się, jak zasady psychologii kompozycji wpływają na skuteczność miniaturek na Allegro i jak je stosować, by zwiększyć sprzedaż.',
   content: `
 ## 92% kupujących zwraca uwagę na wizualną prezentację produktu

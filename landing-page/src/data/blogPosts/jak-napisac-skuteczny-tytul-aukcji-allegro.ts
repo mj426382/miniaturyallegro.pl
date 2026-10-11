@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '59',
   slug: 'jak-napisac-skuteczny-tytul-aukcji-allegro',
-  title: 'Jak napisać skuteczny tytuł aukcji Allegro wspierający miniaturkę?',
+  title: 'Jak napisać skuteczny tytuł aukcji Allegro?',
   excerpt: 'Dowiedz się, jak stworzyć skuteczny tytuł aukcji Allegro, który przyciągnie uwagę klientów i idealnie współgra z profesjonalną miniaturką.',
   content: `
 ## Dlaczego tytuł aukcji ma kluczowe znaczenie?

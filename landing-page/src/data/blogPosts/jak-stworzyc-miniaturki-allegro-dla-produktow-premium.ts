@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '70',
   slug: 'jak-stworzyc-miniaturki-allegro-dla-produktow-premium',
-  title: 'Jak stworzyć miniaturki Allegro, które podkreślą produkty premium?',
+  title: 'Miniaturki Allegro dla produktów premium – jak je stworzyć?',
   excerpt: 'Poznaj strategie tworzenia miniaturek Allegro, które podkreślą ekskluzywność Twoich produktów i przyciągną klientów segmentu premium.',
   content: `
 ## Czy wiesz, że 70% klientów ocenia wartość produktu na podstawie jego zdjęcia?

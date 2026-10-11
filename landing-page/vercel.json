@@ -7,13 +7,28 @@
       "statusCode": 301
     },
     {
+      "source": "/blog/fotografia-produktowa-a-zwroty-i-reklamacje",
+      "destination": "/blog/jak-zmniejszyc-zwroty-dzieki-miniaturkom-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/idealna-miniaturka-allegro-elektronika",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-dobrac-styl-miniaturki-do-kategorii-produktu",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
       "source": "/blog/jak-miniaturka-allegro-wplywa-na-rankingi-2026",
       "destination": "/blog/wplyw-jakosci-zdjec-na-pozycje-wynikach-allegro",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-miniaturka-zmienila-sprzedaz-allegro-40-procent",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
       "statusCode": 301
     },
     {
@@ -33,7 +48,7 @@
     },
     {
       "source": "/blog/jak-miniaturki-wplywaja-na-sprzedaz-allegro",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
       "statusCode": 301
     },
     {
@@ -47,18 +62,103 @@
       "statusCode": 301
     },
     {
+      "source": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
+      "statusCode": 301
+    },
+    {
       "source": "/blog/jak-skutecznie-testowac-miniaturki-na-allegro",
       "destination": "/blog/jak-testowac-miniaturki-bez-duzego-budzetu",
       "statusCode": 301
     },
     {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-kategorii-agd",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-kategorii-dziecko",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-kategorii-hobby",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-kategorii-kosmetyki",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-kategorii-ksiazki",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-kategorii-meble",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-kategorii-smartfony",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dla-motoryzacji",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-dom-i-ogrod",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-odziez",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-allegro-uroda",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-dla-kategorii-akcesoria-komputerowe",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturke-dla-kategorii-obuwie",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
       "source": "/blog/jak-stworzyc-miniaturke-na-allegro-ktora-sprzedaje",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturki-allegro-dla-kategorii-komputery",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturki-allegro-dla-kategorii-zdrowie",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-stworzyc-miniaturki-allegro-dla-kategorii-zegarki",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-stworzyc-miniaturki-dla-nowoczesnych-kategorii-allegro",
-      "destination": "/blog/miniaturki-dla-kategorii-zywnosc-zwierzeta-narzedzia",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
       "statusCode": 301
     },
     {
@@ -103,7 +203,12 @@
     },
     {
       "source": "/blog/jak-tworzyc-miniaturki-dla-produktow-na-allegro",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-tworzyc-miniaturki-dla-produktow-zywnosciowych",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
       "statusCode": 301
     },
     {
@@ -114,6 +219,11 @@
     {
       "source": "/blog/jak-wplywa-tlo-miniaturki-na-wartosc-produktu",
       "destination": "/blog/wplyw-tla-miniaturki-na-postrzegana-wartosc-produktu",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-wybrac-styl-miniaturki-do-ceny-produktu",
+      "destination": "/blog/psychologia-cen-a-styl-miniaturki",
       "statusCode": 301
     },
     {
@@ -128,37 +238,37 @@
     },
     {
       "source": "/blog/jak-zmiana-miniaturki-zwiekszyla-sprzedaz-na-allegro",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-zmienic-miniaturke-i-poprawic-sprzedaz-allegro",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-ctr-allegro",
-      "destination": "/blog/jak-zwiekszyc-ctr-na-allegro-miniaturki",
+      "destination": "/blog/jak-zwiekszyc-ctr-ab-testowanie-miniaturek",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-ctr-o-60-procent",
-      "destination": "/blog/jak-zwiekszyc-ctr-na-allegro-miniaturki",
+      "destination": "/blog/jak-zwiekszyc-ctr-ab-testowanie-miniaturek",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-sprzedaz",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-sprzedaz-o-25-proc",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
       "statusCode": 301
     },
     {
       "source": "/blog/jak-zmienic-miniaturke-i-zwiekszyc-sprzedaz-o-45-procent",
-      "destination": "/blog/jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
+      "destination": "/blog/jak-wyroznic-sie-miniaturka-na-allegro",
       "statusCode": 301
     },
     {
@@ -177,13 +287,48 @@
       "statusCode": 301
     },
     {
+      "source": "/blog/jak-zrobic-miniaturki-allegro-dla-kategorii-bizuteria",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zrobic-miniaturki-allegro-dla-kategorii-elektronika-i-akcesoria",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zrobic-miniaturki-allegro-dla-kategorii-sport",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zrobic-miniaturki-allegro-dla-kategorii-zabawki",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zrobic-miniaturki-dla-tytoniu-i-akcesoriow",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/jak-zwiekszyc-ctr-na-allegro-miniaturki",
+      "destination": "/blog/jak-zwiekszyc-ctr-ab-testowanie-miniaturek",
+      "statusCode": 301
+    },
+    {
       "source": "/blog/miniaturki-allegro-a-wzrost-ctr-o-30-procent-case-study",
-      "destination": "/blog/jak-zwiekszyc-ctr-na-allegro-miniaturki",
+      "destination": "/blog/jak-zwiekszyc-ctr-ab-testowanie-miniaturek",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/miniaturki-dla-kategorii-zywnosc-zwierzeta-narzedzia",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
       "statusCode": 301
     },
     {
       "source": "/blog/miniaturki-dla-nowych-kategorii-allegro",
-      "destination": "/blog/miniaturki-dla-kategorii-zywnosc-zwierzeta-narzedzia",
+      "destination": "/blog/miniaturki-allegro-dla-kategorii-poradnik",
       "statusCode": 301
     },
     {
@@ -244,6 +389,11 @@
     {
       "source": "/blog/rola-miniaturki-w-algorytmie-rankingowym-allegro",
       "destination": "/blog/wplyw-jakosci-zdjec-na-pozycje-wynikach-allegro",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/wymagania-techniczne-allegro-zdjecia-2025-2026",
+      "destination": "/blog/wymiary-zdjec-allegro-rozmiary-piksele-waga-bledy",
       "statusCode": 301
     }
   ]

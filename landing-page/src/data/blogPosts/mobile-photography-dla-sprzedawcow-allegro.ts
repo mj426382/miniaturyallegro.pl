@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '14',
   slug: 'mobile-photography-dla-sprzedawcow-allegro',
-  title: 'Mobile Photography dla sprzedawców Allegro: Jak robić profesjonalne zdjęcia',
+  title: 'Mobile photography dla Allegro: zdjęcia produktów telefonem',
   excerpt: 'Dowiedz się, jak robić profesjonalne zdjęcia produktów na Allegro za pomocą smartfona. Praktyczne porady dla sprzedawców.',
   content: `
 ## Dlaczego warto korzystać z mobile photography na Allegro?

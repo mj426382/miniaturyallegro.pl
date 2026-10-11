@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '73',
   slug: 'jak-miniaturki-wplywaja-na-zakupowe-decyzje-klienta',
-  title: 'Jak miniaturki wpływają na decyzje zakupowe klientów na Allegro?',
+  title: 'Jak miniaturki wpływają na decyzje zakupowe na Allegro?',
   excerpt: 'Dowiedz się, jak odpowiednio zaprojektowane miniaturki na Allegro mogą znacząco wpłynąć na decyzje zakupowe klientów i zwiększyć Twoją sprzedaż.',
   content: `
 ## Czy miniaturki naprawdę mają znaczenie w decyzjach zakupowych?

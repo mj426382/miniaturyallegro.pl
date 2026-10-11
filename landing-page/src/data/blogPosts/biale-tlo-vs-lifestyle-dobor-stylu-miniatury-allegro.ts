@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '18',
   slug: 'biale-tlo-vs-lifestyle-dobor-stylu-miniatury-allegro',
-  title: 'Białe tło vs. Lifestyle: Jak dobrać styl miniaturki na Allegro?',
+  title: 'Białe tło vs lifestyle: jaki styl miniaturki na Allegro?',
   excerpt: 'Dowiedz się, kiedy wybrać białe tło, a kiedy postawić na styl lifestyle, by stworzyć idealną miniaturkę Allegro i zwiększyć sprzedaż.',
   content: `
 ## Dlaczego styl miniaturki ma znaczenie?

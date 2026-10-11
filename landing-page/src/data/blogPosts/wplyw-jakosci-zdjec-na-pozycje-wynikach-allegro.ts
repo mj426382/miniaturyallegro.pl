@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '25',
   slug: 'wplyw-jakosci-zdjec-na-pozycje-wynikach-allegro',
-  title: 'Wpływ jakości zdjęć na pozycję w wynikach wyszukiwania Allegro',
+  title: 'Wpływ jakości zdjęć na pozycję w wynikach Allegro',
   excerpt: 'Dowiedz się, jak jakość zdjęć produktów wpływa na pozycję Twoich ofert w wynikach wyszukiwania Allegro i jak zoptymalizować miniaturki.',
   content: `
 ## Dlaczego jakość zdjęć ma znaczenie na Allegro?

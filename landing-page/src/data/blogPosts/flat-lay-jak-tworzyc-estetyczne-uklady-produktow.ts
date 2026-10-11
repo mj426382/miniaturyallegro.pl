@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '17',
   slug: 'flat-lay-jak-tworzyc-estetyczne-uklady-produktow',
-  title: 'Flat Lay: Jak tworzyć estetyczne układy produktów krok po kroku',
-  excerpt: 'Dowiedz się, jak tworzyć profesjonalne układy flat lay dla zdjęć produktowych. Zwiększ atrakcyjność ofert na Allegro dzięki estetycznym i przyciągającym uwagę kompozycjom.',
+  title: 'Flat lay: jak tworzyć estetyczne układy produktów',
+  excerpt: 'Dowiedz się, jak tworzyć estetyczne układy flat lay dla zdjęć produktowych i zwiększ atrakcyjność swoich ofert na Allegro dzięki przemyślanej kompozycji.',
   content: `
 ## Czym jest styl flat lay w fotografii produktowej?
 

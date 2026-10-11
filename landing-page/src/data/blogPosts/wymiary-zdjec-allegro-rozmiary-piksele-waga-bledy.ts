@@ -22,6 +22,7 @@ Najczęstszy problem przy wgrywaniu zdjęć Allegro to nieprawidłowy rozmiar lu
 - Maksymalna waga pliku: **do 12 MB**
 - Obsługiwane formaty: **JPG, PNG, WebP** (JPG najbezpieczniejszy)
 - Brak ramek, znaków wodnych, napisów na głównym zdjęciu
+- Na zdjęciu głównym tylko sprzedawany produkt – bez innych przedmiotów i rekwizytów spoza zestawu
 - Zalecane białe tło na zdjęciu głównym
 - Produkt powinien zajmować przynajmniej 80% powierzchni zdjęcia
 

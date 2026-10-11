@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '99',
   slug: 'zdjecie-produktu-w-folii-i-opakowaniu-allegro',
-  title: 'Zdjęcie produktu w folii i opakowaniu na Allegro – jak zrobić z niego miniaturkę',
-  excerpt: 'Produkt przyszedł w worku foliowym albo w kartonie i nie chcesz go rozpakowywać? Zobacz, jak sfotografować go telefonem, żeby miniaturka Allegro wyglądała profesjonalnie.',
+  title: 'Zdjęcie produktu w folii na Allegro – jak zrobić miniaturkę',
+  excerpt: 'Produkt przyszedł w folii lub kartonie i nie chcesz go rozpakowywać? Zobacz, jak sfotografować go telefonem, by miniaturka Allegro wyglądała profesjonalnie.',
   content: `
 ## Zdjęcie produktu w folii – problem, który zna każdy sprzedawca
 
@@ -27,7 +27,7 @@ Tło nie musi być idealne. Kuchenny blat, podłoga czy karton w tle przestają 
 
 To zależy od kategorii. Przy elektronice, zabawkach i kosmetykach oryginalne pudełko buduje zaufanie – kupujący widzi markę, model i to, że produkt jest fabrycznie nowy. Przy odzieży, obuwiu czy sprzęcie sportowym ważniejszy jest sam produkt, a opakowanie lepiej pokazać na kolejnym zdjęciu.
 
-Jeśli zostajesz przy pudełku, pamiętaj o zasadach z artykułu [wymagania techniczne zdjęć na Allegro](https://allgrafika.pl/blog/wymagania-techniczne-allegro-zdjecia-2025-2026): zdjęcie główne powinno pokazywać produkt na jasnym, jednolitym tle i bez dodatkowych napisów.
+Jeśli zostajesz przy pudełku, pamiętaj o zasadach z artykułu [wymiary i wymagania zdjęć na Allegro](https://allgrafika.pl/blog/wymiary-zdjec-allegro-rozmiary-piksele-waga-bledy): zdjęcie główne powinno pokazywać produkt na jasnym, jednolitym tle i bez dodatkowych napisów.
 
 ## Jak z takiego zdjęcia zrobić miniaturkę
 

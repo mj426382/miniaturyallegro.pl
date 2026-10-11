@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '43',
   slug: 'psychologia-percepcji-wizualnej-w-e-commerce',
-  title: 'Psychologia percepcji wizualnej w e-commerce: Co przyciąga uwagę?',
+  title: 'Psychologia percepcji wizualnej w e-commerce',
   excerpt: 'Dowiedz się, jak działa psychologia percepcji wizualnej w e-commerce i jak dzięki niej tworzyć miniaturki, które przyciągają uwagę klientów.',
   content: `
 ## Jak działa psychologia percepcji wizualnej?

@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '21',
   slug: 'seo-zdjec-produktowych-na-allegro',
-  title: 'SEO zdjęć produktowych na Allegro: Optymalizacja krok po kroku',
+  title: 'SEO zdjęć produktowych na Allegro krok po kroku',
   excerpt: 'Dowiedz się, jak optymalizować zdjęcia produktowe na Allegro: nazwy plików, alt text i metadane, aby zwiększyć widoczność w wynikach wyszukiwania.',
   content: `
 ## Dlaczego SEO zdjęć produktowych na Allegro jest ważne?

@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '20',
   slug: 'batch-processing-zdjecia-produktowe-szybko-i-latwo',
-  title: 'Batch Processing zdjęć produktowych: szybko i łatwo dla Allegro',
+  title: 'Batch processing zdjęć produktowych na Allegro',
   excerpt: 'Dowiedz się, jak wykorzystać batch processing do masowego generowania miniaturek Allegro i zaoszczędzić czas przy dużych katalogach produktów.',
   content: `
 ## Co to jest batch processing i dlaczego warto go używać?

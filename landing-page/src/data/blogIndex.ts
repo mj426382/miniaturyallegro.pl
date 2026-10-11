@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "103",
+    "slug": "miniaturki-allegro-dla-kategorii-poradnik",
+    "title": "Miniaturki Allegro dla kategorii: poradnik",
+    "excerpt": "Miniaturki Allegro dla kategorii: elektronika, moda, dom, uroda, dziecko, motoryzacja i inne. Co pokazać na zdjęciu głównym, a co w galerii oferty.",
+    "publishedAt": "2026-10-11",
+    "modifiedAt": "2026-10-11",
+    "author": "AllGrafika.pl",
+    "readTime": 12,
+    "category": "Poradniki"
+  },
+  {
     "id": "102",
     "slug": "jak-usunac-tlo-ze-zdjecia-produktu",
     "title": "Jak usunąć tło ze zdjęcia produktu poradnik darmowe i AI",
@@ -27,7 +38,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "100",
     "slug": "jak-przygotowac-zdjecie-wejsciowe-do-ai-miniaturek-allegro",
-    "title": "Jak przygotować zdjęcie wejściowe do AI miniaturek Allegro? Praktyczny poradnik",
+    "title": "Jak przygotować zdjęcie do AI miniaturek Allegro?",
     "excerpt": "Dowiedz się, jak przygotować zdjęcie produktu do AI, aby uzyskać profesjonalne miniaturki Allegro i uniknąć typowych błędów. Prosty poradnik krok po kroku.",
     "publishedAt": "2026-10-09",
     "modifiedAt": "2026-10-09",
@@ -49,8 +60,8 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "99",
     "slug": "zdjecie-produktu-w-folii-i-opakowaniu-allegro",
-    "title": "Zdjęcie produktu w folii i opakowaniu na Allegro – jak zrobić z niego miniaturkę",
-    "excerpt": "Produkt przyszedł w worku foliowym albo w kartonie i nie chcesz go rozpakowywać? Zobacz, jak sfotografować go telefonem, żeby miniaturka Allegro wyglądała profesjonalnie.",
+    "title": "Zdjęcie produktu w folii na Allegro – jak zrobić miniaturkę",
+    "excerpt": "Produkt przyszedł w folii lub kartonie i nie chcesz go rozpakowywać? Zobacz, jak sfotografować go telefonem, by miniaturka Allegro wyglądała profesjonalnie.",
     "publishedAt": "2026-10-09",
     "modifiedAt": "2026-10-09",
     "author": "AllGrafika.pl",
@@ -60,7 +71,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "98",
     "slug": "jak-wykorzystac-ai-do-miniaturek-allegro",
-    "title": "Jak Wykorzystać AI do Tworzenia Skutecznych Miniaturek na Allegro",
+    "title": "Jak wykorzystać AI do tworzenia miniaturek na Allegro",
     "excerpt": "Dowiedz się, jak AI pomaga tworzyć miniaturki Allegro, które zwiększają CTR i konwersje, oszczędzając czas i pieniądze sprzedawców.",
     "publishedAt": "2026-07-09",
     "modifiedAt": "2026-10-02",
@@ -69,20 +80,9 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "Technologia"
   },
   {
-    "id": "95",
-    "slug": "jak-tworzyc-miniaturki-dla-produktow-zywnosciowych",
-    "title": "Jak tworzyć miniaturki dla produktów żywnościowych na Allegro",
-    "excerpt": "Dowiedz się, jak tworzyć miniaturki produktów spożywczych na Allegro, które przyciągną wzrok i zwiększą Twoją sprzedaż.",
-    "publishedAt": "2026-07-06",
-    "modifiedAt": "2026-10-02",
-    "author": "AllGrafika.pl",
-    "readTime": 6,
-    "category": "E-commerce"
-  },
-  {
     "id": "93",
     "slug": "psychologia-kompozycji-miniaturek-allegro",
-    "title": "Psychologia kompozycji: Jak tworzyć miniaturki Allegro, które sprzedają",
+    "title": "Psychologia kompozycji miniaturek Allegro, które sprzedają",
     "excerpt": "Dowiedz się, jak zasady psychologii kompozycji wpływają na skuteczność miniaturek na Allegro i jak je stosować, by zwiększyć sprzedaż.",
     "publishedAt": "2026-07-04",
     "modifiedAt": "2026-10-02",
@@ -93,7 +93,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "91",
     "slug": "psychologia-kolorow-miniaturek-allegro-jak-wplywaja-na-sprzedaz",
-    "title": "Psychologia kolorów w miniaturkach Allegro: Jak wpływają na sprzedaż?",
+    "title": "Psychologia kolorów w miniaturkach Allegro",
     "excerpt": "Dowiedz się, jak kolory miniaturek produktowych wpływają na decyzje zakupowe klientów na Allegro i jak wykorzystać tę wiedzę do zwiększenia sprzedaży.",
     "publishedAt": "2026-07-02",
     "modifiedAt": "2026-10-02",
@@ -105,11 +105,11 @@ export const blogIndex: BlogPostMeta[] = [
     "id": "82",
     "slug": "jak-wyroznic-sie-miniaturka-na-allegro",
     "title": "Jak wyróżnić się miniaturką na Allegro wśród konkurencji?",
-    "excerpt": "Dowiedz się, jak stworzyć efektywną miniaturkę na Allegro, która wyróżni się na tle konkurencji i zwiększy Twoją sprzedaż.",
+    "excerpt": "Jak poprawić miniaturki na Allegro i wyróżnić się na tle konkurencji: tło, kadr, światło, styl dopasowany do produktu i proste testy, które pokażą, co działa.",
     "publishedAt": "2026-06-22",
-    "modifiedAt": "2026-10-02",
+    "modifiedAt": "2026-10-11",
     "author": "AllGrafika.pl",
-    "readTime": 6,
+    "readTime": 7,
     "category": "Styl i design"
   },
   {
@@ -137,7 +137,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "73",
     "slug": "jak-miniaturki-wplywaja-na-zakupowe-decyzje-klienta",
-    "title": "Jak miniaturki wpływają na decyzje zakupowe klientów na Allegro?",
+    "title": "Jak miniaturki wpływają na decyzje zakupowe na Allegro?",
     "excerpt": "Dowiedz się, jak odpowiednio zaprojektowane miniaturki na Allegro mogą znacząco wpłynąć na decyzje zakupowe klientów i zwiększyć Twoją sprzedaż.",
     "publishedAt": "2026-06-13",
     "modifiedAt": "2026-10-02",
@@ -148,7 +148,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "72",
     "slug": "jak-miniaturki-na-allegro-wplywaja-na-postrzeganie-marki",
-    "title": "Jak miniaturki na Allegro wpływają na postrzeganie Twojej marki?",
+    "title": "Jak miniaturki na Allegro wpływają na postrzeganie marki?",
     "excerpt": "Dowiedz się, jak dobrze zaprojektowane miniaturki na Allegro mogą budować pozytywny wizerunek Twojej marki i zwiększyć sprzedaż.",
     "publishedAt": "2026-06-12",
     "modifiedAt": "2026-10-02",
@@ -159,7 +159,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "70",
     "slug": "jak-stworzyc-miniaturki-allegro-dla-produktow-premium",
-    "title": "Jak stworzyć miniaturki Allegro, które podkreślą produkty premium?",
+    "title": "Miniaturki Allegro dla produktów premium – jak je stworzyć?",
     "excerpt": "Poznaj strategie tworzenia miniaturek Allegro, które podkreślą ekskluzywność Twoich produktów i przyciągną klientów segmentu premium.",
     "publishedAt": "2026-06-10",
     "modifiedAt": "2026-10-02",
@@ -170,7 +170,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "66",
     "slug": "jak-styl-miniaturki-wplywa-na-postrzeganie-produktu",
-    "title": "Jak styl miniaturki wpływa na postrzeganie produktu na Allegro?",
+    "title": "Jak styl miniaturki wpływa na postrzeganie produktu?",
     "excerpt": "Dowiedz się, jak różne style miniaturek na Allegro wpływają na postrzeganą wartość Twoich produktów. Wybierz najlepszy styl i zwiększ sprzedaż.",
     "publishedAt": "2026-06-06",
     "modifiedAt": "2026-10-02",
@@ -181,7 +181,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "63",
     "slug": "porownanie-platform-e-commerce-wymagania-graficzne",
-    "title": "Porównanie wymagań graficznych: Allegro vs Shopify vs WooCommerce",
+    "title": "Wymagania graficzne: Allegro vs Shopify vs WooCommerce",
     "excerpt": "Dowiedz się, jak różnią się wymagania dotyczące grafik na Allegro, Shopify i WooCommerce. Która platforma jest najbardziej wymagająca?",
     "publishedAt": "2026-06-03",
     "modifiedAt": "2026-06-03",
@@ -192,7 +192,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "62",
     "slug": "jak-tworzyc-grafiki-swiateczne-promocyjne-allegro",
-    "title": "Jak tworzyć grafiki świąteczne i promocyjne do ofert Allegro?",
+    "title": "Jak tworzyć grafiki świąteczne i promocyjne na Allegro?",
     "excerpt": "Zwiększ sprzedaż na Allegro dzięki skutecznym grafikom świątecznym i promocyjnym. Sprawdź, jakie style i narzędzia wykorzystać, by przyciągnąć uwagę klientów.",
     "publishedAt": "2026-06-02",
     "modifiedAt": "2026-10-02",
@@ -214,21 +214,10 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "59",
     "slug": "jak-napisac-skuteczny-tytul-aukcji-allegro",
-    "title": "Jak napisać skuteczny tytuł aukcji Allegro wspierający miniaturkę?",
+    "title": "Jak napisać skuteczny tytuł aukcji Allegro?",
     "excerpt": "Dowiedz się, jak stworzyć skuteczny tytuł aukcji Allegro, który przyciągnie uwagę klientów i idealnie współgra z profesjonalną miniaturką.",
     "publishedAt": "2026-05-30",
     "modifiedAt": "2026-05-30",
-    "author": "AllGrafika.pl",
-    "readTime": 6,
-    "category": "E-commerce"
-  },
-  {
-    "id": "58",
-    "slug": "miniaturki-dla-kategorii-zywnosc-zwierzeta-narzedzia",
-    "title": "Miniaturki dla nowych kategorii Allegro: żywność, zwierzęta, narzędzia",
-    "excerpt": "Dowiedz się, jak tworzyć idealne miniaturki dla nowych kategorii na Allegro: żywność, zwierzęta i narzędzia, by zwiększyć CTR i przyciągnąć klientów.",
-    "publishedAt": "2026-05-29",
-    "modifiedAt": "2026-10-02",
     "author": "AllGrafika.pl",
     "readTime": 6,
     "category": "E-commerce"
@@ -247,7 +236,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "55",
     "slug": "jak-testowac-miniaturki-bez-duzego-budzetu",
-    "title": "Jak testować efektywność miniaturek Allegro bez dużego budżetu",
+    "title": "Jak testować miniaturki Allegro bez dużego budżetu",
     "excerpt": "Sprawdź, jak testować skuteczność miniaturek Allegro niskim kosztem, zwiększając CTR i sprzedaż. Porady, narzędzia i konkretne przykłady.",
     "publishedAt": "2026-05-26",
     "modifiedAt": "2026-10-02",
@@ -258,7 +247,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "54",
     "slug": "optymalizacja-konwersji-listingu-allegro",
-    "title": "Optymalizacja konwersji listingu Allegro: Grafika, tytuł i cena",
+    "title": "Optymalizacja konwersji listingu Allegro: grafika i cena",
     "excerpt": "Dowiedz się, jak optymalizować grafikę, tytuł i cenę, aby zwiększyć konwersję Twoich ofert na Allegro.",
     "publishedAt": "2026-05-25",
     "modifiedAt": "2026-05-25",
@@ -269,10 +258,10 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "53",
     "slug": "psychologia-cen-a-styl-miniaturki",
-    "title": "Psychologia cen a styl miniaturki — jak wpływać na postrzeganą wartość",
+    "title": "Psychologia cen a styl miniaturki na Allegro",
     "excerpt": "Dowiedz się, jak styl miniaturki na Allegro może wpłynąć na postrzeganie ceny produktu przez klientów i zwiększyć Twoje zyski.",
     "publishedAt": "2026-05-24",
-    "modifiedAt": "2026-10-02",
+    "modifiedAt": "2026-10-11",
     "author": "AllGrafika.pl",
     "readTime": 6,
     "category": "Styl i design"
@@ -292,7 +281,7 @@ export const blogIndex: BlogPostMeta[] = [
     "id": "51",
     "slug": "porownanie-formatow-grafik-jpg-vs-webp-vs-png-allegro",
     "title": "Porównanie formatów grafik: JPG vs WebP vs PNG na Allegro",
-    "excerpt": "Dowiedz się, który format grafiki—JPG, WebP czy PNG—jest najlepszy dla Twoich miniaturek na Allegro i jakie korzyści mogą przynieść w kontekście sprzedaży online.",
+    "excerpt": "Który format grafiki – JPG, WebP czy PNG – najlepiej sprawdzi się w miniaturkach Allegro? Porównujemy jakość, wagę pliku i zastosowania każdego z nich.",
     "publishedAt": "2026-05-22",
     "modifiedAt": "2026-05-22",
     "author": "AllGrafika.pl",
@@ -302,7 +291,7 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "50",
     "slug": "miniaturki-na-urzadzenia-mobilne-allegro",
-    "title": "Miniaturki na urządzenia mobilne — jak optymalizować grafiki na Allegro",
+    "title": "Miniaturki na urządzenia mobilne – grafiki na Allegro",
     "excerpt": "Dowiedz się, jak optymalizować miniaturki Allegro na urządzenia mobilne i wyróżnić swoje produkty w wynikach wyszukiwania.",
     "publishedAt": "2026-05-21",
     "modifiedAt": "2026-10-02",
@@ -311,130 +300,13 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "E-commerce"
   },
   {
-    "id": "49",
-    "slug": "jak-zrobic-miniaturki-allegro-dla-kategorii-elektronika-i-akcesoria",
-    "title": "Jak zrobić miniaturki Allegro dla kategorii Elektronika i Akcesoria",
-    "excerpt": "Dowiedz się, jak tworzyć skuteczne miniaturki Allegro dla elektroniki i akcesoriów. Zwiększ CTR i sprzedaż dzięki profesjonalnym zdjęciom produktowym!",
-    "publishedAt": "2026-05-20",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "47",
-    "slug": "jak-stworzyc-miniaturke-dla-kategorii-akcesoria-komputerowe",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Akcesoria komputerowe",
-    "excerpt": "Dowiedz się, jak zaprojektować idealną miniaturkę Allegro dla akcesoriów komputerowych. Poznaj najlepsze style i techniki, które zwiększą Twoją sprzedaż.",
-    "publishedAt": "2026-05-19",
-    "readTime": 6,
-    "category": "E-commerce"
-  },
-  {
-    "id": "48",
-    "slug": "jak-zrobic-miniaturki-dla-tytoniu-i-akcesoriow",
-    "title": "Jak zrobić miniaturki Allegro dla kategorii Tytoń i akcesoria",
-    "excerpt": "Dowiedz się, jak stworzyć idealne miniaturki dla produktów z kategorii Tytoń i akcesoria na Allegro, aby przyciągnąć uwagę klientów i zwiększyć sprzedaż.",
-    "publishedAt": "2026-05-19",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "46",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-kategorii-ksiazki",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Książki",
-    "excerpt": "Dowiedz się, jak stworzyć idealną miniaturkę Allegro dla książek, która przyciągnie uwagę klientów i zwiększy sprzedaż Twojego sklepu.",
-    "publishedAt": "2026-05-18",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "45",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-kategorii-dziecko",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Dziecko",
-    "excerpt": "Odkryj, jak tworzyć perfekcyjne miniaturki Allegro dla kategorii Dziecko. Zwiększ sprzedaż dzięki odpowiedniej kompozycji i stylowi!",
-    "publishedAt": "2026-05-17",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "44",
-    "slug": "jak-stworzyc-miniaturke-dla-kategorii-obuwie",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Obuwie?",
-    "excerpt": "Dowiedz się, jak przygotować miniaturki Allegro dla kategorii Obuwie, które zwiększą CTR i przyciągną uwagę klientów.",
-    "publishedAt": "2026-05-16",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
     "id": "43",
     "slug": "psychologia-percepcji-wizualnej-w-e-commerce",
-    "title": "Psychologia percepcji wizualnej w e-commerce: Co przyciąga uwagę?",
+    "title": "Psychologia percepcji wizualnej w e-commerce",
     "excerpt": "Dowiedz się, jak działa psychologia percepcji wizualnej w e-commerce i jak dzięki niej tworzyć miniaturki, które przyciągają uwagę klientów.",
     "publishedAt": "2026-05-14",
     "readTime": 6,
     "category": "Styl i design"
-  },
-  {
-    "id": "42",
-    "slug": "jak-stworzyc-miniaturki-allegro-dla-kategorii-zdrowie",
-    "title": "Jak stworzyć idealne miniaturki Allegro dla kategorii Zdrowie?",
-    "excerpt": "Dowiedz się, jak stworzyć profesjonalne miniaturki Allegro dla produktów z kategorii Zdrowie, aby zwiększyć sprzedaż i przyciągnąć więcej klientów.",
-    "publishedAt": "2026-05-13",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "41",
-    "slug": "jak-stworzyc-miniaturki-allegro-dla-kategorii-komputery",
-    "title": "Jak stworzyć idealne miniaturki Allegro dla kategorii Komputery",
-    "excerpt": "Dowiedz się, jak tworzyć miniaturki Allegro dla kategorii Komputery, które zwiększą CTR i przyciągną uwagę kupujących.",
-    "publishedAt": "2026-05-12",
-    "readTime": 6,
-    "category": "E-commerce"
-  },
-  {
-    "id": "40",
-    "slug": "jak-stworzyc-miniaturki-allegro-dla-kategorii-zegarki",
-    "title": "Jak stworzyć efektowne miniaturki Allegro dla kategorii Zegarki",
-    "excerpt": "Dowiedz się, jak tworzyć miniaturki Allegro dla zegarków, które podniosą CTR i przyciągną uwagę klientów. Sprawdź najlepsze style i techniki.",
-    "publishedAt": "2026-05-11",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "39",
-    "slug": "jak-wybrac-styl-miniaturki-do-ceny-produktu",
-    "title": "Jak wybrać styl miniaturki Allegro zgodny z ceną produktu?",
-    "excerpt": "Dowiedz się, jak dopasować styl miniaturki Allegro do ceny produktu, aby przyciągnąć właściwych klientów i zwiększyć sprzedaż.",
-    "publishedAt": "2026-05-10",
-    "readTime": 6,
-    "category": "Styl i design"
-  },
-  {
-    "id": "38",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-kategorii-smartfony",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Smartfony",
-    "excerpt": "Dowiedz się, jak tworzyć idealne miniaturki Allegro dla smartfonów, by zwiększyć CTR i przyciągnąć uwagę kupujących.",
-    "publishedAt": "2026-05-09",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "37",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-kategorii-hobby",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Hobby?",
-    "excerpt": "Dowiedz się, jak tworzyć miniaturki Allegro dla kategorii Hobby, by wyróżnić swoje produkty i zwiększyć sprzedaż.",
-    "publishedAt": "2026-05-08",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "36",
-    "slug": "fotografia-produktowa-a-zwroty-i-reklamacje",
-    "title": "Jak fotografia produktowa wpływa na zwroty i reklamacje w e-commerce",
-    "excerpt": "Dowiedz się, jak profesjonalne zdjęcia produktowe mogą ograniczyć zwroty i reklamacje w Twoim sklepie na Allegro.",
-    "publishedAt": "2026-05-07",
-    "readTime": 6,
-    "category": "E-commerce"
   },
   {
     "id": "35",
@@ -446,51 +318,13 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "Poradniki"
   },
   {
-    "id": "34",
-    "slug": "jak-dobrac-styl-miniaturki-do-kategorii-produktu",
-    "title": "Jak dobrać styl miniaturki do kategorii produktu na Allegro?",
-    "excerpt": "Dowiedz się, jak dopasować styl miniaturki Allegro (np. białe tło, lifestyle, dark luxury) do kategorii produktu, aby zwiększyć sprzedaż i CTR.",
-    "publishedAt": "2026-05-05",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "33",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-kategorii-meble",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Meble?",
-    "excerpt": "Dowiedz się, jak stworzyć idealną miniaturkę Allegro dla kategorii Meble, aby zwiększyć CTR i wyróżnić swoje produkty na tle konkurencji.",
-    "publishedAt": "2026-05-04",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "32",
-    "slug": "jak-zrobic-miniaturki-allegro-dla-kategorii-bizuteria",
-    "title": "Jak zrobić miniaturki Allegro dla kategorii Biżuteria?",
-    "excerpt": "Dowiedz się, jak stworzyć profesjonalne miniaturki dla kategorii biżuteria na Allegro, które przyciągną uwagę klientów i zwiększą sprzedaż.",
-    "publishedAt": "2026-05-03",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
     "id": "31",
     "slug": "koszty-fotografii-produktowej-vs-ai-roi",
-    "title": "Koszty fotografii produktowej: Studio vs. AI — Kalkulacja ROI",
+    "title": "Koszty fotografii produktowej: studio vs AI – ROI",
     "excerpt": "Porównaj koszty tradycyjnych sesji fotograficznych ze zautomatyzowanym rozwiązaniem AI i dowiedz się, jak obliczyć ROI dla Twojego sklepu na Allegro.",
     "publishedAt": "2026-05-02",
     "readTime": 6,
     "category": "Optymalizacja"
-  },
-  {
-    "id": "30",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-kategorii-kosmetyki",
-    "title": "Opakowanie to produkt: Jak prezentować kosmetyki w miniaturkach Allegro",
-    "excerpt": "W kosmetykach miniaturka musi pokazać nie tylko produkt, ale też jego opakowanie, formułę i certyfikaty. Sprawdź, jak to zrobić skutecznie na Allegro.",
-    "publishedAt": "2026-05-01",
-    "modifiedAt": "2026-05-21",
-    "author": "AllGrafika.pl",
-    "readTime": 6,
-    "category": "Poradniki"
   },
   {
     "id": "29",
@@ -513,40 +347,13 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "Poradniki"
   },
   {
-    "id": "26",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-kategorii-agd",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii AGD",
-    "excerpt": "Dowiedz się, jak stworzyć perfekcyjną miniaturkę Allegro dla produktów AGD. Zwiększ sprzedaż dzięki zoptymalizowanym zdjęciom generowanym przez AI.",
-    "publishedAt": "2026-04-27",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
     "id": "25",
     "slug": "wplyw-jakosci-zdjec-na-pozycje-wynikach-allegro",
-    "title": "Wpływ jakości zdjęć na pozycję w wynikach wyszukiwania Allegro",
+    "title": "Wpływ jakości zdjęć na pozycję w wynikach Allegro",
     "excerpt": "Dowiedz się, jak jakość zdjęć produktów wpływa na pozycję Twoich ofert w wynikach wyszukiwania Allegro i jak zoptymalizować miniaturki.",
     "publishedAt": "2026-04-26",
     "readTime": 6,
     "category": "Optymalizacja"
-  },
-  {
-    "id": "24",
-    "slug": "jak-zrobic-miniaturki-allegro-dla-kategorii-zabawki",
-    "title": "Jak zrobić idealne miniaturki Allegro dla kategorii Zabawki",
-    "excerpt": "Dowiedz się, jak stworzyć idealne miniaturki Allegro dla kategorii Zabawki, które przyciągną uwagę klientów i pomogą zwiększyć sprzedaż.",
-    "publishedAt": "2026-04-25",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "23",
-    "slug": "jak-poprawic-miniaturki-na-allegro-i-zwiekszyc-sprzedaz",
-    "title": "Jak poprawić miniaturki na Allegro i zwiększyć sprzedaż?",
-    "excerpt": "Dowiedz się, jak ulepszyć miniaturki Allegro, by przyciągnąć więcej klientów i zwiększyć sprzedaż. Sprawdź praktyczne porady i inspirujące wskazówki!",
-    "publishedAt": "2026-04-24",
-    "readTime": 6,
-    "category": "E-commerce"
   },
   {
     "id": "22",
@@ -554,13 +361,14 @@ export const blogIndex: BlogPostMeta[] = [
     "title": "Jak zmniejszyć zwroty dzięki lepszym miniaturkom Allegro?",
     "excerpt": "Zmniejsz liczbę zwrotów na Allegro dzięki profesjonalnym miniaturkom, które precyzyjnie prezentują produkt i przyciągają uwagę klientów.",
     "publishedAt": "2026-04-23",
+    "modifiedAt": "2026-10-11",
     "readTime": 6,
     "category": "E-commerce"
   },
   {
     "id": "21",
     "slug": "seo-zdjec-produktowych-na-allegro",
-    "title": "SEO zdjęć produktowych na Allegro: Optymalizacja krok po kroku",
+    "title": "SEO zdjęć produktowych na Allegro krok po kroku",
     "excerpt": "Dowiedz się, jak optymalizować zdjęcia produktowe na Allegro: nazwy plików, alt text i metadane, aby zwiększyć widoczność w wynikach wyszukiwania.",
     "publishedAt": "2026-04-22",
     "readTime": 6,
@@ -569,25 +377,16 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "20",
     "slug": "batch-processing-zdjecia-produktowe-szybko-i-latwo",
-    "title": "Batch Processing zdjęć produktowych: szybko i łatwo dla Allegro",
+    "title": "Batch processing zdjęć produktowych na Allegro",
     "excerpt": "Dowiedz się, jak wykorzystać batch processing do masowego generowania miniaturek Allegro i zaoszczędzić czas przy dużych katalogach produktów.",
     "publishedAt": "2026-04-21",
     "readTime": 6,
     "category": "Technologia"
   },
   {
-    "id": "19",
-    "slug": "jak-zrobic-miniaturki-allegro-dla-kategorii-sport",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Sport",
-    "excerpt": "Dowiedz się, jak stworzyć atrakcyjne miniaturki Allegro dla produktów sportowych, które przyciągną uwagę i zwiększą sprzedaż.",
-    "publishedAt": "2026-04-20",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
     "id": "18",
     "slug": "biale-tlo-vs-lifestyle-dobor-stylu-miniatury-allegro",
-    "title": "Białe tło vs. Lifestyle: Jak dobrać styl miniaturki na Allegro?",
+    "title": "Białe tło vs lifestyle: jaki styl miniaturki na Allegro?",
     "excerpt": "Dowiedz się, kiedy wybrać białe tło, a kiedy postawić na styl lifestyle, by stworzyć idealną miniaturkę Allegro i zwiększyć sprzedaż.",
     "publishedAt": "2026-04-19",
     "readTime": 6,
@@ -596,8 +395,8 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "17",
     "slug": "flat-lay-jak-tworzyc-estetyczne-uklady-produktow",
-    "title": "Flat Lay: Jak tworzyć estetyczne układy produktów krok po kroku",
-    "excerpt": "Dowiedz się, jak tworzyć profesjonalne układy flat lay dla zdjęć produktowych. Zwiększ atrakcyjność ofert na Allegro dzięki estetycznym i przyciągającym uwagę kompozycjom.",
+    "title": "Flat lay: jak tworzyć estetyczne układy produktów",
+    "excerpt": "Dowiedz się, jak tworzyć estetyczne układy flat lay dla zdjęć produktowych i zwiększ atrakcyjność swoich ofert na Allegro dzięki przemyślanej kompozycji.",
     "publishedAt": "2026-04-18",
     "readTime": 6,
     "category": "Styl i design"
@@ -612,18 +411,9 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "Technologia"
   },
   {
-    "id": "15",
-    "slug": "jak-stworzyc-miniaturke-allegro-dla-motoryzacji",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Motoryzacja",
-    "excerpt": "Dowiedz się, jak stworzyć miniaturki Allegro dla kategorii Motoryzacja, które zwiększą CTR i wyróżnią Twoje produkty w wynikach wyszukiwania.",
-    "publishedAt": "2026-04-16",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
     "id": "14",
     "slug": "mobile-photography-dla-sprzedawcow-allegro",
-    "title": "Mobile Photography dla sprzedawców Allegro: Jak robić profesjonalne zdjęcia",
+    "title": "Mobile photography dla Allegro: zdjęcia produktów telefonem",
     "excerpt": "Dowiedz się, jak robić profesjonalne zdjęcia produktów na Allegro za pomocą smartfona. Praktyczne porady dla sprzedawców.",
     "publishedAt": "2026-04-15",
     "readTime": 6,
@@ -632,10 +422,11 @@ export const blogIndex: BlogPostMeta[] = [
   {
     "id": "13",
     "slug": "jak-zwiekszyc-ctr-ab-testowanie-miniaturek",
-    "title": "Jak zwiększyć CTR na Allegro dzięki A/B testowaniu miniaturek",
-    "excerpt": "Dowiedz się, jak przeprowadzać A/B testy miniaturek, by zwiększyć CTR i sprzedaż na Allegro. Sprawdź najlepsze praktyki i wskazówki!",
+    "title": "Jak zwiększyć CTR na Allegro – miniaturki i testy A/B",
+    "excerpt": "Jak zwiększyć CTR na Allegro dzięki miniaturkom: co w zdjęciu wpływa na kliknięcia, jak zrobić prosty test A/B i jak czytać wyniki w statystykach.",
     "publishedAt": "2026-04-14",
-    "readTime": 6,
+    "modifiedAt": "2026-10-11",
+    "readTime": 7,
     "category": "E-commerce"
   },
   {
@@ -648,65 +439,9 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "E-commerce"
   },
   {
-    "id": "11",
-    "slug": "jak-stworzyc-miniaturke-allegro-dom-i-ogrod",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Dom i Ogród",
-    "excerpt": "Dowiedz się, jak tworzyć miniaturki Allegro dla kategorii Dom i Ogród, które zwiększają sprzedaż i przyciągają uwagę klientów.",
-    "publishedAt": "2026-04-12",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "9",
-    "slug": "jak-stworzyc-miniaturke-allegro-odziez",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Odzież",
-    "excerpt": "Dowiedz się, jak tworzyć miniaturki Allegro dla odzieży, które przyciągają wzrok i zwiększają sprzedaż. Poznaj najlepsze style i praktyki!",
-    "publishedAt": "2026-04-10",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "8",
-    "slug": "wymagania-techniczne-allegro-zdjecia-2025-2026",
-    "title": "Wymagania techniczne Allegro dla zdjęć produktowych 2025/2026",
-    "excerpt": "Dowiedz się, jakie wymagania techniczne muszą spełniać zdjęcia produktowe na Allegro w 2025/2026 — rozmiar, format i tło zgodne z wytycznymi.",
-    "publishedAt": "2026-04-10",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "5",
-    "slug": "idealna-miniaturka-allegro-elektronika",
-    "title": "Sygnały zaufania w miniaturkach Allegro dla kategorii Elektronika",
-    "excerpt": "Kupujący elektronikę online oceniają wiarygodność oferty w 2 sekundy. Dowiedz się, jakie elementy wizualne budują zaufanie i zwiększają konwersję w tej kategorii.",
-    "publishedAt": "2026-04-09",
-    "modifiedAt": "2026-05-21",
-    "author": "AllGrafika.pl",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "7",
-    "slug": "jak-stworzyc-miniaturke-allegro-uroda",
-    "title": "Jak stworzyć idealną miniaturkę Allegro dla kategorii Uroda",
-    "excerpt": "Dowiedz się, jak tworzyć profesjonalne miniaturki na Allegro dla kategorii Uroda, które zwiększą sprzedaż Twoich kosmetyków i przyciągną uwagę klientów.",
-    "publishedAt": "2026-04-09",
-    "readTime": 6,
-    "category": "Poradniki"
-  },
-  {
-    "id": "6",
-    "slug": "jak-zwiekszyc-ctr-na-allegro-miniaturki",
-    "title": "Jak zwiększyć CTR na Allegro dzięki lepszym miniaturkom?",
-    "excerpt": "Dowiedz się, jak tworzyć miniaturki na Allegro, które przyciągają uwagę klientów i zwiększają współczynnik klikalności Twoich ofert.",
-    "publishedAt": "2026-04-09",
-    "readTime": 6,
-    "category": "Optymalizacja"
-  },
-  {
     "id": "2",
     "slug": "najlepsze-style-grafik-allegro",
-    "title": "Przewodnik po 6 stylach grafik Allegro — kiedy użyć każdego z nich",
+    "title": "Najlepsze style grafik Allegro – kiedy użyć każdego z nich",
     "excerpt": "Białe tło, lifestyle, dark luxury, minimalizm, flat lay czy studio? Dowiedz się, czym różnią się style grafik na Allegro i który wybrać dla swojego produktu.",
     "publishedAt": "2026-01-22",
     "modifiedAt": "2026-10-02",

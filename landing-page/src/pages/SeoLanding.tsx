@@ -8,6 +8,7 @@ import { blogIndex } from '../data/blogIndex'
 import { samplePairs } from '../data/samples'
 import type { SeoPage } from '../data/seoPages'
 import { track } from '../services/analytics'
+import { pageTitle } from '../utils/pageTitle'
 
 const SITE_URL = 'https://allgrafika.pl'
 const APP_URL = 'https://app.allgrafika.pl'
@@ -16,7 +17,7 @@ const OG_IMAGE = `${SITE_URL}/og-image.png`
 /** Landing page for one tool-intent query (spec 10, AC-SEO-007). Content lives in src/data/seoPages.ts. */
 export default function SeoLanding({ page }: { page: SeoPage }) {
   const url = `${SITE_URL}${page.path}`
-  const title = `${page.title} | AllGrafika.pl`
+  const title = pageTitle(page.title)
   const related = page.related.map((slug) => blogIndex.find((p) => p.slug === slug)).filter((p) => p !== undefined)
 
   const structuredData = [

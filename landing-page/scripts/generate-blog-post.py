@@ -221,7 +221,7 @@ KEYWORD_PROMPT = (
 )
 SEO_RULES = (
     "\n\nZASADY POD RUCH Z GOOGLE (obowiązkowe):\n"
-    "- title: 40-58 znaków (do tytułu doklejamy ' | AllGrafika.pl'), fraza główna na początku, konkret "
+    "- title: 40-58 znaków (dopisek ' | AllGrafika.pl' doklejamy tylko, gdy całość mieści się w 60 znakach), fraza główna na początku, konkret "
     "(liczba, rok 2026 albo korzyść), bez clickbaitu.\n"
     "- excerpt: 120-155 znaków – to meta description: fraza główna + korzyść + zachęta.\n"
     "- Pierwsze 2 zdania pod pierwszym H2 odpowiadają wprost na zapytanie (pod featured snippet).\n"

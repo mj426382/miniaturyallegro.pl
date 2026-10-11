@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '91',
   slug: 'psychologia-kolorow-miniaturek-allegro-jak-wplywaja-na-sprzedaz',
-  title: 'Psychologia kolorów w miniaturkach Allegro: Jak wpływają na sprzedaż?',
+  title: 'Psychologia kolorów w miniaturkach Allegro',
   excerpt: 'Dowiedz się, jak kolory miniaturek produktowych wpływają na decyzje zakupowe klientów na Allegro i jak wykorzystać tę wiedzę do zwiększenia sprzedaży.',
   content: `
 ## Czy kolor miniaturki może zwiększyć Twoją sprzedaż?

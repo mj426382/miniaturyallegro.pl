@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '55',
   slug: 'jak-testowac-miniaturki-bez-duzego-budzetu',
-  title: 'Jak testować efektywność miniaturek Allegro bez dużego budżetu',
+  title: 'Jak testować miniaturki Allegro bez dużego budżetu',
   excerpt: 'Sprawdź, jak testować skuteczność miniaturek Allegro niskim kosztem, zwiększając CTR i sprzedaż. Porady, narzędzia i konkretne przykłady.',
   content: `
 ## Dlaczego nawet drobne zmiany w miniaturkach potrafią wyraźnie zmienić CTR?

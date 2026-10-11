@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '54',
   slug: 'optymalizacja-konwersji-listingu-allegro',
-  title: 'Optymalizacja konwersji listingu Allegro: Grafika, tytuł i cena',
+  title: 'Optymalizacja konwersji listingu Allegro: grafika i cena',
   excerpt: 'Dowiedz się, jak optymalizować grafikę, tytuł i cenę, aby zwiększyć konwersję Twoich ofert na Allegro.',
   content: `
 ## 72% użytkowników Allegro kupuje oczami: Co decyduje o Twojej konwersji?

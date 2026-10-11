@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '98',
   slug: 'jak-wykorzystac-ai-do-miniaturek-allegro',
-  title: 'Jak Wykorzystać AI do Tworzenia Skutecznych Miniaturek na Allegro',
+  title: 'Jak wykorzystać AI do tworzenia miniaturek na Allegro',
   excerpt: 'Dowiedz się, jak AI pomaga tworzyć miniaturki Allegro, które zwiększają CTR i konwersje, oszczędzając czas i pieniądze sprzedawców.',
   content: `
 ## Jak AI zmienia miniaturki na Allegro?

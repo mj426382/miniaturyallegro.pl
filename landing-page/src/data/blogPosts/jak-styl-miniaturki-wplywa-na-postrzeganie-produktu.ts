@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '66',
   slug: 'jak-styl-miniaturki-wplywa-na-postrzeganie-produktu',
-  title: 'Jak styl miniaturki wpływa na postrzeganie produktu na Allegro?',
+  title: 'Jak styl miniaturki wpływa na postrzeganie produktu?',
   excerpt: 'Dowiedz się, jak różne style miniaturek na Allegro wpływają na postrzeganą wartość Twoich produktów. Wybierz najlepszy styl i zwiększ sprzedaż.',
   content: `
 ## Czy miniaturka może wpłynąć na to, ile kupujący zapłaci?

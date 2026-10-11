@@ -26,7 +26,7 @@ Każdy styl miniaturki może wywoływać inne skojarzenia i wpływać na decyzje
 - **Ekskluzywność:** Idealne dla marek premium, takich jak biżuteria, luksusowe zegarki czy perfumy.
 - **Luksus:** Ciemne tło z dramatycznym oświetleniem kojarzy się z ekskluzywnością.
 
-[Przeczytaj więcej o tym, jak dobrać styl miniaturki do kategorii produktu](https://allgrafika.pl/blog/jak-dobrac-styl-miniaturki-do-kategorii-produktu)
+[Przeczytaj więcej o tym, jak dobrać styl miniaturki do kategorii produktu](https://allgrafika.pl/blog/miniaturki-allegro-dla-kategorii-poradnik)
 
 ## Studium przypadku: Zegarek na białym kontra ciemnym tle
 

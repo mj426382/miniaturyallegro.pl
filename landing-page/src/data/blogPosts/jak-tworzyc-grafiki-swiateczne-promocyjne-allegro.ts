@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '62',
   slug: 'jak-tworzyc-grafiki-swiateczne-promocyjne-allegro',
-  title: 'Jak tworzyć grafiki świąteczne i promocyjne do ofert Allegro?',
+  title: 'Jak tworzyć grafiki świąteczne i promocyjne na Allegro?',
   excerpt: 'Zwiększ sprzedaż na Allegro dzięki skutecznym grafikom świątecznym i promocyjnym. Sprawdź, jakie style i narzędzia wykorzystać, by przyciągnąć uwagę klientów.',
   content: `
 ## Dlaczego świąteczne grafiki zwiększają sprzedaż?

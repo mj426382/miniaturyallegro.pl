@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '72',
   slug: 'jak-miniaturki-na-allegro-wplywaja-na-postrzeganie-marki',
-  title: 'Jak miniaturki na Allegro wpływają na postrzeganie Twojej marki?',
+  title: 'Jak miniaturki na Allegro wpływają na postrzeganie marki?',
   excerpt: 'Dowiedz się, jak dobrze zaprojektowane miniaturki na Allegro mogą budować pozytywny wizerunek Twojej marki i zwiększyć sprzedaż.',
   content: `
 ## Twoja miniaturka to Twoja wizytówka

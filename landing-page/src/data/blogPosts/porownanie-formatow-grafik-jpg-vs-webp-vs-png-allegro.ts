@@ -4,7 +4,7 @@ const post: BlogPostData = {
   id: '51',
   slug: 'porownanie-formatow-grafik-jpg-vs-webp-vs-png-allegro',
   title: 'Porównanie formatów grafik: JPG vs WebP vs PNG na Allegro',
-  excerpt: 'Dowiedz się, który format grafiki—JPG, WebP czy PNG—jest najlepszy dla Twoich miniaturek na Allegro i jakie korzyści mogą przynieść w kontekście sprzedaży online.',
+  excerpt: 'Który format grafiki – JPG, WebP czy PNG – najlepiej sprawdzi się w miniaturkach Allegro? Porównujemy jakość, wagę pliku i zastosowania każdego z nich.',
   content: `
 ## 80% kupujących na Allegro wybiera ofertę na podstawie miniaturki
 

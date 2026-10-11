@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '50',
   slug: 'miniaturki-na-urzadzenia-mobilne-allegro',
-  title: 'Miniaturki na urządzenia mobilne — jak optymalizować grafiki na Allegro',
+  title: 'Miniaturki na urządzenia mobilne – grafiki na Allegro',
   excerpt: 'Dowiedz się, jak optymalizować miniaturki Allegro na urządzenia mobilne i wyróżnić swoje produkty w wynikach wyszukiwania.',
   content: `
 ## 70% użytkowników Allegro przegląda oferty na smartfonach

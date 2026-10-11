@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '63',
   slug: 'porownanie-platform-e-commerce-wymagania-graficzne',
-  title: 'Porównanie wymagań graficznych: Allegro vs Shopify vs WooCommerce',
+  title: 'Wymagania graficzne: Allegro vs Shopify vs WooCommerce',
   excerpt: 'Dowiedz się, jak różnią się wymagania dotyczące grafik na Allegro, Shopify i WooCommerce. Która platforma jest najbardziej wymagająca?',
   content: `
 ## Czy Allegro naprawdę wymaga więcej niż Shopify czy WooCommerce?

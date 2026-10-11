@@ -87,7 +87,7 @@ export const seoPages: SeoPage[] = [
         a: 'Tak – na tej stronie wygenerujesz jedną grafikę za darmo bez rejestracji. Wynik zobaczysz w przeglądarce i dostaniesz e-mailem.',
       },
     ],
-    related: ['jak-wykorzystac-ai-do-miniaturek-allegro', 'jak-przygotowac-zdjecie-wejsciowe-do-ai-miniaturek-allegro', 'wymagania-techniczne-allegro-zdjecia-2025-2026'],
+    related: ['jak-wykorzystac-ai-do-miniaturek-allegro', 'jak-przygotowac-zdjecie-wejsciowe-do-ai-miniaturek-allegro', 'wymiary-zdjec-allegro-rozmiary-piksele-waga-bledy'],
   },
   {
     path: '/biale-tlo-zdjecie-produktu',
