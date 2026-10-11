@@ -25,6 +25,17 @@ export const blogIndex: BlogPostMeta[] = [
     "category": "Poradniki"
   },
   {
+    "id": "104",
+    "slug": "zdjecie-glowne-allegro-wymagania-co-musi-byc-czego-nie-moze",
+    "title": "Zdjęcie główne Allegro – wymagania 2026 krok po kroku",
+    "excerpt": "Zdjęcie główne Allegro – wymagania, najważniejsze zasady i pułapki. Sprawdź, jak przygotować pierwszą grafikę oferty, by nie narazić się na błędy.",
+    "publishedAt": "2026-10-11",
+    "modifiedAt": "2026-10-11",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Poradniki"
+  },
+  {
     "id": "102",
     "slug": "jak-usunac-tlo-ze-zdjecia-produktu",
     "title": "Jak usunąć tło ze zdjęcia produktu poradnik darmowe i AI",
