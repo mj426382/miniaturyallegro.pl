@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "105",
+    "slug": "zasady-zdjec-na-allegro",
+    "title": "Zasady zdjęć na Allegro regulamin blokady i praktyczna",
+    "excerpt": "Zasady zdjęć na Allegro: wymagania regulaminu, najczęstsze powody blokad i praktyczna checklista. Sprawdź, zanim opublikujesz ofertę!",
+    "publishedAt": "2026-10-12",
+    "modifiedAt": "2026-10-12",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Optymalizacja"
+  },
+  {
     "id": "103",
     "slug": "miniaturki-allegro-dla-kategorii-poradnik",
     "title": "Miniaturki Allegro dla kategorii: poradnik",
