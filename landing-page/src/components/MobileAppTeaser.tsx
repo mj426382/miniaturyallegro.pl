@@ -1,3 +1,5 @@
+import { trackCta } from '../services/analytics'
+
 const APP_URL = 'https://app.allgrafika.pl'
 
 /**
@@ -24,7 +26,11 @@ export default function MobileAppTeaser() {
               telefonie bez instalacji.
             </p>
           </div>
-          <a href={`${APP_URL}/register`} className="inline-block text-center bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-700 whitespace-nowrap self-start md:self-auto">
+          <a
+            href={`${APP_URL}/register`}
+            onClick={() => trackCta('mobile_teaser', 'register')}
+            className="inline-block text-center bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-700 whitespace-nowrap self-start md:self-auto"
+          >
             Używaj już teraz w przeglądarce
           </a>
         </div>

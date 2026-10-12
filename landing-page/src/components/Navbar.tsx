@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { trackCta } from '../services/analytics'
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -30,7 +31,11 @@ export default function Navbar() {
             <a href="https://app.allgrafika.pl/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
               Zaloguj się
             </a>
-            <a href="https://app.allgrafika.pl/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+            <a
+              href="https://app.allgrafika.pl/register"
+              onClick={() => trackCta('navbar', 'register')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
               Wypróbuj za darmo
             </a>
           </div>
@@ -64,7 +69,11 @@ export default function Navbar() {
             <a href="https://app.allgrafika.pl/login" className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2">
               Zaloguj się
             </a>
-            <a href="https://app.allgrafika.pl/register" className="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors text-center mt-1">
+            <a
+              href="https://app.allgrafika.pl/register"
+              onClick={() => trackCta('navbar_mobile', 'register')}
+              className="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors text-center mt-1"
+            >
               Wypróbuj za darmo
             </a>
           </div>

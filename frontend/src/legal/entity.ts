@@ -18,6 +18,8 @@ export const LEGAL_DATES = {
   /** Data wejścia w życie bieżącej wersji dokumentów */
   effective: '9 października 2026 r.',
   effectiveIso: '2026-10-09',
+  /** Spec 22: polityka prywatności uzupełniona o Google Analytics 4 (zmiana wymaga zgody, więc obowiązuje od publikacji). */
+  privacyUpdated: '12 października 2026 r.',
 }
 
 export const PRICING = {
@@ -79,6 +81,12 @@ export const PROCESSORS = [
     role: 'pomiar skuteczności reklam (konwersje: rejestracja, zakup) – wyłącznie po zgodzie na pliki cookies reklamowe',
     location: 'Irlandia / USA – transfer na podstawie EU-U.S. Data Privacy Framework',
     url: 'https://policies.google.com/technologies/ads',
+  },
+  {
+    name: 'Google Ireland Limited / Google LLC (Google Analytics 4)',
+    role: 'statystyki odwiedzin i skuteczności stron oraz kampanii (w tym zakupów) – wyłącznie po zgodzie na pliki cookies analityczne',
+    location: 'Irlandia / USA – transfer na podstawie EU-U.S. Data Privacy Framework',
+    url: 'https://policies.google.com/privacy',
   },
   {
     name: 'Plausible Insights OÜ (Estonia) lub własna instancja Umami',

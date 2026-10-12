@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { track } from '../services/analytics'
+import { track, trackCta } from '../services/analytics'
+import { trackEvent } from '../consent/googleTag'
 import { downloadBlob } from '../utils/download'
 import { HttpError, getBlob, getJson, postForm } from '../services/http'
 
@@ -121,6 +122,8 @@ export default function DemoWidget() {
     if (honeypot) form.append('website', honeypot)
     try {
       const data = await postForm<{ id: string }>(`${API_URL}/demo`, form)
+      // Spec 22: the only lead form on the landing page – GA4 'generate_lead', never with the e-mail.
+      trackEvent('generate_lead', { lead_source: 'demo' })
       setPhase('processing')
       pollsRef.current = 0
       poll(data.id)
@@ -250,7 +253,14 @@ export default function DemoWidget() {
                 >
                   {isDownloading ? 'Pobieram...' : 'Pobierz'}
                 </button>
-                <a href={`${APP_URL}/register`} onClick={() => track('demo_register_click')} className="inline-block bg-yellow-400 text-gray-900 font-bold px-6 py-3 rounded-xl hover:bg-yellow-300">
+                <a
+                  href={`${APP_URL}/register`}
+                  onClick={() => {
+                    track('demo_register_click')
+                    trackCta('demo_result', 'register')
+                  }}
+                  className="inline-block bg-yellow-400 text-gray-900 font-bold px-6 py-3 rounded-xl hover:bg-yellow-300"
+                >
                   Załóż konto – 5 grafik gratis →
                 </a>
                 <p className="text-xs text-gray-400 mt-3">W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny i opublikujesz grafiki prosto do oferty Allegro.</p>

@@ -1,5 +1,6 @@
 import { paymentsApi } from '../services/api'
 import { isNativeApp, openInSystemBrowser, webUrl } from '../platform/native'
+import { trackAdsConversion, trackEvent } from '../consent/googleTag'
 
 const LAST_PACKAGE_KEY = 'allgrafika:last-package'
 const CHECKOUT_VALUE_KEY = 'allgrafika:checkout-value'
@@ -21,25 +22,62 @@ export function rememberCheckoutPackage(packageId: string) {
   }
 }
 
-/** Spec 21, AC-ADS-005: the price (grosze) of the checkout in progress – the Google Ads purchase value. */
-export function rememberCheckoutValue(priceGrosze: number | undefined) {
+/** The checkout in progress: price, package/plan id and a random transaction id (no personal data). */
+export interface PendingCheckout {
+  grosze: number
+  itemId?: string
+  transactionId?: string
+}
+
+function newTransactionId(): string {
+  const random = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+  return `ag-${random}`
+}
+
+function ecommerce(checkout: PendingCheckout) {
+  const value = checkout.grosze / 100
+  return { currency: 'PLN', value, items: checkout.itemId ? [{ item_id: checkout.itemId, price: value, quantity: 1 }] : [] }
+}
+
+/**
+ * Spec 21 + 22: remembers the checkout about to open (Google Ads purchase value, GA4 transaction id)
+ * and reports GA4 'begin_checkout'. Called right before the redirect to Stripe.
+ */
+export function beginCheckout(itemId: string, priceGrosze: number | undefined) {
+  const checkout: PendingCheckout | null = priceGrosze ? { grosze: priceGrosze, itemId, transactionId: newTransactionId() } : null
   try {
-    if (priceGrosze) sessionStorage.setItem(CHECKOUT_VALUE_KEY, String(priceGrosze))
+    if (checkout) sessionStorage.setItem(CHECKOUT_VALUE_KEY, JSON.stringify(checkout))
     else sessionStorage.removeItem(CHECKOUT_VALUE_KEY)
   } catch {
-    // storage unavailable – the conversion is reported without a value
+    // storage unavailable – the purchase is reported to Google Ads without a value and not to GA4
+  }
+  if (checkout) trackEvent('begin_checkout', ecommerce(checkout))
+}
+
+/** Reads and forgets the remembered checkout, so a second visit to the success page reports nothing new. */
+export function takeCheckout(): PendingCheckout | null {
+  try {
+    const raw = sessionStorage.getItem(CHECKOUT_VALUE_KEY)
+    sessionStorage.removeItem(CHECKOUT_VALUE_KEY)
+    const parsed: unknown = raw ? JSON.parse(raw) : null
+    // Before spec 22 only the price in grosze was stored.
+    if (typeof parsed === 'number') return parsed > 0 ? { grosze: parsed } : null
+    if (parsed && typeof parsed === 'object' && Number((parsed as PendingCheckout).grosze) > 0) return parsed as PendingCheckout
+    return null
+  } catch {
+    return null
   }
 }
 
-/** Reads and forgets the remembered value in PLN, so a second visit to the success page reports nothing new. */
-export function takeCheckoutValuePln(): number | undefined {
-  try {
-    const grosze = Number(sessionStorage.getItem(CHECKOUT_VALUE_KEY))
-    sessionStorage.removeItem(CHECKOUT_VALUE_KEY)
-    return grosze > 0 ? grosze / 100 : undefined
-  } catch {
-    return undefined
-  }
+/**
+ * After the return from a successful payment: the Google Ads conversion „Zakup” (spec 21) and the GA4
+ * 'purchase' (spec 22) – each only with its own consent. GA4 needs the transaction id (deduplication),
+ * so without a remembered checkout only Google Ads is told, as before.
+ */
+export function reportPurchase() {
+  const checkout = takeCheckout()
+  trackAdsConversion('purchase', checkout ? checkout.grosze / 100 : undefined)
+  if (checkout?.transactionId) trackEvent('purchase', { transaction_id: checkout.transactionId, ...ecommerce(checkout) })
 }
 
 /**
@@ -55,7 +93,7 @@ export async function startPackageCheckout(packageId: string, priceGrosze?: numb
   const { data } = await paymentsApi.createCheckout(packageId, true)
   if (!data.url) throw new Error('Nie udało się utworzyć sesji płatności')
   rememberCheckoutPackage(packageId)
-  rememberCheckoutValue(priceGrosze)
+  beginCheckout(packageId, priceGrosze)
   window.location.href = data.url
   return true
 }

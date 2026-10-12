@@ -20,6 +20,8 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
     baseURL: `http://localhost:${FRONTEND_PORT}`,
+    // Spec 22: GA4 is on by default, so the cookie banner exists; tests start with everything refused so it never covers the app.
+    storageState: { cookies: [{ name: 'ag_consent', value: 'ads=0&analytics=0&v=2', domain: 'localhost', path: '/', expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' }], origins: [] },
     trace: 'retain-on-failure',
   },
   webServer: [

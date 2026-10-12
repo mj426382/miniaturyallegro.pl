@@ -1,6 +1,6 @@
 import { test, expect, Page, Request } from '@playwright/test'
 
-/** Spec 21: cookie consent for Google Ads on the landing page (the build uses the test ID AW-TEST). */
+/** Spec 21: cookie consent for Google Ads on the landing page (the build uses the test IDs AW-TEST and G-TEST, spec 22). */
 test.use({ storageState: { cookies: [], origins: [] } })
 
 const GOOGLE = /googletagmanager\.com|googleadservices\.com|doubleclick\.net|google-analytics\.com/
@@ -42,7 +42,7 @@ test('[AC-ADS-002] refusing hides the banner for good and Google is never loaded
   await page.goto('/')
   await page.getByRole('button', { name: 'Odrzucam' }).click()
   await expect(page.getByRole('region', { name: 'Zgoda na pliki cookies' })).toHaveCount(0)
-  expect(await consentCookie(page)).toBe('ads=0')
+  expect(await consentCookie(page)).toBe('ads=0&analytics=0&v=2')
 
   await page.reload()
   await page.waitForLoadState('networkidle')
@@ -54,12 +54,13 @@ test('[AC-ADS-003] accepting loads gtag with Consent Mode v2 (default denied, th
   const google = await recordGoogle(page)
   await page.goto('/')
   await page.getByRole('button', { name: 'Akceptuję' }).click()
-  expect(await consentCookie(page)).toBe('ads=1')
+  expect(await consentCookie(page)).toBe('ads=1&analytics=1&v=2')
   await expect.poll(() => google.some((u) => u.includes('googletagmanager.com/gtag/js?id=AW-TEST'))).toBe(true)
 
   const consent = await page.evaluate(() => (((window as any).dataLayer as unknown[]) ?? []).map((e) => Array.from(e as ArrayLike<unknown>)).filter((e) => e[0] === 'consent'))
   expect(consent[0]).toEqual(['consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' }])
-  expect(consent[1]).toEqual(['consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'denied' }])
+  // „Akceptuję” grants every category; analytics-only and ads-only choices are in google-analytics.spec.ts.
+  expect(consent[1]).toEqual(['consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' }])
 
   // The decision is remembered: the next page loads the tag without asking again.
   await page.goto('/blog')
@@ -74,7 +75,7 @@ test('[AC-ADS-004] "Ustawienia cookies" in the footer lets the visitor withdraw 
 
   await page.locator('footer').getByRole('button', { name: 'Ustawienia cookies' }).click()
   await page.getByRole('region', { name: 'Zgoda na pliki cookies' }).getByRole('button', { name: 'Odrzucam' }).click()
-  expect(await consentCookie(page)).toBe('ads=0')
+  expect(await consentCookie(page)).toBe('ads=0&analytics=0&v=2')
   expect((await page.context().cookies()).some((c) => c.name.startsWith('_gcl_'))).toBe(false)
   const last = await page.evaluate(() => Array.from((((window as any).dataLayer as unknown[]) ?? []).slice(-1)[0] as ArrayLike<unknown>))
   expect(last).toEqual(['consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' }])

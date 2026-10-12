@@ -7,7 +7,7 @@ import DemoWidget from '../components/DemoWidget'
 import MobileAppTeaser from '../components/MobileAppTeaser'
 import { blogIndex } from '../data/blogIndex'
 import { samplePairs } from '../data/samples'
-import { track } from '../services/analytics'
+import { track, trackCta } from '../services/analytics'
 
 const SITE_URL = 'https://allgrafika.pl'
 const APP_URL = 'https://app.allgrafika.pl'
@@ -209,12 +209,22 @@ export default function Home() {
               regułami integralności. Bez fotografa, bez grafika, bez czekania.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#demo" onClick={() => track('hero_demo_click')} className="bg-yellow-400 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors">
+              <a
+                href="#demo"
+                onClick={() => {
+                  track('hero_demo_click')
+                  trackCta('hero', 'demo')
+                }}
+                className="bg-yellow-400 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
+              >
                 Sprawdź na swoim produkcie →
               </a>
               <a
                 href={`${APP_URL}/register`}
-                onClick={() => track('hero_register_click')}
+                onClick={() => {
+                  track('hero_register_click')
+                  trackCta('hero', 'register')
+                }}
                 className="bg-white/10 text-white font-medium px-8 py-4 rounded-xl text-lg hover:bg-white/20 transition-colors border border-white/20"
               >
                 Załóż konto – 5 grafik gratis
@@ -340,6 +350,7 @@ export default function Home() {
                   <p className={`text-sm mb-6 ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>{plan.desc}</p>
                   <a
                     href={`${APP_URL}/credits`}
+                    onClick={() => trackCta('pricing_plan', 'credits')}
                     className={`block text-center py-3 px-6 rounded-xl font-semibold transition-colors ${plan.highlighted ? 'bg-white text-blue-600 hover:bg-blue-50' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                   >
                     Wybierz plan {plan.name}
@@ -362,7 +373,11 @@ export default function Home() {
                     <span className="text-sm ml-2 text-gray-500">za {pkg.credits} kredytów</span>
                   </p>
                   <p className="text-xs text-gray-400 mt-1 mb-5">{pkg.perCredit} · ceny brutto</p>
-                  <a href={`${APP_URL}/credits`} className="mt-auto block text-center py-2.5 px-6 rounded-xl font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors">
+                  <a
+                    href={`${APP_URL}/credits`}
+                    onClick={() => trackCta('pricing_package', 'credits')}
+                    className="mt-auto block text-center py-2.5 px-6 rounded-xl font-semibold bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
+                  >
                     Kup {pkg.credits} kredytów
                   </a>
                 </div>
@@ -425,7 +440,10 @@ export default function Home() {
             <p className="text-blue-100 text-lg mb-8">Sprawdź na jednym produkcie bez konta albo załóż darmowe konto i wygeneruj 5 grafik bez podawania karty.</p>
             <a
               href={`${APP_URL}/register`}
-              onClick={() => track('cta_register_click')}
+              onClick={() => {
+                track('cta_register_click')
+                trackCta('final_cta', 'register')
+              }}
               className="inline-block bg-yellow-400 text-gray-900 font-bold px-10 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
             >
               Rejestracja za darmo – 5 grafik gratis →

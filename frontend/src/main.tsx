@@ -4,12 +4,12 @@ import AppToaster from './components/AppToaster'
 import App from './App.tsx'
 import './index.css'
 import { initAnalytics } from './services/analytics'
-import { initGoogleAds } from './consent/googleAds'
+import { initGoogleTag } from './consent/googleTag'
 import { initErrorReporting } from './services/errorReporting'
 
 initErrorReporting()
 initAnalytics()
-initGoogleAds()
+initGoogleTag()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

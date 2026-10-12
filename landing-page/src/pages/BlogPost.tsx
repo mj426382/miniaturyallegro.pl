@@ -6,6 +6,7 @@ import Footer from '../components/Footer'
 import { blogIndex } from '../data/blogIndex'
 import { getCachedPost, loadPost, postExists } from '../data/blogLoader'
 import { pageTitle } from '../utils/pageTitle'
+import { trackCta } from '../services/analytics'
 
 const SITE_URL = 'https://allgrafika.pl'
 
@@ -200,7 +201,11 @@ export default function BlogPostPage() {
           <div className="mt-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white text-center">
             <h3 className="text-xl font-bold mb-3">Gotowy na profesjonalne grafiki Allegro?</h3>
             <p className="text-blue-100 mb-6">Wypróbuj AllGrafika.pl za darmo – 10 generacji gratis, bez karty kredytowej.</p>
-            <a href="https://app.allgrafika.pl/register" className="inline-block bg-yellow-400 text-gray-900 font-bold px-8 py-3 rounded-xl hover:bg-yellow-300 transition-colors">
+            <a
+              href="https://app.allgrafika.pl/register"
+              onClick={() => trackCta('blog_post', 'register')}
+              className="inline-block bg-yellow-400 text-gray-900 font-bold px-8 py-3 rounded-xl hover:bg-yellow-300 transition-colors"
+            >
               Zacznij za darmo →
             </a>
           </div>

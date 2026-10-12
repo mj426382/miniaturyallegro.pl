@@ -1,7 +1,10 @@
 /**
  * Privacy-friendly analytics (Plausible or Umami – cookie-less, no consent banner).
  * Enabled only when VITE_ANALYTICS_DOMAIN is set at build time.
+ * Google Analytics 4 (consent-based) lives in src/consent/googleTag.ts; trackCta() below sends to it.
  */
+import { trackEvent } from '../consent/googleTag'
+
 declare global {
   interface Window {
     plausible?: (event: string, options?: { props?: Record<string, string | number | boolean> }) => void
@@ -40,4 +43,12 @@ export function track(event: string, props?: Record<string, string | number | bo
   } catch {
     // never break the page because of analytics
   }
+}
+
+/**
+ * GA4 'cta_click' (spec 22): which button sent the visitor into the app. Only with analytics consent;
+ * sign-up and purchase themselves are measured in the app (sign_up, begin_checkout, purchase).
+ */
+export function trackCta(location: string, destination: 'register' | 'credits' | 'demo') {
+  trackEvent('cta_click', { location, destination })
 }

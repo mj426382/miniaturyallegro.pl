@@ -1,5 +1,5 @@
 import { LEGAL_ENTITY, LEGAL_DATES, PROCESSORS } from './entity'
-import { ADS_CONFIGURED, openCookieSettings } from '../consent/googleAds'
+import { CONSENT_CONFIGURED, openCookieSettings } from '../consent/googleTag'
 
 /**
  * Treść polityki prywatności – współdzielona przez landing page i aplikację.
@@ -9,7 +9,9 @@ export default function PolitykaContent() {
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Polityka prywatności</h1>
-      <p className="text-sm text-gray-400 mb-10">Obowiązuje od: {LEGAL_DATES.effective}</p>
+      <p className="text-sm text-gray-400 mb-10">
+        Obowiązuje od: {LEGAL_DATES.effective} · ostatnia zmiana: {LEGAL_DATES.privacyUpdated} (Google Analytics 4)
+      </p>
 
       <div className="space-y-8 text-gray-700 leading-relaxed">
         <section>
@@ -138,6 +140,13 @@ export default function PolitykaContent() {
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. a RODO – zgoda (oraz art. 399 Prawa komunikacji elektronicznej)</td>
                   <td className="border border-gray-200 px-3 py-2">do wycofania zgody; pliki cookies Google Ads wygasają po maks. 90 dniach</td>
                 </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-200 px-3 py-2">
+                    Statystyki odwiedzin i skuteczności stron, kampanii i zakupów w Google Analytics 4 (pliki cookies analityczne – tylko po Twojej zgodzie)
+                  </td>
+                  <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. a RODO – zgoda (oraz art. 399 Prawa komunikacji elektronicznej)</td>
+                  <td className="border border-gray-200 px-3 py-2">do wycofania zgody; dane w Google Analytics przechowujemy 14 miesięcy, pliki _ga wygasają po maks. 13 miesiącach</td>
+                </tr>
                 <tr>
                   <td className="border border-gray-200 px-3 py-2">Statystyki użycia (Plausible/Umami – bez cookies, bez identyfikacji osób)</td>
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. f – prawnie uzasadniony interes</td>
@@ -181,6 +190,9 @@ export default function PolitykaContent() {
               <strong>Płatności:</strong> podczas płatności Stripe może ustawić własne pliki cookies niezbędne do obsługi transakcji i zapobiegania oszustwom.
             </li>
             <li>
+              <strong>Zapamiętanie decyzji o cookies:</strong> plik <code>ag_consent</code> (180 dni) – niezbędny, aby nie pytać Cię ponownie.
+            </li>
+            <li>
               <strong>Logowanie Google:</strong> jeśli korzystasz z przycisku „Zaloguj przez Google”, Google może ustawić pliki cookies zgodnie ze swoją polityką.
             </li>
           </ul>
@@ -188,13 +200,23 @@ export default function PolitykaContent() {
             Do statystyk odwiedzin używamy narzędzia bez plików cookies i bez identyfikacji użytkowników (Plausible lub Umami; dane są agregowane i nie są łączone z Twoim kontem).
           </p>
           <p className="mt-3">
-            <strong>Reklamy Google Ads (tylko za zgodą):</strong> jeśli klikniesz „Akceptuję” na pasku cookies, uruchamiamy tag Google Ads, który zapisuje pliki <code>_gcl_aw</code> i{' '}
-            <code>_gcl_au</code> (do 90 dni) na domenie allgrafika.pl, aby sprawdzić, czy wizyta z reklamy zakończyła się rejestracją lub zakupem. Google otrzymuje identyfikator kliknięcia reklamy,
-            rodzaj konwersji i wartość zakupu – nie przekazujemy mu Twojego adresu e-mail ani innych danych konta. Bez zgody skrypt Google w ogóle się nie ładuje. Twoją decyzję zapisujemy w pliku{' '}
-            <code>ag_consent</code> (180 dni), wspólnym dla allgrafika.pl i app.allgrafika.pl. Zgodę możesz w każdej chwili wycofać – nie wpływa to na zgodność z prawem przetwarzania przed jej
-            wycofaniem.
+            <strong>Reklamy Google Ads (tylko za zgodą):</strong> jeśli zgodzisz się na pliki cookies marketingowe („Akceptuję” albo „Dostosuj” → „Marketingowe”), uruchamiamy tag Google Ads, który
+            zapisuje pliki <code>_gcl_aw</code> i <code>_gcl_au</code> (do 90 dni) na domenie allgrafika.pl, aby sprawdzić, czy wizyta z reklamy zakończyła się rejestracją lub zakupem. Google
+            otrzymuje identyfikator kliknięcia reklamy, rodzaj konwersji i wartość zakupu – nie przekazujemy mu Twojego adresu e-mail ani innych danych konta. Bez zgody skrypt Google w ogóle się nie
+            ładuje. Twoją decyzję zapisujemy w pliku <code>ag_consent</code> (180 dni), wspólnym dla allgrafika.pl i app.allgrafika.pl. Zgodę możesz w każdej chwili wycofać – nie wpływa to na zgodność
+            z prawem przetwarzania przed jej wycofaniem.
           </p>
-          {ADS_CONFIGURED && (
+          <p className="mt-3">
+            <strong>Google Analytics 4 (tylko za zgodą):</strong> jeśli zgodzisz się na pliki cookies analityczne („Akceptuję” albo „Dostosuj” → „Analityczne”), uruchamiamy Google Analytics 4
+            dostarczane przez Google Ireland Limited (Gordon House, Barrow Street, Dublin 4, Irlandia). Celem jest poznanie, jak korzystasz z allgrafika.pl i app.allgrafika.pl – które strony
+            odwiedzasz, skąd przychodzisz (np. z reklamy), które przyciski klikasz, czy zakładasz konto i kupujesz kredyty (rodzaj pakietu, kwota, losowy numer transakcji) – abyśmy mogli ulepszać
+            Serwis i oceniać opłacalność reklam. Google Analytics zapisuje pliki <code>_ga</code> i <code>_ga_&lt;identyfikator&gt;</code> (do 13 miesięcy) na domenie allgrafika.pl; zawierają one
+            losowy identyfikator przeglądarki. Nie przekazujemy Google Twojego adresu e-mail, imienia ani innych danych konta, a adresy stron wysyłamy bez parametrów innych niż kampanii reklamowych.
+            Google Analytics 4 nie zapisuje adresu IP (używa go wyłącznie do ustalenia przybliżonej lokalizacji, np. miasta). Dane w Google Analytics przechowujemy 14 miesięcy. Podstawą prawną jest
+            Twoja zgoda (art. 6 ust. 1 lit. a RODO); możesz ją w każdej chwili wycofać w „Ustawieniach cookies” – usuniemy wtedy pliki <code>_ga</code> i wyłączymy pomiar, co nie wpływa na zgodność z
+            prawem przetwarzania przed wycofaniem. Google może przekazywać dane do USA na podstawie EU-U.S. Data Privacy Framework.
+          </p>
+          {CONSENT_CONFIGURED && (
             <p className="mt-3">
               <button type="button" onClick={openCookieSettings} className="text-blue-600 hover:underline font-medium">
                 Ustawienia cookies – zmień swoją decyzję

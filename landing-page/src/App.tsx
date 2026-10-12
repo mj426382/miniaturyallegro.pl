@@ -7,6 +7,7 @@ import Regulamin from './pages/Regulamin'
 import PolitykaPrywatnosci from './pages/PolitykaPrywatnosci'
 import NotFound from './pages/NotFound'
 import CookieBanner from './consent/CookieBanner'
+import PageViewTracker from './consent/PageViewTracker'
 import SeoLanding from './pages/SeoLanding'
 import { seoPages } from './data/seoPages'
 
@@ -31,6 +32,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <PageViewTracker />
       <AppRoutes />
       <CookieBanner />
     </BrowserRouter>

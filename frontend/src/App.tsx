@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import CookieBanner from './consent/CookieBanner'
+import PageViewTracker from './consent/PageViewTracker'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import ScrollToTop from './components/ScrollToTop'
 import Login from './pages/Login'
@@ -55,6 +56,7 @@ export default function App() {
           <ConfirmProvider>
             <BrowserRouter>
               <ScrollToTop />
+              <PageViewTracker />
               <Suspense fallback={<PageFallback fullScreen />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />

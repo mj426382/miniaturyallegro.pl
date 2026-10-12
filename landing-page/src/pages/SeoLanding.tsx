@@ -7,7 +7,7 @@ import DemoWidget from '../components/DemoWidget'
 import { blogIndex } from '../data/blogIndex'
 import { samplePairs } from '../data/samples'
 import type { SeoPage } from '../data/seoPages'
-import { track } from '../services/analytics'
+import { track, trackCta } from '../services/analytics'
 import { pageTitle } from '../utils/pageTitle'
 
 const SITE_URL = 'https://allgrafika.pl'
@@ -78,14 +78,20 @@ export default function SeoLanding({ page }: { page: SeoPage }) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="#demo"
-                onClick={() => track('seo_demo_click', { page: page.path })}
+                onClick={() => {
+                  track('seo_demo_click', { page: page.path })
+                  trackCta('seo_hero', 'demo')
+                }}
                 className="bg-yellow-400 text-gray-900 font-bold px-8 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
               >
                 Sprawdź na swoim produkcie →
               </a>
               <a
                 href={`${APP_URL}/register`}
-                onClick={() => track('seo_register_click', { page: page.path })}
+                onClick={() => {
+                  track('seo_register_click', { page: page.path })
+                  trackCta('seo_hero', 'register')
+                }}
                 className="bg-white/10 text-white font-medium px-8 py-4 rounded-xl text-lg hover:bg-white/20 transition-colors border border-white/20"
               >
                 Załóż konto – 5 grafik gratis
@@ -163,7 +169,10 @@ export default function SeoLanding({ page }: { page: SeoPage }) {
             <p className="text-blue-100 text-lg mb-8">Sprawdź na jednym produkcie bez konta albo załóż darmowe konto i wygeneruj 5 grafik bez podawania karty.</p>
             <a
               href={`${APP_URL}/register`}
-              onClick={() => track('seo_cta_register_click', { page: page.path })}
+              onClick={() => {
+                track('seo_cta_register_click', { page: page.path })
+                trackCta('seo_final_cta', 'register')
+              }}
               className="inline-block bg-yellow-400 text-gray-900 font-bold px-10 py-4 rounded-xl text-lg hover:bg-yellow-300 transition-colors"
             >
               Rejestracja za darmo – 5 grafik gratis →

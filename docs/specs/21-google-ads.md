@@ -5,7 +5,7 @@
 | Status | Approved |
 | Właściciel | Mateusz Janduła |
 | Data | 2026-10-09 |
-| Powiązane | 10-landing-seo, 19-monetization, 09-payments, polityka prywatności (§ 3–5) |
+| Powiązane | 10-landing-seo, 19-monetization, 09-payments, 22-google-analytics, polityka prywatności (§ 3–5) |
 
 ## 1. Problem i cel
 
@@ -18,20 +18,20 @@ mierzone jako konwersje Google Ads wyłącznie u osób, które zgodziły się na
 
 - W zakresie: baner zgody na allgrafika.pl i app.allgrafika.pl (wspólna decyzja dla obu domen),
   Google Consent Mode v2, tag Google Ads, konwersje „Rejestracja” i „Zakup”, polityka prywatności.
-- Poza zakresem: Google Analytics 4, remarketing list z danych konta (Customer Match), aplikacje
+- Poza zakresem: Google Analytics 4 (dodane w spec 22 – kategorie zgody, wspólny tag), remarketing list z danych konta (Customer Match), aplikacje
   mobilne (tag nigdy nie działa w aplikacji Android/iOS – spec 18), Meta Pixel.
 
 ## 3. Decyzje produktowe
 
 - **Tryb podstawowy Consent Mode** – skrypt Google (`googletagmanager.com/gtag/js`) w ogóle się nie
   ładuje przed zgodą; po zgodzie najpierw `consent default` = wszystko odrzucone, potem `consent update`
-  = `ad_storage`, `ad_user_data`, `ad_personalization` przyznane. `analytics_storage` zawsze odrzucone
-  (nie używamy GA). Brak cichych pingów przed zgodą – najbezpieczniej prawnie (rygor ISO 27001 firmy).
+  = `ad_storage`, `ad_user_data`, `ad_personalization` przyznane. `analytics_storage` zależy od zgody
+  na kategorię „analityczne” (spec 22). Brak cichych pingów przed zgodą – najbezpieczniej prawnie (rygor ISO 27001 firmy).
 - **Wszystko wyłączone bez konfiguracji** – bez `VITE_GOOGLE_ADS_ID` (np. `AW-123456789`) nie ma
   banera ani tagu. Etykiety konwersji: `VITE_GOOGLE_ADS_SIGNUP_LABEL`, `VITE_GOOGLE_ADS_PURCHASE_LABEL`
   (identyfikatory publiczne, nie sekrety; zmienne środowiskowe Vercel obu projektów).
 - **Wspólna decyzja dla obu domen** – cookie `ag_consent` na domenie `.allgrafika.pl`
-  (`ads=1`/`ads=0`, ważne 180 dni, `SameSite=Lax`, `Secure`). Kliknięcie reklamy trafia na landing,
+  (`ads=1`/`ads=0`; od spec 22 wersja 2 `ads=1&analytics=0&v=2` z migracją, ważne 180 dni, `SameSite=Lax`, `Secure`). Kliknięcie reklamy trafia na landing,
   rejestracja dzieje się w aplikacji – jedna zgoda obejmuje całą ścieżkę, a cookie `_gcl_aw` Google
   zapisuje na domenie głównej, więc konwersja w aplikacji łączy się z kliknięciem.
 - **Odrzucenie tak samo łatwe jak akceptacja** – dwa równorzędne przyciski „Akceptuję” i „Odrzucam”
@@ -63,11 +63,12 @@ po hydratacji), więc nie wpływa na SEO ani na hydratację.
   stronie, Then widoczny baner z równorzędnymi przyciskami „Akceptuję” i „Odrzucam” oraz linkiem do
   polityki prywatności, a żadne żądanie do domen Google (googletagmanager.com, googleadservices.com,
   doubleclick.net) nie zostało wysłane; prerenderowany HTML nie zawiera banera.
-- **AC-ADS-002** – Given baner, When „Odrzucam”, Then baner znika, zapisane `ag_consent=ads=0`, nie ma
+- **AC-ADS-002** – Given baner, When „Odrzucam”, Then baner znika, zapisane `ag_consent=ads=0` (od spec 22: `ads=0&analytics=0&v=2`), nie ma
   żadnego żądania do Google także po przeładowaniu, a baner nie wraca.
-- **AC-ADS-003** – Given baner, When „Akceptuję”, Then zapisane `ag_consent=ads=1`, ładuje się
-  `gtag/js?id=<ID>`, `dataLayer` zawiera `consent default` (wszystko `denied`) przed `consent update`
-  (`ad_storage`, `ad_user_data`, `ad_personalization` = `granted`, `analytics_storage` = `denied`).
+- **AC-ADS-003** – Given baner, When „Akceptuję”, Then zapisane `ag_consent=ads=1` (od spec 22:
+  `ads=1&analytics=1&v=2`), ładuje się `gtag/js?id=<ID>`, `dataLayer` zawiera `consent default` (wszystko
+  `denied`) przed `consent update` (`ad_storage`, `ad_user_data`, `ad_personalization` = `granted`;
+  `analytics_storage` według kategorii „analityczne” – spec 22).
 - **AC-ADS-004** – Given zgoda udzielona, When „Ustawienia cookies” i „Odrzucam”, Then
   `ag_consent=ads=0`, `consent update` z `denied`, cookies `_gcl_*` usunięte.
 - **AC-ADS-005** – Given zgoda, When udana rejestracja albo powrót z płatności z wartością pakietu, Then
