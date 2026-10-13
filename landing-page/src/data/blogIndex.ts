@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "106",
+    "slug": "prawa-autorskie-do-zdjec-na-allegro",
+    "title": "Prawa autorskie do zdjęć na Allegro jak chronić i używać",
+    "excerpt": "Prawa autorskie do zdjęć na Allegro — czy można użyć cudzych zdjęć i jak szybko zrobić własne? Zobacz praktyczne wskazówki.",
+    "publishedAt": "2026-10-13",
+    "modifiedAt": "2026-10-13",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Technologia"
+  },
+  {
     "id": "105",
     "slug": "zasady-zdjec-na-allegro",
     "title": "Zasady zdjęć na Allegro regulamin blokady i praktyczna",
