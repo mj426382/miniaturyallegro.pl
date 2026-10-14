@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "107",
+    "slug": "jaki-rozmiar-zdjecia-do-sklepu-internetowego",
+    "title": "Jaki rozmiar zdjęcia do sklepu internetowego – poradnik",
+    "excerpt": "Jaki rozmiar zdjęcia do sklepu internetowego wybrać? Tabele wymiarów dla Allegro, OLX, Vinted i innych. Sprawdź i uniknij błędów!",
+    "publishedAt": "2026-10-14",
+    "modifiedAt": "2026-10-14",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Technologia"
+  },
+  {
     "id": "106",
     "slug": "prawa-autorskie-do-zdjec-na-allegro",
     "title": "Prawa autorskie do zdjęć na Allegro jak chronić i używać",
