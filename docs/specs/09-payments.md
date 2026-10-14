@@ -19,8 +19,10 @@
 - Usunięcie konta anuluje aktywny abonament.
 - Kredyty nie wygasają; historia transakcji widoczna w aplikacji.
 - **Faktury z NIP-em (decyzja właściciela: przez Stripe, bez KSeF)**: każda płatność (pakiet i abonament)
-  tworzy fakturę Stripe. Checkout zbiera adres rozliczeniowy i pozwala zaznaczyć zakup jako firma z NIP
-  (`tax_id_collection`); dane trafiają na klienta Stripe (`customer_update`), więc kolejne zakupy je
+  tworzy fakturę Stripe. Checkout pozwala zaznaczyć zakup jako firma z NIP (`tax_id_collection`); adres
+  rozliczeniowy jest zbierany tylko wtedy, gdy jest potrzebny (`billing_address_collection: auto` –
+  decyzja właściciela 2026-10-14: wymagany adres zniechęcał osoby prywatne przy małym pierwszym pakiecie;
+  firma podająca NIP podaje też dane do faktury). Dane trafiają na klienta Stripe (`customer_update`), więc kolejne zakupy je
   pamiętają. Klient Stripe jest tworzony przed pierwszym checkoutem. Id faktury zapisujemy przy
   transakcji; w historii przy płatności jest link „Faktura” (PDF pobierany na żądanie świeżym linkiem
   ze Stripe). Faktury Stripe nie trafiają do KSeF – rozliczenie w KSeF prowadzi księgowość właściciela
@@ -50,7 +52,7 @@
 - **AC-PAY-008** – Given faktura proraty lub zmiany planu, When webhook, Then kredyty nie są dodane; plan rozpoznany po zafakturowanej cenie.
 - **AC-PAY-009** – Given webhook z innym `livemode` niż klucz, When przetworzony, Then jest ignorowany.
 - **AC-PAY-010** – Given aktywny abonament, When konto jest usuwane, Then abonament jest anulowany w Stripe.
-- **AC-PAY-012** – Given checkout pakietu albo abonamentu, When sesja Stripe jest tworzona, Then ma klienta Stripe, `tax_id_collection.enabled`, wymagany adres rozliczeniowy, `customer_update` (nazwa i adres) i – dla pakietu – `invoice_creation.enabled`.
+- **AC-PAY-012** – Given checkout pakietu albo abonamentu, When sesja Stripe jest tworzona, Then ma klienta Stripe, `tax_id_collection.enabled`, adres rozliczeniowy zbierany tylko w razie potrzeby (`billing_address_collection: auto`, nie `required`), `customer_update` (nazwa i adres) i – dla pakietu – `invoice_creation.enabled`.
 - **AC-PAY-013** – Given opłacona sesja z fakturą albo opłacona faktura abonamentu, When webhook, Then id faktury jest zapisane przy transakcji, a historia zwraca `hasInvoice=true`.
 - **AC-PAY-014** – Given transakcja z fakturą, When `GET /payments/invoices/:id`, Then zwracany jest aktualny link PDF ze Stripe; transakcja cudza albo bez faktury → 404.
 - **AC-PAY-011** – Given strona kredytów, When użytkownik kliknie „Kup” bez zgody, Then widzi wskazówkę; ze zgodą i podwójnym kliknięciem powstaje dokładnie jedna sesja.

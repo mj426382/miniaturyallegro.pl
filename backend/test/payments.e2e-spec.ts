@@ -308,7 +308,7 @@ describe('Payments (integration)', () => {
         .expect(200);
     };
 
-    it('[AC-PAY-012] checkout asks for the billing address and tax id and creates an invoice', async () => {
+    it('[AC-PAY-012] checkout asks for the tax id, the address only when needed, and creates an invoice', async () => {
       const { token, userId } = await registerUser(ctx);
       await ctx
         .http()
@@ -319,7 +319,7 @@ describe('Payments (integration)', () => {
       expect(createdSessions[0]).toMatchObject({
         mode: 'payment',
         customer: 'cus_test_1',
-        billing_address_collection: 'required',
+        billing_address_collection: 'auto',
         tax_id_collection: { enabled: true },
         customer_update: { name: 'auto', address: 'auto' },
         invoice_creation: { enabled: true, invoice_data: { metadata: { userId, packageId: 'credits_5' } } },
@@ -349,7 +349,7 @@ describe('Payments (integration)', () => {
       expect(createdSessions[0]).toMatchObject({
         mode: 'subscription',
         customer: 'cus_test_1',
-        billing_address_collection: 'required',
+        billing_address_collection: 'auto',
         tax_id_collection: { enabled: true },
         customer_update: { name: 'auto', address: 'auto' },
       });

@@ -24,11 +24,12 @@ export const TRANSACTION_STATUS = {
 const ACTIVE_SUBSCRIPTION_STATUSES = ['active', 'trialing', 'past_due'];
 
 /**
- * Spec 09: every payment gets a Stripe invoice. Checkout asks for the billing address and lets the
- * buyer tick "purchasing as a business" with a NIP; both are saved on the Stripe customer.
+ * Spec 09: every payment gets a Stripe invoice. Checkout lets the buyer tick "purchasing as a business"
+ * with a NIP and asks for the billing address only when needed – a required address made private
+ * buyers drop off on a 5–10 zł first pack. Whatever is entered is saved on the Stripe customer.
  */
 const INVOICE_DETAILS_COLLECTION = {
-  billing_address_collection: 'required',
+  billing_address_collection: 'auto',
   tax_id_collection: { enabled: true },
   customer_update: { name: 'auto', address: 'auto' },
 } as const;
