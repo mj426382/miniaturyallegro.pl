@@ -243,6 +243,30 @@ test.describe('navigation', () => {
     await expect(open).toHaveAttribute('aria-expanded', 'false')
   })
 
+  test('[AC-UI-008] the desktop sidebar stays in place while a long page scrolls', async ({ page }) => {
+    test.skip(isMobile(page), 'desktop sidebar only')
+    await mockApp(page)
+    await page.goto('/')
+    await expect(page.getByRole('button', { name: 'Wyloguj się' })).toBeVisible()
+    // Make the page clearly longer than the window, then scroll to its end.
+    await page.locator('main').evaluate((main) => {
+      const filler = document.createElement('div')
+      filler.style.height = '4000px'
+      main.appendChild(filler)
+    })
+    await page.mouse.move(700, 400)
+    await page.mouse.wheel(0, 5000)
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    const viewport = page.viewportSize()!
+    const nav = page.getByRole('navigation', { name: 'Główna nawigacja' })
+    for (const target of [nav.getByRole('link', { name: 'Dashboard' }), page.getByRole('button', { name: 'Wyloguj się' })]) {
+      const box = (await target.boundingBox())!
+      expect(box.y).toBeGreaterThanOrEqual(0)
+      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+      expect(box.x).toBeLessThan(260)
+    }
+  })
+
   test('[AC-AUTH-022] logging out ends the session and protects private pages', async ({ page }) => {
     const { requests } = await mockApp(page)
     await page.goto('/')

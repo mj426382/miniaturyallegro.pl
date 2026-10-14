@@ -75,4 +75,5 @@
 - **AC-UI-004** – Given telefon (< 768 px), When użytkownik otworzy menu, Then przycisk ma `aria-expanded=true`, nawigacja działa, a po wyborze menu się zamyka.
 - **AC-UI-005** – Given logowanie z błędnym hasłem, When wysłano formularz, Then błąd pojawia się w alercie przy formularzu (`role="alert"`), a nie w toaście, a toggle „Pokaż” odsłania hasło.
 - **AC-UI-006** – Given dashboard lub galeria, When API zwróci błąd, Then widać alert „Nie udało się pobrać…” z przyciskiem „Spróbuj ponownie”, a stan pusty nie jest wyświetlany.
+- **AC-UI-008** – Given komputer (≥ 1024 px) i strona dłuższa niż ekran, When użytkownik przewinie ją do końca, Then panel boczny zostaje w miejscu przy lewej krawędzi (logo, nawigacja, kredyty i „Wyloguj się” są widoczne), a przewija się tylko treść; gdy panel nie mieści się w oknie, przewija się sam.
 - **AC-UI-007** – Given karta gotowej grafiki, When użytkownik otworzy „Więcej akcji”, Then widzi pozycje „Eksport i edycja” i „Przeróbka”, a „Opublikuj na Allegro” tylko przy połączonym koncie.

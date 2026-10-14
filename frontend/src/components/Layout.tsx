@@ -134,8 +134,8 @@ export default function Layout() {
         {sidebarContent}
       </aside>
 
-      {/* Desktop sidebar (always visible) */}
-      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col shrink-0">{sidebarContent}</aside>
+      {/* Desktop sidebar (always visible, pinned to the left edge – only the content scrolls; spec 11 AC-UI-008) */}
+      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">{sidebarContent}</aside>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
