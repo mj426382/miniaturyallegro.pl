@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "108",
+    "slug": "jak-zwiekszyc-sprzedaz-na-allegro-zdjecia-tytul-opis",
+    "title": "Zwiększ sprzedaż na Allegro: zdjęcia, tytuł i opis 2026",
+    "excerpt": "Jak zwiększyć sprzedaż na Allegro bez reklam? Wykorzystaj moc zdjęć, tytułu i opisu – praktyczne wskazówki i przykłady.",
+    "publishedAt": "2026-10-15",
+    "modifiedAt": "2026-10-15",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Optymalizacja"
+  },
+  {
     "id": "107",
     "slug": "jaki-rozmiar-zdjecia-do-sklepu-internetowego",
     "title": "Jaki rozmiar zdjęcia do sklepu internetowego – poradnik",
