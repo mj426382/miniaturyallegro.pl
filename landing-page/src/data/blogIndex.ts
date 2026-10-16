@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "109",
+    "slug": "jak-napisac-opis-produktu-na-allegro",
+    "title": "Jak napisać opis produktu na Allegro",
+    "excerpt": "Jak napisać opis produktu na Allegro, by zwiększyć sprzedaż? Odkryj skuteczną strukturę, frazy kupujących i przykład.",
+    "publishedAt": "2026-10-16",
+    "modifiedAt": "2026-10-16",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "E-commerce"
+  },
+  {
     "id": "108",
     "slug": "jak-zwiekszyc-sprzedaz-na-allegro-zdjecia-tytul-opis",
     "title": "Zwiększ sprzedaż na Allegro: zdjęcia, tytuł i opis 2026",
