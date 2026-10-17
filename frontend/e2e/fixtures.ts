@@ -116,6 +116,8 @@ export interface MockOptions {
   hasPurchased?: boolean
   /** Spec 19: free pool of the account (default 10, accounts from 2026-10-09: 5). */
   freeCreditsLimit?: number
+  /** The existing offer copy has used all of its free AI rewrites. */
+  editsUsedUp?: boolean
   /** Spec 19: the user already said yes or no to marketing e-mails. */
   marketingConsent?: boolean
 }
@@ -127,7 +129,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
   const settings = { marketingConsent: false, notifyBatchDone: true }
   const images: any[] = [IMAGE, ...(options.extraImages ?? [])]
   // Offer description state lives for the duration of the page – mirrors the API behaviour.
-  let description: typeof DESCRIPTION | null = options.withDescription ? { ...DESCRIPTION } : null
+  let description: typeof DESCRIPTION | null = options.withDescription ? { ...DESCRIPTION, promptEditsUsed: options.editsUsedUp ? 5 : 0 } : null
   let editsPurchased = 0
   const descriptionView = () => ({
     description,
@@ -465,6 +467,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     }
     if (path === `/descriptions/${IMAGE.id}/edit-packs`) {
       requests.push({ url: path, method: 'POST' })
+      if (options.noCredits) return json({ statusCode: 402, error: 'Payment Required', message: 'Niewystarczająca liczba kredytów.', creditsRequired: 1, creditsAvailable: 0 }, 402)
       editsPurchased += 15
       return json(descriptionView(), 201)
     }

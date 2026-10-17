@@ -156,10 +156,25 @@ test.describe('batch actions (spec 15)', () => {
     await expect(dialog.getByText('Gotowe: 2, pominięte: 0, błędy: 0')).toBeVisible()
     const created = requests.filter((r) => r.method === 'POST' && /^\/descriptions\/img-(1|2)$/.test(r.url))
     expect(created.map((r) => r.url).sort()).toEqual([`/descriptions/${IMAGE.id}`, `/descriptions/${SECOND_IMAGE.id}`])
-    for (const r of created) expect(r.body).toEqual({ notes: 'Gwarancja 24 miesiące' })
+    for (const r of created) expect(r.body).toEqual({ notes: 'Gwarancja 24 miesiące', platform: 'generic' })
     await dialog.getByRole('button', { name: 'Zamknij', exact: true }).last().click()
     await page.getByRole('button', { name: 'Anuluj' }).click()
     await expect(page.getByRole('toolbar', { name: 'Akcje dla zaznaczonych zdjęć' })).toHaveCount(0)
+  })
+
+  test('[AC-BAT-007] bulk descriptions are written for the chosen platform', async ({ page }) => {
+    const { requests } = await mockApp(page, { extraImages: [SECOND_IMAGE] })
+    await page.goto('/gallery')
+    await page.getByRole('button', { name: 'Zaznacz', exact: true }).click()
+    await page.getByRole('button', { name: 'Zaznacz wszystkie na stronie' }).click()
+    await page.getByRole('toolbar', { name: 'Akcje dla zaznaczonych zdjęć' }).getByRole('button', { name: 'Napisz opisy' }).click()
+    const dialog = page.getByRole('dialog', { name: /Opisy dla zaznaczonych/ })
+    await dialog.getByLabel('Platforma').selectOption('vinted')
+    await dialog.getByRole('button', { name: 'Napisz opisy' }).click()
+    await expect(dialog.getByText('Gotowe: 2, pominięte: 0, błędy: 0')).toBeVisible()
+    const created = requests.filter((r) => r.method === 'POST' && /^\/descriptions\/img-(1|2)$/.test(r.url))
+    expect(created).toHaveLength(2)
+    for (const r of created) expect(r.body).toEqual({ platform: 'vinted' })
   })
 
   test('[AC-BAT-006] the bulk upload summary offers the ZIP and descriptions for the whole batch', async ({ page }) => {

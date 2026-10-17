@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { XMarkIcon, DocumentTextIcon, CheckCircleIcon, ExclamationCircleIcon, MinusCircleIcon } from '@heroicons/react/24/outline'
-import { descriptionsApi, generationApi } from '../services/api'
+import { descriptionsApi, generationApi, PlatformId } from '../services/api'
+import { usePlatformPresets } from '../hooks/usePlatformPresets'
 import { track } from '../services/analytics'
 import { BulkStatus, runBulkDescriptions } from '../utils/bulkDescriptions'
 
@@ -30,6 +31,9 @@ const MAX_NOTES = 2000
 /** Spec 15: writes the free first description for many photos with visible progress. */
 export default function BulkDescriptionsModal({ photos, onClose, onFinished }: Props) {
   const [notes, setNotes] = useState('')
+  /** Spec 15, AC-BAT-007: one platform for the whole batch (title limit and tone, spec 07/08). */
+  const [platform, setPlatform] = useState<PlatformId>('generic')
+  const { presets } = usePlatformPresets()
   const [phase, setPhase] = useState<'setup' | 'running' | 'finished'>('setup')
   const [items, setItems] = useState<Record<string, { status: BulkStatus; message?: string }>>(() => Object.fromEntries(photos.map((p) => [p.id, { status: 'queued' as BulkStatus }])))
   const cancelled = useRef(false)
@@ -58,7 +62,7 @@ export default function BulkDescriptionsModal({ photos, onClose, onFinished }: P
           return (data as Array<{ status: string }>).map((g) => g.status)
         },
         create: async (id, sharedNotes) => {
-          await descriptionsApi.create(id, sharedNotes)
+          await descriptionsApi.create(id, sharedNotes, platform)
         },
         sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
       },
@@ -66,7 +70,7 @@ export default function BulkDescriptionsModal({ photos, onClose, onFinished }: P
       { isCancelled: () => cancelled.current },
     )
     setPhase('finished')
-    track('bulk_descriptions', { photos: photos.length })
+    track('bulk_descriptions', { photos: photos.length, platform })
     onFinished?.()
   }
 
@@ -91,6 +95,16 @@ export default function BulkDescriptionsModal({ photos, onClose, onFinished }: P
         {phase === 'setup' && (
           <>
             <p className="text-sm text-gray-600 mb-3">Pierwszy opis każdego zdjęcia jest gratis. Zdjęcia z opisem pominiemy, a na trwające generowanie grafik poczekamy.</p>
+            <label htmlFor="bulk-platform" className="block text-sm font-medium text-gray-700 mb-1">
+              Platforma
+            </label>
+            <select id="bulk-platform" value={platform} onChange={(e) => setPlatform(e.target.value as PlatformId)} className="input-field text-sm mb-3 max-w-xs">
+              {(presets ?? [{ id: 'generic' as PlatformId, label: 'Sklep internetowy / ogólne' }]).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
             <label htmlFor="bulk-notes" className="block text-sm font-medium text-gray-700 mb-1">
               Wspólne informacje <span className="text-gray-500 font-normal">(opcjonalnie)</span>
             </label>

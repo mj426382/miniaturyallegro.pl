@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import PaywallModal from './PaywallModal'
 import toast from 'react-hot-toast'
 import { ArrowUturnLeftIcon, ClipboardDocumentIcon, DocumentTextIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { descriptionsApi, DescriptionView, OfferDescription, PlatformId } from '../services/api'
@@ -29,7 +29,7 @@ const NOTES_PLACEHOLDER = 'Np. kubek ceramiczny 350 ml, biały, nadaje się do z
 const toDraft = (d: OfferDescription): Draft => ({ title: d.title, html: formatOfferHtml(d.body), keywords: d.keywords.join(', ') })
 
 export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, onCreditsChanged, onStateChange }: Props) {
-  const navigate = useNavigate()
+  const [paywallOpen, setPaywallOpen] = useState(false)
   const [view, setView] = useState<DescriptionView | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [notes, setNotes] = useState('')
@@ -96,8 +96,8 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
 
   const showError = (err: any, fallback: string) => {
     if (err?.response?.status === 402 && err.response.data?.code !== 'EDIT_PACK_REQUIRED') {
-      toast.error(err.response.data?.message || 'Brak kredytów', { duration: 6000 })
-      navigate('/credits')
+      // Spec 19, AC-MON-003: the offer opens in place – leaving for /credits would lose the unsaved draft.
+      setPaywallOpen(true)
       return
     }
     const message = err?.response?.data?.message
@@ -215,6 +215,7 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
 
   return (
     <section className="mt-10 bg-white rounded-xl border border-gray-200 p-5 sm:p-6" aria-labelledby="offer-description-title">
+      <PaywallModal open={paywallOpen} missing={packCredits} onClose={() => setPaywallOpen(false)} />
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h2 id="offer-description-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
