@@ -37,7 +37,7 @@ export default function BeforeAfter({ pairs }: { pairs: SamplePair[] }) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Zdjęcie z telefonu <span className="text-blue-600">→ miniaturka Allegro</span>
+            Zdjęcie z telefonu <span className="text-blue-600">→ zdjęcie produktowe</span>
           </h2>
           <p className="text-gray-500 mt-4 text-lg">Prawdziwe przykłady wygenerowane w AllGrafika. Przesuń suwak, aby porównać.</p>
         </div>

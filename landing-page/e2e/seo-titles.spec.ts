@@ -57,7 +57,7 @@ test('[AC-SEO-010] merged blog posts are 301s, gone from the index and the sitem
   const sitemap = await (await request.get('/sitemap.xml')).text()
 
   for (const merged of ['jak-stworzyc-miniaturke-allegro-dom-i-ogrod', 'jak-stworzyc-miniaturki-allegro-dla-kategorii-komputery']) {
-    expect(blogRedirects.find((r) => r.source === `/blog/${merged}`)?.destination).toBe('/blog/miniaturki-allegro-dla-kategorii-poradnik')
+    expect(blogRedirects.find((r) => r.source === `/blog/${merged}`)?.destination).toBe('/blog/zdjecia-produktowe-dla-kategorii-poradnik')
   }
   for (const r of blogRedirects) {
     expect(r.statusCode, r.source).toBe(301)
@@ -68,7 +68,7 @@ test('[AC-SEO-010] merged blog posts are 301s, gone from the index and the sitem
     expect(sitemap, `${from} still in sitemap`).not.toContain(`/blog/${from}<`)
   }
 
-  await page.goto('/blog/miniaturki-allegro-dla-kategorii-poradnik')
+  await page.goto('/blog/zdjecia-produktowe-dla-kategorii-poradnik')
   await expect(page.locator('h1')).toHaveCount(1)
-  await expect(page.locator('h1')).toContainText('Miniaturki Allegro dla kategorii')
+  await expect(page.locator('h1')).toContainText('Zdjęcia produktowe dla kategorii')
 })

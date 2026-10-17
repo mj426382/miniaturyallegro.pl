@@ -3,73 +3,86 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '13',
   slug: 'jak-zwiekszyc-ctr-ab-testowanie-miniaturek',
-  title: 'Jak zwiększyć CTR na Allegro – miniaturki i testy A/B',
-  excerpt: 'Jak zwiększyć CTR na Allegro dzięki miniaturkom: co w zdjęciu wpływa na kliknięcia, jak zrobić prosty test A/B i jak czytać wyniki w statystykach.',
+  title: 'Jak zwiększyć CTR: testy A/B zdjęć produktowych',
+  excerpt: 'Testy A/B zdjęć produktowych we własnym sklepie i porównania przed/po na marketplace: co zmieniać, jak długo testować i jak czytać wynik.',
   content: `
-## Dlaczego CTR miniaturki ma znaczenie na Allegro?
+## Dlaczego warto testować zdjęcia, a nie zgadywać?
 
-CTR (click-through rate) to odsetek osób, które zobaczyły Twoją ofertę na liście wyników i w nią kliknęły. Miniaturka jest tam najbardziej widocznym elementem, obok tytułu i ceny – jeśli nie przyciąga wzroku, nawet dobra oferta nie dostanie szansy.
+CTR (click-through rate) to odsetek osób, które zobaczyły produkt na liście – w kategorii sklepu, w wynikach wyszukiwania czy na marketplace – i w niego kliknęły. Zdjęcie jest tam najbardziej widocznym elementem obok nazwy i ceny. Jeśli nie zatrzymuje wzroku, nawet dobra oferta nie dostaje szansy.
 
-Dobra wiadomość: miniaturkę możesz zmienić w kilka minut i sprawdzić efekt na własnych danych. Ten poradnik łączy dwie rzeczy – **co w zdjęciu wpływa na kliknięcia** i **jak to rzetelnie przetestować**.
+Intuicja sprzedawcy często się myli: zdjęcie, które nam się podoba, nie musi przekonywać kupujących. Dlatego zamiast zgadywać, lepiej porównać dwie wersje na prawdziwym ruchu. Ten poradnik pokazuje, jak zrobić to w dwóch sytuacjach: **we własnym sklepie**, gdzie możliwy jest prawdziwy test A/B, i **na marketplace**, gdzie zwykle zostaje porównanie przed i po.
 
-## Co w miniaturce wpływa na kliknięcia?
+## Co w zdjęciu wpływa na kliknięcia
 
-- **Kontrast produktu z tłem:** produkt musi „odkleić się” od tła. Na białym tle najlepiej wypadają produkty w wyrazistych kolorach; białe i srebrne produkty potrzebują delikatnego cienia, żeby nie zlać się z tłem.
-- **Wielkość produktu w kadrze:** na liście wyników miniaturka jest mała. Produkt powinien wypełniać kadr, a nie stać pośrodku pustego kwadratu.
-- **Prosta kompozycja:** jeden produkt, jeden punkt uwagi. Zbyt wiele elementów sprawia, że kupujący nie wie, co właściwie kupuje.
-- **Ostrość i światło:** rozmazane lub ciemne zdjęcie odbierane jest jako sygnał niedbałości sprzedawcy.
-- **Styl dopasowany do produktu:** białe tło sprawdza się na zdjęciu głównym niemal wszędzie; sceny lifestyle, ciemne tła czy gradienty możesz wykorzystać w galerii oferty. Wskazówki dla konkretnych branż zebraliśmy w poradniku [miniaturki Allegro dla kategorii](https://allgrafika.pl/blog/miniaturki-allegro-dla-kategorii-poradnik).
-- **Kolory:** zestawienie kolorystyczne produktu i tła wpływa na to, co pierwsze rzuci się w oczy. Więcej w artykule [psychologia kolorów w miniaturkach Allegro](https://allgrafika.pl/blog/psychologia-kolorow-miniaturek-allegro-jak-wplywaja-na-sprzedaz).
+Zanim zaczniesz testować, wybierz element, który ma realną szansę coś zmienić:
 
-## Jak działa test A/B miniaturek?
+- **Kontrast produktu z tłem** – produkt musi wyraźnie odcinać się od tła. Białe i srebrne przedmioty na białym tle potrzebują delikatnego cienia.
+- **Wielkość produktu w kadrze** – na liście produktów zdjęcie jest małe. Produkt powinien wypełniać kadr, a nie stać pośrodku pustej przestrzeni.
+- **Kąt ujęcia** – na wprost, pod kątem, z góry. Dla niektórych produktów ujęcie pod kątem lepiej pokazuje bryłę.
+- **Prostota** – jeden produkt, jeden punkt uwagi.
+- **Rodzaj tła na zdjęciach dodatkowych** – scena lifestyle, ciemne tło, gradient. Zdjęcie główne zostaw tam, gdzie zasady platformy tego wymagają, na białym tle.
 
-Test A/B polega na porównaniu dwóch wersji tej samej miniaturki, które **różnią się jednym elementem**, na przykład:
+O doborze stylu do kategorii piszemy w poradniku [zdjęcia produktowe dla kategorii](https://allgrafika.pl/blog/zdjecia-produktowe-dla-kategorii-poradnik), a o kolorach – w artykule [psychologia kolorów w zdjęciach produktowych](https://allgrafika.pl/blog/psychologia-kolorow-w-zdjeciach-produktowych).
 
-- tłem (białe tło vs. gradient),
-- kadrowaniem (produkt na wprost vs. pod kątem),
-- wielkością produktu w kadrze,
-- kolejnością zdjęć w galerii (który kadr jest drugi).
+## Test A/B we własnym sklepie
 
-Na Allegro nie ustawisz klasycznego testu z losowym podziałem ruchu, więc w praktyce porównuje się wersje w kolejnych okresach albo na podobnych ofertach.
+We własnym sklepie internetowym możesz przeprowadzić klasyczny test: część odwiedzających widzi wersję A, część wersję B, w tym samym czasie. To najrzetelniejsza metoda, bo obie wersje mają te same warunki – ten sam dzień tygodnia, te same promocje, tę samą pogodę.
 
-## Jak przeprowadzić prosty test krok po kroku
+Jak to zorganizować:
 
-- **Krok 1:** wybierz ofertę z regularnym ruchem – na ofercie z kilkoma wyświetleniami dziennie wynik będzie przypadkowy.
-- **Krok 2:** zapisz wyjściowe dane z ostatnich 1–2 tygodni: wyświetlenia, kliknięcia i sprzedaż.
-- **Krok 3:** przygotuj drugą wersję miniaturki, zmieniając tylko jedną rzecz.
-- **Krok 4:** podmień zdjęcie i nie zmieniaj w tym czasie ceny, tytułu ani promowania.
-- **Krok 5:** po tym samym czasie porównaj dane. Jeśli różnica jest mała, powtórz test albo potraktuj wynik jako remis.
+- **Narzędzie** – wiele platform sklepowych (Shopify, WooCommerce, PrestaShop) ma aplikacje lub wtyczki do testów A/B. Sprawdź, czy wybrane rozwiązanie pozwala testować zdjęcia produktu, a nie tylko nagłówki i przyciski.
+- **Jedna zmiana** – wersje różnią się tylko jednym elementem, np. tłem zdjęcia głównego.
+- **Losowy podział** – narzędzie powinno samo przypisywać odwiedzających do wersji i pokazywać każdemu tę samą wersję przy kolejnych wizytach.
+- **Cel ustalony z góry** – kliknięcia w produkt z listy kategorii, dodania do koszyka albo zamówienia. Wybierz jeden główny wskaźnik przed startem.
+- **Czas** – co najmniej pełny tydzień, żeby objąć dni robocze i weekend. Przy małym ruchu dłużej.
 
-Uważaj na okresy, które same zmieniają ruch: wyprzedaże, święta, początek miesiąca. Porównuj podobne tygodnie.
+Nie kończ testu w momencie, gdy jedna wersja chwilowo prowadzi. Wyniki na początku testu skaczą i łatwo o fałszywy wniosek.
 
-## Jakie dane mierzyć?
+## Porównanie przed i po na marketplace
 
-- **CTR (kliknięcia / wyświetlenia):** podstawowy wskaźnik skuteczności miniaturki.
-- **Konwersja:** czy więcej kliknięć przekłada się na więcej zamówień? Miniaturka, która przyciąga kliknięcia, ale rozczarowuje po wejściu, nie pomaga.
-- **Zwroty i pytania kupujących:** jeśli nowa grafika powoduje pytania „czy to jest w zestawie?”, zmień ją, nawet gdy CTR wzrósł.
+Na marketplace’ach takich jak OLX, eBay czy Amazon zwykle nie ustawisz losowego podziału ruchu dla zdjęć. Zostaje porównanie w czasie:
 
-Więcej o wskaźnikach poza CTR przeczytasz w artykule [metryki sprzedaży Allegro – co mierzyć poza CTR](https://allgrafika.pl/blog/abc-testowanie-miniaturek-na-allegro).
+1. **Wybierz ofertę z regularnym ruchem** – przy kilku wyświetleniach dziennie wynik będzie przypadkowy.
+2. **Zapisz stan wyjściowy** – wyświetlenia, wejścia, sprzedaż z ostatnich 1–2 tygodni, tyle, ile pokazuje panel sprzedawcy.
+3. **Zmień tylko zdjęcie** – bez zmiany ceny, tytułu i promowania w tym czasie.
+4. **Odczekaj tyle samo** – i porównaj te same liczby.
+5. **Uważaj na kalendarz** – święta, wyprzedaże i początek miesiąca same zmieniają ruch.
 
-## Skąd brać warianty do testów?
+Pamiętaj o zasadach platformy: na Vinted zdjęcia muszą być zrobione przez Ciebie i pokazywać przedmiot bez edycji ([zasady katalogu Vinted](https://www.vinted.com/catalog-rules)), a na eBay nie wolno dodawać do zdjęć tekstu ani ramek ([zasady zdjęć eBay](https://www.ebay.com/help/policies/listing-policies/picture-policy?id=4370)). Testuj warianty, które mieszczą się w tych regułach – np. inne ujęcie, inne światło, inne kadrowanie.
 
-Najdroższą częścią testowania jest przygotowanie kilku wersji grafiki. W [AllGrafika.pl](https://app.allgrafika.pl/register) z jednego zdjęcia produktu wygenerujesz warianty w różnych stylach (np. białe tło, lifestyle, ciemny luksus, gradient), a produkt pozostaje taki jak na Twoim zdjęciu – zmienia się tło, scena i oświetlenie. Pierwsze 5 grafik możesz przetestować za darmo.
+## Jakie warianty porównywać
 
-Jeśli masz ograniczony budżet, zobacz też [jak testować miniaturki Allegro bez dużego budżetu](https://allgrafika.pl/blog/jak-testowac-miniaturki-bez-duzego-budzetu).
+Dobre pary do testu różnią się wyraźnie, ale tylko jedną rzeczą:
 
-## Jak interpretować wyniki?
+- białe tło kontra jasny gradient (zdjęcie w galerii lub w sklepie),
+- produkt na wprost kontra pod kątem,
+- produkt wypełniający kadr kontra więcej przestrzeni wokół,
+- scena lifestyle kontra zdjęcie w użyciu jako drugie zdjęcie galerii.
 
-- **Wyraźna różnica w CTR i sprzedaży:** zostaw lepszą wersję i zastosuj ten sam wzór w podobnych ofertach.
-- **Wyższy CTR, ale bez wzrostu sprzedaży:** miniaturka przyciąga, ale coś na stronie oferty nie przekonuje – sprawdź cenę, opis i galerię.
-- **Brak różnicy:** zmiana była za mała albo ruch za niski. Przetestuj bardziej wyraźną zmianę.
+Zbyt subtelna różnica (odcień tła o kilka tonów) rzadko daje mierzalny efekt przy typowym ruchu.
+
+## Jak czytać wynik
+
+- **Wyraźna różnica w kliknięciach i zamówieniach** – zostaw lepszą wersję i sprawdź ten sam wzór na podobnych produktach.
+- **Więcej kliknięć, ale nie więcej zamówień** – zdjęcie przyciąga, ale strona produktu nie przekonuje. Sprawdź cenę, opis i galerię.
+- **Brak różnicy** – zmiana była za mała albo ruch za niski. To też wynik: możesz zostać przy tańszej w przygotowaniu wersji.
+
+Nie przenoś wyniku jednego testu na cały sklep bez sprawdzenia. To, co działa przy butach, nie musi działać przy elektronice. Więcej o wskaźnikach poza CTR przeczytasz w artykule [metryki sprzedaży – co mierzyć poza CTR](https://allgrafika.pl/blog/metryki-sprzedazy-co-mierzyc-poza-ctr).
+
+## Skąd wziąć warianty do testów
+
+Najwięcej pracy wymaga przygotowanie kilku wersji zdjęcia. W [AllGrafika.pl](https://app.allgrafika.pl/register) z jednego zdjęcia produktu wygenerujesz warianty w różnych stylach (np. białe tło, lifestyle, ciemny luksus, gradient). Produkt pozostaje taki jak na Twoim zdjęciu – zmienia się tło, scena i oświetlenie. Pierwsze 5 grafik jest bezpłatnych po potwierdzeniu adresu e-mail.
+
+Jeśli masz bardzo mały ruch albo budżet, zobacz też [jak testować zdjęcia produktów bez dużego budżetu](https://allgrafika.pl/blog/jak-testowac-miniaturki-bez-duzego-budzetu).
 
 ## Podsumowanie
 
-Wyższy CTR na Allegro zaczyna się od czytelnej miniaturki: produkt wyraźny, duży w kadrze, na dobrze dobranym tle. Zamiast zgadywać, który styl zadziała, przygotuj dwie wersje, zmieniaj jedną rzecz naraz i porównuj dane z tych samych okresów.
+Wyższy CTR zaczyna się od czytelnego zdjęcia, ale potwierdzisz to tylko danymi. We własnym sklepie zrób prawdziwy test A/B z losowym podziałem ruchu, na marketplace porównuj okresy przed i po zmianie. W obu przypadkach zmieniaj jedną rzecz naraz i patrz nie tylko na kliknięcia, ale też na zamówienia.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-14',
-  modifiedAt: '2026-10-11',
+  modifiedAt: '2026-10-17',
   readTime: 7,
   category: 'E-commerce',
 }

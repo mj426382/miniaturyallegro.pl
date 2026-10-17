@@ -159,24 +159,7 @@ export default function RegulaminContent() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">§ 4b. Integracja z Allegro</h2>
-          <ol className="list-decimal list-inside space-y-2">
-            <li>
-              Użytkownik może połączyć Konto ze swoim kontem sprzedawcy w serwisie Allegro za pomocą oficjalnej autoryzacji Allegro (OAuth). Usługodawca nie otrzymuje hasła do Allegro; przechowuje
-              wyłącznie tokeny dostępu w postaci zaszyfrowanej.
-            </li>
-            <li>
-              Integracja umożliwia pobranie zdjęć z ofert Użytkownika oraz publikację Grafik w jego ofertach wyłącznie na wyraźne polecenie Użytkownika. Usługodawca nie modyfikuje ofert w inny sposób.
-            </li>
-            <li>Użytkownik odpowiada za zgodność publikowanych Grafik z regulaminem Allegro, w szczególności z wymaganiami dotyczącymi zdjęcia głównego oferty.</li>
-            <li>
-              Użytkownik może cofnąć dostęp w każdej chwili w ustawieniach Serwisu lub w panelu Allegro. Usługodawca nie ponosi odpowiedzialności za niedostępność lub zmiany interfejsu API Allegro.
-            </li>
-          </ol>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">§ 4c. Odstąpienie od umowy – informacje ogólne</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">§ 4b. Odstąpienie od umowy – informacje ogólne</h2>
           <ol className="list-decimal list-inside space-y-2">
             <li>
               Konsument może odstąpić od umowy o prowadzenie Konta oraz od umowy o darmową próbę w terminie 14 dni od ich zawarcia bez podania przyczyny, wysyłając oświadczenie na adres{' '}
@@ -218,8 +201,8 @@ export default function RegulaminContent() {
               Usługodawca zobowiązuje się do świadczenia usługi z należytą starannością, nie gwarantuje jednak konkretnego efektu artystycznego.
             </li>
             <li>
-              Użytkownik jest zobowiązany sprawdzić każdą Grafikę przed jej użyciem, w szczególności pod kątem zgodności z rzeczywistym wyglądem produktu oraz regulaminami platform sprzedażowych (np.
-              Allegro). Użycie Grafiki, która wprowadza kupujących w błąd co do cech produktu, jest zabronione.
+              Użytkownik jest zobowiązany sprawdzić każdą Grafikę przed jej użyciem, w szczególności pod kątem zgodności z rzeczywistym wyglądem produktu oraz regulaminami platform sprzedażowych i
+              sklepów internetowych, w których Grafika zostanie opublikowana. Użycie Grafiki, która wprowadza kupujących w błąd co do cech produktu, jest zabronione.
             </li>
             <li>
               Generacje zakończone błędem technicznym są oznaczane jako nieudane, a Kredyt wraca na Konto automatycznie. W przypadku Grafiki wadliwej (np. nieczytelnej, z artefaktami, niezgodnej z
@@ -301,6 +284,10 @@ export default function RegulaminContent() {
           <h2 className="text-xl font-semibold text-gray-900 mb-3">§ 11. Postanowienia końcowe</h2>
           <ol className="list-decimal list-inside space-y-2">
             <li>Regulamin w niniejszym brzmieniu obowiązuje od {LEGAL_DATES.effective}.</li>
+            <li>
+              Zmiana z {LEGAL_DATES.integrationRemoved}: usunięto postanowienia o integracji z zewnętrzną platformą sprzedażową (dawny § 4b), ponieważ Serwis nie oferuje już połączenia z kontami
+              sprzedawców ani publikacji Grafik na platformach; numeracja kolejnego paragrafu została dostosowana. Pozostałe postanowienia nie uległy zmianie.
+            </li>
             <li>Spory z Użytkownikami niebędącymi Konsumentami rozstrzyga sąd właściwy dla siedziby Usługodawcy. Spory z Konsumentami rozstrzyga sąd właściwy według przepisów ogólnych.</li>
             <li>Nieważność poszczególnych postanowień nie wpływa na ważność pozostałych. W miejsce postanowień nieważnych stosuje się przepisy prawa.</li>
             <li>Zasady przetwarzania danych osobowych określa Polityka prywatności.</li>

@@ -15,7 +15,7 @@ export default function Footer() {
               AllGrafika.pl
             </Link>
             <p className="mt-3 text-sm leading-relaxed">
-              Generator miniaturek i grafik produktowych AI dla sprzedawców Allegro. Prześlij zdjęcie, wybierz style, pobierz gotowe grafiki w kilka minut.
+              Generator zdjęć produktowych AI dla sprzedawców na OLX, Vinted, eBay, Amazon i we własnych sklepach internetowych. Prześlij zdjęcie, wybierz style, pobierz gotowe grafiki w kilka minut.
             </p>
           </div>
 
@@ -91,7 +91,9 @@ export default function Footer() {
           <p className="text-xs text-gray-500">
             {LEGAL_ENTITY.name}, {LEGAL_ENTITY.address}, NIP {LEGAL_ENTITY.nip} · {LEGAL_ENTITY.email} · {LEGAL_ENTITY.phone}
           </p>
-          <p className="text-xs text-gray-500">AllGrafika.pl nie jest powiązana z Allegro.pl sp. z o.o. Allegro jest znakiem towarowym jego właściciela.</p>
+          <p className="text-xs text-gray-500">
+            Nazwy platform (OLX, Vinted, eBay, Amazon) są znakami towarowymi ich właścicieli i służą wyłącznie do opisu zgodności plików; AllGrafika.pl nie jest z nimi powiązana.
+          </p>
           <p>
             Powered by{' '}
             <a href="https://jan-mat.pl" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">

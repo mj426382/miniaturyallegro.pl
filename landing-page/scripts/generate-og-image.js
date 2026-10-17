@@ -55,9 +55,9 @@ const svg = `
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
   <circle cx="1080" cy="560" r="260" fill="#a5b4fc" opacity="0.15"/>
   <circle cx="120" cy="80" r="180" fill="#ffffff" opacity="0.08"/>
-  <text x="80" y="250" font-family="Inter, Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#ffffff">Miniaturki Allegro</text>
+  <text x="80" y="250" font-family="Inter, Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#ffffff">Zdjęcia produktowe</text>
   <text x="80" y="335" font-family="Inter, Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#fde047">generowane przez AI</text>
-  <text x="80" y="415" font-family="Inter, Arial, Helvetica, sans-serif" font-size="32" font-weight="500" fill="#dbeafe">Z jednego zdjęcia produktu – 6 stylów, produkt wierny oryginałowi</text>
+  <text x="80" y="415" font-family="Inter, Arial, Helvetica, sans-serif" font-size="32" font-weight="500" fill="#dbeafe">OLX · Vinted · eBay · Amazon · sklep – produkt wierny oryginałowi</text>
   <text x="80" y="545" font-family="Inter, Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#ffffff">allgrafika.pl</text>
   <text x="320" y="545" font-family="Inter, Arial, Helvetica, sans-serif" font-size="30" font-weight="400" fill="#bfdbfe">· pierwsze 5 grafik za darmo</text>
 </svg>`

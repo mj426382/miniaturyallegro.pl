@@ -165,7 +165,7 @@ export default function SeoLanding({ page }: { page: SeoPage }) {
 
         <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Zamień zdjęcie z telefonu na grafikę Allegro</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Zamień zdjęcie z telefonu na zdjęcie produktowe</h2>
             <p className="text-blue-100 text-lg mb-8">Sprawdź na jednym produkcie bez konta albo załóż darmowe konto i wygeneruj 5 grafik bez podawania karty.</p>
             <a
               href={`${APP_URL}/register`}

@@ -17,7 +17,16 @@ async function collectConsole(page: Page) {
   return problems
 }
 
-const ROUTES = ['/', '/blog', '/blog/jak-zrobic-profesjonalne-zdjecia-allegro', '/regulamin', '/polityka-prywatnosci', '/zdjecia-ai-allegro', '/biale-tlo-zdjecie-produktu']
+const ROUTES = [
+  '/',
+  '/blog',
+  '/blog/jak-zrobic-profesjonalne-zdjecia-produktow',
+  '/regulamin',
+  '/polityka-prywatnosci',
+  '/zdjecia-ai-do-ofert',
+  '/biale-tlo-zdjecie-produktu',
+  '/zdjecia-produktowe-vinted',
+]
 
 for (const route of ROUTES) {
   test(`[AC-SEO-001, AC-RWD-004] hydrates ${route} without React errors or horizontal scroll`, async ({ page }) => {
@@ -74,11 +83,11 @@ test('[AC-PERF-002] client-side navigation loads the legal document chunk', asyn
 })
 
 test('[AC-SEO-002] prerendered HTML carries the per-route SEO head', async ({ page }) => {
-  await page.goto('/blog/jak-zrobic-profesjonalne-zdjecia-allegro')
-  // 54-character title: with the brand suffix it would exceed 60, so it stays bare (AC-SEO-009).
-  await expect(page).toHaveTitle('Jak zrobić profesjonalne zdjęcia produktów na Allegro?')
+  await page.goto('/blog/jak-zrobic-profesjonalne-zdjecia-produktow')
+  // 55-character title: with the brand suffix it would exceed 60, so it stays bare (AC-SEO-009).
+  await expect(page).toHaveTitle('Jak zrobić profesjonalne zdjęcia produktów – cały proces')
   const canonical = await page.locator('link[rel="canonical"]').getAttribute('href')
-  expect(canonical).toBe('https://allgrafika.pl/blog/jak-zrobic-profesjonalne-zdjecia-allegro')
+  expect(canonical).toBe('https://allgrafika.pl/blog/jak-zrobic-profesjonalne-zdjecia-produktow')
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent()
   expect(ld).toContain('"Article"')
 })
