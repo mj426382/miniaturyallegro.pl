@@ -68,7 +68,7 @@ const content: SeoContent = {
       heading: 'Ile kosztuje fotografia produktowa',
       paragraphs: [
         'Według cennika KB.pl z 2026 roku średnia cena packshotu w Polsce to 58,29 zł brutto za ujęcie, a typowe stawki mieszczą się między 50,76 a 72,21 zł. Studia wyceniają też za produkt albo za dzień zdjęciowy, a retusz bywa płatny osobno – zawsze proś o konkretną wycenę.',
-        'W AllGrafika płacisz za grafikę: od 2 zł w najmniejszym pakiecie do 0,50 zł w pakiecie 200 kredytów. Rachunek zwrotu z inwestycji dla własnego katalogu policzysz z poradnikiem [ile kosztują zdjęcia produktowe](/blog/koszty-fotografii-produktowej-vs-ai-roi).',
+        'W AllGrafika płacisz za grafikę: od 2 zł w najmniejszym pakiecie do 0,50 zł w pakiecie 200 kredytów, a w abonamencie Pro 0,39 zł. Rachunek zwrotu z inwestycji dla własnego katalogu policzysz z poradnikiem [ile kosztują zdjęcia produktowe](/blog/koszty-fotografii-produktowej-vs-ai-roi).',
       ],
     },
   ],

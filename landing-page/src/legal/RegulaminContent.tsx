@@ -8,7 +8,10 @@ export default function RegulaminContent() {
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Regulamin świadczenia usług</h1>
-      <p className="text-sm text-gray-400 mb-10">Obowiązuje od: {LEGAL_DATES.effective}</p>
+      <p className="text-sm text-gray-400 mb-10">
+        Obowiązuje od: {LEGAL_DATES.effective} · ostatnia zmiana: {LEGAL_DATES.changesPublished} (ceny abonamentów od dnia publikacji; limity przesyłania i skrót adresu e-mail po usunięciu Konta od{' '}
+        {LEGAL_DATES.limitsEffective}) – szczegóły w § 11
+      </p>
 
       <div className="space-y-8 text-gray-700 leading-relaxed">
         <section>
@@ -74,9 +77,9 @@ export default function RegulaminContent() {
               różniące się wyłącznie wielkością liter, kropkami w adresach Gmail albo dopiskiem „+…” traktowane są jako ten sam adres.
             </li>
             <li>
-              Usługodawca wysyła na adres e-mail Konta wiadomości związane z usługą (np. potwierdzenie adresu, reset hasła, zakończenie generowania paczki zdjęć). Wskazówki, przypomnienia i oferty
-              (np. zniżki na Kredyty) o charakterze handlowym wysyłane są wyłącznie po wyrażeniu przez Użytkownika odrębnej, dobrowolnej zgody, którą można wycofać w ustawieniach Konta lub linkiem w
-              każdej takiej wiadomości.
+              Usługodawca wysyła na adres e-mail Konta wiadomości związane z usługą (np. potwierdzenie adresu, reset hasła, zakończenie generowania grafik z masowego przesyłania zdjęć). Wskazówki,
+              przypomnienia i oferty (np. zniżki na Kredyty) o charakterze handlowym wysyłane są wyłącznie po wyrażeniu przez Użytkownika odrębnej, dobrowolnej zgody, którą można wycofać w
+              ustawieniach Konta lub linkiem w każdej takiej wiadomości.
             </li>
             <li>
               Po rejestracji Usługodawca wysyła na podany adres link potwierdzający. Generowanie Grafik i zakup Kredytów są dostępne po potwierdzeniu adresu e-mail; przy logowaniu przez Google adres
@@ -84,7 +87,9 @@ export default function RegulaminContent() {
             </li>
             <li>
               Użytkownik może w każdej chwili usunąć Konto w ustawieniach Serwisu („Konto → Usuń konto”) lub wysyłając żądanie na adres {LEGAL_ENTITY.email}. Usunięcie Konta powoduje trwałe usunięcie
-              przesłanych zdjęć, Grafik i niewykorzystanych Kredytów.
+              przesłanych zdjęć, Grafik i niewykorzystanych Kredytów. Od {LEGAL_DATES.limitsEffective} po usunięciu Konta Usługodawca przechowuje przez {PRICING.deletedEmailHashMonths} miesięcy
+              wyłącznie skrót adresu e-mail utworzony z użyciem tajnego klucza (HMAC) wraz z datą usunięcia, aby ponowna rejestracja na ten sam adres nie przyznawała ponownie darmowych Kredytów (§ 4
+              ust. 1) ani nagród w programie poleceń (§ 4 ust. 3); szczegóły określa Polityka prywatności.
             </li>
             <li>
               Usługodawca może wypowiedzieć umowę z zachowaniem 14-dniowego okresu wypowiedzenia z ważnych przyczyn, a ze skutkiem natychmiastowym w razie rażącego naruszenia Regulaminu (§ 8). O
@@ -137,12 +142,14 @@ export default function RegulaminContent() {
               Serwisie. Korektę danych na fakturze można zgłosić na adres {LEGAL_ENTITY.email}.
             </li>
             <li>
-              <strong>Abonament.</strong> Użytkownik może wykupić plan miesięczny, w ramach którego na początku każdego okresu rozliczeniowego otrzymuje określoną w cenniku liczbę Kredytów. Opłata
-              pobierana jest z góry za każdy miesiąc przez Stripe. Abonament odnawia się automatycznie do czasu jego anulowania, które jest możliwe w każdej chwili w panelu zarządzania subskrypcją;
-              anulowanie działa od końca bieżącego okresu rozliczeniowego. Konsument, który zażądał rozpoczęcia świadczenia usługi przed upływem terminu odstąpienia (zgoda zbierana w formularzu), może
-              odstąpić od umowy abonamentowej w terminie 14 dni, płacąc za świadczenia spełnione do chwili odstąpienia (udostępnione Kredyty według ceny jednostkowej planu), zgodnie z art. 35 ustawy o
-              prawach konsumenta. Kredyty otrzymane w ramach abonamentu nie wygasają. Usługodawca informuje o zmianie ceny abonamentu z co najmniej 30-dniowym wyprzedzeniem; zmiana nie obowiązuje
-              Użytkownika, który w tym czasie anuluje plan.
+              <strong>Abonament.</strong> Użytkownik może wykupić plan miesięczny, w ramach którego na początku każdego okresu rozliczeniowego otrzymuje określoną w cenniku liczbę Kredytów. Plany od{' '}
+              {LEGAL_DATES.changesPublished}: {PRICING.subscriptionStart.name} – {PRICING.subscriptionStart.price} / mies. za {PRICING.subscriptionStart.credits} Kredytów oraz{' '}
+              {PRICING.subscriptionPro.name} – {PRICING.subscriptionPro.price} / mies. za {PRICING.subscriptionPro.credits} Kredytów (ceny brutto). Opłata pobierana jest z góry za każdy miesiąc przez
+              Stripe. Abonament odnawia się automatycznie do czasu jego anulowania, które jest możliwe w każdej chwili w panelu zarządzania subskrypcją; anulowanie działa od końca bieżącego okresu
+              rozliczeniowego. Konsument, który zażądał rozpoczęcia świadczenia usługi przed upływem terminu odstąpienia (zgoda zbierana w formularzu), może odstąpić od umowy abonamentowej w terminie
+              14 dni, płacąc za świadczenia spełnione do chwili odstąpienia (udostępnione Kredyty według ceny jednostkowej planu), zgodnie z art. 35 ustawy o prawach konsumenta. Kredyty otrzymane w
+              ramach abonamentu nie wygasają. Usługodawca informuje o zmianie ceny abonamentu z co najmniej 30-dniowym wyprzedzeniem; zmiana nie obowiązuje Użytkownika, który w tym czasie anuluje
+              plan.
             </li>
           </ol>
         </section>
@@ -169,7 +176,7 @@ export default function RegulaminContent() {
               Oświadczenie można złożyć na formularzu: „Ja, [imię i nazwisko], niniejszym informuję o odstąpieniu od umowy o świadczenie usługi AllGrafika.pl zawartej dnia [data]. Adres e-mail konta:
               [e-mail]. Data: [data], podpis (jeśli formularz jest przesyłany w wersji papierowej).”
             </li>
-            <li>Zasady odstąpienia od umowy zakupu Kredytów i abonamentu określa § 4 ust. 5 i 7.</li>
+            <li>Zasady odstąpienia od umowy zakupu Kredytów i abonamentu określa § 4 ust. 9 i 11.</li>
           </ol>
         </section>
 
@@ -182,6 +189,12 @@ export default function RegulaminContent() {
             </li>
             <li>Pliki są przesyłane szyfrowanym połączeniem (HTTPS). Usługodawca nie gwarantuje nieprzerwanej dostępności plików i zaleca pobranie Grafik na własne urządzenie.</li>
             <li>Użytkownik zobowiązuje się nie przesyłać plików zawierających treści nielegalne, naruszające prawa osób trzecich, wizerunek osób bez ich zgody ani złośliwe oprogramowanie.</li>
+            <li>
+              <strong>Limity przesyłania.</strong> Od {LEGAL_DATES.limitsEffective} Konto z niepotwierdzonym adresem e-mail może przesłać łącznie najwyżej {PRICING.uploadLimitUnconfirmed} zdjęć, a
+              Konto z potwierdzonym adresem e-mail – najwyżej {PRICING.uploadLimitDaily} zdjęć w ciągu ostatnich 24 godzin. Limity obejmują przesyłanie pojedyncze i masowe przesyłanie zdjęć i chronią
+              Serwis przed nadużyciami i przeciążeniem. Po osiągnięciu limitu Serwis informuje, jak go zwiększyć (potwierdzenie adresu e-mail) albo od kiedy można przesłać kolejne zdjęcia; już
+              przesłane zdjęcia, Grafiki i Kredyty pozostają bez zmian.
+            </li>
             <li>
               Pliki są przechowywane przez czas posiadania Konta i usuwane niezwłocznie po jego usunięciu. Usługodawca może wprowadzić automatyczne usuwanie plików nieaktywnych Kont po uprzednim
               powiadomieniu e-mailem z co najmniej 30-dniowym wyprzedzeniem.
@@ -287,6 +300,15 @@ export default function RegulaminContent() {
             <li>
               Zmiana z {LEGAL_DATES.integrationRemoved}: usunięto postanowienia o integracji z zewnętrzną platformą sprzedażową (dawny § 4b), ponieważ Serwis nie oferuje już połączenia z kontami
               sprzedawców ani publikacji Grafik na platformach; numeracja kolejnego paragrafu została dostosowana. Pozostałe postanowienia nie uległy zmianie.
+            </li>
+            <li>
+              Zmiana z {LEGAL_DATES.changesPublished} (data publikacji): (a) obniżono ceny abonamentów – {PRICING.subscriptionStart.name}: {PRICING.subscriptionStart.price} / mies. za{' '}
+              {PRICING.subscriptionStart.credits} Kredytów (wcześniej {PRICING.subscriptionStart.previousPrice}), {PRICING.subscriptionPro.name}: {PRICING.subscriptionPro.price} / mies. za{' '}
+              {PRICING.subscriptionPro.credits} Kredytów (wcześniej {PRICING.subscriptionPro.previousPrice}) – obniżka obowiązuje od dnia publikacji, a trwające abonamenty są rozliczane według nowej
+              ceny od najbliższego okresu rozliczeniowego (§ 4 ust. 11); (b) wprowadzono limity przesyłania zdjęć (§ 5 ust. 4) oraz przechowywanie skrótu adresu e-mail po usunięciu Konta (§ 3 ust. 6)
+              – zgodnie z § 2 ust. 4 postanowienia te obowiązują od {LEGAL_DATES.limitsEffective}, czyli 14 dni po publikacji; Użytkownik, który ich nie akceptuje, może do tego dnia usunąć Konto; (c)
+              powiadomienie e-mail po masowym przesyłaniu zdjęć nazwano zgodnie z nazwą funkcji w Serwisie (§ 3 ust. 4); (d) poprawiono odesłanie w § 4b ust. 3 (na § 4 ust. 9 i 11). Pozostałe
+              postanowienia nie uległy zmianie.
             </li>
             <li>Spory z Użytkownikami niebędącymi Konsumentami rozstrzyga sąd właściwy dla siedziby Usługodawcy. Spory z Konsumentami rozstrzyga sąd właściwy według przepisów ogólnych.</li>
             <li>Nieważność poszczególnych postanowień nie wpływa na ważność pozostałych. W miejsce postanowień nieważnych stosuje się przepisy prawa.</li>

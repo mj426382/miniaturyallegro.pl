@@ -214,7 +214,8 @@ export default function DemoWidget() {
                 </label>
                 <label className="flex items-start gap-2 text-xs text-gray-600">
                   <input type="checkbox" checked={marketingOk} onChange={(e) => setMarketingOk(e.target.checked)} className="mt-0.5" />
-                  <span>Chcę otrzymywać od AllGrafika porady o miniaturkach i informacje o nowościach (opcjonalnie, możesz zrezygnować w każdej chwili).</span>
+                  {/* Spec 10, AC-SEO-024: wording from 2026-10-18 – the API stores marketingOk with its date (no consent version field). */}
+                  <span>Chcę otrzymywać od AllGrafika porady o zdjęciach produktowych i sprzedaży online oraz informacje o nowościach (opcjonalnie, możesz zrezygnować w każdej chwili).</span>
                 </label>
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 <button
