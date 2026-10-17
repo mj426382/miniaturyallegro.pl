@@ -8,7 +8,7 @@ export default function Regulamin() {
     <>
       <Helmet>
         <title>Regulamin | AllGrafika.pl</title>
-        <meta name="description" content="Regulamin świadczenia usług serwisu AllGrafika.pl – generator grafik produktowych AI dla sprzedawców Allegro." />
+        <meta name="description" content="Regulamin świadczenia usług serwisu AllGrafika.pl – generator zdjęć produktowych AI dla sprzedawców internetowych." />
         <link rel="canonical" href="https://allgrafika.pl/regulamin" />
         <meta name="robots" content="noindex, follow" />
       </Helmet>

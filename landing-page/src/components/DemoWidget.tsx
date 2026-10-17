@@ -11,7 +11,7 @@ const POLL_MS = 3000
 const MAX_POLLS = 60
 
 const STYLES = [
-  { id: 'white-bg', label: 'Białe tło (zdjęcie główne Allegro)' },
+  { id: 'white-bg', label: 'Białe tło (zdjęcie główne oferty)' },
   { id: 'lifestyle-home', label: 'Lifestyle – wnętrze' },
   { id: 'dark-luxury', label: 'Ciemny luksus' },
 ]
@@ -263,7 +263,7 @@ export default function DemoWidget() {
                 >
                   Załóż konto – 5 grafik gratis →
                 </a>
-                <p className="text-xs text-gray-400 mt-3">W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny i opublikujesz grafiki prosto do oferty Allegro.</p>
+                <p className="text-xs text-gray-400 mt-3">W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny, wyeksportujesz grafiki z presetem pod OLX, Vinted, eBay, Amazon lub sklep i dostaniesz opis oferty.</p>
               </div>
             </div>
           ) : phase === 'slow' ? (

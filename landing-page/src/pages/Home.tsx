@@ -13,15 +13,15 @@ const SITE_URL = 'https://allgrafika.pl'
 const APP_URL = 'https://app.allgrafika.pl'
 const OG_IMAGE = `${SITE_URL}/og-image.png`
 
-// Spec 10, AC-SEO-008: the title carries the head terms (grafiki, miniatury, zdjęcia Allegro) within 60 characters.
-const PAGE_TITLE = 'Grafiki, miniatury i zdjęcia Allegro z AI | AllGrafika.pl'
-const PAGE_DESCRIPTION = 'Zamień zdjęcie z telefonu na grafikę Allegro: AI robi miniatury i zdjęcia ofert na białym tle lub w aranżacji, a produkt zostaje wierny. 5 grafik za darmo.'
+// Spec 10, AC-SEO-008: the title carries the head terms (zdjęcia produktowe, AI, OLX, Vinted) within 60 characters.
+const PAGE_TITLE = 'Zdjęcia produktowe AI na OLX, Vinted i eBay | AllGrafika.pl'
+const PAGE_DESCRIPTION = 'Zdjęcie z telefonu zamień na zdjęcie produktowe AI na białym tle lub w aranżacji – z eksportem pod OLX, Vinted, eBay, Amazon i sklep. 5 grafik za darmo.'
 
 const pains = [
   {
     icon: '👀',
     title: 'Kupujący przewija obok Twojej oferty',
-    desc: 'Na liście wyników widać dziesiątki niemal identycznych produktów. Jedyne, co różni Twoją ofertę od konkurencji, to miniaturka. Zdjęcie z kuchennego blatu przegrywa z packshotem.',
+    desc: 'Na liście wyników widać dziesiątki niemal identycznych produktów. Jedyne, co różni Twoją ofertę od konkurencji, to pierwsze zdjęcie. Zdjęcie z kuchennego blatu przegrywa z packshotem.',
   },
   {
     icon: '💸',
@@ -36,12 +36,12 @@ const pains = [
 ]
 
 const steps = [
-  { number: '1', title: 'Prześlij zdjęcie', desc: 'Zwykła fotka z telefonu wystarczy (JPG, PNG, WebP, maks. 10 MB). Możesz też pobrać zdjęcia prosto ze swoich ofert Allegro.' },
+  { number: '1', title: 'Prześlij zdjęcie', desc: 'Zwykła fotka z telefonu wystarczy (JPG, PNG, WebP, maks. 10 MB). Możesz przesłać kilka zdjęć naraz.' },
   { number: '2', title: 'Wybierz style', desc: 'Zaczynasz od zestawu startowego 3 grafik. Dodatkowe wskazówki wpisujesz po polsku, resztę stylów dogenerujesz, gdy zobaczysz pierwsze wyniki.' },
   {
     number: '3',
-    title: 'Pobierz albo opublikuj',
-    desc: 'Kadrujesz, obracasz i poprawiasz grafiki w formatach Allegro (1:1, galeria 4:3, baner Ads, plakietka promocyjna), dopisujesz opis oferty pod SEO i publikujesz jednym kliknięciem do oferty.',
+    title: 'Wyeksportuj i wstaw do oferty',
+    desc: 'Kadrujesz, obracasz i poprawiasz grafiki, wybierasz gotowy preset eksportu (OLX, Vinted, eBay, Amazon albo własny sklep), dopisujesz opis dopasowany do platformy i pobierasz pliki, które sam wstawiasz do ogłoszenia.',
   },
 ]
 
@@ -53,8 +53,8 @@ const features = [
   },
   {
     icon: '🛒',
-    title: 'Integracja z Allegro',
-    desc: 'Połącz konto sprzedawcy, pobierz zdjęcia z ofert, wygeneruj grafiki i ustaw je jako zdjęcie główne lub dodaj do galerii, a tytuł i opis wyślij do oferty jednym kliknięciem.',
+    title: 'Opis pod platformę',
+    desc: 'Do każdego zdjęcia z gotową grafiką dostajesz tytuł i opis oferty dopasowany do platformy, na której sprzedajesz – od krótkiego ogłoszenia na OLX po opis do sklepu internetowego. Kopiujesz i wklejasz.',
   },
   {
     icon: '🎯',
@@ -63,8 +63,8 @@ const features = [
   },
   {
     icon: '📐',
-    title: 'Formaty gotowe pod Allegro',
-    desc: 'Zdjęcie główne 1:1, galeria 4:3, baner 16:9 pod Allegro Ads, PNG w wysokiej jakości i plakietki typu „-20%” lub „NOWOŚĆ” na kolejne zdjęcia.',
+    title: 'Presety eksportu pod platformy',
+    desc: 'Gotowe ustawienia eksportu pod OLX, Vinted, eBay, Amazon i własny sklep internetowy, PNG w wysokiej jakości i plakietki typu „-20%” lub „NOWOŚĆ” na kolejne zdjęcia (tam, gdzie platforma na to pozwala).',
   },
   {
     icon: '✏️',
@@ -79,7 +79,7 @@ const features = [
 ]
 
 const styles = [
-  { name: 'Białe tło', desc: 'Packshot zgodny z wymaganiami zdjęcia głównego Allegro.', starter: true },
+  { name: 'Białe tło', desc: 'Packshot na jednolitym białym tle – pod zdjęcie główne w sklepie i na marketplace.', starter: true },
   { name: 'Lifestyle – wnętrze', desc: 'Produkt w jasnym, nowoczesnym wnętrzu dopasowanym do kategorii.', starter: true },
   { name: 'Ciemny luksus', desc: 'Dramatyczne światło i ciemne tło – dla produktów premium.', starter: true },
   { name: 'Gradient', desc: 'Elegancki gradient w kolorystyce dopasowanej do produktu.', starter: false },
@@ -104,8 +104,8 @@ const plans = [
 
 const faq = [
   {
-    q: 'Czy miniaturki wygenerowane przez AI są zgodne z wymaganiami Allegro?',
-    a: 'Styl „Białe tło” tworzy packshot na jednolitym białym tle, bez napisów, ramek i znaków wodnych, tak jak wymaga tego Allegro dla zdjęcia głównego. Pozostałe style i plakietki promocyjne stosuj na kolejnych zdjęciach galerii. Zawsze zweryfikuj gotową grafikę z aktualnym regulaminem Allegro przed publikacją.',
+    q: 'Czy zdjęcia z AI spełnią wymagania OLX, Vinted, eBay i Amazon?',
+    a: 'Styl „Białe tło” tworzy packshot na jednolitym białym tle, bez napisów, ramek i znaków wodnych – tego wymaga np. Amazon dla zdjęcia głównego, a eBay i sklepy internetowe zalecają podobny standard. Pozostałe style i plakietki stosuj na kolejnych zdjęciach, jeśli zasady platformy na to pozwalają. Każda platforma ma własny regulamin, dlatego przed publikacją sprawdź gotową grafikę z aktualnymi zasadami miejsca, w którym sprzedajesz.',
   },
   {
     q: 'Czy AI zmieni wygląd mojego produktu?',
@@ -113,11 +113,11 @@ const faq = [
   },
   {
     q: 'Ile to kosztuje?',
-    a: 'Pierwsze 5 grafik jest darmowych i nie wymaga karty – wystarczy potwierdzić adres e-mail. Do każdej płatności dostajesz fakturę (NIP podajesz w formularzu płatności). Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 0,50 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty pod SEO Allegro dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
+    a: 'Pierwsze 5 grafik jest darmowych i nie wymaga karty – wystarczy potwierdzić adres e-mail. Do każdej płatności dostajesz fakturę (NIP podajesz w formularzu płatności). Potem 1 kredyt = 1 grafika: pakiety jednorazowe od 0,50 zł do 2 zł za grafikę albo abonament miesięczny od 0,99 zł za grafikę. Opis oferty dopasowany do platformy dostajesz gratis do każdego zdjęcia z gotową grafiką, z 5 poprawkami AI w cenie (kolejne 15 poprawek to 1 kredyt). Kredyty nie wygasają, a nieudane generacje są zwracane automatycznie.',
   },
   {
-    q: 'Jak działa integracja z Allegro?',
-    a: 'W aplikacji łączysz konto sprzedawcy przez oficjalną autoryzację Allegro (nie podajesz nam hasła). Potem przeglądasz swoje oferty, pobierasz z nich zdjęcie główne, generujesz grafiki i publikujesz je do oferty jako zdjęcie główne lub do galerii, a wygenerowany tytuł i opis wysyłasz do oferty jednym kliknięciem. Dostęp możesz cofnąć w każdej chwili.',
+    q: 'Czy AllGrafika publikuje zdjęcia na OLX, Vinted, eBay albo Amazon?',
+    a: 'Nie. AllGrafika nie łączy się z kontami na platformach sprzedażowych i niczego za Ciebie nie publikuje – nie podajesz nam żadnych haseł. Wybierasz preset eksportu pod platformę, pobierasz zdjęcia (pojedynczo albo w paczce ZIP) i kopiujesz opis, a potem sam dodajesz je do ogłoszenia lub sklepu.',
   },
   {
     q: 'Jak długo trwa generowanie?',
@@ -125,7 +125,7 @@ const faq = [
   },
   {
     q: 'Czy mogę używać grafik komercyjnie?',
-    a: 'Tak. Wygenerowane grafiki możesz wykorzystywać bez ograniczeń w ofertach na Allegro, w sklepie internetowym i w reklamach. Odpowiadasz za to, by przesłane zdjęcie było Twoje lub byś miał prawo z niego korzystać.',
+    a: 'Tak. Wygenerowane grafiki możesz wykorzystywać bez ograniczeń w ogłoszeniach na marketplace, w sklepie internetowym i w reklamach. Odpowiadasz za to, by przesłane zdjęcie było Twoje lub byś miał prawo z niego korzystać.',
   },
   {
     q: 'Co dzieje się z moimi zdjęciami?',
@@ -141,7 +141,7 @@ const structuredData = [
   {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'AllGrafika – generator miniaturek Allegro AI',
+    name: 'AllGrafika – generator zdjęć produktowych AI',
     applicationCategory: 'DesignApplication',
     operatingSystem: 'Web',
     url: APP_URL,
@@ -180,7 +180,7 @@ export default function Home() {
         <meta property="og:image" content={OG_IMAGE} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="AllGrafika – generator miniaturek Allegro AI" />
+        <meta property="og:image:alt" content="AllGrafika – generator zdjęć produktowych AI" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={PAGE_TITLE} />
         <meta name="twitter:description" content={PAGE_DESCRIPTION} />
@@ -198,14 +198,14 @@ export default function Home() {
             <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-300 rounded-full blur-3xl"></div>
           </div>
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-24 text-center">
-            <span className="inline-block bg-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-6">Dla sprzedawców Allegro, którzy nie mają czasu i budżetu na sesje zdjęciowe</span>
+            <span className="inline-block bg-white/20 text-white text-sm font-medium px-4 py-1.5 rounded-full mb-6">Dla sprzedawców na OLX, Vinted, eBay, Amazon i we własnych sklepach</span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
-              Grafiki i miniaturki Allegro
+              Zdjęcia produktowe z AI
               <br />
-              <span className="text-yellow-300">ze zdjęcia z telefonu</span>
+              <span className="text-yellow-300">z jednej fotki z telefonu</span>
             </h1>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-              Twoja oferta nie klika? Zamień zwykłe zdjęcie z telefonu na profesjonalną grafikę Allegro w kilka minut. Zmieniamy tylko tło i światło, a kształt, kolory i logo produktu są chronione
+              Twoja oferta nie klika? Zamień zwykłe zdjęcie z telefonu na profesjonalne zdjęcie produktowe w kilka minut. Zmieniamy tylko tło i światło, a kształt, kolory i logo produktu są chronione
               regułami integralności. Bez fotografa, bez grafika, bez czekania.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -263,7 +263,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                Jak powstają <span className="text-blue-600">miniaturki na Allegro</span> w AllGrafika?
+                Jak powstają <span className="text-blue-600">zdjęcia produktowe</span> w AllGrafika?
               </h2>
               <p className="text-gray-500 mt-4 text-lg">Trzy kroki od zdjęcia z telefonu do grafiki w ofercie</p>
             </div>
@@ -284,7 +284,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                Zrobione pod <span className="text-blue-600">sprzedaż na Allegro</span>, nie pod „ładne obrazki”
+                Zrobione pod <span className="text-blue-600">sprzedaż online</span>, nie pod „ładne obrazki”
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -436,7 +436,7 @@ export default function Home() {
         {/* CTA */}
         <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Zrób pierwsze miniaturki Allegro już dziś</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Zrób pierwsze zdjęcia produktowe już dziś</h2>
             <p className="text-blue-100 text-lg mb-8">Sprawdź na jednym produkcie bez konta albo załóż darmowe konto i wygeneruj 5 grafik bez podawania karty.</p>
             <a
               href={`${APP_URL}/register`}

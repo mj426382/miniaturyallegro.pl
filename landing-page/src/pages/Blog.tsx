@@ -12,15 +12,15 @@ export default function Blog() {
   return (
     <>
       <Helmet>
-        <title>Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl</title>
-        <meta name="description" content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro." />
+        <title>Blog – zdjęcia produktowe i sprzedaż online | AllGrafika.pl</title>
+        <meta name="description" content="Poradniki o zdjęciach produktowych, opisach ofert i sprzedaży na OLX, Vinted, eBay, Amazon i we własnym sklepie internetowym. Praktyczne wskazówki." />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${SITE_URL}/blog`} />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl" />
-        <meta property="og:description" content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online. Dowiedz się jak zwiększyć sprzedaż na Allegro." />
+        <meta property="og:title" content="Blog – zdjęcia produktowe i sprzedaż online | AllGrafika.pl" />
+        <meta property="og:description" content="Poradniki o zdjęciach produktowych, opisach ofert i sprzedaży na OLX, Vinted, eBay, Amazon i we własnym sklepie internetowym. Praktyczne wskazówki." />
         <meta property="og:url" content={`${SITE_URL}/blog`} />
         <meta property="og:site_name" content="AllGrafika.pl" />
         <meta property="og:locale" content="pl_PL" />
@@ -28,8 +28,8 @@ export default function Blog() {
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Blog – Grafiki produktowe, Zdjęcia Allegro | AllGrafika.pl" />
-        <meta name="twitter:description" content="Porady dotyczące grafik produktowych Allegro, zdjęć produktowych i sprzedaży online." />
+        <meta name="twitter:title" content="Blog – zdjęcia produktowe i sprzedaż online | AllGrafika.pl" />
+        <meta name="twitter:description" content="Poradniki o zdjęciach produktowych, opisach ofert i sprzedaży na marketplace i we własnym sklepie." />
         <meta name="twitter:image" content={`${SITE_URL}/og-image.png`} />
       </Helmet>
 
@@ -38,8 +38,8 @@ export default function Blog() {
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16">
           <div className="text-center mb-16">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog AllGrafika – grafiki i sprzedaż na Allegro</h1>
-            <p className="text-lg text-gray-500">Porady, wskazówki i strategie dla sprzedawców Allegro</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog AllGrafika – zdjęcia produktowe i sprzedaż online</h1>
+            <p className="text-lg text-gray-500">Porady dla sprzedawców na OLX, Vinted, eBay, Amazon i we własnych sklepach</p>
           </div>
 
           <div className="space-y-8">

@@ -199,7 +199,7 @@ export default function BlogPostPage() {
 
           {/* CTA Box */}
           <div className="mt-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white text-center">
-            <h3 className="text-xl font-bold mb-3">Gotowy na profesjonalne grafiki Allegro?</h3>
+            <h3 className="text-xl font-bold mb-3">Gotowy na profesjonalne zdjęcia produktowe?</h3>
             <p className="text-blue-100 mb-6">Wypróbuj AllGrafika.pl za darmo – 10 generacji gratis, bez karty kredytowej.</p>
             <a
               href="https://app.allgrafika.pl/register"
