@@ -134,6 +134,31 @@ export class GenerationController {
     res.send(buffer);
   }
 
+  @Post('export-original/:imageId')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @ApiOperation({
+    summary: 'Export the original uploaded photo for a platform – framing, rotation and format only (e.g. Vinted)',
+  })
+  async exportOriginal(
+    @Param('imageId') imageId: string,
+    @Body() dto: ExportDto,
+    @CurrentUser() user: SessionUser,
+    @Res() res: ExpressResponse,
+  ) {
+    const { buffer, contentType, extension, ratio } = await this.generationService.exportOriginal(
+      imageId,
+      user.userId,
+      dto,
+    );
+    const platform = dto.platform ? `${dto.platform}-` : '';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="zdjecie-${platform}${ratio.replace(':', 'x')}.${extension}"`,
+    );
+    res.send(buffer);
+  }
+
   @Get('infographic-icons')
   @ApiOperation({ summary: 'Icons available for infographic features' })
   getInfographicIcons() {

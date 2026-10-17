@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as https from 'https';
+import sharp from 'sharp';
 import * as http from 'http';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
@@ -294,6 +295,24 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     const { buffer } = await this.storageService.getFileBuffer(generation.url);
     const exported = await this.exportService.exportImage(buffer, options);
     return { ...exported, style: generation.style || 'custom' };
+  }
+
+  /**
+   * The user's own photo, only framed and converted for a platform (spec 08, AC-PLT-009) – for platforms
+   * that want the seller's real photo (Vinted). No AI, no badge, no tone correction; the phone's EXIF
+   * orientation is applied first so the crop matches what the browser shows.
+   */
+  async exportOriginal(imageId: string, userId: string, options: ExportOptions) {
+    if (options.badgeText?.trim() || options.adjust) {
+      throw new HttpException(
+        'Oryginalne zdjęcie eksportujesz tylko z kadrem, obrotem i formatem – bez plakietki i korekty',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const image = await this.getOwnedImage(imageId, userId);
+    const { buffer } = await this.storageService.getFileBuffer(image.originalUrl);
+    const oriented = await sharp(buffer, { limitInputPixels: 40_000_000 }).rotate().toBuffer();
+    return this.exportService.exportImage(oriented, options);
   }
 
   /** Free infographic for an additional offer photo (spec 14) – rendered, never stored. */

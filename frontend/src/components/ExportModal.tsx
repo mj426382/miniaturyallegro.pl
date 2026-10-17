@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { XMarkIcon, ArrowDownTrayIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
-import { exportApi, ExportFormat, ExportOptions, ExportRatio, ImageAdjustments, PlatformPreset } from '../services/api'
+import { exportApi, ExportFormat, ExportOptions, ExportRatio, ImageAdjustments, PlatformId, PlatformPreset } from '../services/api'
 import { usePlatformPresets } from '../hooks/usePlatformPresets'
 import { track } from '../services/analytics'
 import { downloadBlob, shareBlob } from '../utils/download'
@@ -9,10 +9,22 @@ import { CropRect, ratioToAspect } from '../utils/crop'
 import CropEditor, { Rotation } from './CropEditor'
 
 interface Props {
-  generationId: string
-  styleName: string
-  previewUrl: string
+  /** The AI graphic opened from its card; omitted when only the original photo is exported. */
+  generation?: { id: string; style: string; styleName: string; url: string }
+  /** The seller's own uploaded photo – exported without AI for platforms that want real photos (Vinted, spec 08). */
+  original: { imageId: string; url: string }
+  /** Starting platform (e.g. Vinted for „Eksportuj oryginał”). */
+  initialPlatform?: PlatformId
   onClose: () => void
+}
+
+type Source = 'generation' | 'original'
+
+const BADGE_POSITION_LABELS: Record<NonNullable<ExportOptions['badgePosition']>, string> = {
+  'top-left': 'w lewym górnym rogu',
+  'top-right': 'w prawym górnym rogu',
+  'bottom-left': 'w lewym dolnym rogu',
+  'bottom-right': 'w prawym dolnym rogu',
 }
 
 const RATIO_HINTS: Record<ExportRatio, string> = {
@@ -45,8 +57,11 @@ const COLORS: Array<{ id: NonNullable<ExportOptions['badgeColor']>; className: s
 type Framing = 'crop' | 'fit'
 type Step = 1 | 2
 
-/** Generated graphics are square, so any other ratio needs a decision – default to framing it. */
-const defaultFraming = (ratio: ExportOptions['ratio']): Framing => (ratio && ratio !== '1:1' ? 'crop' : 'fit')
+/**
+ * Generated graphics are square, so any other ratio needs a decision – default to framing it.
+ * Original photos have any shape: framing (no white bars) is the default for every ratio.
+ */
+const defaultFraming = (ratio: ExportOptions['ratio'], source: Source = 'generation'): Framing => (source === 'original' || (ratio && ratio !== '1:1') ? 'crop' : 'fit')
 
 const DEFAULT_ADJUST: Required<ImageAdjustments> = { brightness: 1, contrast: 1, saturation: 1, sharpen: false }
 const isDefaultAdjust = (a: Required<ImageAdjustments>) => a.brightness === 1 && a.contrast === 1 && a.saturation === 1 && !a.sharpen
@@ -64,14 +79,18 @@ const STEPS: Array<{ id: Step; label: string }> = [
   { id: 2, label: 'Korekta i plakietka' },
 ]
 
-export default function ExportModal({ generationId, styleName, previewUrl, onClose }: Props) {
+export default function ExportModal({ generation, original, initialPlatform = 'generic', onClose }: Props) {
   const [step, setStep] = useState<Step>(1)
+  const [source, setSource] = useState<Source>(generation ? 'generation' : 'original')
+  const isOriginal = source === 'original' || !generation
+  const previewUrl = isOriginal ? original.url : generation.url
+  const previewAlt = isOriginal ? 'Oryginalne zdjęcie produktu' : generation.styleName
   const { presets, failed: presetsFailed, retry: retryPresets } = usePlatformPresets()
-  const [platformId, setPlatformId] = useState<PlatformPreset['id']>('generic')
+  const [platformId, setPlatformId] = useState<PlatformPreset['id']>(initialPlatform)
   const preset = presets?.find((p) => p.id === platformId) ?? null
   const [ratio, setRatio] = useState<ExportRatio>('1:1')
   const [format, setFormat] = useState<ExportFormat>('jpeg')
-  const [framing, setFraming] = useState<Framing>(defaultFraming('1:1'))
+  const [framing, setFraming] = useState<Framing>(defaultFraming('1:1', generation ? 'generation' : 'original'))
   const [crop, setCrop] = useState<CropRect | null>(null)
   const [rotation, setRotation] = useState<Rotation>(0)
   const [adjust, setAdjust] = useState<Required<ImageAdjustments>>(DEFAULT_ADJUST)
@@ -89,9 +108,9 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const chooseRatio = (next: ExportRatio) => {
+  const chooseRatio = (next: ExportRatio, nextSource: Source = source) => {
     setRatio(next)
-    setFraming(defaultFraming(next))
+    setFraming(defaultFraming(next, nextSource))
     setCrop(null)
   }
 
@@ -101,10 +120,38 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
     chooseRatio(p.defaultRatio)
   }
 
+  // A starting platform other than the default (e.g. Vinted) takes its ratio and format once presets load.
+  const appliedInitial = useRef(false)
+  useEffect(() => {
+    if (appliedInitial.current || !presets) return
+    appliedInitial.current = true
+    const start = presets.find((p) => p.id === initialPlatform)
+    if (start && initialPlatform !== 'generic') choosePlatform(start)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presets])
+
+  /** Spec 08, AC-PLT-010: the original photo is exported with framing, rotation and format only. */
+  const switchSource = (next: Source) => {
+    setSource(next)
+    setStep(1)
+    setRotation(0)
+    setAdjust(DEFAULT_ADJUST)
+    chooseRatio(ratio, next)
+  }
+
   const onCropChange = useCallback((next: CropRect) => setCrop(next), [])
   const rotateBy = (delta: 90 | -90) => {
     setRotation((r) => ((r + delta + 360) % 360) as Rotation)
     setCrop(null)
+  }
+
+  const shareReady = () => {
+    if (!readyToShare) return
+    const { blob, name } = readyToShare
+    setReadyToShare(null)
+    shareBlob(blob, name).then((ok) => {
+      if (!ok) downloadBlob(blob, name)
+    })
   }
 
   const isSquare = ratio === '1:1'
@@ -119,17 +166,18 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
       const options: ExportOptions = { platform: preset.id, ratio, size: preset.targetSize, format }
       if (framing === 'crop' && crop) options.crop = crop
       if (rotation !== 0) options.rotate = rotation
-      if (!isDefaultAdjust(adjust)) options.adjust = adjust
-      if (badgeText.trim() && !badgeForbidden) {
+      if (!isOriginal && !isDefaultAdjust(adjust)) options.adjust = adjust
+      if (!isOriginal && badgeText.trim() && !badgeForbidden) {
         options.badgeText = badgeText.trim()
         options.badgeColor = badgeColor
         options.badgePosition = badgePosition
       }
-      const { data } = await exportApi.export(generationId, options)
+      const { data } = isOriginal ? await exportApi.exportOriginal(original.imageId, options) : await exportApi.export(generation.id, options)
       const ext = options.format === 'png' ? 'png' : options.format === 'webp' ? 'webp' : 'jpg'
-      const name = `grafika-${styleName}-${preset.id}-${ratio.replace(':', 'x')}.${ext}`
+      const name = isOriginal ? `zdjecie-${preset.id}-${ratio.replace(':', 'x')}.${ext}` : `grafika-${generation.style}-${preset.id}-${ratio.replace(':', 'x')}.${ext}`
       const method = await downloadBlob(data, name)
-      if (method !== 'cancelled') track('export', { platform: preset.id, ratio, framing, rotated: rotation !== 0, adjusted: Boolean(options.adjust), badge: Boolean(options.badgeText), method })
+      if (method !== 'cancelled')
+        track('export', { platform: preset.id, ratio, framing, source, rotated: rotation !== 0, adjusted: Boolean(options.adjust), badge: Boolean(options.badgeText), method })
       if (method === 'share-rejected') setReadyToShare({ blob: data, name })
       if (method === 'open-tab' || method === 'anchor-ios') toast('Przytrzymaj obraz i wybierz „Zapisz obraz”, aby zapisać go w Zdjęciach.', { duration: 6000 })
     } catch (err: any) {
@@ -146,22 +194,26 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
       <div role="dialog" aria-modal="true" aria-labelledby="export-modal-title" className="relative bg-white rounded-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-2">
           <h2 id="export-modal-title" className="text-lg font-semibold text-gray-900">
-            Eksportuj grafikę
+            {isOriginal ? 'Eksportuj oryginalne zdjęcie' : 'Eksportuj grafikę'}
           </h2>
           <button ref={closeRef} onClick={onClose} aria-label="Zamknij" className="text-gray-500 hover:text-gray-700">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <ol className="flex items-center gap-2 text-xs mb-5" aria-label="Kroki eksportu">
-          {STEPS.map((s, i) => (
-            <li key={s.id} className="flex items-center gap-2" aria-current={step === s.id ? 'step' : undefined}>
-              <span className={`h-5 w-5 rounded-full flex items-center justify-center font-semibold ${step >= s.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>{s.id}</span>
-              <span className={step === s.id ? 'text-gray-900 font-medium' : 'text-gray-500'}>{s.label}</span>
-              {i < STEPS.length - 1 && <span className="w-6 border-t border-gray-300" aria-hidden="true" />}
-            </li>
-          ))}
-        </ol>
+        {isOriginal ? (
+          <p className="help-text mb-5">Twoje zdjęcie bez AI – zmienisz tylko kadr, obrót, proporcje i format pliku.</p>
+        ) : (
+          <ol className="flex items-center gap-2 text-xs mb-5" aria-label="Kroki eksportu">
+            {STEPS.map((s, i) => (
+              <li key={s.id} className="flex items-center gap-2" aria-current={step === s.id ? 'step' : undefined}>
+                <span className={`h-5 w-5 rounded-full flex items-center justify-center font-semibold ${step >= s.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>{s.id}</span>
+                <span className={step === s.id ? 'text-gray-900 font-medium' : 'text-gray-500'}>{s.label}</span>
+                {i < STEPS.length - 1 && <span className="w-6 border-t border-gray-300" aria-hidden="true" />}
+              </li>
+            ))}
+          </ol>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Preview column – stays on both steps so corrections are visible live. */}
@@ -171,14 +223,16 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
             ) : (
               <>
                 <div className="w-full rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden" style={{ aspectRatio: ratioToAspect(ratio) }}>
-                  <img src={previewUrl} alt={styleName} className="max-w-full max-h-full object-contain" style={{ transform: `rotate(${rotation}deg)`, filter }} />
+                  <img src={previewUrl} alt={previewAlt} className="max-w-full max-h-full object-contain" style={{ transform: `rotate(${rotation}deg)`, filter }} />
                 </div>
                 <p className="help-text mt-2">
                   {preset?.productFill
                     ? `Produkt wypełni ok. ${Math.round(preset.productFill * 100)} % kadru na czysto białym tle (białe marginesy grafiki zostaną przycięte).`
-                    : isSquare
-                      ? 'Cała grafika bez zmian.'
-                      : 'Cała grafika na białym tle – puste pasy wypełnią brakującą część formatu.'}
+                    : isOriginal
+                      ? 'Całe zdjęcie na białym tle – puste pasy wypełnią brakującą część formatu.'
+                      : isSquare
+                        ? 'Cała grafika bez zmian.'
+                        : 'Cała grafika na białym tle – puste pasy wypełnią brakującą część formatu.'}
                 </p>
               </>
             )}
@@ -198,7 +252,7 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
             )}
             {badgeText.trim() && !badgeForbidden && step === 2 && (
               <p className="help-text mt-2">
-                Plakietka „{badgeText.trim()}” zostanie dodana w rogu: {badgePosition}.
+                Plakietka „{badgeText.trim()}” zostanie dodana {BADGE_POSITION_LABELS[badgePosition]}.
               </p>
             )}
           </div>
@@ -284,8 +338,24 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                         preset.source
                       )}
                     </p>
-                    {preset.productFill && <p className="text-xs text-amber-700 mt-1.5">Na zdjęcie główne wybierz grafikę w stylu „Białe tło” – tła sceny AI nie zmienia przy eksporcie.</p>}
+                    {preset.productFill && !isOriginal && (
+                      <p className="text-xs text-amber-700 mt-1.5">Na zdjęcie główne wybierz grafikę w stylu „Białe tło” – tła sceny AI nie zmienia przy eksporcie.</p>
+                    )}
                   </div>
+
+                  {preset.id === 'vinted' && !isOriginal && (
+                    <div role="note" data-testid="vinted-original" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                      <p>Vinted wymaga własnych zdjęć przedmiotu – sceny i tła wygenerowane przez AI mogą zostać odrzucone. Na Vinted wyeksportuj oryginalne zdjęcie: tylko kadr i format.</p>
+                      <button type="button" onClick={() => switchSource('original')} className="btn-primary text-sm mt-2">
+                        Użyj oryginalnego zdjęcia
+                      </button>
+                    </div>
+                  )}
+                  {isOriginal && generation && (
+                    <button type="button" onClick={() => switchSource('generation')} className="text-xs text-blue-700 hover:underline">
+                      Wróć do grafiki AI
+                    </button>
+                  )}
                 </>
               )}
 
@@ -305,7 +375,7 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                     <span className="flex items-start gap-2">
                       <input type="radio" name="framing" checked={framing === 'fit'} onChange={() => setFraming('fit')} className="mt-0.5" />
                       <span>
-                        <span className="block text-sm text-gray-800">Cała grafika</span>
+                        <span className="block text-sm text-gray-800">{isOriginal ? 'Całe zdjęcie' : 'Cała grafika'}</span>
                         <span className="block text-xs text-gray-600">{isSquare ? 'bez zmian' : 'białe pasy po bokach'}</span>
                       </span>
                     </span>
@@ -313,10 +383,24 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                 </div>
               </div>
 
-              <button type="button" onClick={() => setStep(2)} disabled={cropPending || !preset} className="btn-primary w-full flex items-center justify-center gap-2">
-                {cropPending ? 'Ładowanie podglądu...' : 'Dalej'}
-                {!cropPending && <ArrowRightIcon className="h-4 w-4" />}
-              </button>
+              {isOriginal ? (
+                readyToShare ? (
+                  <button type="button" onClick={shareReady} className="btn-primary w-full flex items-center justify-center gap-2">
+                    <ArrowDownTrayIcon className="h-5 w-5" />
+                    Zapisz w Zdjęciach
+                  </button>
+                ) : (
+                  <button type="button" onClick={download} disabled={isExporting || cropPending || !preset} className="btn-primary w-full flex items-center justify-center gap-2">
+                    <ArrowDownTrayIcon className="h-5 w-5" />
+                    {isExporting ? 'Przygotowuję...' : cropPending ? 'Ładowanie podglądu...' : 'Pobierz zdjęcie'}
+                  </button>
+                )
+              ) : (
+                <button type="button" onClick={() => setStep(2)} disabled={cropPending || !preset} className="btn-primary w-full flex items-center justify-center gap-2">
+                  {cropPending ? 'Ładowanie podglądu...' : 'Dalej'}
+                  {!cropPending && <ArrowRightIcon className="h-4 w-4" />}
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -408,16 +492,7 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                   <ArrowLeftIcon className="h-4 w-4" /> Wstecz
                 </button>
                 {readyToShare ? (
-                  <button
-                    onClick={() => {
-                      const { blob, name } = readyToShare
-                      setReadyToShare(null)
-                      shareBlob(blob, name).then((ok) => {
-                        if (!ok) downloadBlob(blob, name)
-                      })
-                    }}
-                    className="btn-primary flex-1 flex items-center justify-center gap-2"
-                  >
+                  <button onClick={shareReady} className="btn-primary flex-1 flex items-center justify-center gap-2">
                     <ArrowDownTrayIcon className="h-5 w-5" />
                     Zapisz w Zdjęciach
                   </button>

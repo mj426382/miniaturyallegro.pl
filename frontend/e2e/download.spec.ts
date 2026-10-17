@@ -202,8 +202,8 @@ test.describe('export in marketplace formats', () => {
 })
 
 test.describe('export presets for sales platforms (spec 08)', () => {
-  async function downloadFrom(page: Page, dialog: ReturnType<Page['getByRole']>) {
-    const button = dialog.getByRole('button', { name: 'Pobierz', exact: true })
+  async function downloadFrom(page: Page, dialog: ReturnType<Page['getByRole']>, label = 'Pobierz') {
+    const button = dialog.getByRole('button', { name: label, exact: true })
     if (isMobile()) {
       await button.click()
       await expect.poll(() => page.evaluate(() => (window as any).__shared.length)).toBe(1)
@@ -265,5 +265,35 @@ test.describe('export presets for sales platforms (spec 08)', () => {
     await dialog.getByLabel('eBay').check()
     await dialog.getByRole('button', { name: 'Dalej' }).click()
     await expect(dialog.getByText('eBay nie dopuszcza napisów ani plakietek na zdjęciu (wymóg platformy).')).toBeVisible()
+  })
+
+  test('[AC-PLT-010] Vinted steers to the original photo: framing and format only, exported without AI', async ({ page }) => {
+    if (isMobile()) await installShareSpy(page)
+    const { requests } = await mockApp(page)
+    await openGenerator(page)
+    await openExport(page)
+    const dialog = page.getByRole('dialog', { name: 'Eksportuj grafikę' })
+
+    await dialog.getByLabel('Vinted').check()
+    const note = dialog.getByTestId('vinted-original')
+    await expect(note).toContainText('Vinted wymaga własnych zdjęć')
+    await note.getByRole('button', { name: 'Użyj oryginalnego zdjęcia' }).click()
+
+    const original = page.getByRole('dialog', { name: 'Eksportuj oryginalne zdjęcie' })
+    await expect(original.getByLabel('Vinted')).toBeChecked()
+    await expect(original.getByRole('button', { name: 'Dalej' })).toHaveCount(0)
+    await expect(original.getByText('Plakietka promocyjna')).toHaveCount(0)
+    await original.getByLabel('Całe zdjęcie').check()
+    expect(await downloadFrom(page, original, 'Pobierz zdjęcie')).toBe('zdjecie-vinted-3x4.jpg')
+    const req = requests.find((r) => r.url === `/generation/export-original/${IMAGE.id}`)!
+    expect(req.body).toMatchObject({ platform: 'vinted', ratio: '3:4', size: 1600, format: 'jpeg' })
+    expect(req.body.badgeText).toBeUndefined()
+    expect(req.body.adjust).toBeUndefined()
+    expect(requests.some((r) => r.url === '/generation/export/gen-1')).toBe(false)
+
+    // The same export straight from the photo header of the generator.
+    await original.getByRole('button', { name: 'Zamknij', exact: true }).click()
+    await page.getByRole('button', { name: 'Eksportuj oryginał (np. na Vinted)' }).click()
+    await expect(page.getByRole('dialog', { name: 'Eksportuj oryginalne zdjęcie' }).getByLabel('Vinted')).toBeChecked()
   })
 })

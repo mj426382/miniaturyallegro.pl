@@ -10,7 +10,7 @@ import { ArrowUpTrayIcon, SparklesIcon } from '@heroicons/react/24/outline'
 const RECENT_LIMIT = 8
 
 export default function Dashboard() {
-  usePageTitle('Dashboard')
+  usePageTitle('Pulpit')
   const { user } = useAuth()
   const images = useQuery({
     queryKey: ['images', { page: 1, limit: RECENT_LIMIT }],

@@ -540,7 +540,7 @@ export default function Credits() {
 
       <div className="mt-6 text-center">
         <Link to="/" className="text-sm text-blue-600 hover:underline">
-          ← Wróć do dashboardu
+          ← Wróć na pulpit
         </Link>
       </div>
     </div>

@@ -964,6 +964,45 @@
         ]
       }
     },
+    "/api/generation/export-original/{imageId}": {
+      "post": {
+        "operationId": "GenerationController_exportOriginal",
+        "parameters": [
+          {
+            "name": "imageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export the original uploaded photo for a platform – framing, rotation and format only (e.g. Vinted)",
+        "tags": [
+          "generation"
+        ]
+      }
+    },
     "/api/generation/infographic-icons": {
       "get": {
         "operationId": "GenerationController_getInfographicIcons",

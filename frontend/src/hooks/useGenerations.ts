@@ -25,9 +25,15 @@ const POLL_INTERVAL_MS = 4000
 /** Stop polling after this long – a generation stuck beyond it is handled server-side (refund). */
 const POLL_MAX_MS = 15 * 60 * 1000
 
+/** Outcome of the graphics that were in progress when a batch finished. */
+export interface BatchSummary {
+  completed: number
+  failed: number
+}
+
 interface Options {
   /** A batch that was in progress has finished (success or failure). */
-  onBatchFinished?: () => void
+  onBatchFinished?: (summary: BatchSummary) => void
 }
 
 /**
@@ -45,6 +51,8 @@ export function useGenerations(imageId: string | undefined, options: Options = {
   /** True when the photo already had results when the page opened (picker starts collapsed). */
   const [openedWithResults, setOpenedWithResults] = useState(false)
   const wasActiveRef = useRef(false)
+  /** Ids seen in progress since the batch started – the finish message counts only these. */
+  const batchIdsRef = useRef(new Set<string>())
   const callbacksRef = useRef(options)
   callbacksRef.current = options
 
@@ -100,6 +108,10 @@ export function useGenerations(imageId: string | undefined, options: Options = {
     }
   }, [imageId])
 
+  useEffect(() => {
+    for (const g of generations) if (isActiveGeneration(g)) batchIdsRef.current.add(g.id)
+  }, [generations])
+
   // Single polling loop – runs only while something is in progress, with a hard time cap.
   useEffect(() => {
     if (!hasActive || pollTimedOut) {
@@ -108,7 +120,12 @@ export function useGenerations(imageId: string | undefined, options: Options = {
         if (!pollTimedOut) {
           // Preselect only the styles that have not been generated yet – once, on completion.
           setSelectedStyles(missingUniversalStyleIds(styles, generatedStyleIds))
-          callbacksRef.current.onBatchFinished?.()
+          const batch = generations.filter((g) => batchIdsRef.current.has(g.id))
+          batchIdsRef.current = new Set()
+          callbacksRef.current.onBatchFinished?.({
+            completed: batch.filter((g) => g.status === 'COMPLETED').length,
+            failed: batch.filter((g) => g.status === 'FAILED').length,
+          })
         }
       }
       return
@@ -118,7 +135,7 @@ export function useGenerations(imageId: string | undefined, options: Options = {
     const interval = window.setInterval(() => {
       if (Date.now() - startedAt > POLL_MAX_MS) {
         setPollTimedOut(true)
-        toast.error('Generowanie trwa dłużej niż zwykle. Odśwież stronę za chwilę – nieudane generacje zwracamy automatycznie.', { duration: 8000 })
+        toast.error('Generowanie trwa dłużej niż zwykle. Odśwież stronę za chwilę – kredyty za nieudane grafiki wracają automatycznie.', { duration: 8000 })
         return
       }
       refreshGenerations()
@@ -126,6 +143,9 @@ export function useGenerations(imageId: string | undefined, options: Options = {
     return () => window.clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasActive, pollTimedOut, refreshGenerations])
+
+  /** A new batch after the polling cap was hit must be followed again (otherwise it never updates). */
+  const restartPolling = useCallback(() => setPollTimedOut(false), [])
 
   const toggleStyle = useCallback((id: string) => {
     setSelectedStyles((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
@@ -141,6 +161,7 @@ export function useGenerations(imageId: string | undefined, options: Options = {
     selectedStyles,
     setSelectedStyles,
     toggleStyle,
+    restartPolling,
     isLoading,
     pollTimedOut,
     hasActive,

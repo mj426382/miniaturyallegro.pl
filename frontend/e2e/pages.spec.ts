@@ -87,7 +87,7 @@ test.describe('dashboard', () => {
   test('[AC-UPL-016] shows the counters and recent photos', async ({ page }) => {
     await mockApp(page)
     await page.goto('/')
-    await expect(page).toHaveTitle(/Dashboard/)
+    await expect(page).toHaveTitle(/Pulpit/)
     await expect(page.getByText('Przesłane zdjęcia')).toBeVisible()
     await expect(page.getByText('Wygenerowane grafiki')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Zobacz warianty' })).toBeVisible()
@@ -143,7 +143,7 @@ test.describe('generator actions', () => {
     expect(requests.find((r) => r.url === '/generation/img-1/custom')!.body).toContain('na marmurowym blacie')
 
     // Retry the failed graphic
-    await page.getByRole('button', { name: 'Ponów (kredyt zwrócony)' }).click()
+    await page.getByRole('button', { name: 'Ponów (1 kredyt)' }).click()
     await expect.poll(() => requests.some((r) => r.url === '/generation/retry/gen-2')).toBe(true)
 
     // Thumbs up on the finished one
@@ -226,7 +226,7 @@ test.describe('navigation', () => {
     await mockApp(page)
     await page.goto('/nie-ma-takiej-strony')
     await expect(page.getByText('Tej strony nie ma')).toBeVisible()
-    await page.getByRole('link', { name: 'Wróć na dashboard' }).click()
+    await page.getByRole('link', { name: 'Wróć na pulpit' }).click()
     await expect(page).toHaveURL(/\/$/)
   })
 
@@ -259,7 +259,7 @@ test.describe('navigation', () => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
     const viewport = page.viewportSize()!
     const nav = page.getByRole('navigation', { name: 'Główna nawigacja' })
-    for (const target of [nav.getByRole('link', { name: 'Dashboard' }), page.getByRole('button', { name: 'Wyloguj się' })]) {
+    for (const target of [nav.getByRole('link', { name: 'Pulpit' }), page.getByRole('button', { name: 'Wyloguj się' })]) {
       const box = (await target.boundingBox())!
       expect(box.y).toBeGreaterThanOrEqual(0)
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)

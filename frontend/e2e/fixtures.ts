@@ -437,6 +437,17 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
         body: PNG_BYTES,
       })
     }
+    if (path === `/generation/export-original/${IMAGE.id}`) {
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: req.method(), body })
+      const ext = body?.format === 'png' ? 'png' : 'jpg'
+      return route.fulfill({
+        status: 201,
+        contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        headers: { 'Content-Disposition': `attachment; filename="zdjecie-${body?.platform ? `${body.platform}-` : ''}${(body?.ratio || '1:1').replace(':', 'x')}.${ext}"` },
+        body: PNG_BYTES,
+      })
+    }
     if (path === `/descriptions/${IMAGE.id}` && req.method() === 'GET') return json(descriptionView())
     if (path === `/descriptions/${IMAGE.id}` && req.method() === 'POST') {
       const body = req.postDataJSON()

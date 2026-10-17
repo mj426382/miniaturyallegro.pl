@@ -254,6 +254,9 @@ export const feedbackApi = {
 
 export const exportApi = {
   export: (generationId: string, options: ExportOptions) => api.post(`/generation/export/${generationId}`, options, { responseType: 'blob' }),
+  /** Spec 08: the user's own photo for a platform – framing, rotation and format only, no AI, no credits. */
+  exportOriginal: (imageId: string, options: Omit<ExportOptions, 'adjust' | 'badgeText' | 'badgeColor' | 'badgePosition'>) =>
+    api.post<Blob>(`/generation/export-original/${imageId}`, options, { responseType: 'blob' }),
 }
 
 // Offer descriptions (SEO copy attached to an uploaded photo)

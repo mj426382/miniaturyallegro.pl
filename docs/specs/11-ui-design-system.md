@@ -71,7 +71,7 @@
 
 - **AC-UI-001** – Given dowolny ekran aplikacji (zalogowany i niezalogowany), When uruchomiony jest audyt axe (WCAG 2.1 A/AA), Then nie ma naruszeń o wadze serious ani critical.
 - **AC-UI-002** – Given otwarty modal eksportu lub okno potwierdzenia, When audyt axe, Then brak naruszeń serious/critical i modal ma rolę dialogu z nazwą.
-- **AC-UI-003** – Given nieznany adres w aplikacji, When użytkownik go otworzy, Then widzi stronę 404 z linkiem na dashboard.
+- **AC-UI-003** – Given nieznany adres w aplikacji, When użytkownik go otworzy, Then widzi stronę 404 z linkiem na pulpit (strona startowa aplikacji).
 - **AC-UI-004** – Given telefon (< 768 px), When użytkownik otworzy menu, Then przycisk ma `aria-expanded=true`, nawigacja działa, a po wyborze menu się zamyka.
 - **AC-UI-005** – Given logowanie z błędnym hasłem, When wysłano formularz, Then błąd pojawia się w alercie przy formularzu (`role="alert"`), a nie w toaście, a toggle „Pokaż” odsłania hasło.
 - **AC-UI-006** – Given dashboard lub galeria, When API zwróci błąd, Then widać alert „Nie udało się pobrać…” z przyciskiem „Spróbuj ponownie”, a stan pusty nie jest wyświetlany.
