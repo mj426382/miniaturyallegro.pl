@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
-import toast from 'react-hot-toast'
+import { useEffect } from 'react'
 import { EnvelopeIcon } from '@heroicons/react/24/outline'
-import { authApi } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
+import { useResendVerification } from '../hooks/useResendVerification'
 
 /**
  * Spec 13: shown on every app screen until the owner confirms the address. The profile is re-read
@@ -10,7 +9,7 @@ import { useAuth } from '../hooks/useAuth'
  */
 export default function EmailVerificationBanner() {
   const { user, refreshUser } = useAuth()
-  const [sending, setSending] = useState(false)
+  const { resend, sending } = useResendVerification()
   const unverified = user?.emailVerified === false
 
   useEffect(() => {
@@ -23,24 +22,6 @@ export default function EmailVerificationBanner() {
   }, [unverified, refreshUser])
 
   if (!unverified) return null
-
-  const resend = async () => {
-    setSending(true)
-    try {
-      const { data } = await authApi.resendVerification()
-      if (data.alreadyVerified) {
-        toast.success('Adres jest już potwierdzony.')
-        refreshUser().catch(() => undefined)
-      } else {
-        toast.success('Wysłaliśmy nowy link. Sprawdź skrzynkę, także folder spam.')
-      }
-    } catch (err: any) {
-      const message = err.response?.data?.message
-      toast.error(Array.isArray(message) ? message.join('. ') : message || 'Nie udało się wysłać linku')
-    } finally {
-      setSending(false)
-    }
-  }
 
   return (
     <div role="status" className="bg-amber-50 border-b border-amber-200 px-4 py-3 sm:px-8">

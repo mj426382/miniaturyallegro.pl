@@ -75,7 +75,7 @@ export async function verificationLink(request: APIRequestContext, email: string
 
 export async function register(page: Page, email: string) {
   await page.goto('/register')
-  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('E-mail', { exact: true }).fill(email)
   await page.getByLabel('Hasło', { exact: true }).fill(PASSWORD)
   await page.getByLabel('Potwierdź hasło').fill(PASSWORD)
   await page.locator('#acceptTerms').check()

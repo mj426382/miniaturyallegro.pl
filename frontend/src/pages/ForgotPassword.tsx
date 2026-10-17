@@ -42,7 +42,7 @@ export default function ForgotPassword() {
           {error && <FormAlert>{error}</FormAlert>}
           <div>
             <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              E-mail
             </label>
             <input id="forgot-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-field" placeholder="twoj@email.pl" required />
           </div>

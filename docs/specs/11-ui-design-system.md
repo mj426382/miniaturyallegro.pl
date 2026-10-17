@@ -84,18 +84,19 @@
 ## 5a. Limity przesyłania zdjęć (komunikaty)
 
 API odrzuca przesłanie zdjęcia ponad limit (spec 04, decyzja z 2026-10-18): konto z niepotwierdzonym adresem –
-łącznie 5 zdjęć (HTTP 403, `code: UPLOAD_LIMIT_UNCONFIRMED`), konto potwierdzone – 200 zdjęć w 24 godziny
-(HTTP 429, `code: UPLOAD_DAILY_LIMIT`). Odpowiedź może podać `limit` (liczba) i moment odnowienia (`retryAt` jako
-ISO 8601 albo `retryAfter` w sekundach; nagłówek `Retry-After` jest odczytywany, gdy przeglądarka go widzi).
-Mapowanie kodów na teksty jest w jednym module (`frontend/src/utils/uploadLimits.ts`):
+łącznie 5 zdjęć (HTTP 403, `{ code: "UPLOAD_LIMIT_UNVERIFIED", limit, message }`), konto potwierdzone – 200 zdjęć
+w 24 godziny (HTTP 429, `{ code: "UPLOAD_LIMIT_DAILY", limit, retryAfterSeconds, message }` i nagłówek `Retry-After`,
+odczytywany, gdy przeglądarka go widzi). Pokazujemy `message` z API (nasz tekst tylko, gdy go brak) oraz następny
+krok. Mapowanie kodów jest w jednym module (`frontend/src/utils/uploadLimits.ts`):
 
 | Kod | Tytuł | Następny krok |
 |---|---|---|
-| `UPLOAD_LIMIT_UNCONFIRMED` | „Potwierdź adres e-mail, aby przesłać więcej zdjęć” | przycisk „Wyślij link ponownie”; po potwierdzeniu limit to 200 zdjęć na dobę |
-| `UPLOAD_DAILY_LIMIT` | „Wykorzystano dzienny limit 200 zdjęć” | „Kolejne zdjęcia prześlesz dziś/jutro o HH:MM” albo „Spróbuj ponownie później” |
+| `UPLOAD_LIMIT_UNVERIFIED` | „Potwierdź adres e-mail, aby przesłać więcej zdjęć” | przycisk „Wyślij link ponownie” |
+| `UPLOAD_LIMIT_DAILY` | „Wykorzystano dzienny limit 200 zdjęć” | „Kolejne zdjęcia prześlesz dziś/jutro o HH:MM.” (z `retryAfterSeconds`) albo „Spróbuj ponownie później.” |
 
-Komunikat jest alertem przy formularzu (nie toastem). Masowe przesyłanie zatrzymuje kolejkę: zdjęcie, które
-dostało odmowę, i wszystkie następne wracają na listę jako oczekujące, więc wystarczy później kliknąć „Prześlij”.
+Komunikat jest alertem przy formularzu (nie toastem). Masowe przesyłanie (jedno żądanie na plik) zatrzymuje kolejkę:
+przesłane zdjęcia zostają, a zdjęcie z odmową i wszystkie następne czekają na liście z powodem przy każdym pliku
+(„nie przesłano – dzienny limit” / „nie przesłano – potwierdź adres e-mail”), więc wystarczy później kliknąć „Prześlij”.
 Pozostałe błędy przesyłania (np. zły plik, awaria) wyglądają jak dotąd.
 - Treść dynamiczna (walidacja) w regionach `aria-live="polite"` o stałej wysokości – brak skoków układu.
 
@@ -114,6 +115,6 @@ Pozostałe błędy przesyłania (np. zły plik, awaria) wyglądają jak dotąd.
 - **AC-UI-011** – Given eksport z niezapisanymi zmianami (obrót, korekta lub plakietka), When użytkownik zamknie okno (Escape, „Zamknij” albo tło), Then nad eksportem otwiera się potwierdzenie; Escape i „Wróć do edycji” zamykają tylko potwierdzenie, fokus wraca do eksportu, a zmiany zostają; „Zamknij bez pobierania” zamyka oba okna, a fokus wraca na przycisk, który otworzył eksport; eksport bez zmian albo po pobraniu zamyka się bez pytania.
 - **AC-UI-012** – Given każde okno z AC-UI-010 otwarte (także potwierdzenie nad eksportem), When uruchomiony jest audyt axe (WCAG 2.1 A/AA), Then nie ma naruszeń serious ani critical.
 - **AC-UI-013** – Given formularze logowania, rejestracji i resetu hasła w aplikacji oraz formularz demo na landingu, When wyświetlone, Then pole adresu ma etykietę „E-mail” (nie „Email”), a komunikat walidacji brzmi „Podaj prawidłowy adres e-mail”.
-- **AC-UI-014** – Given przesyłanie pojedyncze albo masowe, When API odrzuci zdjęcie kodem `UPLOAD_LIMIT_UNCONFIRMED` albo `UPLOAD_DAILY_LIMIT`, Then przy formularzu jest alert z polskim komunikatem i następnym krokiem (przycisk „Wyślij link ponownie” wysyłający link potwierdzający albo godzina, od której można przesłać kolejne zdjęcia, gdy API ją podało); masowe przesyłanie zatrzymuje się, a zdjęcie z odmową i następne czekają na liście; inne błędy przesyłania wyglądają jak dotąd (toast albo błąd przy pliku).
+- **AC-UI-014** – Given przesyłanie pojedyncze albo masowe, When API odrzuci zdjęcie kodem `UPLOAD_LIMIT_UNVERIFIED` (403) albo `UPLOAD_LIMIT_DAILY` (429), Then przy formularzu jest alert z komunikatem z API (albo naszym, gdy go brak) i następnym krokiem (przycisk „Wyślij link ponownie” wysyłający link potwierdzający albo godzina, od której można przesłać kolejne zdjęcia, wyliczona z `retryAfterSeconds`/`Retry-After`); masowe przesyłanie zatrzymuje się, przesłane pliki zostają, a zdjęcie z odmową i następne czekają na liście z powodem przy każdym pliku; inne błędy przesyłania wyglądają jak dotąd (toast albo błąd przy pliku).
 - **AC-UI-015** – Given kod aplikacji i landingu, When sprawdzony, Then każde okno modalne aplikacji korzysta ze wspólnego komponentu `Modal` (bez własnych nasłuchów Escape), hook `useModalDialog` i baner cookies są identyczne w obu pakietach, a kody limitów przesyłania są zdefiniowane tylko w `uploadLimits.ts`.
 - **AC-UI-016** – Given ekran „Kredyty” w aplikacji, When API zwróci plany abonamentu, Then karty pokazują nazwę, cenę i opis z API (np. Start 19 zł / mies., Pro 59 zł / mies.), a kod aplikacji nie zawiera cen abonamentów wpisanych na sztywno.

@@ -7,12 +7,16 @@ import { track } from '../services/analytics'
 import { ArrowUpTrayIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { describeRejection } from '../utils/dropzone'
+import { uploadLimitError, type UploadLimitError } from '../utils/uploadLimits'
+import UploadLimitAlert from '../components/UploadLimitAlert'
 
 export default function Upload() {
   usePageTitle('Prześlij zdjęcie')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  /** Spec 11, AC-UI-014: the API refused the photo because of an upload limit. */
+  const [limitError, setLimitError] = useState<UploadLimitError | null>(null)
   const navigate = useNavigate()
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -36,13 +40,16 @@ export default function Upload() {
   const handleUpload = async () => {
     if (!file) return
     setIsUploading(true)
+    setLimitError(null)
     try {
       const { data } = await imagesApi.upload(file)
       track('upload', { source: 'single' })
       toast.success('Zdjęcie przesłane pomyślnie!')
       navigate(`/generate/${data.id}`)
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Błąd przesyłania')
+      const limit = uploadLimitError(err)
+      if (limit) setLimitError(limit)
+      else toast.error(err.response?.data?.message || 'Błąd przesyłania')
     } finally {
       setIsUploading(false)
     }
@@ -78,6 +85,12 @@ export default function Upload() {
           </div>
         )}
       </div>
+
+      {limitError && (
+        <div className="mt-6">
+          <UploadLimitAlert error={limitError} />
+        </div>
+      )}
 
       {file && (
         <div className="mt-6 flex gap-3">

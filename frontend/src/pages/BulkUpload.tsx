@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { Suspense, useState, useCallback, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useDropzone } from 'react-dropzone'
 import { imagesApi, generationApi, GenerationStyleInfo, notificationsApi } from '../services/api'
@@ -7,12 +7,16 @@ import toast from 'react-hot-toast'
 import { track } from '../services/analytics'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { describeRejection } from '../utils/dropzone'
-import BulkDescriptionsModal, { BulkPhoto } from '../components/BulkDescriptionsModal'
+import type { BulkPhoto } from '../components/BulkDescriptionsModal'
+import { BulkDescriptionsModal, PaywallModal } from '../components/lazyModals'
+import ModalFallback from '../components/ModalFallback'
+import { usePreloadOnInteraction } from '../hooks/usePreloadOnInteraction'
 import { useZipDownload } from '../hooks/useZipDownload'
 import { groupStartsOpen, groupStyles } from '../utils/styles'
 import { countLabel, plural } from '../utils/plural'
-import PaywallModal from '../components/PaywallModal'
 import FormAlert from '../components/FormAlert'
+import UploadLimitAlert from '../components/UploadLimitAlert'
+import { uploadLimitError, type UploadLimitError } from '../utils/uploadLimits'
 import {
   ArrowUpTrayIcon,
   PhotoIcon,
@@ -49,6 +53,7 @@ const creditsWord = (n: number) => plural(n, 'kredyt', 'kredyty', 'kredytów')
 
 export default function BulkUpload() {
   usePageTitle('Masowe przesyłanie')
+  usePreloadOnInteraction(PaywallModal.preload, BulkDescriptionsModal.preload)
   const { user, refreshUser } = useAuth()
   const [files, setFiles] = useState<FileItem[]>([])
   const [isRunning, setIsRunning] = useState(false)
@@ -124,6 +129,8 @@ export default function BulkUpload() {
 
   /** Spec 19, AC-MON-003: not enough credits opens the offer (with the welcome pack) instead of blocking. */
   const [paywallMissing, setPaywallMissing] = useState<number | null>(null)
+  /** Spec 11, AC-UI-014: the API refused a photo because of an upload limit – the batch stopped there. */
+  const [limitError, setLimitError] = useState<UploadLimitError | null>(null)
 
   const startAll = async () => {
     if (!queued.length || missingStyles) return
@@ -132,19 +139,31 @@ export default function BulkUpload() {
       return
     }
     setIsRunning(true)
+    setLimitError(null)
     const snapshotMode = mode
 
     const startedIds: string[] = []
     let failures = 0
     let succeeded = 0
+    let limitHit = false
     for (const item of queued) {
       const chosen = orderedStyles(stylesFor(item))
-      updateFile(item.id, { status: 'uploading' })
+      updateFile(item.id, { status: 'uploading', note: undefined })
       let imageId: string
       try {
         const { data } = await imagesApi.upload(item.file)
         imageId = data.id
       } catch (err: any) {
+        const limit = uploadLimitError(err)
+        if (limit) {
+          // The cap applies to every next photo as well: stop here. Uploaded photos stay; this one and the rest
+          // wait on the list with the reason next to each file (spec 11, AC-UI-014).
+          const waiting = new Set(queued.slice(queued.indexOf(item)).map((f) => f.id))
+          setFiles((prev) => prev.map((f) => (waiting.has(f.id) ? { ...f, status: 'queued', error: undefined, note: limit.fileNote } : f)))
+          setLimitError(limit)
+          limitHit = true
+          break
+        }
         failures++
         updateFile(item.id, { status: 'error', error: err.response?.data?.message || 'Błąd przesyłania' })
         continue
@@ -192,7 +211,9 @@ export default function BulkUpload() {
     }
     track('upload', { source: 'bulk', files: queued.length, mode: snapshotMode })
     refreshUser().catch(() => undefined)
-    if (failures === 0) {
+    if (limitHit) {
+      // The alert next to the list explains what happened and what to do next.
+    } else if (failures === 0) {
       toast.success(snapshotMode === 'upload' ? 'Zdjęcia przesłane. Style wybierzesz z galerii dla każdego produktu.' : 'Wszystkie pliki zostały przetworzone.')
     } else if (succeeded === 0) {
       toast.error('Żaden plik nie został przetworzony – sprawdź komunikaty na liście.')
@@ -230,7 +251,11 @@ export default function BulkUpload() {
 
   return (
     <div className="px-4 py-6 sm:p-8 max-w-3xl mx-auto">
-      <PaywallModal open={paywallMissing !== null} missing={paywallMissing ?? undefined} onClose={() => setPaywallMissing(null)} />
+      {paywallMissing !== null && (
+        <Suspense fallback={<ModalFallback />}>
+          <PaywallModal open missing={paywallMissing} onClose={() => setPaywallMissing(null)} />
+        </Suspense>
+      )}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Masowe przesyłanie zdjęć</h1>
         <p className="text-gray-500 mt-1">Prześlij wiele zdjęć naraz. Zdecyduj, czy od razu generować grafiki i w jakich stylach – płacisz tylko za to, co wybierzesz.</p>
@@ -319,6 +344,8 @@ export default function BulkUpload() {
         <p className="text-sm text-gray-500 mt-1">JPG, PNG, WebP • maks. 10 MB na plik • do 50 plików</p>
       </div>
 
+      {limitError && <UploadLimitAlert error={limitError} bulk />}
+
       {files.length > 0 && (
         <>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
@@ -351,6 +378,11 @@ export default function BulkUpload() {
                         {statusLabel(item.status)}
                         {item.error && <span className="text-xs text-red-600">— {item.error}</span>}
                         {item.note && item.status === 'generating' && <span className="text-xs text-gray-600">— {item.note}</span>}
+                        {item.note && item.status === 'queued' && (
+                          <span className="text-xs text-amber-700" data-testid="file-limit-note">
+                            — {item.note}
+                          </span>
+                        )}
                         {item.status === 'queued' && mode !== 'upload' && (
                           <span className="text-xs text-gray-500">
                             {stylesFor(item).length} {creditsWord(stylesFor(item).length)}
@@ -498,7 +530,11 @@ export default function BulkUpload() {
       )}
 
       {files.length === 0 && <div className="text-center py-8 text-gray-500 text-sm">Brak wybranych plików. Przeciągnij zdjęcia lub kliknij w strefę powyżej.</div>}
-      {bulkPhotos && <BulkDescriptionsModal photos={bulkPhotos} onClose={() => setBulkPhotos(null)} />}
+      {bulkPhotos && (
+        <Suspense fallback={<ModalFallback />}>
+          <BulkDescriptionsModal photos={bulkPhotos} onClose={() => setBulkPhotos(null)} />
+        </Suspense>
+      )}
     </div>
   )
 }

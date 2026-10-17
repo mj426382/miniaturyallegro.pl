@@ -59,7 +59,8 @@ export default function CropEditor({ image, aspect, rotation = 0, filter, onChan
           onZoomChange={setZoom}
           onCropAreaChange={onCropAreaChange}
           style={{ mediaStyle: filter ? { filter } : undefined }}
-          cropperProps={{ 'aria-label': 'Kadr eksportowanej grafiki' } as any}
+          // A labelled, focusable area needs a role (axe: aria-prohibited-attr); arrow keys move the frame.
+          cropperProps={{ role: 'group', 'aria-label': 'Kadr eksportowanej grafiki – przesuwaj strzałkami' } as any}
         />
       </div>
       <div className="flex items-center gap-3 mt-2">

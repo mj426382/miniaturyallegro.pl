@@ -32,7 +32,7 @@ export default function Login() {
   const emailError = useMemo(() => {
     if (!touched.email || !email) return ''
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) return 'Podaj prawidłowy adres email'
+    if (!emailRegex.test(email)) return 'Podaj prawidłowy adres e-mail'
     return ''
   }, [email, touched.email])
 
@@ -155,7 +155,7 @@ export default function Login() {
 
         <div>
           <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email
+            E-mail
           </label>
           <input
             id="login-email"

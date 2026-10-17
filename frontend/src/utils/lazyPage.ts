@@ -8,7 +8,7 @@ const RELOAD_FLAG = 'allgrafika:chunk-reload'
  * failure reloads the page once (fresh index.html → new chunk names); a second failure in the same
  * session is a real error and goes to the error boundary.
  */
-export function lazyPage<T extends ComponentType<object>>(load: () => Promise<{ default: T }>) {
+export function lazyPage<T extends ComponentType<any>>(load: () => Promise<{ default: T }>) {
   return lazy(async () => {
     try {
       const mod = await load()
@@ -23,6 +23,29 @@ export function lazyPage<T extends ComponentType<object>>(load: () => Promise<{ 
       }
       throw error
     }
+  })
+}
+
+/**
+ * Spec 17 (AC-PERF-006/007): a lazily loaded dialog. `preload()` fetches its chunk ahead of the first open (on the
+ * user's first interaction with the screen), so the dialog opens instantly – also without network – afterwards.
+ * A failed preload is forgotten, so opening the dialog tries again (and reloads once after a deploy, like screens).
+ */
+export function lazyModal<T extends ComponentType<any>>(load: () => Promise<{ default: T }>) {
+  let pending: Promise<{ default: T }> | null = null
+  const loadOnce = () => {
+    if (!pending) {
+      pending = load()
+      pending.catch(() => {
+        pending = null
+      })
+    }
+    return pending
+  }
+  return Object.assign(lazyPage(loadOnce), {
+    preload: () => {
+      loadOnce().catch(() => undefined)
+    },
   })
 }
 
