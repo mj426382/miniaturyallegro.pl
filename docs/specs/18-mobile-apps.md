@@ -60,4 +60,4 @@ produkcyjna i buduje SEO, dlatego żadna zmiana nie może pogorszyć działania 
 - **AC-MOB-005** – Given aplikacja natywna, When wraca na pierwszy plan, Then dane konta (kredyty, potwierdzenie e-maila) są odświeżane.
 - **AC-MOB-006** – Given aplikacja natywna, When otwarty jest ekran logowania, Then przycisk Google (i jego separator) jest ukryty; w przeglądarce zostaje.
 - **AC-MOB-007** – Given API, When żądanie przychodzi z originu aplikacji (`https://native.allgrafika.pl` na Androidzie, `capacitor://native.allgrafika.pl` na iOS – host w naszej domenie, którego nie serwuje żadna strona), Then CORS je przepuszcza, a obce originy (także `https://localhost`) dalej są odrzucane.
-- **AC-MOB-008** – Given strona główna landingu, When otwarta, Then widać sekcję „Aplikacja mobilna w drodze” (Android i iOS), a tytuł, canonical i JSON-LD strony głównej są takie jak wcześniej.
+- **AC-MOB-008** – Given strona główna landingu, When otwarta, Then widać sekcję „Aplikacja mobilna w drodze” (Android i iOS), a tytuł, canonical i JSON-LD strony głównej są zgodne ze spec 10 (sekcja nie zmienia SEO strony głównej).
