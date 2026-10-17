@@ -353,10 +353,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
             if (!(await this.claimForProcessing(generationId))) return;
             const generated = await this.geminiService.generateImage(base64Image, mimeType, optimizedPrompt);
             const url = await this.storeGenerated(generated.base64, generated.mimeType, `${style.id}.png`);
-            await this.prisma.generation.update({
-              where: { id: generationId },
-              data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
-            });
+            await this.completeGeneration(generationId, optimizedPrompt, url);
           } catch (error) {
             this.logger.error(`Failed to process generation ${generationId}`, error);
             await this.failGeneration(generationId);
@@ -409,10 +406,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       );
 
       const url = await this.storeGenerated(generated.base64, generated.mimeType, 'custom.png');
-      await this.prisma.generation.update({
-        where: { id: generationId },
-        data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
-      });
+      await this.completeGeneration(generationId, optimizedPrompt, url);
     } catch (error) {
       this.logger.error(`Custom generation ${generationId} failed`, error);
       await this.failGeneration(generationId);
@@ -446,6 +440,24 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     });
     if (count !== 1) this.logger.warn(`Generation ${generationId} is no longer PENDING – skipping`);
     return count === 1;
+  }
+
+  /**
+   * PROCESSING → COMPLETED only if the row is still being processed. When the reconciler has already
+   * failed and refunded it (a very slow AI call) or the photo/account was deleted meanwhile, the
+   * result is discarded – the user must not keep both the graphic and the refund, and the file must
+   * not be orphaned in storage (spec 05, AC-GEN-025).
+   */
+  private async completeGeneration(generationId: string, prompt: string, url: string) {
+    const { count } = await this.prisma.generation.updateMany({
+      where: { id: generationId, status: 'PROCESSING' },
+      data: { prompt, status: 'COMPLETED', url },
+    });
+    if (count === 1) return;
+    this.logger.warn(`Generation ${generationId} finished after it was failed or deleted – result discarded`);
+    await this.storageService
+      .deleteFile(url)
+      .catch((err) => this.logger.error(`Could not delete discarded result of ${generationId}`, err));
   }
 
   /** Marks a generation FAILED and refunds exactly once (conditional update). */

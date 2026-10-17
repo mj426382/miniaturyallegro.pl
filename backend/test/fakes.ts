@@ -24,6 +24,8 @@ export class FakeGeminiService {
   failStyles = new Set<string>();
   failDescription = false;
   failOfferCopy = false;
+  /** The model answers, but with an empty title (spec 07, AC-DESC-016). */
+  malformedOfferCopy = false;
   calls = { description: 0, prompts: 0, image: 0, custom: 0, rework: 0, offerCopy: 0 };
   lastOfferCopyInput: OfferCopyInput | null = null;
   delayMs = 0;
@@ -58,6 +60,7 @@ export class FakeGeminiService {
     this.calls.offerCopy++;
     this.lastOfferCopyInput = input;
     if (this.failOfferCopy) throw new Error('offer copy failed');
+    if (this.malformedOfferCopy) return { title: '   ', body: '<p></p>', keywords: [] };
     if (input.current && input.instruction) {
       return {
         title: `${input.current.title} (poprawiony)`,
@@ -89,7 +92,10 @@ export class FakeGeminiService {
 export class FakeMailService {
   sent: MailMessage[] = [];
   readonly isConfigured = true;
+  /** Simulates an SMTP outage. */
+  fail = false;
   async send(message: MailMessage) {
+    if (this.fail) throw new Error('smtp down');
     this.sent.push(message);
   }
   lastResetToken(): string | undefined {

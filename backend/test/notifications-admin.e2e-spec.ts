@@ -327,6 +327,21 @@ describe('Notifications & admin panel (integration)', () => {
       expect((await ctx.http().get('/api/users/me').set(auth(user.token)).expect(200)).body.isAdmin).toBe(false);
     });
 
+    it('[AC-ADM-014] an admin address grants nothing until the mailbox is confirmed', async () => {
+      const email = uniqueEmail('owner');
+      const squatter = await registerUser(ctx, email, { verified: false });
+      (ctx.app.get(AdminGuard) as any).admins = new Set([email]);
+      (ctx.app.get(UsersService) as any).admins = new Set([email]);
+
+      await ctx.http().get('/api/admin/users').set(auth(squatter.token)).expect(403);
+      const me = await ctx.http().get('/api/users/me').set(auth(squatter.token)).expect(200);
+      expect(me.body).toMatchObject({ isAdmin: false, unlimitedCredits: false });
+
+      await ctx.prisma.user.update({ where: { id: squatter.userId }, data: { emailVerifiedAt: new Date() } });
+      await ctx.http().get('/api/admin/users').set(auth(squatter.token)).expect(200);
+      expect((await ctx.http().get('/api/users/me').set(auth(squatter.token)).expect(200)).body.isAdmin).toBe(true);
+    });
+
     it('[AC-ADM-003] lists accounts with usage, plan, credits, payments and consent; searches and pages', async () => {
       const admin = await asAdmin();
       const shop = await registerUser(ctx, 'sklep.kubki@example.com');

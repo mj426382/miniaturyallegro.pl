@@ -48,9 +48,12 @@ export class CreditsService {
     this.admins = parseAdminEmails(configService.get<string>('ADMIN_EMAILS'));
   }
 
-  /** Unlimited credits – decided by the server configuration only, never by data the user controls. */
-  hasUnlimitedCredits(email: string): boolean {
-    return this.admins.has(email.toLowerCase());
+  /**
+   * Unlimited credits – decided by the server configuration only, never by data the user controls,
+   * and only for a confirmed address (spec 16, AC-ADM-014).
+   */
+  hasUnlimitedCredits(email: string, emailVerifiedAt: Date | null): boolean {
+    return Boolean(emailVerifiedAt) && this.admins.has(email.toLowerCase());
   }
 
   async getBalance(userId: string) {
@@ -99,7 +102,7 @@ export class CreditsService {
         }
       }
 
-      if (this.hasUnlimitedCredits(user.email)) {
+      if (this.hasUnlimitedCredits(user.email, user.emailVerifiedAt)) {
         const result = options.within ? await options.within(tx) : (undefined as T);
         return { free: 0, paid: 0, result };
       }
@@ -143,12 +146,12 @@ export class CreditsService {
     if (count <= 0) return;
     try {
       await this.prisma.$transaction(async (tx) => {
-        const rows = await tx.$queryRaw<{ email: string; freeCreditsUsed: number }[]>`
-          SELECT "email", "freeCreditsUsed" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
+        const rows = await tx.$queryRaw<{ email: string; freeCreditsUsed: number; emailVerifiedAt: Date | null }[]>`
+          SELECT "email", "freeCreditsUsed", "emailVerifiedAt" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
         const user = rows[0];
         if (!user) return;
         // Nothing was charged for an unlimited account, so nothing is given back.
-        if (this.hasUnlimitedCredits(user.email)) return;
+        if (this.hasUnlimitedCredits(user.email, user.emailVerifiedAt)) return;
 
         const freeToRefund = Math.min(count, user.freeCreditsUsed);
         const paidToRefund = count - freeToRefund;

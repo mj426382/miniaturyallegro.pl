@@ -48,6 +48,8 @@ export class UsersService {
     // The hash never leaves the service – the UI only needs to know whether a password exists (Google-only accounts have none).
     const { password, emailVerifiedAt, marketingConsentAt, ...safeUser } = user;
 
+    // Spec 16, AC-ADM-014: an admin address counts only once it is confirmed.
+    const isAdmin = Boolean(emailVerifiedAt) && this.admins.has(user.email.toLowerCase());
     const totalGenerations = await this.prisma.generation.count({
       where: {
         image: { userId: id },
@@ -59,9 +61,9 @@ export class UsersService {
       ...safeUser,
       emailVerified: Boolean(emailVerifiedAt),
       marketingConsent: Boolean(marketingConsentAt),
-      isAdmin: this.admins.has(user.email.toLowerCase()),
+      isAdmin,
       // Spec 16, AC-ADM-012: admins generate without a credit limit (see CreditsService).
-      unlimitedCredits: this.admins.has(user.email.toLowerCase()),
+      unlimitedCredits: isAdmin,
       hasPassword: Boolean(password),
       totalGenerations,
     };
@@ -111,8 +113,21 @@ export class UsersService {
       for (const g of image.generations) if (g.url) keys.push(g.url);
     }
 
+    // Spec 03, AC-AUTH-026: landing demo requests of the same mailbox (e-mail + photo) go too.
+    const demos = await this.prisma.demoRequest.findMany({
+      where: { OR: [{ email: user.email }, { emailCanonical: user.emailCanonical }] },
+      select: { id: true, imageKey: true, resultKey: true },
+    });
+    for (const demo of demos) {
+      keys.push(demo.imageKey);
+      if (demo.resultKey) keys.push(demo.resultKey);
+    }
+
     await this.paymentsService.cancelSubscriptionForUser(id);
-    await this.prisma.user.delete({ where: { id } });
+    await this.prisma.$transaction([
+      this.prisma.demoRequest.deleteMany({ where: { id: { in: demos.map((d) => d.id) } } }),
+      this.prisma.user.delete({ where: { id } }),
+    ]);
 
     const results = await Promise.allSettled(keys.map((k) => this.storageService.deleteFile(k)));
     const failed = results.filter((r) => r.status === 'rejected').length;

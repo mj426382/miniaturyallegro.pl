@@ -22,6 +22,7 @@ describe('Offer descriptions (integration)', () => {
   beforeEach(async () => {
     await resetDatabase(ctx.prisma);
     ctx.gemini.failOfferCopy = false;
+    ctx.gemini.malformedOfferCopy = false;
     ctx.gemini.calls = { description: 0, prompts: 0, image: 0, custom: 0, rework: 0, offerCopy: 0 };
   });
   afterAll(async () => {
@@ -108,6 +109,31 @@ describe('Offer descriptions (integration)', () => {
     await ctx.http().post(`/api/descriptions/${image.id}`).set(auth(token)).send({}).expect(503);
     expect((await getCredits(ctx, userId)).freeCreditsUsed).toBe(1);
     expect(await ctx.prisma.offerDescription.findUnique({ where: { imageId: image.id } })).toBeNull();
+  });
+
+  it('[AC-DESC-016] treats an empty model answer as a failure: 503, the rewrite is not counted, the copy is kept', async () => {
+    const { token } = await registerUser(ctx);
+    const image = await imageWithGraphic(token);
+
+    ctx.gemini.malformedOfferCopy = true;
+    await ctx.http().post(`/api/descriptions/${image.id}`).set(auth(token)).send({}).expect(503);
+    expect(await ctx.prisma.offerDescription.findUnique({ where: { imageId: image.id } })).toBeNull();
+
+    ctx.gemini.malformedOfferCopy = false;
+    const created = await ctx.http().post(`/api/descriptions/${image.id}`).set(auth(token)).send({}).expect(201);
+
+    ctx.gemini.malformedOfferCopy = true;
+    await ctx
+      .http()
+      .post(`/api/descriptions/${image.id}/refine`)
+      .set(auth(token))
+      .send({ instruction: 'krócej' })
+      .expect(503);
+    await ctx.http().post(`/api/descriptions/${image.id}`).set(auth(token)).send({ notes: 'od nowa' }).expect(503);
+
+    const after = await ctx.http().get(`/api/descriptions/${image.id}`).set(auth(token)).expect(200);
+    expect(after.body.promptEditsLeft).toBe(5);
+    expect(after.body.description.title).toBe(created.body.description.title);
   });
 
   it('[AC-DESC-003, AC-PRC-007] gives five free AI rewrites, sells packs of fifteen for a credit and counts "write again" as a rewrite', async () => {

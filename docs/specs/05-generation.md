@@ -50,6 +50,7 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 - **AC-GEN-009** – Given za krótki prompt lub niepoprawna referencja, When własny styl, Then 400 bez pobrania kredytu.
 - **AC-GEN-010** – Given gotowa grafika, When ocena z powodem, Then jest zapisana i widoczna w agregacie per styl.
 - **AC-GEN-011** – Given generacje zawieszone > 20 min, When reconciler działa, Then są nieudane, a kredyty zwrócone.
+- **AC-GEN-025** – Given grafika w trakcie generowania, którą reconciler oznaczył jako nieudaną i zwrócił kredyt (albo której zdjęcie usunięto), When wywołanie AI zakończy się później, Then grafika zostaje nieudana, kredyt nie jest zwracany drugi raz, a wygenerowany plik jest usuwany z magazynu.
 - **AC-GEN-012** – Given identyfikator stylu, When wyszukany, Then zwraca definicję lub `undefined`.
 - **AC-GEN-013** – Given zmienna środowiskowa z listą stylów startowych, When zawiera nieznane id, Then są ignorowane.
 - **AC-GEN-014** – Given wywołanie Gemini, When budowane, Then zawiera oryginalne zdjęcie, prompt z regułami i podpowiedź proporcji 1:1.

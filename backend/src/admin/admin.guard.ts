@@ -4,7 +4,8 @@ import { parseAdminEmails } from './admin-emails';
 
 /**
  * Operator-only endpoints. Allowed e-mails come from ADMIN_EMAILS (comma separated);
- * with the variable unset nobody is an admin.
+ * with the variable unset nobody is an admin. The address must also be confirmed – otherwise anyone
+ * could sign up with an admin address that has no account yet (spec 16, AC-ADM-014).
  */
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -17,7 +18,7 @@ export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const user = context.switchToHttp().getRequest().user;
     const email = String(user?.email || '').toLowerCase();
-    if (!email || !this.admins.has(email)) {
+    if (!email || !this.admins.has(email) || user?.emailVerified !== true) {
       throw new ForbiddenException('Dostęp tylko dla administratora');
     }
     return true;

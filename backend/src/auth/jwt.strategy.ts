@@ -38,7 +38,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // before the last password reset (stolen sessions die with the reset).
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, passwordChangedAt: true },
+      select: { id: true, email: true, passwordChangedAt: true, emailVerifiedAt: true },
     });
     if (!user) throw new UnauthorizedException();
     if (
@@ -48,6 +48,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     ) {
       throw new UnauthorizedException('Sesja wygasła po zmianie hasła. Zaloguj się ponownie.');
     }
-    return { userId: user.id, email: user.email };
+    return { userId: user.id, email: user.email, emailVerified: Boolean(user.emailVerifiedAt) };
   }
 }

@@ -58,6 +58,10 @@ export function validateEnv(config: Record<string, unknown>): Record<string, unk
     if (!config.SMTP_HOST && config.ALLOW_NO_SMTP !== 'true') {
       errors.push('SMTP_HOST is required in production (password reset e-mails); set ALLOW_NO_SMTP=true to override');
     }
+    // The test-only switch would remove brute-force protection from login and reset (AC-SEC-011).
+    if (String(config.THROTTLE_DISABLED ?? '').toLowerCase() === 'true') {
+      errors.push('THROTTLE_DISABLED=true is only for tests and is not allowed in production');
+    }
     const stripeKey = config.STRIPE_SECRET_KEY as string | undefined;
     if (stripeKey && !isPlaceholder(stripeKey) && isPlaceholder(config.STRIPE_WEBHOOK_SECRET as string)) {
       errors.push('STRIPE_WEBHOOK_SECRET is required when STRIPE_SECRET_KEY is set (credits are granted by webhook)');
