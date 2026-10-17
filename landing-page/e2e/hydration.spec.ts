@@ -17,7 +17,16 @@ async function collectConsole(page: Page) {
   return problems
 }
 
-const ROUTES = ['/', '/blog', '/blog/jak-zrobic-profesjonalne-zdjecia-produktow', '/regulamin', '/polityka-prywatnosci', '/zdjecia-ai-do-ofert', '/biale-tlo-zdjecie-produktu', '/zdjecia-produktowe-vinted']
+const ROUTES = [
+  '/',
+  '/blog',
+  '/blog/jak-zrobic-profesjonalne-zdjecia-produktow',
+  '/regulamin',
+  '/polityka-prywatnosci',
+  '/zdjecia-ai-do-ofert',
+  '/biale-tlo-zdjecie-produktu',
+  '/zdjecia-produktowe-vinted',
+]
 
 for (const route of ROUTES) {
   test(`[AC-SEO-001, AC-RWD-004] hydrates ${route} without React errors or horizontal scroll`, async ({ page }) => {

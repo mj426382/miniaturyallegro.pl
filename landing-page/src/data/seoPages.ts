@@ -106,13 +106,7 @@ export const seoPages: SeoPage[] = [
     h1: 'Zdjęcie produktu na białym tle',
     h1Accent: 'online, w minutę, bez studia',
     lead: 'Białe tło to standard zdjęcia głównego w większości sklepów internetowych, a na Amazon wymóg dla zdjęcia głównego. W AllGrafika robisz je online z każdego zdjęcia z telefonu – bez namiotu bezcieniowego, lampy i ręcznego wycinania tła w programie graficznym.',
-    keywords: [
-      'zdjęcie na białym tle aplikacja',
-      'białe tło zdjęcie online',
-      'jak zrobić zdjęcie produktu na białym tle',
-      'zdjęcie produktu na białym tle',
-      'białe tło do zdjęć produktowych online',
-    ],
+    keywords: ['zdjęcie na białym tle aplikacja', 'białe tło zdjęcie online', 'jak zrobić zdjęcie produktu na białym tle', 'zdjęcie produktu na białym tle', 'białe tło do zdjęć produktowych online'],
     sections: [
       {
         heading: 'Białe tło online w 3 krokach',
@@ -208,7 +202,12 @@ export const seoPages: SeoPage[] = [
           'Zasady katalogu Vinted wymagają, by zdjęcia były ostre, zrobione przez sprzedawcę z myślą o Vinted i przedstawiały przedmiot takim, jaki jest – bez edycji obrazu. Nie można zastępować ich zdjęciami stockowymi, zdjęciami z reklam ani zdjęciami ze znakiem wodnym. Pierwsze zdjęcie powinno pokazywać cały przedmiot, a do ogłoszenia możesz dodać do 20 zdjęć.',
           'Poradnik Vinted zaleca jednolite, neutralne tło, światło dzienne bez lampy błyskowej i filtrów oraz unikanie kolaży. Przy markowych rzeczach warto pokazać metki i detale potwierdzające autentyczność.',
         ],
-        bullets: ['Własne zdjęcia przedmiotu, bez edycji i filtrów', 'Cały przedmiot na pierwszym zdjęciu', 'Wady i ślady użytkowania pokazane wprost', 'Bez zdjęć z internetu, stockowych i znaków wodnych'],
+        bullets: [
+          'Własne zdjęcia przedmiotu, bez edycji i filtrów',
+          'Cały przedmiot na pierwszym zdjęciu',
+          'Wady i ślady użytkowania pokazane wprost',
+          'Bez zdjęć z internetu, stockowych i znaków wodnych',
+        ],
       },
       {
         heading: 'Jak AllGrafika pomaga przy Vinted',
@@ -246,7 +245,12 @@ export const seoPages: SeoPage[] = [
           'Według pomocy eBay zdjęcie musi mieć co najmniej 500 px na dłuższym boku, a zalecane jest około 1600 px. Plik może mieć do 12 MB i być w formacie m.in. JPEG, PNG, WEBP lub HEIC; najlepiej wyglądają proporcje 1:1 albo 16:9.',
           'Polityka zdjęć eBay zabrania dodawania ramek, tekstu, grafik marketingowych i znaków wodnych, a przy przedmiotach używanych, uszkodzonych lub wadliwych nie można używać zdjęć stockowych. Zdjęcia muszą dokładnie przedstawiać przedmiot.',
         ],
-        bullets: ['Min. 500 px na dłuższym boku, zalecane ok. 1600 px', 'Do 24 zdjęć, pierwsze jest zdjęciem głównym', 'Bez ramek, napisów i znaków wodnych', 'Przedmioty używane: tylko prawdziwe zdjęcia egzemplarza'],
+        bullets: [
+          'Min. 500 px na dłuższym boku, zalecane ok. 1600 px',
+          'Do 24 zdjęć, pierwsze jest zdjęciem głównym',
+          'Bez ramek, napisów i znaków wodnych',
+          'Przedmioty używane: tylko prawdziwe zdjęcia egzemplarza',
+        ],
       },
       {
         heading: 'Jak AllGrafika pomaga przy ofercie na eBay',
@@ -280,7 +284,12 @@ export const seoPages: SeoPage[] = [
           'Według wytycznych Amazon dla sprzedawców zdjęcie główne powinno mieć czyste białe tło (RGB 255, 255, 255), produkt ma wypełniać co najmniej 85% kadru, a na zdjęciu nie może być dodatkowego tekstu, grafik ani znaków wodnych. Amazon preferuje zdjęcia większe niż 1000 px na dłuższym boku, bo umożliwiają powiększanie.',
           'Pełne, aktualne wymagania znajdziesz w Seller Central na stronie o wymaganiach dla zdjęć produktów – sprawdź je przed publikacją, bo różnią się też między kategoriami.',
         ],
-        bullets: ['Czyste białe tło na zdjęciu głównym', 'Produkt na co najmniej 85% kadru', 'Bez tekstu, grafik i znaków wodnych na zdjęciu głównym', 'Ponad 1000 px na dłuższym boku dla powiększenia'],
+        bullets: [
+          'Czyste białe tło na zdjęciu głównym',
+          'Produkt na co najmniej 85% kadru',
+          'Bez tekstu, grafik i znaków wodnych na zdjęciu głównym',
+          'Ponad 1000 px na dłuższym boku dla powiększenia',
+        ],
       },
       {
         heading: 'Zdjęcie główne i dodatkowe w AllGrafika',

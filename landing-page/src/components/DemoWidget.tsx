@@ -263,7 +263,10 @@ export default function DemoWidget() {
                 >
                   Załóż konto – 5 grafik gratis →
                 </a>
-                <p className="text-xs text-gray-400 mt-3">W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny, wyeksportujesz grafiki z presetem pod OLX, Vinted, eBay, Amazon lub sklep i dostaniesz opis oferty.</p>
+                <p className="text-xs text-gray-400 mt-3">
+                  W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny, wyeksportujesz grafiki z presetem pod OLX, Vinted, eBay, Amazon lub sklep i dostaniesz opis
+                  oferty.
+                </p>
               </div>
             </div>
           ) : phase === 'slow' ? (

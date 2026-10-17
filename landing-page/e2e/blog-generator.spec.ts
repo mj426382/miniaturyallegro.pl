@@ -73,7 +73,14 @@ test.describe('daily blog generator', () => {
     const fixture = resolve(landing, 'test-results/duplicate-article.json')
     writeFileSync(
       fixture,
-      JSON.stringify({ slug: 'skuteczny-tytul-ogloszenia-poradnik', title: 'Skuteczny tytuł ogłoszenia na OLX, Vinted i eBay – jak go napisać', excerpt: 'x', category: 'Poradniki', readTime: 5, content }),
+      JSON.stringify({
+        slug: 'skuteczny-tytul-ogloszenia-poradnik',
+        title: 'Skuteczny tytuł ogłoszenia na OLX, Vinted i eBay – jak go napisać',
+        excerpt: 'x',
+        category: 'Poradniki',
+        readTime: 5,
+        content,
+      }),
       'utf-8',
     )
     const sitemapBefore = readFileSync(sitemap, 'utf-8')
