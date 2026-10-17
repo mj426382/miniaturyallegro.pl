@@ -18,6 +18,11 @@
   CSS odpowiada operacjom sharp.
 - Plakietka promocyjna (≤ 24 znaki, 5 kolorów, 4 rogi) z ostrzeżeniem, że marketplace'y zwykle nie
   dopuszczają napisów na zdjęciu głównym; przy presetach, które jej zabraniają (eBay, Amazon), pole jest wyłączone.
+- **Oznaczenie treści AI** (Google Merchant Center, przegląd 2026-10-17): eksport grafiki AI w JPEG, PNG
+  i WebP zawiera pakiet XMP z polem IPTC `Iptc4xmpExt:DigitalSourceType` =
+  `http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia` (zdjęcie produktu
+  sprzedawcy + scena wygenerowana przez AI). Poza tym plik nie ma metadanych (bez EXIF i GPS). Eksport
+  oryginalnego zdjęcia (`export-original`, np. Vinted) nie ma tego oznaczenia ani żadnych metadanych.
 - Eksport jest bezpłatny i deterministyczny (bez AI). Modal ma dwa kroki: format i kadr → korekta i plakietka.
 - Pobieranie: desktop zapisuje plik; iPhone/Android dostają arkusz udostępniania z plikiem; bez wsparcia
   plików – nowa karta lub link; odrzucony arkusz – przycisk „Zapisz w Zdjęciach” do ponownego dotknięcia.
@@ -51,3 +56,5 @@ obrót z listy, korekty w zakresach, tekst plakietki ≤ 24.
 - **AC-EXP-019** – Given wygasła aktywacja użytkownika, When udostępnianie odrzucone, Then UI wie, że trzeba ponownego dotknięcia, a `shareBlob` wtedy działa.
 - **AC-EXP-020** – Given procenty kadru z edytora, When konwersja, Then ułamki zaokrąglone do 4 miejsc.
 - **AC-EXP-021** – Given kadr wykraczający poza obraz, When konwersja, Then jest przycięty do granic obrazu.
+- **AC-EXP-022** – Given ukończona grafika AI, When eksport w JPEG, PNG i WebP (także przez endpoint z presetem platformy), Then odczytane z pliku XMP zawiera `Iptc4xmpExt:DigitalSourceType` = `…/digitalsourcetype/compositeWithTrainedAlgorithmicMedia`, a plik nie ma EXIF ani GPS.
+- **AC-EXP-023** – Given oryginalne zdjęcie (także przesłane z EXIF i GPS), When `export-original` w JPEG, PNG i WebP, Then plik nie ma XMP z `DigitalSourceType` ani EXIF/GPS.

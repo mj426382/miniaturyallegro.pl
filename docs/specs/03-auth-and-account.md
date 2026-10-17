@@ -26,6 +26,30 @@ odzyskać i zmienić hasło, a także usunąć konto razem z danymi (RODO).
 - Usunięcie konta: użytkownik przepisuje swój e-mail i potwierdza w oknie; kasowane są zdjęcia, grafiki,
   opisy, pliki w B2, abonament Stripe.
 - Konta Google bez hasła widzą w ustawieniach wskazówkę zamiast formularza (`hasPassword=false`).
+- **Token sesji w treści odpowiedzi tylko poza przeglądarką** (przegląd bezpieczeństwa 2026-10-17):
+  - Rejestracja, logowanie, Google i zmiana hasła zawsze ustawiają cookie `ag_session`.
+  - Pole `token` w treści odpowiedzi dostaje tylko aplikacja natywna (spec 18), rozpoznawana po
+    nagłówku `Origin` z listy originów aplikacji (`https://native.allgrafika.pl`,
+    `capacitor://native.allgrafika.pl`). `Origin` ustawia przeglądarka, więc skrypt na stronie (XSS)
+    nie może się pod nią podszyć.
+  - Klient bez `Origin` i bez nagłówków `Sec-Fetch-*` (skrypty, testy, integracje serwerowe) też dostaje
+    token, bo nie ma w nim strony, z której XSS mógłby go odczytać.
+  - Przeglądarka z originem strony (np. `https://app.allgrafika.pl`) nie dostaje tokenu w treści – web
+    korzysta wyłącznie z cookie httpOnly.
+- **Ślad usuniętego konta** (przegląd 2026-10-17; ochrona darmowej puli przed „usuń konto i załóż
+  od nowa”):
+  - Przy usunięciu konta zapisujemy wyłącznie skrót HMAC-SHA256 postaci kanonicznej adresu (spec 13:
+    małe litery, `trim`, `+alias` obcięty, kropki Gmaila usunięte, `googlemail.com` → `gmail.com`) i datę
+    usunięcia (`account_tombstones`).
+  - Klucz HMAC jest wyprowadzony z `JWT_SECRET` (HKDF, osobna etykieta) albo podany w
+    `ACCOUNT_TOMBSTONE_SECRET`. Adres w postaci jawnej nie zostaje nigdzie w bazie.
+  - Rejestracja (e-mail i Google) adresu, którego skrót jest w tabeli: konto powstaje normalnie, ale
+    z pulą 0 darmowych grafik i bez programu poleceń (spec 20). Mail weryfikacyjny nie obiecuje wtedy
+    darmowych grafik.
+  - Retencja: `ACCOUNT_TOMBSTONE_RETENTION_MONTHS` (domyślnie 12, liczba całkowita 1–36). Starsze wpisy
+    usuwa zadanie uruchamiane przy starcie aplikacji i co 24 h.
+  - Podstawa prawna: prawnie uzasadniony interes (art. 6 ust. 1 lit. f RODO) – zapobieganie nadużyciom
+    darmowej puli; zapis w polityce prywatności.
 
 ## 3. UX
 
@@ -69,3 +93,19 @@ z ogólnym komunikatem; limit prób: 429.
 - **AC-AUTH-026** – Given konto, którego adres (albo jego alias) skorzystał wcześniej z demo na landingu, When użytkownik usunie konto, Then wiersze demo z tym adresem i ich pliki (zdjęcie i wynik) są usuwane razem z kontem, a demo innych adresów zostaje.
 - **AC-AUTH-027** – Given niezalogowany użytkownik otwiera prywatny adres aplikacji (np. link z maila do `/credits`), When zostanie przekierowany na `/login` i się zaloguje, Then wraca na ten adres; adresy spoza aplikacji (`//…`) są ignorowane i prowadzą na pulpit.
 - **AC-AUTH-023** – Given reguły hasła w UI, When hasło nie spełnia reguł, Then lista brakujących wymagań i siła hasła są wyliczane tak samo jak w API.
+- **AC-AUTH-028** – Given rejestracja, logowanie, logowanie Google albo zmiana hasła, When żądanie przychodzi z przeglądarki z originem strony (także z nagłówkami `Sec-Fetch-*` bez `Origin`), Then odpowiedź ustawia cookie sesji i nie zawiera pola `token`; When przychodzi z originu aplikacji natywnej albo od klienta bez `Origin` i `Sec-Fetch-*`, Then zawiera `token`, który działa jako `Authorization: Bearer`.
+- **AC-AUTH-029** – Given konto (także z aliasem lub kontem Google), When użytkownik je usunie, Then w `account_tombstones` jest dokładnie jeden wpis: skrót HMAC postaci kanonicznej adresu i data usunięcia; żadna tabela bazy nie zawiera adresu ani jego postaci kanonicznej, a skrót nie jest zwykłym SHA-256 adresu (bez klucza nie da się go odtworzyć).
+- **AC-AUTH-030** – Given usunięte konto, When ktoś zarejestruje e-mailem ten sam adres albo jego wariant (wielkie litery, spacje, kropki w Gmailu, `+alias`, `googlemail.com`), Then konto powstaje (201) z pulą 0 darmowych grafik, a mail weryfikacyjny nie obiecuje darmowych grafik; rejestracja innego adresu dostaje pełną pulę.
+- **AC-AUTH-031** – Given usunięte konto, When właściciel tej skrzynki założy konto przez Google, Then konto powstaje z pulą 0 darmowych grafik.
+- **AC-AUTH-032** – Given wpisy śladu starsze i młodsze niż okres retencji, When działa zadanie sprzątania, Then znikają tylko starsze; po ich usunięciu rejestracja tego adresu dostaje pełną pulę; Given `ACCOUNT_TOMBSTONE_RETENTION_MONTHS` spoza 1–36 albo niecałkowite, When start, Then walidacja konfiguracji zgłasza błąd.
+
+## 6. Dane i migracje
+
+Migracja `20261018100000_tombstones_upload_quota` (addytywna): tabela `account_tombstones (id, emailHash
+TEXT UNIQUE, deletedAt TIMESTAMP, indeks po deletedAt)` – bez klucza obcego do `users`, bo konta już nie
+ma. Ponowne usunięcie konta na ten sam adres odświeża datę istniejącego wpisu.
+
+## 7. Wpływ na dokumenty
+
+Polityka prywatności: nowy cel „zapobieganie nadużyciom darmowej puli” – skrót adresu e-mail usuniętego
+konta, art. 6 ust. 1 lit. f RODO, 12 miesięcy.
