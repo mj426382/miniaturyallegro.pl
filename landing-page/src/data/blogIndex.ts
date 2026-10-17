@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "110",
+    "slug": "jak-fotografowac-buty-do-sprzedazy",
+    "title": "Jak fotografować buty do sprzedaży",
+    "excerpt": "Jak fotografować buty do sprzedaży? Poznaj kluczowe ujęcia, światło i tło, które przekonają kupujących. Praktyczne wskazówki dla Twoich ofert.",
+    "publishedAt": "2026-10-17",
+    "modifiedAt": "2026-10-17",
+    "author": "AllGrafika.pl",
+    "readTime": 6,
+    "category": "Poradniki"
+  },
+  {
     "id": "109",
     "slug": "jak-napisac-opis-produktu-na-allegro",
     "title": "Jak napisać opis produktu na Allegro",
