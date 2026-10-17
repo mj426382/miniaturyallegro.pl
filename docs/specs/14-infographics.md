@@ -9,8 +9,8 @@
 
 ## 1. Problem i cel
 
-Duzi sprzedawcy na Allegro mają w galerii oferty zdjęcia z cechami produktu, ikonami i wymiarami. Allegro
-zabrania tekstu na zdjęciu głównym, ale na kolejnych to standard, który podnosi konwersję. Mały sprzedawca
+Duzi sprzedawcy na marketplace'ach mają w galerii oferty zdjęcia z cechami produktu, ikonami i wymiarami.
+Amazon i eBay zabraniają tekstu na zdjęciu głównym, ale na kolejnych to standard, który podnosi konwersję. Mały sprzedawca
 nie ma grafika. Cel: z gotowej grafiki AllGrafiki zrobić w minutę czytelną infografikę z poprawnym polskim
 tekstem.
 
@@ -19,7 +19,7 @@ tekstem.
 - W zakresie: dwa szablony (cechy z ikonami, wymiary), motyw jasny/ciemny, kolor akcentu, tytuł,
   podgląd i pobranie PNG/JPG 1600×1600 px.
 - Poza zakresem (świadomie): generowanie infografik przez model AI (modele psują polski tekst i liczby),
-  dowolny edytor warstw, zapisywanie infografik w galerii i publikacja na Allegro jednym kliknięciem.
+  dowolny edytor warstw, zapisywanie infografik w galerii i publikacja na marketplace jednym kliknięciem.
 
 ## 3. Decyzje produktowe
 
@@ -36,8 +36,8 @@ tekstem.
   prezent, recykling, temperatura, łączność bezprzewodowa, ergonomia, jakość, zestaw, bezpieczeństwo).
 - Gdy zdjęcie ma opis oferty, lista cech jest wstępnie wypełniona punktami z sekcji „Najważniejsze cechy”
   (maks. 5, przycięte do 48 znaków) – użytkownik je poprawia.
-- Komunikat w oknie: „Allegro nie pozwala na tekst na zdjęciu głównym – dodaj infografikę jako kolejne
-  zdjęcie oferty.”
+- Komunikat w oknie: „Marketplace'y (np. Amazon, eBay) nie pozwalają na tekst na zdjęciu głównym – dodaj
+  infografikę jako kolejne zdjęcie oferty.”
 
 ## 4. Przepływ użytkownika (UX)
 

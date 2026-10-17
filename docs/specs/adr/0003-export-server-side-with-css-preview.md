@@ -7,7 +7,7 @@
 
 ## Kontekst
 
-Sprzedawcy potrzebują formatów Allegro bez białych pasów, obrotu i prostej korekty. Przetwarzanie w
+Sprzedawcy potrzebują formatów marketplace'ów bez białych pasów, obrotu i prostej korekty. Przetwarzanie w
 przeglądarce (canvas) różni się między urządzeniami, a telefony mają ograniczoną pamięć.
 
 ## Decyzja

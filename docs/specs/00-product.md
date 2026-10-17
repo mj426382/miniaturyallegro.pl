@@ -8,8 +8,9 @@
 
 ## Wizja
 
-Sprzedawca na Allegro wrzuca zdjęcie produktu z telefonu i w kilka minut ma zestaw profesjonalnych
-miniaturek w formatach Allegro oraz gotowy opis oferty pod SEO. Bez fotografa, bez grafika, bez
+Sprzedawca na OLX, Vinted, eBay, Amazon albo we własnym sklepie internetowym wrzuca zdjęcie produktu
+z telefonu i w kilka minut ma zestaw profesjonalnych miniaturek w formatach wybranej platformy oraz gotowy
+opis oferty pod jej wyszukiwarkę. Bez fotografa, bez grafika, bez
 nauki narzędzi. Produkt na grafice jest wierny oryginałowi (kształt, kolory, logo, napisy).
 
 ## Persony
@@ -17,7 +18,7 @@ nauki narzędzi. Produkt na grafice jest wierny oryginałowi (kształt, kolory, 
 1. **Mikrosprzedawca** (1–50 ofert, sam robi zdjęcia telefonem). Płaci pakietami, liczy każdą złotówkę,
    korzysta głównie z telefonu. Główny klient.
 2. **Mały sklep** (50–500 SKU, osoba od ofert). Dodaje produkty hurtowo, potrzebuje abonamentu,
-   integracji z Allegro i spójnych grafik dla całego asortymentu.
+   eksportu pod kilka platform naraz i spójnych grafik dla całego asortymentu.
 3. **Agencja / freelancer** obsługujący kilku sprzedawców. Potrzebuje szybkości i eksportu w wielu formatach.
 
 ## Cele i metryki
@@ -41,7 +42,8 @@ nauki narzędzi. Produkt na grafice jest wierny oryginałowi (kształt, kolory, 
 
 ## Poza zakresem (świadomie)
 
-- Edytor graficzny ogólnego przeznaczenia (warstwy, tekst dowolny) – robimy tylko to, czego wymaga Allegro.
-- Inne marketplace'y (Amazon, OLX) – dopóki Allegro nie jest rentowne.
+- Edytor graficzny ogólnego przeznaczenia (warstwy, tekst dowolny) – robimy tylko to, czego wymagają platformy sprzedażowe.
+- Integracje z marketplace'ami (OAuth, publikacja ofert) – dajemy presety eksportu i opisu, nie integracje (08).
+  Integracja z Allegro została usunięta 2026-10-17 (decyzja właściciela).
 - Aplikacje natywne – PWA/web wystarcza.
 - Wielojęzyczność – produkt jest po polsku.

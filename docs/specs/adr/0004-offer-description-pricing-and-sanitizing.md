@@ -1,4 +1,4 @@
-# ADR-0004: Opis oferty gratis z limitem poprawek; HTML ograniczony do podzbioru Allegro
+# ADR-0004: Opis oferty gratis z limitem poprawek; HTML ograniczony do prostego podzbioru
 
 | Pole | Wartość |
 |---|---|
@@ -18,7 +18,8 @@ i z edytora użytkownika trafia do `dangerouslySetInnerHTML` i do schowka, więc
   jest rezerwowany atomowo (`UPDATE … WHERE used < free + purchased`) i zwalniany, gdy model zawiedzie.
 - Sanitizer własny (regex, bez zależności): zostają `h2/p/ul/ol/li/b` bez atrybutów, `h1/h3→h2`,
   `strong→b`, reszta tagów jest usuwana z zachowaniem tekstu, luźne `<` kodowane. Ten sam algorytm
-  w backendzie (`allegro-html.ts`) i frontendzie (`allegroHtml.ts`), z testami lustrzanymi.
+  w backendzie (`offer-html.ts`) i frontendzie (`offerHtml.ts`), z testami lustrzanymi. Podzbiór pochodzi
+  z dawnego edytora Allegro; jest bezpieczny i wklejalny w edytory sklepów i eBay (2026-10-17).
 - Prompt zabrania zmyślania parametrów, linków i kontaktu; regulamin przerzuca weryfikację faktów na
   użytkownika i wymaga jej jawnie.
 
