@@ -2,64 +2,88 @@
   {
     "keyword": "jak zrobić zdjęcie produktu w pudełku",
     "slug": "zdjecie-produktu-w-folii-i-opakowaniu",
-    "date": "2026-10-09"
+    "date": "2026-10-09",
+    "cluster": "fotografia-produktowa",
+    "type": "howto"
   },
   {
     "keyword": "jak zrobić zdjęcie produktu telefonem",
     "slug": "jak-zrobic-profesjonalne-zdjecia-produktow",
     "date": "2026-10-09",
-    "covered": true
+    "covered": true,
+    "cluster": "fotografia-produktowa",
+    "type": "howto"
   },
   {
     "keyword": "białe tło do zdjęć produktowych",
     "slug": "biale-tlo-diy-vs-ai-w-fotografii-produktowej",
     "date": "2026-10-09",
-    "covered": true
+    "covered": true,
+    "cluster": "fotografia-produktowa",
+    "type": "comparison"
   },
   {
     "keyword": "wymiary zdjęć olx vinted ebay amazon",
     "slug": "wymiary-zdjec-olx-vinted-ebay-amazon",
-    "date": "2026-10-09"
+    "date": "2026-10-09",
+    "cluster": "kanaly-sprzedazy",
+    "type": "comparison"
   },
   {
     "keyword": "jak usunąć tło ze zdjęcia produktu",
     "slug": "jak-usunac-tlo-ze-zdjecia-produktu",
-    "date": "2026-10-10"
+    "date": "2026-10-10",
+    "cluster": "fotografia-produktowa",
+    "type": "howto"
   },
   {
     "keyword": "zdjęcie główne oferty wymagania",
     "slug": "zdjecie-glowne-oferty-wymagania-platform",
-    "date": "2026-10-11"
+    "date": "2026-10-11",
+    "cluster": "kanaly-sprzedazy",
+    "type": "guide"
   },
   {
     "keyword": "prawa autorskie do zdjęć produktów",
     "slug": "prawa-autorskie-do-zdjec-produktow",
-    "date": "2026-10-13"
+    "date": "2026-10-13",
+    "cluster": "prawo-i-praktyka",
+    "type": "guide"
   },
   {
     "keyword": "jaki rozmiar zdjęcia do sklepu internetowego",
     "slug": "jaki-rozmiar-zdjecia-do-sklepu-internetowego",
-    "date": "2026-10-14"
+    "date": "2026-10-14",
+    "cluster": "seo-sklepu",
+    "type": "guide"
   },
   {
     "keyword": "zdjęcia ubrań do sklepu internetowego",
     "slug": "jaki-rozmiar-zdjecia-do-sklepu-internetowego",
     "date": "2026-10-15",
-    "covered": true
+    "covered": true,
+    "cluster": "zdjecia-wg-kategorii",
+    "type": "howto"
   },
   {
     "keyword": "jak zwiększyć sprzedaż online",
     "slug": "jak-zwiekszyc-sprzedaz-online-zdjecia-tytul-opis",
-    "date": "2026-10-15"
+    "date": "2026-10-15",
+    "cluster": "sprzedaz-i-konwersja",
+    "type": "guide"
   },
   {
     "keyword": "jak napisać opis produktu",
     "slug": "jak-napisac-opis-produktu-do-sklepu-i-ogloszenia",
-    "date": "2026-10-16"
+    "date": "2026-10-16",
+    "cluster": "sprzedaz-i-konwersja",
+    "type": "guide"
   },
   {
     "keyword": "jak fotografować buty do sprzedaży",
     "slug": "jak-fotografowac-buty-do-sprzedazy",
-    "date": "2026-10-17"
+    "date": "2026-10-17",
+    "cluster": "zdjecia-wg-kategorii",
+    "type": "howto"
   }
 ]
