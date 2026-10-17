@@ -14,7 +14,7 @@ STEM = 6
 STOPWORDS = {
     "jak", "na", "i", "w", "z", "do", "dla", "o", "a", "sie", "czy", "co", "to", "ze", "od", "po", "przy", "bez",
     "jest", "sa", "nie", "tak", "oraz", "lub", "czyli", "ktory", "ktora", "ktore", "twoj", "twoje", "twoja",
-    "allegro", "miniat", "grafik", "allgra", "porad", "krok", "2025", "2026", "sposob", "najlep",
+    "miniat", "grafik", "allgra", "porad", "krok", "2025", "2026", "sposob", "najlep",
 }
 
 

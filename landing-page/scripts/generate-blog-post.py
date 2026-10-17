@@ -69,7 +69,7 @@ cat_summary = ", ".join(f"{k}: {v}" for k, v in sorted(cat_counts.items(), key=l
 SYSTEM_PROMPT = (
     "Jesteś doświadczonym copywriterem SEO i strategiem contentu dla AllGrafika.pl "
     "— polskiego narzędzia AI do automatycznego generowania profesjonalnych miniaturek "
-    "i zdjęć produktowych dla sprzedawców na Allegro.\n\n"
+    "i zdjęć produktowych dla sprzedawców na OLX, Vinted, eBay, Amazon i we własnych sklepach internetowych.\n\n"
     "CZYM JEST ALLGRAFIKA.PL:\n"
     "Aplikacja webowa, która:\n"
     "- Przyjmuje zdjęcie produktu (JPG, PNG, WebP) od sprzedawcy\n"
@@ -77,13 +77,16 @@ SYSTEM_PROMPT = (
     "łącznie dostępnych jest 19 stylów (uniwersalne, sezonowe i branżowe) + własny prompt\n"
     "- Produkt pozostaje wierny oryginałowi (AI zmienia tylko tło, scenę i oświetlenie)\n"
     "- Umożliwia własny prompt po polsku z opcjonalnym zdjęciem referencyjnym oraz przeróbkę gotowej grafiki\n"
-    "- Pozwala kadrować, obracać i poprawiać grafiki w formatach Allegro (1:1, 4:3, 16:9, 3:4) i dodać plakietkę promocyjną\n"
-    "- Pisze opis oferty pod SEO Allegro (tytuł do 75 znaków, opis, frazy) – pierwszy opis gratis do każdego zdjęcia z gotową grafiką\n"
+    "- Pozwala kadrować, obracać i poprawiać grafiki, eksportować je z presetem pod platformę (OLX, Vinted, eBay, Amazon, "
+    "własny sklep) i dodać plakietkę promocyjną\n"
+    "- Pisze tytuł i opis oferty dopasowany do platformy – pierwszy opis gratis do każdego zdjęcia z gotową grafiką\n"
+    "- NIE łączy się z kontami na platformach i niczego nie publikuje – sprzedawca pobiera pliki i sam wstawia je do oferty "
+    "(nie obiecuj integracji, importu ofert ani publikacji jednym kliknięciem)\n"
     "- Przechowuje wygenerowane grafiki bezpiecznie w chmurze\n"
     "- Kosztuje 1,75-2 zł za grafikę (1 kredyt = 1 grafika), pierwsze 5 grafik jest bezpłatnych\n"
     "- Oszczędza czas i pieniądze vs. tradycyjna sesja fotograficzna (kilkaset zł za produkt)\n\n"
     "DOSTĘPNE STYLE MINIATUREK (wplataj naturalnie — max 2-3 wzmianki na artykuł; NIE wymyślaj innych):\n"
-    "- Białe tło — zgodne z wymaganiami zdjęcia głównego Allegro (zestaw startowy)\n"
+    "- Białe tło — packshot na jednolitym białym tle pod zdjęcie główne (zestaw startowy)\n"
     "- Lifestyle (wnętrze) — produkt w jasnym, nowoczesnym wnętrzu (zestaw startowy)\n"
     "- Ciemny luksus — ciemne tło z dramatycznym oświetleniem, produkty premium (zestaw startowy)\n"
     "- Gradient — elegancki gradient dopasowany do kolorystyki produktu\n"
@@ -93,7 +96,12 @@ SYSTEM_PROMPT = (
     "- NIE wymyślaj case studies, wyników klientów, nazwisk ani konkretnych procentów wzrostu sprzedaży "
     "przedstawianych jako prawdziwe. Jeśli podajesz liczby, opisuj je jako przykładowe/hipotetyczne "
     "lub cytuj ogólnodostępne, publiczne źródła z nazwą źródła.\n"
-    "- NIE pisz, że AllGrafika używa 'własnego/dedykowanego modelu AI' — korzysta z modeli Google Gemini i OpenAI.\n\n"
+    "- NIE pisz, że AllGrafika używa 'własnego/dedykowanego modelu AI' — korzysta z modeli Google Gemini i OpenAI.\n"
+    "- Zasady platform (wymiary, limity zdjęć, tła) podawaj tylko wtedy, gdy pochodzą z oficjalnej pomocy platformy, "
+    "z nazwą źródła; w razie wątpliwości odeślij czytelnika do aktualnej pomocy platformy zamiast podawać liczbę.\n\n"
+    "PLATFORMY (spec 10, AC-SEO-012): piszesz dla sprzedawców na OLX, Vinted, eBay, Amazon i we własnych sklepach "
+    "internetowych. AllGrafika NIE obsługuje Allegro – nie wspominaj tej platformy w żadnym polu i nie wybieraj "
+    "tematów z nią związanych. Nazwy platform to znaki towarowe ich właścicieli – nie sugeruj partnerstwa ani powiązań.\n\n"
     "ZASADY PISANIA ARTYKUŁÓW:\n"
     "1. Język: profesjonalny, ale przystępny polski. Bez korporacyjnego żargonu.\n"
     "2. Styl: bezpośredni — zwracaj się do czytelnika 'Ty', 'Twoje produkty', 'Twój sklep'.\n"
@@ -143,15 +151,15 @@ USER_PROMPT = (
     "- Przeczytaj listę istniejących artykułów i wybierz temat, którego NA PEWNO tam nie ma, "
     "także w innym sformułowaniu (inny tytuł o tym samym = duplikat, a duplikaty są odrzucane).\n"
     "- Preferuj konkretne, wąskie tematy (np. jedna kategoria produktowa, jeden problem techniczny, "
-    "jedno narzędzie Allegro) zamiast ogólnych 'jak miniaturki wpływają na sprzedaż'.\n"
+    "jedna platforma: OLX, Vinted, eBay albo Amazon) zamiast ogólnych 'jak zdjęcia wpływają na sprzedaż'.\n"
     "- Tematy już wyczerpane (NIE pisz o nich ponownie): case study ze wzrostem CTR/sprzedaży, "
-    "psychologia cen/kolorów/kompozycji/tła, miniaturki na urządzenia mobilne, kampanie sezonowe "
-    "i świąteczne, testowanie miniaturek bez budżetu, nowe kategorie Allegro, produkty premium, "
-    "zaufanie klientów, decyzje zakupowe, ranking Allegro.\n"
-    "- Przykładowe wolne kierunki: konkretne kategorie Allegro jeszcze nieopisane, wymagania Allegro "
-    "dla zdjęć w konkretnych kategoriach, przygotowanie zdjęcia wejściowego do AI, błędy w zdjęciach "
-    "produktowych, grafiki do Allegro Ads, zdjęcia wariantów produktu, pakowanie i zestawy, "
-    "fotografia produktów trudnych (szkło, biżuteria, czarne przedmioty), opisy ofert pod SEO.\n\n"
+    "psychologia cen/kolorów/kompozycji/tła, zdjęcia na urządzenia mobilne, kampanie sezonowe "
+    "i świąteczne, testowanie zdjęć bez budżetu, zdjęcia dla kategorii, produkty premium, "
+    "zaufanie klientów, decyzje zakupowe, wymiary zdjęć i zdjęcie główne na platformach.\n"
+    "- Przykładowe wolne kierunki: sprzedaż konkretnej kategorii na Vinted albo OLX, zdjęcia przedmiotów "
+    "używanych (stan, wady), zdjęcia dodatkowe na Amazon i eBay, zdjęcia wariantów produktu, pakowanie i zestawy, "
+    "fotografia produktów trudnych (szkło, biżuteria, czarne przedmioty), zdjęcia do własnego sklepu "
+    "(Shopify, WooCommerce), opisy ofert dopasowane do platformy, e-commerce i fotografia produktowa.\n\n"
     "Wymagania dotyczące STRUKTURY tego konkretnego artykułu:\n"
     "- Zacznij od konkretnej sytuacji sprzedawcy albo pytania (nie od ogólnika, bez wymyślonych liczb)\n"
     "- Użyj CO NAJMNIEJ jednej sekcji H2 z praktycznym przykładem oznaczonym jako hipotetyczny\n"
@@ -235,9 +243,11 @@ SEO_RULES = (
     + "- Nie pisz artykułu, którego fraza główna to zapytanie obsługiwane przez stronę narzędzia z listy powyżej.\n"
 )
 
+# Spec 10, AC-SEO-012: the tool does not support this marketplace any more – no article may be about it.
+UNSUPPORTED_PLATFORM = re.compile(r"allegro", re.I)
 ALLOWED_CATEGORIES = {"Poradniki", "Technologia", "Styl i design", "E-commerce", "Optymalizacja"}
 STOPWORDS = {"jak", "na", "i", "w", "z", "do", "dla", "o", "a", "sie", "się", "czy", "co",
-             "allegro", "miniaturki", "miniaturke", "miniaturka", "miniaturek", "grafiki", "grafik"}
+             "miniaturki", "miniaturke", "miniaturka", "miniaturek", "grafiki", "grafik"}
 
 
 def tokens(text):
@@ -344,6 +354,11 @@ def article_problem(article):
         if not str(article.get(field_name, "")).strip():
             return f"brak pola {field_name}"
     body = article.get("content", "")
+    if UNSUPPORTED_PLATFORM.search(" ".join(str(article.get(f, "")) for f in ("slug", "title", "excerpt", "content"))):
+        return (
+            "artykuł wspomina Allegro – AllGrafika nie obsługuje tej platformy; napisz o OLX, Vinted, eBay, Amazon, "
+            "sklepie internetowym albo fotografii produktowej"
+        )
     # Fabricated "sales grew by 40%" claims are an unfair commercial practice – refuse them unless sourced.
     if re.search(r"(wzros|zwiększ|spad|popraw)\w*[^.\n]{0,40}\bo\s+\d{1,3}\s?%", body, flags=re.I) and "źródło" not in body.lower():
         return "artykuł zawiera procentowy wzrost lub spadek bez źródła – usuń liczby procentowe"
