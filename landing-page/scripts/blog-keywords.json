@@ -111,13 +111,14 @@
   },
   "entries": [
     {
-      "keyword": "fotografia produktowa",
+      "keyword": "fotografia produktowa jak zacząć",
       "cluster": "fotografia-produktowa",
       "intent": "informacyjna",
       "type": "pillar",
       "priority": 1,
-      "angle": "Kompletny przewodnik 2026: czym jest fotografia produktowa, rodzaje ujęć (packshot, lifestyle, detale, skala, w użyciu), sprzęt od telefonu po małe studio, światło, tło, kompozycja, obróbka, zestaw zdjęć na jedną kartę produktu; hub linkujący do szczegółowych poradników.",
+      "angle": "Kompletny przewodnik 2026 dla początkujących: czym jest fotografia produktowa, rodzaje ujęć (packshot, lifestyle, detale, skala, w użyciu), sprzęt od telefonu po małe studio, światło, tło, kompozycja, obróbka, zestaw zdjęć na jedną kartę produktu; hub linkujący do szczegółowych poradników.",
       "links": [
+        "/fotografia-produktowa-ai",
         "/blog/jak-zrobic-profesjonalne-zdjecia-produktow",
         "/blog/oswietlenie-diy-do-zdjec-produktowych",
         "/blog/zdjecia-produktow-telefonem-poradnik",
