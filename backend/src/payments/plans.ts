@@ -94,7 +94,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     priceGrosze: 5900,
     priceLabel: '59 zł / mies.',
     priceEnv: 'STRIPE_PRICE_SUB_PRO',
-    description: '150 grafik miesięcznie (0,39 zł / grafikę). Dla sklepów z setkami SKU i hurtowym przesyłaniem.',
+    description: '150 grafik miesięcznie (0,39 zł / grafikę). Dla sklepów z setkami SKU i masowym przesyłaniem.',
   },
 ];
 

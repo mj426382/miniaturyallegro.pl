@@ -7,8 +7,8 @@ export const DEMO_STYLE_IDS = ['white-bg', 'lifestyle-home', 'dark-luxury'] as c
 /** Multipart form – every field arrives as a string. */
 export class CreateDemoDto {
   @ApiProperty({ example: 'sprzedawca@example.com' })
-  @IsEmail({}, { message: 'Podaj prawidłowy adres email' })
-  @IsNotEmpty({ message: 'Email jest wymagany' })
+  @IsEmail({}, { message: 'Podaj prawidłowy adres e-mail' })
+  @IsNotEmpty({ message: 'E-mail jest wymagany' })
   @MaxLength(254)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   email: string;

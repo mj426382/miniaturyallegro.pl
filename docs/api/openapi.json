@@ -38,7 +38,7 @@
             "description": "Nieprawidłowe dane wejściowe"
           },
           "409": {
-            "description": "Email już jest w użyciu"
+            "description": "E-mail już jest w użyciu"
           },
           "429": {
             "description": "Zbyt wiele prób rejestracji. Spróbuj później."
@@ -69,13 +69,13 @@
             "description": "Zalogowano pomyślnie"
           },
           "401": {
-            "description": "Nieprawidłowy email lub hasło"
+            "description": "Nieprawidłowy e-mail lub hasło"
           },
           "429": {
             "description": "Zbyt wiele prób logowania. Spróbuj później."
           }
         },
-        "summary": "Logowanie za pomocą email i hasła (cookie httpOnly; `token` w treści tylko poza przeglądarką)",
+        "summary": "Logowanie za pomocą e-maila i hasła (cookie httpOnly; `token` w treści tylko poza przeglądarką)",
         "tags": [
           "auth"
         ]
@@ -238,7 +238,7 @@
         },
         "responses": {
           "200": {
-            "description": "Jeśli email istnieje, wysłano link resetujący"
+            "description": "Jeśli e-mail istnieje, wysłano link resetujący"
           },
           "429": {
             "description": "Zbyt wiele prób. Spróbuj później."

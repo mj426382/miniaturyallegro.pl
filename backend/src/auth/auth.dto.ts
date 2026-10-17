@@ -35,8 +35,8 @@ export function PasswordRules(): PropertyDecorator {
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
-  @IsEmail({}, { message: 'Podaj prawidłowy adres email' })
-  @IsNotEmpty({ message: 'Email jest wymagany' })
+  @IsEmail({}, { message: 'Podaj prawidłowy adres e-mail' })
+  @IsNotEmpty({ message: 'E-mail jest wymagany' })
   @MaxLength(254)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   email: string;
@@ -86,8 +86,8 @@ export class ChangePasswordDto {
 
 export class LoginDto {
   @ApiProperty({ example: 'user@example.com' })
-  @IsEmail({}, { message: 'Podaj prawidłowy adres email' })
-  @IsNotEmpty({ message: 'Email jest wymagany' })
+  @IsEmail({}, { message: 'Podaj prawidłowy adres e-mail' })
+  @IsNotEmpty({ message: 'E-mail jest wymagany' })
   @MaxLength(254)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   email: string;
@@ -101,8 +101,8 @@ export class LoginDto {
 
 export class ForgotPasswordDto {
   @ApiProperty({ example: 'user@example.com' })
-  @IsEmail({}, { message: 'Podaj prawidłowy adres email' })
-  @IsNotEmpty({ message: 'Email jest wymagany' })
+  @IsEmail({}, { message: 'Podaj prawidłowy adres e-mail' })
+  @IsNotEmpty({ message: 'E-mail jest wymagany' })
   @MaxLength(254)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   email: string;

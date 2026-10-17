@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { canonicalEmail } from '../auth/email-canonical';
 import { derivePurposeKey, keyedHash } from '../common/keys';
-import { integerSetting } from '../config/env.validation';
+import { dateSetting, integerSetting } from '../config/env.validation';
 
 const PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -21,6 +21,7 @@ type Db = PrismaService | Prisma.TransactionClient;
 export class AccountTombstoneService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AccountTombstoneService.name);
   private readonly key: Buffer;
+  private readonly from: Date;
   readonly retentionMonths: number;
   private timer: NodeJS.Timeout | null = null;
 
@@ -29,6 +30,7 @@ export class AccountTombstoneService implements OnModuleInit, OnModuleDestroy {
     config: ConfigService,
   ) {
     this.key = derivePurposeKey('account-tombstone', config);
+    this.from = dateSetting('ACCOUNT_TOMBSTONES_FROM', config.get<string>('ACCOUNT_TOMBSTONES_FROM'));
     this.retentionMonths = integerSetting(
       'ACCOUNT_TOMBSTONE_RETENTION_MONTHS',
       config.get<string>('ACCOUNT_TOMBSTONE_RETENTION_MONTHS'),
@@ -51,6 +53,11 @@ export class AccountTombstoneService implements OnModuleInit, OnModuleDestroy {
   /** The stored value for an address: HMAC-SHA256 of its canonical form with the tombstone key. */
   hashEmail(email: string): string {
     return keyedHash(this.key, canonicalEmail(email));
+  }
+
+  /** AC-AUTH-033: hashes are kept only for deletions from ACCOUNT_TOMBSTONES_FROM (regulamin § 3 ust. 6, § 11). */
+  isActive(now: Date = new Date()): boolean {
+    return now >= this.from;
   }
 
   /** Records (or refreshes) the tombstone of a deleted account – call inside the deletion transaction. */

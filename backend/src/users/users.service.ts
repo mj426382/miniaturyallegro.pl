@@ -106,7 +106,7 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User not found');
     if (user.email.toLowerCase() !== confirmEmail.toLowerCase()) {
-      throw new BadRequestException('Podany adres email nie zgadza się z adresem konta');
+      throw new BadRequestException('Podany adres e-mail nie zgadza się z adresem konta');
     }
 
     const keys: string[] = [];
@@ -133,8 +133,9 @@ export class UsersService {
     await this.prisma.$transaction([
       this.prisma.demoRequest.deleteMany({ where: { id: { in: demos.map((d) => d.id) } } }),
       this.prisma.user.delete({ where: { id } }),
-      // Spec 03, AC-AUTH-029: only a keyed hash of the mailbox stays (blocks a second free pool for 12 months).
-      this.tombstones.record(user.email),
+      // Spec 03, AC-AUTH-029: only a keyed hash of the mailbox stays (blocks a second free pool for 12 months),
+      // and only for deletions from ACCOUNT_TOMBSTONES_FROM (AC-AUTH-033).
+      ...(this.tombstones.isActive() ? [this.tombstones.record(user.email)] : []),
     ]);
 
     const results = await Promise.allSettled(keys.map((k) => this.storageService.deleteFile(k)));

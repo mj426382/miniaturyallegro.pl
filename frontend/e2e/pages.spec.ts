@@ -24,7 +24,7 @@ test.describe('login', () => {
     await page.getByLabel('E-mail', { exact: true }).fill('test@allgrafika.pl')
     await page.getByLabel('Hasło', { exact: true }).fill('Zle!Haslo1')
     await page.getByRole('button', { name: 'Zaloguj się', exact: true }).click()
-    await expect(page.getByRole('alert')).toContainText('Nieprawidłowy email lub hasło')
+    await expect(page.getByRole('alert')).toContainText('Nieprawidłowy e-mail lub hasło')
 
     await page.getByRole('button', { name: /Pokaż/ }).click()
     await expect(page.getByLabel('Hasło', { exact: true })).toHaveAttribute('type', 'text')

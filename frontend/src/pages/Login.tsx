@@ -54,7 +54,7 @@ export default function Login() {
       await login(email.trim().toLowerCase(), password)
       navigate(returnTo)
     } catch (err: any) {
-      setError(describeError(err, 'Nieprawidłowy email lub hasło'))
+      setError(describeError(err, 'Nieprawidłowy e-mail lub hasło'))
     } finally {
       setIsLoading(false)
     }

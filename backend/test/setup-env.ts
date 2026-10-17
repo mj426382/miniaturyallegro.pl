@@ -20,6 +20,9 @@ process.env.SWAGGER_ENABLED = 'false';
 process.env.THROTTLE_LIMIT_PER_MINUTE = '1000';
 process.env.THROTTLE_DISABLED = 'true';
 process.env.BCRYPT_ROUNDS = '4';
+// Rules that start on a date (AC-UPL-025, AC-AUTH-033) are already in force in tests; the dated tests override.
+process.env.UPLOAD_LIMITS_FROM = '2020-01-01T00:00:00Z';
+process.env.ACCOUNT_TOMBSTONES_FROM = '2020-01-01T00:00:00Z';
 
 // Force local disk storage.
 process.env.B2_BUCKET_NAME = '';

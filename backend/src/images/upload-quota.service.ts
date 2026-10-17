@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { integerSetting } from '../config/env.validation';
+import { dateSetting, integerSetting } from '../config/env.validation';
 import { isVerificationRequired } from '../auth/email-verification';
 import { pluralPl } from '../notifications/email-template';
 
@@ -27,6 +27,7 @@ export class UploadQuotaService implements OnModuleInit, OnModuleDestroy {
   readonly unverifiedLimit: number;
   readonly dailyLimit: number;
   private readonly verificationRequired: boolean;
+  private readonly limitsFrom: Date;
   private timer: NodeJS.Timeout | null = null;
 
   constructor(
@@ -36,6 +37,7 @@ export class UploadQuotaService implements OnModuleInit, OnModuleDestroy {
     this.unverifiedLimit = integerSetting('UPLOAD_LIMIT_UNVERIFIED', config.get<string>('UPLOAD_LIMIT_UNVERIFIED'));
     this.dailyLimit = integerSetting('UPLOAD_LIMIT_PER_DAY', config.get<string>('UPLOAD_LIMIT_PER_DAY'));
     this.verificationRequired = isVerificationRequired(config.get<string>('EMAIL_VERIFICATION_REQUIRED'));
+    this.limitsFrom = dateSetting('UPLOAD_LIMITS_FROM', config.get<string>('UPLOAD_LIMITS_FROM'));
   }
 
   onModuleInit() {
@@ -62,7 +64,10 @@ export class UploadQuotaService implements OnModuleInit, OnModuleDestroy {
           SELECT "emailVerifiedAt" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
         if (!rows.length) throw new HttpException('Nie znaleziono konta', HttpStatus.UNAUTHORIZED);
 
-        if (this.verificationRequired && !rows[0].emailVerifiedAt) {
+        // AC-UPL-025: before UPLOAD_LIMITS_FROM uploads are only recorded, so the limits count them later.
+        if (now < this.limitsFrom) {
+          // no limit yet
+        } else if (this.verificationRequired && !rows[0].emailVerifiedAt) {
           const total = await tx.uploadLog.count({ where: { userId } });
           if (total >= this.unverifiedLimit) throw this.unverifiedError();
         } else {

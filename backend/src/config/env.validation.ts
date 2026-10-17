@@ -89,6 +89,12 @@ export function validateEnv(config: Record<string, unknown>): Record<string, unk
     errors.push('UNSUBSCRIBE_LEGACY_CUTOVER must be an ISO date (e.g. 2026-12-01T00:00:00Z)');
   }
 
+  for (const key of Object.keys(DATE_SETTINGS)) {
+    const raw = config[key] as string | undefined;
+    if (raw && Number.isNaN(Date.parse(raw)))
+      errors.push(`${key} must be an ISO date (e.g. 2026-11-01T00:00:00+01:00)`);
+  }
+
   // Spec 04 and 03: limits and retention, each an integer in its range (unset = default).
   for (const [key, { min, max }] of Object.entries(INTEGER_SETTINGS)) {
     const raw = config[key];
@@ -113,6 +119,21 @@ export const INTEGER_SETTINGS = {
   /** Spec 03: how long the hash of a deleted account's e-mail is kept. */
   ACCOUNT_TOMBSTONE_RETENTION_MONTHS: { min: 1, max: 36, default: 12 },
 } as const;
+
+/**
+ * Dates from which rules that limit users apply (regulamin § 11: 14 days after publication, § 2 ust. 4).
+ * Spec 04 AC-UPL-025 (upload limits) and spec 03 AC-AUTH-033 (e-mail hash of deleted accounts).
+ */
+export const DATE_SETTINGS = {
+  UPLOAD_LIMITS_FROM: '2026-11-01T00:00:00+01:00',
+  ACCOUNT_TOMBSTONES_FROM: '2026-11-01T00:00:00+01:00',
+} as const;
+
+/** Reads a validated date setting, falling back to its default when unset. */
+export function dateSetting(key: keyof typeof DATE_SETTINGS, value: string | undefined): Date {
+  const parsed = value ? Date.parse(value) : NaN;
+  return new Date(Number.isNaN(parsed) ? DATE_SETTINGS[key] : parsed);
+}
 
 /** Reads a validated integer setting, falling back to its default when unset. */
 export function integerSetting(key: keyof typeof INTEGER_SETTINGS, value: string | undefined): number {

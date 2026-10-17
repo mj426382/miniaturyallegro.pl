@@ -112,7 +112,7 @@ export class AdminService {
    * This is a quote for the operator, who issues the refund in Stripe and cancels the plan.
    */
   async withdrawalQuote(email: string) {
-    if (!email) throw new BadRequestException('email jest wymagany');
+    if (!email) throw new BadRequestException('e-mail jest wymagany');
     const user = await this.prisma.user.findUnique({
       where: { email: email.trim().toLowerCase() },
       include: { subscription: true },

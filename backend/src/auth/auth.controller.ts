@@ -31,7 +31,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 201, description: 'Użytkownik zarejestrowany pomyślnie' })
   @ApiResponse({ status: 400, description: 'Nieprawidłowe dane wejściowe' })
-  @ApiResponse({ status: 409, description: 'Email już jest w użyciu' })
+  @ApiResponse({ status: 409, description: 'E-mail już jest w użyciu' })
   @ApiResponse({ status: 429, description: 'Zbyt wiele prób rejestracji. Spróbuj później.' })
   async register(@Body() dto: RegisterDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.register(dto);
@@ -44,10 +44,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({
-    summary: 'Logowanie za pomocą email i hasła (cookie httpOnly; `token` w treści tylko poza przeglądarką)',
+    summary: 'Logowanie za pomocą e-maila i hasła (cookie httpOnly; `token` w treści tylko poza przeglądarką)',
   })
   @ApiResponse({ status: 200, description: 'Zalogowano pomyślnie' })
-  @ApiResponse({ status: 401, description: 'Nieprawidłowy email lub hasło' })
+  @ApiResponse({ status: 401, description: 'Nieprawidłowy e-mail lub hasło' })
   @ApiResponse({ status: 429, description: 'Zbyt wiele prób logowania. Spróbuj później.' })
   async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
@@ -130,7 +130,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: 'Żądanie resetu hasła (wysyła e-mail z linkiem)' })
-  @ApiResponse({ status: 200, description: 'Jeśli email istnieje, wysłano link resetujący' })
+  @ApiResponse({ status: 200, description: 'Jeśli e-mail istnieje, wysłano link resetujący' })
   @ApiResponse({ status: 429, description: 'Zbyt wiele prób. Spróbuj później.' })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto.email);

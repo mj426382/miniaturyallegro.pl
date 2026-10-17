@@ -128,7 +128,7 @@ export class AuthService {
     if (!user) {
       // Run a dummy compare so response timing does not reveal whether the e-mail exists.
       await bcrypt.compare(dto.password, this.dummyHash);
-      throw new UnauthorizedException('Nieprawidłowy email lub hasło');
+      throw new UnauthorizedException('Nieprawidłowy e-mail lub hasło');
     }
 
     if (!user.password) {
@@ -140,7 +140,7 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
       this.logger.warn(`Nieudana próba logowania dla użytkownika ${user.id}`);
-      throw new UnauthorizedException('Nieprawidłowy email lub hasło');
+      throw new UnauthorizedException('Nieprawidłowy e-mail lub hasło');
     }
 
     return {
@@ -167,12 +167,12 @@ export class AuthService {
     }
 
     if (!payload?.sub || !payload.email) {
-      throw new UnauthorizedException('Google nie udostępnił adresu email');
+      throw new UnauthorizedException('Google nie udostępnił adresu e-mail');
     }
     // Linking an existing password account to a Google identity by e-mail is only safe
     // when Google has verified that address – otherwise anyone could claim an account.
     if (!payload.email_verified) {
-      throw new UnauthorizedException('Adres email konta Google nie został zweryfikowany');
+      throw new UnauthorizedException('Adres e-mail konta Google nie został zweryfikowany');
     }
 
     const googleId = payload.sub;
@@ -460,7 +460,7 @@ export class AuthService {
   private assertPasswordNotTrivial(password: string, email: string) {
     const emailPrefix = email.split('@')[0].toLowerCase();
     if (emailPrefix.length > 2 && password.toLowerCase().includes(emailPrefix)) {
-      throw new BadRequestException('Hasło nie może zawierać adresu email');
+      throw new BadRequestException('Hasło nie może zawierać adresu e-mail');
     }
     if (COMMON_PASSWORDS.includes(password.toLowerCase())) {
       throw new BadRequestException('To hasło jest zbyt popularne. Wybierz silniejsze hasło.');

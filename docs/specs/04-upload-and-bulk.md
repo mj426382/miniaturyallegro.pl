@@ -78,6 +78,7 @@ Błędy limitu (treść JSON, aplikacja pokazuje `message`, a po `code` może do
 - **AC-UPL-021** – Given konto potwierdzone z limitem dziennym, When limit w ostatnich 24 h jest wykorzystany, Then kolejne przesłanie dostaje 429 `UPLOAD_LIMIT_DAILY` z `retryAfterSeconds` i nagłówkiem `Retry-After`; przesłania sprzed ponad 24 h się nie liczą (granica okna), a plik odrzucony przez walidację nie zużywa limitu.
 - **AC-UPL-022** – Given 20 równoległych przesłań na granicy limitu (konto potwierdzone i niepotwierdzone, także masowe przesyłanie częściowo ponad limit), When obsłużone, Then przechodzi dokładnie tyle, ile zostało w limicie, każdy pozostały plik dostaje własną odpowiedź z kodem limitu, a liczba zdjęć w bazie i plików w magazynie równa się liczbie sukcesów.
 - **AC-UPL-023** – Given limity uploadu w konfiguracji, When `UPLOAD_LIMIT_UNVERIFIED` lub `UPLOAD_LIMIT_PER_DAY` nie są liczbami całkowitymi w dozwolonym zakresie, Then start jest odrzucony; brak zmiennych oznacza wartości domyślne 5 i 200.
+- **AC-UPL-025** – Given data przed `UPLOAD_LIMITS_FROM`, When konto niepotwierdzone lub potwierdzone przesyła zdjęcia ponad limit, Then przesłania przechodzą i są zapisywane w rejestrze; od tej daty te same konta dostają 403/429 zgodnie z AC-UPL-020/021, licząc także przesłania sprzed tej daty z okna; niepoprawna data w `UPLOAD_LIMITS_FROM` blokuje start aplikacji.
 - **AC-UPL-024** – Given zapisane wcześniej oryginały z metadanymi, When działa skrypt czyszczący, Then w trybie domyślnym (próba na sucho) nic nie zmienia i raportuje liczby, z `--apply` nadpisuje tylko pliki z metadanymi (orientacja zastosowana, ICC zachowany), przetwarza partiami, wznawia od podanego id, pomija pliki nieczytelne i w logach podaje tylko identyfikatory i liczby.
 
 ## 4. Dane i migracje
@@ -85,4 +86,6 @@ Błędy limitu (treść JSON, aplikacja pokazuje `message`, a po `code` może do
 Migracja `20261018100000_tombstones_upload_quota` (addytywna): tabela `upload_log (id, userId FK cascade,
 createdAt, indeks (userId, createdAt))` – rejestr przesłań do liczenia limitów. Migracja przenosi do rejestru
 istniejące zdjęcia kont niepotwierdzonych (wszystkie) i zdjęcia przesłane w ostatnich 24 h (wszystkie
-konta), więc limit obowiązuje od pierwszej minuty po wdrożeniu.
+konta), więc rejestr jest kompletny od wdrożenia. Limity są egzekwowane od `UPLOAD_LIMITS_FROM` (domyślnie
+2026-11-01T00:00:00+01:00 – regulamin § 5 ust. 4 i § 11: zmiana ograniczająca Użytkowników wchodzi w życie
+14 dni po publikacji, § 2 ust. 4); wcześniej przesłania są tylko zapisywane w rejestrze.

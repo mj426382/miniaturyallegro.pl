@@ -321,7 +321,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     if (path === '/auth/login') {
       const body = req.postDataJSON()
       requests.push({ url: path, method: 'POST', body })
-      if (body?.password !== PASSWORD) return json({ message: 'Nieprawidłowy email lub hasło' }, 401)
+      if (body?.password !== PASSWORD) return json({ message: 'Nieprawidłowy e-mail lub hasło' }, 401)
       loggedIn = true
       return json({ user: USER, token: 'cookie' }, 201)
     }
