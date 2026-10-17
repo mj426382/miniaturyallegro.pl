@@ -6,6 +6,8 @@
  * is much cheaper than discovering a misconfiguration after users signed up.
  */
 
+import { DEDICATED_SECRET_ENV_VARS } from '../common/keys';
+
 const PLACEHOLDER_PATTERNS = [/change[-_]?me/i, /your-/i, /placeholder/i, /change_this/i];
 
 function isPlaceholder(value: string | undefined): boolean {
@@ -74,11 +76,50 @@ export function validateEnv(config: Record<string, unknown>): Record<string, unk
     errors.push('FREE_CREDITS_LIMIT must be an integer between 0 and 100');
   }
 
+  // Spec 01, AC-SEC-012: dedicated purpose keys are optional (derived from JWT_SECRET otherwise),
+  // but when given in production they must be real secrets.
+  for (const key of DEDICATED_SECRET_ENV_VARS) {
+    const value = config[key] as string | undefined;
+    if (isProd && value && (value.length < 32 || isPlaceholder(value))) {
+      errors.push(`${key} must be a random string of at least 32 characters in production (or unset)`);
+    }
+  }
+  const cutover = config.UNSUBSCRIBE_LEGACY_CUTOVER as string | undefined;
+  if (cutover && Number.isNaN(Date.parse(cutover))) {
+    errors.push('UNSUBSCRIBE_LEGACY_CUTOVER must be an ISO date (e.g. 2026-12-01T00:00:00Z)');
+  }
+
+  // Spec 04 and 03: limits and retention, each an integer in its range (unset = default).
+  for (const [key, { min, max }] of Object.entries(INTEGER_SETTINGS)) {
+    const raw = config[key];
+    if (raw === undefined || raw === '') continue;
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n < min || n > max) errors.push(`${key} must be an integer between ${min} and ${max}`);
+  }
+
   if (errors.length) {
     throw new Error(`Invalid environment configuration:\n - ${errors.join('\n - ')}`);
   }
 
   return config;
+}
+
+/** Integer settings with their allowed range and default (used by the services that read them). */
+export const INTEGER_SETTINGS = {
+  /** Spec 04: uploads an unconfirmed account may make in total. */
+  UPLOAD_LIMIT_UNVERIFIED: { min: 0, max: 1000, default: 5 },
+  /** Spec 04: uploads a confirmed account may make in a rolling 24 h window. */
+  UPLOAD_LIMIT_PER_DAY: { min: 1, max: 10000, default: 200 },
+  /** Spec 03: how long the hash of a deleted account's e-mail is kept. */
+  ACCOUNT_TOMBSTONE_RETENTION_MONTHS: { min: 1, max: 36, default: 12 },
+} as const;
+
+/** Reads a validated integer setting, falling back to its default when unset. */
+export function integerSetting(key: keyof typeof INTEGER_SETTINGS, value: string | undefined): number {
+  const { min, max, default: fallback } = INTEGER_SETTINGS[key];
+  if (value === undefined || value === '') return fallback;
+  const n = Number(value);
+  return Number.isInteger(n) && n >= min && n <= max ? n : fallback;
 }
 
 /** Comma separated list helper (trims and drops empty entries). */

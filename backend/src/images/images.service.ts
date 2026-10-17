@@ -2,6 +2,9 @@ import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nest
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from './storage.service';
 import { validateImageBuffer } from './image-validation';
+import { stripImageMetadata } from './image-sanitize';
+import { UploadQuotaService } from './upload-quota.service';
+import { toUserGeneration } from '../generation/generation-response';
 
 const MAX_PAGE_SIZE = 50;
 
@@ -12,29 +15,39 @@ export class ImagesService {
   constructor(
     private prisma: PrismaService,
     private storageService: StorageService,
+    private quota: UploadQuotaService,
   ) {}
 
   async uploadImage(userId: string, file: { buffer: Buffer; originalname: string }) {
     // Decode the header – never trust the declared MIME type or extension.
     const validated = await validateImageBuffer(file.buffer);
+    // Spec 04, AC-UPL-019: GPS, camera and owner data never reach storage; orientation is baked in.
+    const clean = await stripImageMetadata(file.buffer, validated.format);
 
-    const { url, filename } = await this.storageService.uploadFile(
-      file.buffer,
-      `upload${validated.extension}`,
-      validated.mimeType,
-      'originals',
-    );
-
-    const image = await this.prisma.image.create({
-      data: {
-        userId,
-        originalUrl: url,
-        filename,
-      },
-      include: { generations: true },
-    });
-
-    return await this.withSignedUrls(image);
+    // Spec 04, AC-UPL-020..022: an invalid file never reaches this point, so it costs no quota.
+    const reservation = await this.quota.reserve(userId);
+    let stored: { url: string; filename: string } | null = null;
+    try {
+      stored = await this.storageService.uploadFile(
+        clean,
+        `upload${validated.extension}`,
+        validated.mimeType,
+        'originals',
+      );
+      const image = await this.prisma.image.create({
+        data: {
+          userId,
+          originalUrl: stored.url,
+          filename: stored.filename,
+        },
+        include: { generations: true },
+      });
+      return await this.withSignedUrls(image);
+    } catch (err) {
+      await this.quota.release(reservation).catch(() => undefined);
+      if (stored) await this.storageService.deleteFile(stored.filename).catch(() => undefined);
+      throw err;
+    }
   }
 
   async getUserImages(userId: string, page = 1, limit = 20) {
@@ -118,9 +131,10 @@ export class ImagesService {
     return {
       ...rest,
       originalUrl: await this.storageService.getSignedUrl(image.originalUrl),
+      // NFR-SEC-011: internal AI prompts never leave the API.
       generations: await Promise.all(
         (image.generations ?? []).map(async (g: any) => ({
-          ...g,
+          ...toUserGeneration(g),
           url: g.url ? await this.storageService.getSignedUrl(g.url) : null,
         })),
       ),

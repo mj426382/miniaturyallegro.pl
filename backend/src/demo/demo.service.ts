@@ -9,6 +9,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { canonicalEmail } from '../auth/email-canonical';
 import { StorageService } from '../images/storage.service';
@@ -16,7 +17,7 @@ import { GeminiService } from '../generation/gemini.service';
 import { getStyle } from '../generation/styles';
 import { MailService } from '../mail/mail.service';
 import { prepareForAi } from '../images/image-prep';
-import { sha256 } from '../common/crypto';
+import { derivePurposeKey, keyedHash } from '../common/keys';
 import { freeCreditsForNewAccounts } from '../generation/credits.service';
 import { pluralPl, renderEmail } from '../notifications/email-template';
 
@@ -27,12 +28,22 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** Terms of Service: demo photos and results are deleted after 30 days. */
 const DEMO_RETENTION_DAYS = 30;
 const CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000;
+/** Spec 01, AC-SEC-013: requests per minute and IP on the public status endpoint. */
+export const DEMO_POLL_LIMIT_PER_MINUTE = 30;
+/** New ids: 16 random bytes, base64url (22 chars). Older cuid ids (25 chars) still resolve. */
+const DEMO_ID_PATTERN = /^[A-Za-z0-9_-]{20,40}$/;
+
+/** 128 random bits – a demo id is the only key to someone's photo, so it must not be guessable. */
+export function newDemoId(): string {
+  return randomBytes(16).toString('base64url');
+}
 
 @Injectable()
 export class DemoService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DemoService.name);
   private cleanupTimer: NodeJS.Timeout | null = null;
-  private readonly ipSalt: string;
+  /** Spec 01, AC-SEC-014: purpose key for the per-IP daily limit (not JWT_SECRET). */
+  private readonly ipKey: Buffer;
   private readonly landingUrl: string;
   private readonly frontendUrl: string;
   /** Free graphics a new account gets – the demo e-mail promises exactly this many. */
@@ -46,7 +57,7 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
     private mail: MailService,
     config: ConfigService,
   ) {
-    this.ipSalt = config.get<string>('JWT_SECRET') || 'demo-salt';
+    this.ipKey = derivePurposeKey('demo-ip-hash', config);
     this.landingUrl = (config.get<string>('LANDING_URL') || 'https://allgrafika.pl').replace(/\/$/, '');
     this.frontendUrl = (config.get<string>('FRONTEND_URL') || 'http://localhost:5173').replace(/\/$/, '');
     this.freeCredits = freeCreditsForNewAccounts(config.get<string>('FREE_CREDITS_LIMIT'));
@@ -100,7 +111,7 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
       return { id: 'ok', status: 'PENDING' };
     }
 
-    const ipHash = sha256(`${params.ip}|${this.ipSalt}`);
+    const ipHash = this.hashIp(params.ip);
     const [byIp, byEmail] = await Promise.all([
       this.prisma.demoRequest.count({ where: { ipHash, createdAt: { gte: new Date(Date.now() - DAY_MS) } } }),
       this.prisma.demoRequest.count({
@@ -124,6 +135,7 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
 
     const request = await this.prisma.demoRequest.create({
       data: {
+        id: newDemoId(),
         email: params.email,
         emailCanonical: canonicalEmail(params.email),
         ipHash,
@@ -140,7 +152,14 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
     return { id: request.id, status: 'PENDING' };
   }
 
+  /** HMAC of the client IP with the demo key – the IP itself is never stored. */
+  hashIp(ip: string): string {
+    return keyedHash(this.ipKey, ip);
+  }
+
   async get(id: string) {
+    // A malformed id cannot exist – answer without touching the database.
+    if (!DEMO_ID_PATTERN.test(id)) throw new NotFoundException('Nie znaleziono demo');
     const request = await this.prisma.demoRequest.findUnique({ where: { id } });
     if (!request) throw new NotFoundException('Nie znaleziono demo');
     return {

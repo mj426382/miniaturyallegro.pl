@@ -11,9 +11,12 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
   BadRequestException,
+  HttpException,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
 import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
@@ -31,8 +34,11 @@ export class ImagesController {
 
   @Post('upload')
   @Throttle({ default: { limit: 60, ttl: 60000 } })
-  @ApiOperation({ summary: 'Upload a product image' })
+  @ApiOperation({ summary: 'Upload a product image (stored without EXIF/GPS/XMP/IPTC; upload limits apply)' })
   @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 201, description: 'Zdjęcie zapisane (bez metadanych EXIF/GPS/XMP/IPTC)' })
+  @ApiResponse({ status: 403, description: 'UPLOAD_LIMIT_UNVERIFIED – limit przesłań przed potwierdzeniem e-maila' })
+  @ApiResponse({ status: 429, description: 'UPLOAD_LIMIT_DAILY – dzienny limit przesłań (nagłówek Retry-After)' })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -40,11 +46,24 @@ export class ImagesController {
       fileFilter: imageMimeFilter,
     }),
   )
-  async uploadImage(@CurrentUser() user: SessionUser, @UploadedFile() file: UploadedImageFile | undefined) {
+  async uploadImage(
+    @CurrentUser() user: SessionUser,
+    @UploadedFile() file: UploadedImageFile | undefined,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     if (!file) {
       throw new BadRequestException('Nie przesłano pliku');
     }
-    return this.imagesService.uploadImage(user.userId, file);
+    try {
+      return await this.imagesService.uploadImage(user.userId, file);
+    } catch (err) {
+      // Spec 04, AC-UPL-021: the daily limit tells the client when the next slot frees up.
+      const body = err instanceof HttpException ? err.getResponse() : null;
+      const retryAfter =
+        body && typeof body === 'object' ? (body as { retryAfterSeconds?: unknown }).retryAfterSeconds : null;
+      if (typeof retryAfter === 'number') res.setHeader('Retry-After', String(retryAfter));
+      throw err;
+    }
   }
 
   @Get()

@@ -44,7 +44,7 @@
             "description": "Zbyt wiele prób rejestracji. Spróbuj później."
           }
         },
-        "summary": "Rejestracja nowego użytkownika (sesja w cookie httpOnly + token w odpowiedzi)",
+        "summary": "Rejestracja nowego użytkownika (sesja w cookie httpOnly; `token` w treści tylko dla aplikacji natywnej i klientów spoza przeglądarki)",
         "tags": [
           "auth"
         ]
@@ -75,7 +75,7 @@
             "description": "Zbyt wiele prób logowania. Spróbuj później."
           }
         },
-        "summary": "Logowanie za pomocą email i hasła",
+        "summary": "Logowanie za pomocą email i hasła (cookie httpOnly; `token` w treści tylko poza przeglądarką)",
         "tags": [
           "auth"
         ]
@@ -380,7 +380,13 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Zdjęcie zapisane (bez metadanych EXIF/GPS/XMP/IPTC)"
+          },
+          "403": {
+            "description": "UPLOAD_LIMIT_UNVERIFIED – limit przesłań przed potwierdzeniem e-maila"
+          },
+          "429": {
+            "description": "UPLOAD_LIMIT_DAILY – dzienny limit przesłań (nagłówek Retry-After)"
           }
         },
         "security": [
@@ -388,7 +394,7 @@
             "bearer": []
           }
         ],
-        "summary": "Upload a product image",
+        "summary": "Upload a product image (stored without EXIF/GPS/XMP/IPTC; upload limits apply)",
         "tags": [
           "images"
         ]

@@ -12,11 +12,12 @@ import {
 import type { Request as ExpressRequest } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
-import { DemoService } from './demo.service';
+import { DEMO_POLL_LIMIT_PER_MINUTE, DemoService } from './demo.service';
 import { CreateDemoDto } from './demo.dto';
 import { imageMimeFilter, MAX_UPLOAD_BYTES, validateImageBuffer } from '../images/image-validation';
+import { stripImageMetadata } from '../images/image-sanitize';
 import { UploadedImageFile } from '../types/uploaded-file';
 
 /** Public, unauthenticated "try it" endpoint used by the landing page. */
@@ -43,10 +44,12 @@ export class DemoController {
   ) {
     if (!file) throw new BadRequestException('Nie przesłano zdjęcia');
     const validated = await validateImageBuffer(file.buffer);
+    // Spec 04, AC-UPL-019: the demo photo is stored without EXIF/GPS/XMP/IPTC, like account uploads.
+    const clean = await stripImageMetadata(file.buffer, validated.format);
     return this.demoService.create({
       email: dto.email,
       ip: req.ip || req.socket?.remoteAddress || 'unknown',
-      buffer: file.buffer,
+      buffer: clean,
       mimeType: validated.mimeType,
       styleId: dto.style || 'white-bg',
       marketingOk: dto.marketingOk === true,
@@ -55,7 +58,9 @@ export class DemoController {
   }
 
   @Get(':id')
-  @SkipThrottle()
+  // Spec 01, AC-SEC-013: public and reads the DB + signs storage URLs – the landing polls every 3 s
+  // (20/min), so 30/min per IP leaves room for a reload but stops enumeration and scraping.
+  @Throttle({ default: { limit: DEMO_POLL_LIMIT_PER_MINUTE, ttl: 60_000 } })
   @ApiOperation({ summary: 'Poll the status/result of a demo generation' })
   async get(@Param('id') id: string) {
     return this.demoService.get(id);

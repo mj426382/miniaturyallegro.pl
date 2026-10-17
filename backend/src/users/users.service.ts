@@ -4,6 +4,7 @@ import { parseAdminEmails } from '../admin/admin-emails';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
 import { PaymentsService } from '../payments/payments.service';
+import { AccountTombstoneService } from './account-tombstone.service';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,7 @@ export class UsersService {
     private prisma: PrismaService,
     private storageService: StorageService,
     private paymentsService: PaymentsService,
+    private tombstones: AccountTombstoneService,
     config: ConfigService,
   ) {
     this.admins = parseAdminEmails(config.get<string>('ADMIN_EMAILS'));
@@ -127,6 +129,8 @@ export class UsersService {
     await this.prisma.$transaction([
       this.prisma.demoRequest.deleteMany({ where: { id: { in: demos.map((d) => d.id) } } }),
       this.prisma.user.delete({ where: { id } }),
+      // Spec 03, AC-AUTH-029: only a keyed hash of the mailbox stays (blocks a second free pool for 12 months).
+      this.tombstones.record(user.email),
     ]);
 
     const results = await Promise.allSettled(keys.map((k) => this.storageService.deleteFile(k)));

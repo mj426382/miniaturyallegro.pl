@@ -1,3 +1,5 @@
+import { senderIdentityLine, SENDER_IDENTITY } from '../common/legal-entity';
+
 /**
  * One look for every e-mail AllGrafika sends (spec 16). Inputs are plain text; everything that reaches
  * the HTML is escaped, so user-provided text (names, admin messages) cannot inject markup.
@@ -49,6 +51,14 @@ export function renderEmail(content: EmailContent): { html: string; text: string
         : `<p style="margin:0 0 6px">${escapeHtml(f.text)} <a href="${safeUrl(f.link.url)}" style="color:#6b7280">${escapeHtml(f.link.label)}</a></p>`,
     )
     .join('');
+  // Spec 16, AC-NOT-012: every mail identifies the sender (company, address, NIP, contact).
+  const sender = senderIdentityLine();
+  const senderHtml = `<p style="margin:12px 0 0;padding-top:10px;border-top:1px solid #e5e7eb">${escapeHtml(
+    sender,
+  ).replace(
+    escapeHtml(SENDER_IDENTITY.email),
+    `<a href="mailto:${escapeHtml(SENDER_IDENTITY.email)}" style="color:#6b7280">${escapeHtml(SENDER_IDENTITY.email)}</a>`,
+  )}</p>`;
 
   const html =
     '<!doctype html><html lang="pl"><body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827">' +
@@ -59,7 +69,7 @@ export function renderEmail(content: EmailContent): { html: string; text: string
     paragraphsHtml +
     ctaHtml +
     '</div>' +
-    `<div style="font-size:12px;color:#6b7280;padding:16px 4px">${footerHtml}</div>` +
+    `<div style="font-size:12px;color:#6b7280;padding:16px 4px">${footerHtml}${senderHtml}</div>` +
     '</div></body></html>';
 
   const text = [
@@ -68,6 +78,9 @@ export function renderEmail(content: EmailContent): { html: string; text: string
     ...content.paragraphs.flatMap((p) => [p, '']),
     ...(content.cta ? [`${content.cta.label}: ${content.cta.url}`, ''] : []),
     ...(content.footer ?? []).map((f) => (typeof f === 'string' ? f : `${f.text} ${f.link.label}: ${f.link.url}`)),
+    '',
+    '--',
+    sender,
   ]
     .join('\n')
     .trim();

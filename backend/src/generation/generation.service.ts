@@ -20,6 +20,7 @@ import { ExportService, ExportOptions } from './export.service';
 import { InfographicOptions, InfographicService } from './infographic.service';
 import { detectMimeTypeFromUrl, prepareForAi } from '../images/image-prep';
 import { GENERATION_STYLES, GenerationStyle, getDefaultStyleIds, getStyle, isInSeason } from './styles';
+import { toUserGeneration } from './generation-response';
 
 /** Max concurrent image generation requests to Gemini per batch */
 const MAX_CONCURRENT = 2;
@@ -200,9 +201,10 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       orderBy: { createdAt: 'asc' },
     });
 
+    // NFR-SEC-011: no internal prompt in user responses.
     return Promise.all(
       generations.map(async (g) => ({
-        ...g,
+        ...toUserGeneration(g),
         url: g.url ? await this.storageService.getSignedUrl(g.url) : null,
       })),
     );
@@ -210,8 +212,9 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
 
   async getGenerationById(id: string, userId: string) {
     const generation = await this.getOwnedGeneration(id, userId);
+    // NFR-SEC-011: neither the prompt nor the joined image (with its AI description) leaves the API.
     return {
-      ...generation,
+      ...toUserGeneration(generation),
       url: generation.url ? await this.storageService.getSignedUrl(generation.url) : null,
     };
   }
@@ -293,7 +296,8 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     const generation = await this.getOwnedGeneration(id, userId);
     if (!generation.url) throw new NotFoundException('Generation file not available');
     const { buffer } = await this.storageService.getFileBuffer(generation.url);
-    const exported = await this.exportService.exportImage(buffer, options);
+    // Spec 06, AC-EXP-022: the file declares itself as an AI composite (IPTC DigitalSourceType).
+    const exported = await this.exportService.exportImage(buffer, options, 'ai-composite');
     return { ...exported, style: generation.style || 'custom' };
   }
 
@@ -312,7 +316,8 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     const image = await this.getOwnedImage(imageId, userId);
     const { buffer } = await this.storageService.getFileBuffer(image.originalUrl);
     const oriented = await sharp(buffer, { limitInputPixels: 40_000_000 }).rotate().toBuffer();
-    return this.exportService.exportImage(oriented, options);
+    // AC-EXP-023: the seller's own photo – no AI disclosure and no metadata at all.
+    return this.exportService.exportImage(oriented, options, 'original-photo');
   }
 
   /** Free infographic for an additional offer photo (spec 14) – rendered, never stored. */

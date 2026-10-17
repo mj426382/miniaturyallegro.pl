@@ -54,6 +54,7 @@ model User {
   creditGrants            CreditGrant[]
   referredBy              User?                    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
   referrals               User[]                   @relation("Referrals")
+  uploadLog               UploadLog[]
   subscription            Subscription?
 
   @@index([referredById])
@@ -249,6 +250,31 @@ model DemoRequest {
   @@index([emailCanonical])
   @@index([ipHash, createdAt])
   @@map("demo_requests")
+}
+
+/// Spec 03: what is left of a deleted account – only a keyed hash (HMAC-SHA256) of its canonical e-mail and
+/// the deletion date. A new sign-up of the same mailbox gets no free pool and no referral bonus.
+/// Purged after ACCOUNT_TOMBSTONE_RETENTION_MONTHS (default 12). Never holds the address itself.
+model AccountTombstone {
+  id        String   @id @default(cuid())
+  emailHash String   @unique
+  deletedAt DateTime @default(now())
+
+  @@index([deletedAt])
+  @@map("account_tombstones")
+}
+
+/// Spec 04: one row per accepted upload – the upload limits count these under the user row lock.
+/// Deleting a photo does not delete its row (the limit counts uploads, not stored photos).
+model UploadLog {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("upload_log")
 }
 
 /// Spec 19: credits added by an administrator (gift or support), kept for accountability.

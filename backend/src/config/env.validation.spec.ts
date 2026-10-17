@@ -1,4 +1,4 @@
-import { parseBool, parseList, validateEnv } from './env.validation';
+import { integerSetting, parseBool, parseList, validateEnv } from './env.validation';
 
 const base = {
   DATABASE_URL: 'postgresql://x',
@@ -72,6 +72,50 @@ describe('validateEnv', () => {
 });
 
 describe('helpers', () => {
+  it('[AC-SEC-012] validates the optional purpose secrets and the unsubscribe cut-over date', () => {
+    // Production keeps starting without any of the new variables (keys are derived from JWT_SECRET).
+    expect(() => validateEnv({ ...base, NODE_ENV: 'production' })).not.toThrow();
+    for (const key of ['UNSUBSCRIBE_TOKEN_SECRET', 'DEMO_IP_HASH_SECRET', 'ACCOUNT_TOMBSTONE_SECRET']) {
+      expect(() => validateEnv({ ...base, NODE_ENV: 'production', [key]: 'too-short' })).toThrow(new RegExp(key));
+      expect(() =>
+        validateEnv({ ...base, NODE_ENV: 'production', [key]: 'change-me-change-me-change-me-change-me' }),
+      ).toThrow(new RegExp(key));
+      expect(() =>
+        validateEnv({ ...base, NODE_ENV: 'production', [key]: 'k9V2qL7xT4mR8wZ1nB5cY3hJ6fD0sA2e' }),
+      ).not.toThrow();
+      // Outside production a short value is fine (tests, local development).
+      expect(() => validateEnv({ ...base, NODE_ENV: 'development', [key]: 'short' })).not.toThrow();
+    }
+    expect(() => validateEnv({ ...base, UNSUBSCRIBE_LEGACY_CUTOVER: 'next week' })).toThrow(
+      /UNSUBSCRIBE_LEGACY_CUTOVER/,
+    );
+    expect(() => validateEnv({ ...base, UNSUBSCRIBE_LEGACY_CUTOVER: '2026-12-01T00:00:00Z' })).not.toThrow();
+  });
+
+  it('[AC-UPL-023] validates the upload limits and falls back to 5 and 200', () => {
+    expect(integerSetting('UPLOAD_LIMIT_UNVERIFIED', undefined)).toBe(5);
+    expect(integerSetting('UPLOAD_LIMIT_PER_DAY', undefined)).toBe(200);
+    expect(integerSetting('UPLOAD_LIMIT_PER_DAY', '50')).toBe(50);
+    for (const value of ['-1', '1.5', 'abc', '1001']) {
+      expect(() => validateEnv({ ...base, UPLOAD_LIMIT_UNVERIFIED: value })).toThrow(/UPLOAD_LIMIT_UNVERIFIED/);
+    }
+    for (const value of ['0', '10001', '2.5']) {
+      expect(() => validateEnv({ ...base, UPLOAD_LIMIT_PER_DAY: value })).toThrow(/UPLOAD_LIMIT_PER_DAY/);
+    }
+    expect(() => validateEnv({ ...base, UPLOAD_LIMIT_UNVERIFIED: '0', UPLOAD_LIMIT_PER_DAY: '10000' })).not.toThrow();
+  });
+
+  it('[AC-AUTH-032] validates the tombstone retention (1–36 months, default 12)', () => {
+    expect(integerSetting('ACCOUNT_TOMBSTONE_RETENTION_MONTHS', undefined)).toBe(12);
+    expect(integerSetting('ACCOUNT_TOMBSTONE_RETENTION_MONTHS', '6')).toBe(6);
+    for (const value of ['0', '37', '1.5', 'twelve']) {
+      expect(() => validateEnv({ ...base, ACCOUNT_TOMBSTONE_RETENTION_MONTHS: value })).toThrow(
+        /ACCOUNT_TOMBSTONE_RETENTION_MONTHS/,
+      );
+    }
+    expect(() => validateEnv({ ...base, ACCOUNT_TOMBSTONE_RETENTION_MONTHS: '36' })).not.toThrow();
+  });
+
   it('[AC-SEC-007] parses lists and booleans', () => {
     expect(parseList(' a, b ,,c ')).toEqual(['a', 'b', 'c']);
     expect(parseList('', ['x'])).toEqual(['x']);

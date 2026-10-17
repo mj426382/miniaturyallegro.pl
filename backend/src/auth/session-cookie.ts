@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { NATIVE_APP_ORIGINS } from '../common/cors';
 
 /**
  * Session transport.
@@ -49,6 +50,31 @@ export function clearSessionCookie(res: Response) {
 export function tokenFromCookie(req: Request): string | null {
   const value = (req as any).cookies?.[SESSION_COOKIE];
   return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+/**
+ * Spec 03 AC-AUTH-028 / spec 18 AC-MOB-009: may the JWT also travel in the response body?
+ *
+ * Only for clients without a web page an XSS could read it from:
+ * - the Android/iOS app – recognised by its Origin, which the WebView sets itself and a web page cannot
+ *   forge (browsers own the Origin header; the host is ours and serves no site),
+ * - non-browser clients (scripts, tests, server integrations) – no Origin and no Sec-Fetch-* headers.
+ * Any browser page (an Origin of a website, or Sec-Fetch-* metadata without Origin) gets the cookie only.
+ */
+export function mayReceiveTokenInBody(req: Request): boolean {
+  const origin = req.headers.origin;
+  if (typeof origin === 'string' && origin.length > 0) {
+    return NATIVE_APP_ORIGINS.includes(origin.toLowerCase().replace(/\/$/, ''));
+  }
+  const fromBrowser = Object.keys(req.headers).some((h) => h.toLowerCase().startsWith('sec-fetch-'));
+  return !fromBrowser;
+}
+
+/** Drops `token` from an auth response unless the client may receive it (see mayReceiveTokenInBody). */
+export function withBodyToken<T extends { token?: string }>(req: Request, result: T): T | Omit<T, 'token'> {
+  if (mayReceiveTokenInBody(req)) return result;
+  const { token: _token, ...rest } = result;
+  return rest;
 }
 
 export function hasCsrfHeader(req: Request): boolean {
