@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import * as yauzl from 'yauzl';
 import { JwtService } from '@nestjs/jwt';
 import sharp from 'sharp';
 import {
@@ -12,7 +13,7 @@ import {
   waitForGenerations,
 } from './test-app';
 import { makePng } from './fakes';
-import { digitalSourceType, hasGpsTag, photoWithMetadata } from './metadata-fixtures';
+import { AUTHOR_XMP, digitalSourceType, hasGpsTag, photoWithMetadata } from './metadata-fixtures';
 import { landingLegalEntity } from './legal-entity-source';
 import { AuthService } from '../src/auth/auth.service';
 import { SESSION_COOKIE } from '../src/auth/session-cookie';
@@ -25,6 +26,37 @@ import { derivePurposeKey, keyedHash } from '../src/common/keys';
 import { USER_GENERATION_FIELDS } from '../src/generation/generation-response';
 import { AI_DIGITAL_SOURCE_TYPE } from '../src/generation/export.service';
 import { getStyle } from '../src/generation/styles';
+import { StorageService } from '../src/images/storage.service';
+
+/** Collects the raw response body (supertest parses only text/JSON by default). */
+function binaryParser(res: any, callback: (err: Error | null, body: Buffer) => void) {
+  const chunks: Buffer[] = [];
+  res.on('data', (chunk: Buffer) => chunks.push(chunk));
+  res.on('end', () => callback(null, Buffer.concat(chunks)));
+}
+
+function readZip(buffer: Buffer): Promise<Map<string, Buffer>> {
+  return new Promise((resolve, reject) => {
+    yauzl.fromBuffer(buffer, { lazyEntries: true }, (err, zip) => {
+      if (err || !zip) return reject(err);
+      const files = new Map<string, Buffer>();
+      zip.on('entry', (entry: yauzl.Entry) => {
+        zip.openReadStream(entry, (e, stream) => {
+          if (e || !stream) return reject(e);
+          const chunks: Buffer[] = [];
+          stream.on('data', (c: Buffer) => chunks.push(c));
+          stream.on('end', () => {
+            files.set(entry.fileName, Buffer.concat(chunks));
+            zip.readEntry();
+          });
+        });
+      });
+      zip.on('end', () => resolve(files));
+      zip.on('error', reject);
+      zip.readEntry();
+    });
+  });
+}
 
 const DAY = 24 * 60 * 60 * 1000;
 const WEB = 'https://app.allgrafika.pl';
@@ -622,6 +654,95 @@ describe('security review 2026-10-17 (integration)', () => {
         .send({ platform: 'ebay' })
         .expect(201);
       expect(await digitalSourceType(preset.body)).toBe(AI_DIGITAL_SOURCE_TYPE);
+    });
+
+    it('[AC-EXP-024] single download, every ZIP entry and infographics carry the marker; stored files stay untouched', async () => {
+      const storage = ctx.app.get(StorageService);
+      const { token } = await registerUser(ctx);
+      const image = await uploadImage(ctx, token);
+      await ctx
+        .http()
+        .post(`/api/generation/${image.id}/start`)
+        .set(auth(token))
+        .send({ styles: ['white-bg', 'lifestyle-home', 'dark-luxury'] })
+        .expect(201);
+      const generations = await waitForGenerations(ctx, image.id);
+      expect(generations.every((g) => g.status === 'COMPLETED')).toBe(true);
+
+      // Stored like graphics generated before the change: a plain PNG (from the fake AI), a JPEG and a
+      // WebP that carries its own XMP.
+      const base = sharp({ create: { width: 200, height: 200, channels: 3, background: { r: 20, g: 90, b: 200 } } });
+      await storage.replaceFile(generations[1].url!, await base.clone().jpeg().toBuffer(), 'image/jpeg');
+      await storage.replaceFile(
+        generations[2].url!,
+        await base.clone().withXmp(AUTHOR_XMP).webp().toBuffer(),
+        'image/webp',
+      );
+      const stored = await Promise.all(generations.map(async (g) => (await storage.getFileBuffer(g.url!)).buffer));
+      expect(await Promise.all(stored.map((b) => digitalSourceType(b)))).toEqual([null, null, null]);
+
+      const formats: string[] = [];
+      for (const [i, generation] of generations.entries()) {
+        const res = await ctx
+          .http()
+          .get(`/api/generation/download/${generation.id}`)
+          .set(auth(token))
+          .buffer(true)
+          .parse(binaryParser)
+          .expect(200);
+        const body = res.body as Buffer;
+        expect(await digitalSourceType(body)).toBe(AI_DIGITAL_SOURCE_TYPE);
+        const meta = await sharp(body).metadata();
+        formats.push(meta.format!);
+        expect(meta.xmp!.toString('utf8')).not.toContain('Jan Kowalski');
+        // PNG and JPEG: same pixels as the stored file (no re-encoding).
+        if (meta.format !== 'webp') {
+          expect((await sharp(body).raw().toBuffer()).equals(await sharp(stored[i]).raw().toBuffer())).toBe(true);
+        }
+      }
+      expect(formats).toEqual(['png', 'jpeg', 'webp']);
+
+      const zip = await ctx
+        .http()
+        .post('/api/generation/zip')
+        .set(auth(token))
+        .send({ imageIds: [image.id] })
+        .buffer(true)
+        .parse(binaryParser)
+        .expect(201);
+      const entries = [...(await readZip(zip.body as Buffer)).entries()].filter(([name]) => !name.endsWith('.txt'));
+      expect(entries).toHaveLength(3);
+      for (const [name, file] of entries) {
+        expect({ name, type: await digitalSourceType(file) }).toEqual({ name, type: AI_DIGITAL_SOURCE_TYPE });
+      }
+
+      for (const format of ['png', 'jpeg'] as const) {
+        const info = await ctx
+          .http()
+          .post(`/api/generation/infographic/${generations[0].id}`)
+          .set(auth(token))
+          .send({
+            template: 'features',
+            title: 'Kubek',
+            features: [{ icon: 'shield', text: '2 lata gwarancji' }],
+            format,
+          })
+          .buffer(true)
+          .parse(binaryParser)
+          .expect(201);
+        expect((await sharp(info.body as Buffer).metadata()).format).toBe(format);
+        expect(await digitalSourceType(info.body as Buffer)).toBe(AI_DIGITAL_SOURCE_TYPE);
+      }
+
+      // The files in storage are served marked, but never rewritten.
+      for (const [i, g] of generations.entries()) {
+        expect((await storage.getFileBuffer(g.url!)).buffer.equals(stored[i])).toBe(true);
+      }
+      // The seller's own photo stays unmarked (AC-EXP-023).
+      const original = await storage.getFileBuffer(
+        (await ctx.prisma.image.findUniqueOrThrow({ where: { id: image.id } })).filename,
+      );
+      expect(await digitalSourceType(original.buffer)).toBeNull();
     });
   });
 });

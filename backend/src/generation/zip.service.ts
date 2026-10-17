@@ -5,6 +5,7 @@ import { ZipFile } from 'yazl';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
 import { offerHtmlToText } from '../descriptions/offer-html';
+import { withAiDisclosure } from './ai-disclosure';
 
 /** Spec 15: one package per request. */
 export const MAX_ZIP_IMAGES = 50;
@@ -111,7 +112,8 @@ export class ZipService {
       }
       try {
         const { buffer } = await this.storage.getFileBuffer(entry.storageKey);
-        zip.addBuffer(buffer, entry.name, { compress: false }); // images are already compressed
+        // Spec 06, AC-EXP-024: every graphic in the package carries the IPTC AI-composite marker.
+        zip.addBuffer(await withAiDisclosure(buffer), entry.name, { compress: false }); // already compressed
       } catch (err: any) {
         this.logger.warn(`ZIP: could not read ${entry.storageKey}: ${err?.message}`);
         failed.push(entry.name);

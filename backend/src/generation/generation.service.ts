@@ -21,6 +21,7 @@ import { InfographicOptions, InfographicService } from './infographic.service';
 import { detectMimeTypeFromUrl, prepareForAi } from '../images/image-prep';
 import { GENERATION_STYLES, GenerationStyle, getDefaultStyleIds, getStyle, isInSeason } from './styles';
 import { toUserGeneration } from './generation-response';
+import { withAiDisclosure } from './ai-disclosure';
 
 /** Max concurrent image generation requests to Gemini per batch */
 const MAX_CONCURRENT = 2;
@@ -227,7 +228,8 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     if (!generation.url) throw new NotFoundException('Generation file not available');
 
     const { buffer, contentType } = await this.storageService.getFileBuffer(generation.url);
-    return { buffer, contentType, style: generation.style || 'custom' };
+    // Spec 06, AC-EXP-024: the stored AI graphic is served with the IPTC AI-composite marker.
+    return { buffer: await withAiDisclosure(buffer), contentType, style: generation.style || 'custom' };
   }
 
   async retryGeneration(generationId: string, userId: string) {
@@ -328,7 +330,8 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     }
     const { buffer } = await this.storageService.getFileBuffer(generation.url);
     const rendered = await this.infographicService.render(buffer, options);
-    return { ...rendered, style: generation.style || 'custom' };
+    // AC-EXP-024: an infographic is built on an AI graphic – same disclosure as the export.
+    return { ...rendered, buffer: await withAiDisclosure(rendered.buffer), style: generation.style || 'custom' };
   }
 
   // ─── Processing pipeline ──────────────────────────────────────────

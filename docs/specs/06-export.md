@@ -23,6 +23,11 @@
   `http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia` (zdjęcie produktu
   sprzedawcy + scena wygenerowana przez AI). Poza tym plik nie ma metadanych (bez EXIF i GPS). Eksport
   oryginalnego zdjęcia (`export-original`, np. Vinted) nie ma tego oznaczenia ani żadnych metadanych.
+  To samo oznaczenie dostaje każda grafika AI wydawana bez eksportu: pobranie pojedynczej grafiki
+  (`GET /generation/download/:id`), każdy plik grafiki w paczce ZIP i infografika. Dopisujemy je w locie
+  przy wydaniu pliku, więc obejmuje także grafiki wygenerowane przed zmianą (pliki w magazynie zostają bez
+  zmian): PNG i JPEG dostają pakiet XMP bez ponownego kodowania obrazu; WebP albo plik, który ma już
+  własne XMP, jest raz kodowany ponownie z naszym XMP zamiast poprzedniego.
 - Eksport jest bezpłatny i deterministyczny (bez AI). Modal ma dwa kroki: format i kadr → korekta i plakietka.
 - Pobieranie: desktop zapisuje plik; iPhone/Android dostają arkusz udostępniania z plikiem; bez wsparcia
   plików – nowa karta lub link; odrzucony arkusz – przycisk „Zapisz w Zdjęciach” do ponownego dotknięcia.
@@ -57,4 +62,5 @@ obrót z listy, korekty w zakresach, tekst plakietki ≤ 24.
 - **AC-EXP-020** – Given procenty kadru z edytora, When konwersja, Then ułamki zaokrąglone do 4 miejsc.
 - **AC-EXP-021** – Given kadr wykraczający poza obraz, When konwersja, Then jest przycięty do granic obrazu.
 - **AC-EXP-022** – Given ukończona grafika AI, When eksport w JPEG, PNG i WebP (także przez endpoint z presetem platformy), Then odczytane z pliku XMP zawiera `Iptc4xmpExt:DigitalSourceType` = `…/digitalsourcetype/compositeWithTrainedAlgorithmicMedia`, a plik nie ma EXIF ani GPS.
+- **AC-EXP-024** – Given ukończone grafiki AI zapisane w PNG, JPEG i WebP (także sprzed zmiany, bez metadanych albo z własnym XMP), When pobranie pojedynczej grafiki, paczka ZIP albo infografika, Then odczytane z każdego pliku XMP zawiera dokładnie jedno `Iptc4xmpExt:DigitalSourceType` = `…/compositeWithTrainedAlgorithmicMedia`, piksele PNG i JPEG są identyczne z zapisanym plikiem, a plik w magazynie się nie zmienia.
 - **AC-EXP-023** – Given oryginalne zdjęcie (także przesłane z EXIF i GPS), When `export-original` w JPEG, PNG i WebP, Then plik nie ma XMP z `DigitalSourceType` ani EXIF/GPS.

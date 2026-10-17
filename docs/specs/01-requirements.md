@@ -64,7 +64,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | NFR-LAW-006 | Zapisane zdjęcia nie zawierają metadanych EXIF/GPS/XMP/IPTC (minimalizacja danych, art. 5 ust. 1 lit. c RODO); limity przesyłania chronią koszty i przed nadużyciami | T: AC-UPL-019..022 |
 | NFR-LAW-007 | Po usunięciu konta zostaje wyłącznie skrót HMAC adresu e-mail i data (12 miesięcy, art. 6 ust. 1 lit. f) – do blokady ponownej darmowej puli i nagród poleceń | T: AC-AUTH-029..032, AC-REF-007 |
 | NFR-LAW-008 | Każdy mail identyfikuje nadawcę: firma, adres, NIP, kontakt – z jednego źródła zgodnego z danymi prawnymi landingu | T: AC-NOT-012 |
-| NFR-LAW-009 | Eksport grafik AI oznacza treść syntetyczną w metadanych IPTC (`DigitalSourceType`), oryginał sprzedawcy nie | T: AC-EXP-022/023 |
+| NFR-LAW-009 | Każdy plik grafiki AI wydawany użytkownikowi (eksport, pobranie, ZIP, infografika) oznacza treść syntetyczną w metadanych IPTC (`DigitalSourceType`), oryginał sprzedawcy nie | T: AC-EXP-022..024 |
 
 ### Wydajność i koszty (NFR-PERF)
 
