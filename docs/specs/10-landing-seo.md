@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Właściciel | Mateusz Janduła |
-| Data | 2026-10-03 (zmiany 2026-10-17: rezygnacja z Allegro; pozycjonowanie e-commerce ogólnie) |
+| Data | 2026-10-03 (zmiany 2026-10-17: rezygnacja z Allegro; pozycjonowanie e-commerce ogólnie; 2026-10-18: ceny abonamentów, dokumenty prawne, zgoda w demo) |
 | Powiązane | FR-SEO-001, NFR-PERF-001/002, ADR-0005, `landing-page/vercel.json`, `scripts/check-redirects.js`, `docs/seo/2026-10-ecommerce-seo-audit.md` |
 
 ## 1. Decyzje
@@ -46,7 +46,18 @@
 - CSS strony jest wstawiany inline w prerenderowanym HTML (brak blokującego arkusza), a strona używa fontów systemowych
   zamiast pobierać Inter z Google Fonts (w symulacji Lighthouse mobile font opóźniał FCP o ok. 1,5 s).
 - Demo bez konta: e-mail + zdjęcie, 1 grafika; limity 1/e-mail, 2/IP/dzień, honeypot; wynik e-mailem;
-  dane usuwane po 30 dniach.
+  dane usuwane po 30 dniach. Opcjonalna zgoda marketingowa (od 2026-10-18): „Chcę otrzymywać od AllGrafika porady
+  o zdjęciach produktowych i sprzedaży online oraz informacje o nowościach”. API nie wersjonuje treści zgody
+  (zapisuje `marketingOk` i `createdAt`, a nieznane pola formularza odrzuca), więc zgody sprzed i po zmianie
+  rozróżnia data utworzenia wiersza względem daty wdrożenia; wersja treści zgody w API to osobna zmiana backendu.
+- Ceny abonamentów od 2026-10-18 (decyzja właściciela): Start 19 zł / mies. za 40 grafik (0,48 zł za grafikę),
+  Pro 59 zł / mies. za 150 grafik (0,39 zł za grafikę). Abonament Pro jest najtańszą ceną za grafikę, więc pakiet
+  200 kredytów jest opisywany jako najtańszy bez abonamentu.
+- Dokumenty prawne (źródło: `landing-page/src/legal`, kopia w aplikacji przez `frontend/scripts/sync-legal.js`)
+  mają notę o zmianie z 2026-10-18: obniżka cen abonamentów obowiązuje od publikacji; limity przesyłania i skrót
+  adresu e-mail po usunięciu konta ograniczają użytkowników, więc obowiązują 14 dni po publikacji (1 listopada
+  2026 r., regulamin § 2 ust. 4); usuwanie EXIF i znacznik AI obowiązują od publikacji. Funkcja nazywa się
+  „masowe przesyłanie” (nie „paczka zdjęć”; „paczka ZIP” to pobieranie).
 - Komunikacja pain-first, przykłady przed/po, cennik z „1 kredyt = 1 grafika, opis gratis”.
 
 ## 2. Kryteria akceptacji
@@ -75,3 +86,6 @@
 - **AC-SEO-019** – Given dowolna indeksowalna trasa (strona główna, `/blog`, strona docelowa, wpis), When pobrany HTML, Then `og:image` i `twitter:image` to bezwzględne adresy istniejących plików PNG 1200×630 z `og:image:width`, `og:image:height` i `og:image:alt`; strony docelowe i `/blog` mają własne obrazy OG; strona ma dokładnie jedno `<h1>`, poziomy nagłówków w treści nie przeskakują (np. H2 → H4), a każdy obraz ma niepusty `alt`.
 - **AC-SEO-020** – Given wszystkie wpisy, When pobrany indeks bloga, Then tytuły wpisów są unikalne i mają ≤ 60 znaków, meta description ma 70–158 znaków i jest unikalny w obrębie serwisu, a żaden tytuł nie używa słowa „miniaturka”/„miniaturki” (dawne słownictwo Allegro).
 - **AC-SEO-021** – Given prerenderowana trasa, When pobrany HTML, Then arkusz stylów strony jest wstawiony inline (`<style>`) zamiast blokującego `<link rel="stylesheet">` do własnego pliku CSS, strona nie pobiera fontów z zewnętrznych serwerów (np. Google Fonts), a treść strony docelowej jest w osobnym chunku JS, który nie trafia do wspólnego bundla strony głównej.
+- **AC-SEO-022** – Given strona główna (cennik, FAQ), strony docelowe i JSON-LD, When pobrany HTML, Then abonament Start kosztuje 19 zł / mies. za 40 grafik (0,48 zł / grafikę), Pro 59 zł / mies. za 150 grafik (0,39 zł / grafikę), oferty `UnitPriceSpecification` w JSON-LD mają te ceny, FAQ podaje abonament od 0,39 zł za grafikę, nigdzie nie ma dawnych cen 49 zł i 149 zł, a pakiet 200 kredytów nie jest opisany jako najniższa cena za grafikę.
+- **AC-SEO-023** – Given regulamin i polityka prywatności (landing i kopia w aplikacji), When pobrane, Then polityka ma sekcję o skrócie HMAC adresu e-mail po usunięciu konta (tylko ten skrót, 12 miesięcy, art. 6 ust. 1 lit. f RODO, cel: darmowa pula i nagrody za polecenia), sekcję o usuwaniu metadanych EXIF (w tym GPS) przy przesłaniu i o znaczniku IPTC/XMP `DigitalSourceType` w eksportowanych grafikach AI; regulamin i polityka podają limity przesyłania (5 zdjęć bez potwierdzonego adresu, 200 zdjęć na 24 godziny) obowiązujące od 1 listopada 2026 r.; regulamin podaje ceny abonamentów Start 19 zł i Pro 59 zł oraz notę o zmianie z 18 października 2026 r. (obniżka od publikacji, ograniczenia 14 dni po publikacji zgodnie z § 2 ust. 4), zachowując notę z 17 października; żaden dokument nie mówi o „paczce zdjęć”, a kopie w obu pakietach są identyczne.
+- **AC-SEO-024** – Given formularz demo, When wyświetlony i wysłany, Then pole adresu ma etykietę „E-mail”, opcjonalna zgoda marketingowa mówi o „poradach o zdjęciach produktowych i sprzedaży online” (bez „miniaturek”), a formularz wysyła tylko pola znane API (`file`, `email`, `style`, `marketingOk`).
