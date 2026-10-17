@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '31',
   slug: 'koszty-fotografii-produktowej-vs-ai-roi',
-  title: 'Koszty fotografii produktowej: studio vs AI – ROI',
-  excerpt: 'Studio, freelancer, własne zdjęcia czy AI? Porównaj koszty fotografii produktowej i policz zwrot z inwestycji na własnych liczbach.',
+  title: 'Ile kosztują zdjęcia produktowe? Studio, DIY i AI',
+  excerpt: 'Ile kosztują zdjęcia produktowe i packshot? Porównaj studio, freelancera, zdjęcia DIY i AI, a potem policz zwrot z inwestycji na własnych liczbach.',
   content: `
 ## Ile naprawdę kosztuje zdjęcie produktu?
 
@@ -14,7 +14,7 @@ W tym artykule porównujemy cztery drogi: studio fotograficzne, freelancera, wł
 
 ## Studio fotograficzne
 
-- **Przykładowe ceny** – studia wyceniają pracę różnie: za produkt, za ujęcie albo za dzień zdjęciowy. Przykładowo może to być od kilkudziesięciu do kilkuset złotych za produkt, w zależności od miasta, liczby ujęć i obróbki. Zawsze poproś o konkretną wycenę.
+- **Przykładowe ceny** – studia wyceniają pracę różnie: za produkt, za ujęcie albo za dzień zdjęciowy. Według [cennika KB.pl z 2026 roku](https://kb.pl/cenniki/fotografia-podatkowa-packshot/) średnia cena packshotu w Polsce to 58,29 zł brutto za jedno ujęcie, a typowe stawki mieszczą się między 50,76 a 72,21 zł. Produkt potrzebuje zwykle kilku ujęć, a retusz bywa płatny osobno, więc zawsze poproś o konkretną wycenę.
 - **Zalety** – powtarzalna jakość, kontrola światła, możliwość sesji z modelką czy aranżacji.
 - **Koszty ukryte** – wysyłka lub dowóz produktów, czas oczekiwania, dopłaty za dodatkowe style (np. osobno białe tło i osobno sesja lifestyle).
 
@@ -75,6 +75,8 @@ Jeśli po zmianie zdjęć Twój dodatkowy zysk w kwartale wyniesie przykładowo 
 - **AI** – duży asortyment, kilka stylów na produkt, szybkie dodawanie nowości, zdjęcia pod kilka platform naraz.
 
 Wiele sklepów łączy te drogi: kluczowe produkty w studiu, reszta asortymentu z AI, rzeczy używane na własnych zdjęciach.
+
+Porównanie studia, zdjęć DIY i AI – z listą sytuacji, w których lepiej zamówić fotografa – znajdziesz na stronie [fotografia produktowa AI](https://allgrafika.pl/fotografia-produktowa-ai).
 
 ## Podsumowanie
 

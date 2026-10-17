@@ -1,7 +1,9 @@
 /**
- * Dynamic sitemap generator for AllGrafika.pl
- * Reads blog post slugs + publishedAt dates from the blogPosts directory
- * and generates public/sitemap.xml with correct per-post lastmod dates.
+ * Sitemap generator for AllGrafika.pl – the only source of sitemap.xml (spec 10, AC-SEO-018).
+ * Reads blog post slugs + dates from the blogPosts directory and the landing pages from src/data/seoPages.ts and
+ * writes public/sitemap.xml (Vite copies it into dist/). Every <lastmod> is the date the content changed – never the
+ * build date: posts use modifiedAt/publishedAt, landing pages SEO_PAGES_UPDATED, the home page the newer of
+ * HOME_UPDATED (src/data/site.ts) and the newest post (the home page lists the latest posts).
  * Run: node scripts/generate-sitemap.js
  */
 
@@ -33,25 +35,35 @@ const blogPosts = readdirSync(blogPostsDir)
     const slug = extractField(content, 'slug') ?? f.replace('.ts', '')
     const publishedAt = extractField(content, 'publishedAt')
     const modifiedAt = extractField(content, 'modifiedAt')
-    // Use modifiedAt if available, otherwise publishedAt, otherwise today
-    const lastmod = modifiedAt ?? publishedAt ?? new Date().toISOString().split('T')[0]
-    return { slug, lastmod }
+    // Use modifiedAt if available, otherwise publishedAt
+    if (!publishedAt) throw new Error(`${f}: missing publishedAt`)
+    const lastmod = modifiedAt ?? publishedAt
+    return { slug, lastmod, publishedAt }
   })
   .filter((p) => p.slug)
 
-// Most recent blog post date for the /blog listing page
-const mostRecentPostDate =
-  blogPosts
-    .map((p) => p.lastmod)
-    .sort()
-    .reverse()[0] ?? new Date().toISOString().split('T')[0]
+// Newest post date: /blog lists every post with its date.
+const newestPublished = blogPosts
+  .map((p) => p.publishedAt)
+  .sort()
+  .reverse()[0]
+const mostRecentPostDate = blogPosts
+  .map((p) => p.lastmod)
+  .sort()
+  .reverse()[0]
+if (!mostRecentPostDate) throw new Error('No blog posts found')
+
+const siteSource = readFileSync(resolve(__dirname, '../src/data/site.ts'), 'utf-8')
+const homeUpdated = siteSource.match(/HOME_UPDATED = '(\d{4}-\d{2}-\d{2})'/)?.[1]
+if (!homeUpdated) throw new Error('HOME_UPDATED not found in src/data/site.ts')
+const homeLastmod = [homeUpdated, newestPublished].filter(Boolean).sort().reverse()[0]
 
 // ── Static pages ──────────────────────────────────────────────────────────────
 
 const seoSource = readFileSync(resolve(__dirname, '../src/data/seoPages.ts'), 'utf-8')
 
 const staticPages = [
-  { path: '/', lastmod: new Date().toISOString().split('T')[0], priority: '1.0', changefreq: 'weekly' },
+  { path: '/', lastmod: homeLastmod, priority: '1.0', changefreq: 'weekly' },
   { path: '/blog', lastmod: mostRecentPostDate, priority: '0.9', changefreq: 'weekly' },
   // SEO landing pages (spec 10, AC-SEO-007) – one `path:` line per page in src/data/seoPages.ts
   ...[...seoSource.matchAll(/^\s*path: '(\/[a-z0-9-]+)',$/gm)].map((m) => ({

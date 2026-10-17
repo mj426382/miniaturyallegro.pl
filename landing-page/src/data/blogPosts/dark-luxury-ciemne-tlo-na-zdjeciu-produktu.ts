@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '80',
   slug: 'dark-luxury-ciemne-tlo-na-zdjeciu-produktu',
-  title: 'Dark luxury: ciemne tło na zdjęciu produktu – kiedy działa',
-  excerpt: 'Styl dark luxury w praktyce: jak ustawić światło na ciemnym tle, które produkty na nim zyskują i gdzie go nie używać, np. na zdjęciu głównym Amazon.',
+  title: 'Zdjęcia produktowe na czarnym tle – styl dark luxury',
+  excerpt: 'Zdjęcia produktowe na czarnym tle: jak ustawić światło, które produkty na nim zyskują i gdzie ciemnego tła nie używać, np. na zdjęciu głównym Amazon.',
   content: `
 ## Czym jest styl dark luxury?
 

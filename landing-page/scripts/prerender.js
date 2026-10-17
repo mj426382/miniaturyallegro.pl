@@ -12,6 +12,9 @@
  * JavaScript and users see content before the bundle loads; the client then
  * hydrates. Vercel serves these static files before applying the SPA rewrite.
  *
+ * The site stylesheet (≈5 KB gzip) is inlined into every page instead of a render-blocking <link> – one round trip
+ * less before the first paint on mobile (spec 10, AC-SEO-021).
+ *
  * Run: node scripts/prerender.js  (automatically called by npm run build)
  */
 
@@ -42,6 +45,14 @@ function stripVariableHeadTags(html) {
     .replace(/<meta\s+name="twitter:[^"]*"[^>]*>\s*/gi, '')
 }
 
+/** Replaces the render-blocking <link rel="stylesheet"> of the built CSS with an inline <style>. */
+function inlineStylesheet(template) {
+  const link = template.match(/<link rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/)
+  if (!link) throw new Error('Built stylesheet link not found in dist/index.html')
+  const css = readFileSync(resolve(distDir, link[1].slice(1)), 'utf-8').replace(/<\/style/gi, '<\\/style')
+  return template.replace(link[0], () => `<style>${css}</style>`)
+}
+
 function buildPage(template, { html, head }) {
   let out = stripVariableHeadTags(template)
   out = out.replace('</head>', `${head}\n  </head>`)
@@ -61,7 +72,7 @@ async function main() {
     throw new Error(`SSR bundle not found at ${entry}. Run "vite build --ssr src/entry-server.tsx --outDir dist-ssr" first.`)
   }
   const { render } = await import(pathToFileURL(entry).href)
-  const template = readFileSync(resolve(distDir, 'index.html'), 'utf-8')
+  const template = inlineStylesheet(readFileSync(resolve(distDir, 'index.html'), 'utf-8'))
 
   const slugs = readdirSync(blogDir)
     .filter((f) => f.endsWith('.ts'))

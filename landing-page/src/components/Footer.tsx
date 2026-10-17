@@ -1,26 +1,41 @@
 import { Link } from 'react-router-dom'
 import { LEGAL_ENTITY } from '../legal/entity'
 import { seoPages } from '../data/seoPages'
+import { APP_URL } from '../data/site'
 import { CONSENT_CONFIGURED, openCookieSettings } from '../consent/googleTag'
 
 const CONTACT_EMAIL = 'kontakt@allgrafika.pl'
 
+/** Column titles are plain text, not headings – the footer is navigation, not part of the page outline (AC-SEO-019). */
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-400 py-12">
+    <footer className="bg-gray-900 text-gray-300 py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div>
             <Link to="/" className="text-white font-bold text-xl">
               AllGrafika.pl
             </Link>
             <p className="mt-3 text-sm leading-relaxed">
-              Generator zdjęć produktowych AI dla sprzedawców na OLX, Vinted, eBay, Amazon i we własnych sklepach internetowych. Prześlij zdjęcie, wybierz style, pobierz gotowe grafiki w kilka minut.
+              Generator zdjęć produktowych AI dla sklepów internetowych i sprzedawców na marketplace’ach. Prześlij zdjęcie z telefonu, wybierz style i pobierz gotowe grafiki w kilka minut.
             </p>
           </div>
 
-          <div>
-            <h3 className="text-white font-semibold mb-4">Produkt</h3>
+          <nav aria-label="Zastosowania">
+            <p className="text-white font-semibold mb-4">Zastosowania</p>
+            <ul className="space-y-2 text-sm">
+              {seoPages.map((p) => (
+                <li key={p.path}>
+                  <Link to={p.path} className="hover:text-white transition-colors">
+                    {p.navLabel}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Produkt">
+            <p className="text-white font-semibold mb-4">Produkt</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/#features" className="hover:text-white transition-colors">
@@ -37,28 +52,21 @@ export default function Footer() {
                   FAQ
                 </Link>
               </li>
-              {seoPages.map((p) => (
-                <li key={p.path}>
-                  <Link to={p.path} className="hover:text-white transition-colors">
-                    {p.h1}
-                  </Link>
-                </li>
-              ))}
               <li>
                 <Link to="/blog" className="hover:text-white transition-colors">
                   Blog
                 </Link>
               </li>
               <li>
-                <a href="https://app.allgrafika.pl/login" className="hover:text-white transition-colors">
+                <a href={`${APP_URL}/login`} className="hover:text-white transition-colors">
                   Logowanie
                 </a>
               </li>
             </ul>
-          </div>
+          </nav>
 
-          <div>
-            <h3 className="text-white font-semibold mb-4">Firma</h3>
+          <nav aria-label="Firma">
+            <p className="text-white font-semibold mb-4">Firma</p>
             <ul className="space-y-2 text-sm">
               <li>
                 <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-white transition-colors">
@@ -83,16 +91,17 @@ export default function Footer() {
                 </li>
               )}
             </ul>
-          </div>
+          </nav>
         </div>
 
         <div className="border-t border-gray-800 pt-8 text-sm text-center space-y-2">
           <p>© {new Date().getFullYear()} AllGrafika.pl · Wszelkie prawa zastrzeżone</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             {LEGAL_ENTITY.name}, {LEGAL_ENTITY.address}, NIP {LEGAL_ENTITY.nip} · {LEGAL_ENTITY.email} · {LEGAL_ENTITY.phone}
           </p>
-          <p className="text-xs text-gray-500">
-            Nazwy platform (OLX, Vinted, eBay, Amazon) są znakami towarowymi ich właścicieli i służą wyłącznie do opisu zgodności plików; AllGrafika.pl nie jest z nimi powiązana.
+          <p className="text-xs text-gray-400">
+            Nazwy platform (OLX, Vinted, eBay, Amazon, Shopify, WooCommerce, Shoper, PrestaShop, Google) są znakami towarowymi ich właścicieli i służą wyłącznie do opisu zgodności plików;
+            AllGrafika.pl nie jest z nimi powiązana.
           </p>
           <p>
             Powered by{' '}

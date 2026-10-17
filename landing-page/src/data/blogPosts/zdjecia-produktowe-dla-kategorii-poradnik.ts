@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '103',
   slug: 'zdjecia-produktowe-dla-kategorii-poradnik',
-  title: 'Zdjęcia produktowe dla kategorii: poradnik',
+  title: 'Zdjęcia produktowe dla kategorii: moda, elektronika, dom',
   excerpt: 'Zdjęcia produktowe dla kategorii: elektronika, moda, dom, uroda, dziecko, motoryzacja i inne. Co pokazać na zdjęciu głównym, a co w galerii oferty.',
   content: `
 ## Zdjęcia produktowe dla kategorii – jeden poradnik zamiast dwudziestu

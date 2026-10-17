@@ -21,7 +21,7 @@ export function AppRoutes() {
       <Route path="/regulamin" element={<Regulamin />} />
       <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
       {seoPages.map((p) => (
-        <Route key={p.path} path={p.path} element={<SeoLanding page={p} />} />
+        <Route key={p.path} path={p.path} element={<SeoLanding key={p.path} page={p} />} />
       ))}
       <Route path="*" element={<NotFound />} />
     </Routes>

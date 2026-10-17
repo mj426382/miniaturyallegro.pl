@@ -91,6 +91,8 @@ Tak, packshot na białym tle świetnie sprawdza się też na liście produktów 
 ### Czy infografiki są gdziekolwiek dozwolone?
 We własnym sklepie tak, na stronie produktu. Na eBay dodany tekst jest zakazany, na Amazonie nie może być go na zdjęciu głównym, a w feedzie do Google nie powinien się znaleźć.
 
+Szczegóły dla własnego sklepu – galeria karty produktu, Shopify, WooCommerce, Shoper, PrestaShop i Merchant Center – znajdziesz na stronie [zdjęcia produktowe do sklepu internetowego](https://allgrafika.pl/zdjecia-produktowe-do-sklepu-internetowego).
+
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-03',

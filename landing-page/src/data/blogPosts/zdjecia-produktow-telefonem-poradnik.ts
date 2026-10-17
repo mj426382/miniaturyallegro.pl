@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '14',
   slug: 'zdjecia-produktow-telefonem-poradnik',
-  title: 'Zdjęcia produktów telefonem – ustawienia i triki',
-  excerpt: 'Jak robić zdjęcia produktów smartfonem: czysty obiektyw, ostrość, ekspozycja, HDR, zoom i światło dzienne. Plus osobne zasady dla zdjęć na Vinted.',
+  title: 'Jak robić zdjęcia produktów telefonem – poradnik',
+  excerpt: 'Jak robić zdjęcia produktów telefonem: czysty obiektyw, ostrość, ekspozycja, HDR, zoom i światło dzienne. Plus osobne zasady zdjęć na Vinted.',
   content: `
 ## Smartfon jako aparat do zdjęć produktowych
 
@@ -61,6 +61,8 @@ Na Vinted wszystko, co opisaliśmy wyżej, robisz więc „w aparacie”: czysty
 ## Co dalej ze zdjęciem z telefonu
 
 Do sklepu internetowego, na OLX czy do ofert nowych produktów na eBay i Amazon dobre zdjęcie z telefonu może być punktem wyjścia do kolejnych grafik. W [AllGrafika.pl](https://app.allgrafika.pl/register) wgrywasz zdjęcie z telefonu, a AI tworzy z niego wersję na białym tle, we wnętrzu czy w użyciu – bez zmiany kształtu, kolorów i logo produktu. Im staranniej zrobione zdjęcie wejściowe, tym lepszy efekt, dlatego warto przeczytać też, [jak przygotować zdjęcie do generatora AI](https://allgrafika.pl/blog/jak-przygotowac-zdjecie-do-generatora-ai).
+
+Z takiego zdjęcia zrobisz potem [zdjęcie produktu na białym tle](https://allgrafika.pl/biale-tlo-zdjecie-produktu) bez namiotu i lamp.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,

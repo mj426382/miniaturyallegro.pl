@@ -5,11 +5,14 @@ import { AppRoutes } from './App'
 import { primePostCache } from './data/blogLoader'
 import { allPosts } from './data/blogContent.server'
 import { primeLegalCache } from './data/legalLoader'
+import { primeSeoContentCache } from './data/seoContentLoader'
+import { allSeoContent } from './data/seoContent.server'
 import RegulaminContent from './legal/RegulaminContent'
 import PolitykaContent from './legal/PolitykaContent'
 
 primePostCache(allPosts)
 primeLegalCache({ regulamin: RegulaminContent, polityka: PolitykaContent })
+primeSeoContentCache(allSeoContent)
 
 export interface RenderResult {
   html: string

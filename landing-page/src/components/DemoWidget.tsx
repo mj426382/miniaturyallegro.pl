@@ -160,7 +160,7 @@ export default function DemoWidget() {
                     <span className="text-gray-500 text-sm px-6 text-center">
                       Kliknij i wybierz zdjęcie produktu
                       <br />
-                      <span className="text-xs text-gray-400">JPG, PNG, WebP · maks. 10 MB</span>
+                      <span className="text-xs text-gray-500">JPG, PNG, WebP · maks. 10 MB</span>
                     </span>
                   )}
                 </button>
@@ -181,7 +181,7 @@ export default function DemoWidget() {
                 </div>
                 <div>
                   <label htmlFor="demo-email" className="block text-sm font-medium text-gray-700 mb-1">
-                    E-mail <span className="text-gray-400 font-normal">(wyślemy tam wynik)</span>
+                    E-mail <span className="text-gray-500 font-normal">(wyślemy tam wynik)</span>
                   </label>
                   <input
                     id="demo-email"
@@ -230,7 +230,7 @@ export default function DemoWidget() {
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
               <p className="text-gray-700 font-medium">AI analizuje produkt i generuje grafikę...</p>
-              <p className="text-sm text-gray-400 mt-1">Zwykle trwa to 30–90 sekund. Wynik wyślemy też na e-mail.</p>
+              <p className="text-sm text-gray-500 mt-1">Zwykle trwa to 30–90 sekund. Wynik wyślemy też na e-mail.</p>
             </div>
           ) : phase === 'done' && result ? (
             <div>
@@ -263,7 +263,7 @@ export default function DemoWidget() {
                 >
                   Załóż konto – 5 grafik gratis →
                 </a>
-                <p className="text-xs text-gray-400 mt-3">
+                <p className="text-xs text-gray-500 mt-3">
                   W aplikacji wygenerujesz wszystkie 19 stylów (także sezonowe i branżowe), własne sceny, wyeksportujesz grafiki z presetem pod OLX, Vinted, eBay, Amazon lub sklep i dostaniesz opis
                   oferty.
                 </p>

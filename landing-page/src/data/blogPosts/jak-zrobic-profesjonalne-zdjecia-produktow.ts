@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '1',
   slug: 'jak-zrobic-profesjonalne-zdjecia-produktow',
-  title: 'Jak zrobić profesjonalne zdjęcia produktów – cały proces',
-  excerpt: 'Cały proces krok po kroku: stanowisko, światło, tło, kompozycja, obróbka i checklista zdjęć produktowych do sklepu, na OLX, eBay i Amazon.',
+  title: 'Jak zrobić profesjonalne zdjęcia produktów w domu',
+  excerpt: 'Jak zrobić profesjonalne zdjęcia produktów w domu: stanowisko, światło, tło, kompozycja, obróbka i checklista zdjęć do sklepu, na OLX, eBay i Amazon.',
   content: `## Co znaczy „profesjonalne” zdjęcie produktowe
 
 Profesjonalne zdjęcie produktowe nie musi powstać w studiu. Musi spełnić trzy warunki: **pokazać produkt dokładnie takim, jaki dostanie kupujący**, być ostre i dobrze naświetlone oraz pasować do zasad miejsca, w którym je publikujesz. Sklep internetowy, ogłoszenie na OLX, aukcja na eBay i karta produktu na Amazon mają różne wymagania, ale proces dochodzenia do dobrego zdjęcia jest wspólny.
@@ -92,6 +92,8 @@ Grafiki z plakietką lub infografiką zostaw na własny sklep i dalsze zdjęcia 
 Etapy 1, 4 i 6 zawsze należą do Ciebie: ktoś musi wyczyścić produkt, zrobić ostre zdjęcie i sprawdzić efekt. [AllGrafika.pl](https://app.allgrafika.pl/register) skraca etap tła i sceny – wgrywasz zdjęcie z telefonu, a AI tworzy grafiki na białym tle, we wnętrzu, na ciemnym tle czy w użyciu. Produkt pozostaje taki jak na zdjęciu: AI zmienia tło, scenę i światło, a nie kształt, kolory, logo czy napisy. Gotowe pliki przytniesz do formatu OLX, eBay, Amazon lub sklepu i pobierzesz – ofertę publikujesz samodzielnie. Pierwsze 5 grafik jest darmowych po potwierdzeniu adresu e-mail.
 
 Na Vinted i przy rzeczach używanych na eBay trzymaj się własnych, nieedytowanych zdjęć rzeczywistego egzemplarza.
+
+Jeśli nie masz czasu na własne stanowisko, sprawdź, kiedy zamiast sesji wystarczy [fotografia produktowa AI](https://allgrafika.pl/fotografia-produktowa-ai) – i kiedy nie.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,

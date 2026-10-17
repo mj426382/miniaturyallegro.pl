@@ -22,8 +22,8 @@ export default function MobileAppTeaser() {
               Aplikacja mobilna na Androida i iOS jest w drodze
             </h2>
             <p className="text-gray-600 mt-3">
-              Zrobisz zdjęcie produktu telefonem i od razu wygenerujesz miniaturki – z tym samym kontem, kredytami i grafikami co w przeglądarce. Do czasu premiery aplikacja webowa działa na każdym
-              telefonie bez instalacji.
+              Zrobisz zdjęcie produktu telefonem i od razu wygenerujesz zdjęcia produktowe – z tym samym kontem, kredytami i grafikami co w przeglądarce. Do czasu premiery aplikacja webowa działa na
+              każdym telefonie bez instalacji.
             </p>
           </div>
           <a

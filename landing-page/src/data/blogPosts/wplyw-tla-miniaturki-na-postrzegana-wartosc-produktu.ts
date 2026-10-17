@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '56',
   slug: 'wplyw-tla-miniaturki-na-postrzegana-wartosc-produktu',
-  title: 'Tło zdjęcia a postrzegana wartość produktu',
-  excerpt: 'Marmur, drewno, beton, len czy czysta biel? Jak podłoże i rekwizyty na zdjęciu podnoszą albo obniżają wartość produktu w oczach kupującego.',
+  title: 'Tło do zdjęć produktowych a postrzegana wartość',
+  excerpt: 'Tło do zdjęć produktowych: marmur, drewno, beton, len czy czysta biel? Jak podłoże i rekwizyty podnoszą albo obniżają wartość produktu w oczach kupujących.',
   content: `
 ## Tło jako sygnał kontekstu
 

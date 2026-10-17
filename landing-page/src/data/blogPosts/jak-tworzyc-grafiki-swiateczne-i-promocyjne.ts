@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '62',
   slug: 'jak-tworzyc-grafiki-swiateczne-i-promocyjne',
-  title: 'Jak tworzyć grafiki świąteczne i promocyjne dla sklepu',
-  excerpt: 'Świąteczne sceny, kolory i plakietki promocyjne: jak je zaprojektować i gdzie wolno ich użyć – w sklepie tak, na eBay i zdjęciu głównym Amazon nie.',
+  title: 'Świąteczne zdjęcia produktowe i grafiki promocyjne',
+  excerpt: 'Świąteczne zdjęcia produktowe i grafiki promocyjne: sceny, kolory i plakietki – jak je przygotować i gdzie wolno ich użyć: w sklepie tak, na eBay nie.',
   content: `
 ## Po co produktowi świąteczna oprawa?
 

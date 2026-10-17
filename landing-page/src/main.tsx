@@ -7,6 +7,8 @@ import { initAnalytics } from './services/analytics'
 import { initGoogleTag } from './consent/googleTag'
 import { loadPost } from './data/blogLoader'
 import { LEGAL_PATHS, loadLegal } from './data/legalLoader'
+import { loadSeoContent } from './data/seoContentLoader'
+import { findSeoPage, seoSlug } from './data/seoPages'
 
 initAnalytics()
 initGoogleTag()
@@ -21,11 +23,18 @@ const app = (
 )
 
 // Production pages are prerendered (SSG) – hydrate instead of re-rendering from scratch.
-// Article and legal pages first fetch their content chunk so the hydrated tree equals the static HTML.
+// Article, landing and legal pages first fetch their content chunk so the hydrated tree equals the static HTML.
 const path = window.location.pathname.replace(/\/$/, '') || '/'
 const articleSlug = path.match(/^\/blog\/([a-z0-9-]+)$/)?.[1]
 const legalDoc = LEGAL_PATHS[path]
-const ready: Promise<unknown> = articleSlug ? loadPost(articleSlug).catch(() => null) : legalDoc ? loadLegal(legalDoc).catch(() => null) : Promise.resolve(null)
+const seoPage = findSeoPage(path)
+const ready: Promise<unknown> = articleSlug
+  ? loadPost(articleSlug).catch(() => null)
+  : seoPage
+    ? loadSeoContent(seoSlug(seoPage)).catch(() => null)
+    : legalDoc
+      ? loadLegal(legalDoc).catch(() => null)
+      : Promise.resolve(null)
 
 ready.then(() => {
   if (container.hasChildNodes()) {

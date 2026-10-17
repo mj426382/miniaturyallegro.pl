@@ -75,6 +75,8 @@ Przy eksporcie wybierasz ustawienia pod OLX, Vinted, eBay, Amazon lub własny sk
 - Zacznij od produktów, które sprzedają się najlepiej, i dopasuj je do nowego standardu.
 - Raz na kwartał przejrzyj katalog i popraw zdjęcia, które odstają od reszty.
 
+Galerię karty produktu i rozmiary zdjęć w popularnych platformach sklepowych opisujemy na stronie [zdjęcia produktowe do sklepu internetowego](https://allgrafika.pl/zdjecia-produktowe-do-sklepu-internetowego).
+
 [← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-13',

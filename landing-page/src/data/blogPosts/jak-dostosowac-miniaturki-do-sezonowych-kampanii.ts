@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '52',
   slug: 'jak-dostosowac-miniaturki-do-sezonowych-kampanii',
-  title: 'Jak dostosować miniaturki do sezonowych kampanii – kalendarz',
-  excerpt: 'Kalendarz sezonów w e-commerce, terminy przygotowań i rotacja zdjęć: które grafiki zmieniać na okazje, a których nie ruszać na OLX, eBay i Amazon.',
+  title: 'Zdjęcia produktów na sezon – kalendarz kampanii',
+  excerpt: 'Kalendarz sezonów w e-commerce, terminy przygotowań i rotacja zdjęć produktów: które grafiki zmieniać na okazje, a których nie ruszać na eBay i Amazon.',
   content: `
 ## Sezon to plan, a nie jedna grafika
 
