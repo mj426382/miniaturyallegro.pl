@@ -47,6 +47,10 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | NFR-SEC-005 | Konfiguracja produkcyjna walidowana przy starcie (sekrety ≥ 32 znaki, https, klucze AI, SMTP) | T: AC-SEC-004..007 |
 | NFR-SEC-006 | Hasła bcrypt; tokeny resetu i weryfikacji przechowywane jako skrót SHA-256 | T: AC-SEC-003 |
 | NFR-SEC-007 | Helmet/CSP w produkcji, Swagger wyłączony w produkcji, brak sekretów w repo | R |
+| NFR-SEC-008 | Osobny klucz na każdy cel (HKDF-SHA256 z `JWT_SECRET` z etykietą celu albo dedykowana zmienna): tokeny wypisania, skrót IP demo, ślad usuniętego konta; token jednego celu nie działa w innym | T: AC-SEC-012/014, AC-NOT-011 |
+| NFR-SEC-009 | Publiczne endpointy GET, które czytają bazę lub magazyn (`/demo/:id`, `/health`), mają limit zapytań; publiczne identyfikatory mają ≥ 128 bitów losowości | T: AC-SEC-013 |
+| NFR-SEC-011 | Odpowiedzi API dla użytkownika nie zawierają wewnętrznych promptów AI ani opisu zdjęcia dla modelu (zostają w bazie i w panelu administratora) | T: AC-SEC-015 |
+| NFR-SEC-012 | Token sesji w treści odpowiedzi tylko dla aplikacji natywnej i klientów spoza przeglądarki; web wyłącznie cookie httpOnly | T: AC-AUTH-028, AC-MOB-009 |
 
 ### Prywatność i prawo (NFR-LAW)
 
@@ -57,6 +61,10 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | NFR-LAW-003 | Prawo do usunięcia danych: konto, pliki, abonament; retencja demo 30 dni | T: AC-AUTH-015, AC-PAY-010, AC-DEMO-003 |
 | NFR-LAW-004 | Opisy AI nie mogą zawierać zmyślonych parametrów ani zakazanych treści (linki, kontakt) – prompt + sanitizacja + ostrzeżenie dla użytkownika | T: AC-DESC-006; R prompt |
 | NFR-LAW-005 | Informacje handlowe e-mailem tylko po uprzedniej, dobrowolnej zgodzie z datą; wypisanie jednym kliknięciem w każdej wiadomości; maile transakcyjne do wyłączenia | T: AC-NOT-001/003/006 |
+| NFR-LAW-006 | Zapisane zdjęcia nie zawierają metadanych EXIF/GPS/XMP/IPTC (minimalizacja danych, art. 5 ust. 1 lit. c RODO); limity przesyłania chronią koszty i przed nadużyciami | T: AC-UPL-019..022 |
+| NFR-LAW-007 | Po usunięciu konta zostaje wyłącznie skrót HMAC adresu e-mail i data (12 miesięcy, art. 6 ust. 1 lit. f) – do blokady ponownej darmowej puli i nagród poleceń | T: AC-AUTH-029..032, AC-REF-007 |
+| NFR-LAW-008 | Każdy mail identyfikuje nadawcę: firma, adres, NIP, kontakt – z jednego źródła zgodnego z danymi prawnymi landingu | T: AC-NOT-012 |
+| NFR-LAW-009 | Każdy plik grafiki AI wydawany użytkownikowi (eksport, pobranie, ZIP, infografika) oznacza treść syntetyczną w metadanych IPTC (`DigitalSourceType`), oryginał sprzedawcy nie | T: AC-EXP-022..024 |
 
 ### Wydajność i koszty (NFR-PERF)
 
@@ -114,4 +122,8 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 - **AC-SEC-009** – Given publiczny endpoint uwierzytelniania (rejestracja, logowanie, Google, reset i potwierdzenie adresu), When żądanie nie ma treści JSON (np. formularz z innej strony), Then 415 i nic się nie dzieje – ochrona przed login CSRF przy cookie `SameSite=None`.
 - **AC-SEC-010** – Given adres żądania z tajnym parametrem (`token`, `code`, `state`, `key`, `signature`), When trafia do logów albo raportu błędu, Then wartość jest zastąpiona `[redacted]`, a reszta adresu zostaje.
 - **AC-SEC-011** – Given `NODE_ENV=production`, When `THROTTLE_DISABLED=true`, Then aplikacja odmawia startu (przełącznik tylko dla testów).
+- **AC-SEC-012** – Given `JWT_SECRET`, When wyprowadzane są klucze celów (wypisanie, skrót IP demo, ślad konta), Then są deterministyczne, różne dla każdego celu i różne od `JWT_SECRET`; dedykowana zmienna (`UNSUBSCRIBE_TOKEN_SECRET`, `DEMO_IP_HASH_SECRET`, `ACCOUNT_TOMBSTONE_SECRET`) zastępuje wyprowadzenie; w produkcji dedykowany sekret krótszy niż 32 znaki lub zastępczy, a w każdym środowisku nieprawidłowa data `UNSUBSCRIBE_LEGACY_CUTOVER`, blokują start.
+- **AC-SEC-013** – Given publiczne `GET /demo/:id` i `GET /health`, When jeden adres IP wysyła serię zapytań ponad limit (30/min dla demo, 60/min dla health), Then dostaje 429; identyfikator demo ma 128 bitów losowości (nie cuid z czasem), a identyfikator w złym formacie → 404 bez zapytania do bazy.
+- **AC-SEC-014** – Given adres IP klienta demo, When liczony jest jego skrót do limitu dziennego, Then to HMAC kluczem celu „demo-ip-hash” – stały dla tego samego IP, różny od dawnego `sha256(ip|JWT_SECRET)` i od skrótu z innym kluczem.
+- **AC-SEC-015** – Given ukończone, nieudane i własne grafiki, When użytkownik pobiera listę zdjęć, zdjęcie, wyniki (polling), pojedynczy wynik albo startuje, ponawia lub tworzy własny styl, Then żadna odpowiedź nie zawiera pól `prompt` ani `description` (zestaw kluczy jest stały i sprawdzany w teście); panel administratora może je pokazywać.
 - **AC-SEC-008** – Given dowolne żądanie, When obsłużone, Then odpowiedź ma nagłówek `x-request-id` (przekazany z żądania albo wygenerowany UUID), a odpowiedzi błędów zawierają `requestId` i nigdy nie zdradzają stosu ani ścieżek plików.

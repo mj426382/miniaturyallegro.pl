@@ -32,6 +32,9 @@ za grafikę).
   - Nieznany kod jest ignorowany bez błędu.
   - Polecający dostaje nagrodę za maksymalnie 25 poleconych (`REFERRAL_MAX_REWARDS`). Polecony
     dostaje swoją zawsze.
+  - Konto założone na adres wcześniej usuniętego konta (ślad z spec 03, 12 miesięcy) nie jest
+    przypisywane do polecającego: nikt nie dostaje nagrody – ani nowe konto, ani właściciel linku
+    (dodane 2026-10-18, przegląd bezpieczeństwa).
 - **Sekcja w aplikacji** (Konto):
   - Link z przyciskami „Kopiuj” i „Udostępnij” (arkusz udostępniania na telefonie).
   - Liczba poleconych kont i zdobytych kredytów.
@@ -44,4 +47,5 @@ za grafikę).
 - **AC-REF-003** – Given rejestracja przez Google z poprawnym kodem, When konto powstaje, Then obie strony dostają nagrodę od razu; logowanie istniejącym kontem Google z kodem nic nie zmienia.
 - **AC-REF-004** – Given nieznany kod, When rejestracja, Then konto powstaje bez polecającego i bez błędu. Given polecający z 25 nagrodzonymi poleceniami, When kolejny polecony potwierdzi e-mail, Then polecony dostaje 3 kredyty, a polecający nic.
 - **AC-REF-005** – Given wejście na `/register?ref=<kod>`, When użytkownik przejdzie do logowania i wróci albo zarejestruje się przez Google, Then kod trafia do rejestracji; strona rejestracji informuje o 3 grafikach w prezencie.
+- **AC-REF-007** – Given konto polecone z linku, nagrodzone i usunięte, When ten sam adres (albo jego wariant) zarejestruje się ponownie z linkiem polecającym e-mailem i potwierdzi adres albo przez Google, Then żadna strona nie dostaje kredytów, nie powstaje wpis w `credit_grants`, a nowe konto nie ma polecającego.
 - **AC-REF-006** – Given strona Konto, When użytkownik otwiera sekcję poleceń, Then widzi link, kopiuje go przyciskiem i widzi licznik poleconych i zdobytych kredytów.

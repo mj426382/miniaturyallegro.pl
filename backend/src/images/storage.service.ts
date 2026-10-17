@@ -138,6 +138,25 @@ export class StorageService {
     };
   }
 
+  /**
+   * Replaces the content of an existing object under the same key (spec 04, AC-UPL-024 maintenance
+   * script). On B2 the previous content stays as an older file version until the bucket lifecycle
+   * rule removes it.
+   */
+  async replaceFile(key: string, buffer: Buffer, mimeType: string): Promise<void> {
+    this.invalidateCachedUrl(key);
+    if (this.useLocal || key.startsWith('/')) {
+      const filePath = key.startsWith('/')
+        ? key.replace(/^\/api\/uploads\//, this.localUploadDir + '/')
+        : path.join(this.localUploadDir, key);
+      fs.writeFileSync(filePath, buffer);
+      return;
+    }
+    await this.s3!.send(
+      new PutObjectCommand({ Bucket: this.bucketName, Key: key, Body: buffer, ContentType: mimeType }),
+    );
+  }
+
   /** Invalidate cached URL for a key (call after delete) */
   invalidateCachedUrl(key: string): void {
     this.urlCache.delete(key);

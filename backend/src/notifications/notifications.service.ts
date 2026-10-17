@@ -14,6 +14,7 @@ import { CreditsService } from '../generation/credits.service';
 import { GENERATION_STYLES, GenerationStyle } from '../generation/styles';
 import { parseBool } from '../config/env.validation';
 import { greeting, pluralPl, renderEmail } from './email-template';
+import { derivePurposeKey } from '../common/keys';
 
 /** Spec 16 constants. */
 export const MIN_BATCH_IMAGES = 3;
@@ -28,6 +29,16 @@ export const SENDING_HOURS = { from: 9, to: 20 } as const;
 const BATCH_INTERVAL_MS = 2 * 60 * 1000;
 const REMINDER_INTERVAL_MS = 15 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Spec 16, AC-NOT-011: unsubscribe tokens (new and legacy) are honoured for at most 2 years. */
+export const UNSUBSCRIBE_TOKEN_TTL_DAYS = 730;
+export const UNSUBSCRIBE_TOKEN_VERSION = 2;
+/**
+ * Legacy links (signed with JWT_SECRET by the code before 2026-10-18) are accepted only when issued before
+ * this moment. It must not be earlier than the deployment of the purpose key; override with
+ * UNSUBSCRIBE_LEGACY_CUTOVER.
+ */
+export const DEFAULT_UNSUBSCRIBE_LEGACY_CUTOVER = '2026-12-01T00:00:00Z';
 
 const warsawHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Warsaw', hour: 'numeric', hourCycle: 'h23' });
 const warsawDate = new Intl.DateTimeFormat('en-CA', {
@@ -74,6 +85,10 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   private readonly frontendUrl: string;
   private readonly apiUrl: string;
   private readonly enabled: boolean;
+  /** Spec 01, NFR-SEC-008: unsubscribe links have their own key, never JWT_SECRET. */
+  private readonly unsubscribeKey: Buffer;
+  private readonly legacySecret: string;
+  private readonly legacyCutoverMs: number;
   private timers: NodeJS.Timeout[] = [];
   private running = { batches: false, reminders: false };
 
@@ -89,6 +104,11 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     // Jobs never run on their own in tests – tests call them with a fixed clock.
     this.enabled =
       parseBool(config.get<string>('NOTIFICATIONS_ENABLED'), true) && config.get<string>('NODE_ENV') !== 'test';
+    this.unsubscribeKey = derivePurposeKey('unsubscribe-token', config);
+    this.legacySecret = config.get<string>('JWT_SECRET') || '';
+    this.legacyCutoverMs = Date.parse(
+      config.get<string>('UNSUBSCRIBE_LEGACY_CUTOVER') || DEFAULT_UNSUBSCRIBE_LEGACY_CUTOVER,
+    );
   }
 
   onModuleInit() {
@@ -295,22 +315,54 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
   // ─── Unsubscribe ───────────────────────────────────────────────────
 
+  /** Spec 16, AC-NOT-011: signed with the unsubscribe key, versioned, valid for 2 years. */
   unsubscribeToken(userId: string): string {
-    return this.jwt.sign({ sub: userId, purpose: 'unsubscribe' }, { expiresIn: '3650d' });
+    return this.jwt.sign(
+      { sub: userId, purpose: 'unsubscribe', v: UNSUBSCRIBE_TOKEN_VERSION },
+      { secret: this.unsubscribeKey, algorithm: 'HS256', expiresIn: `${UNSUBSCRIBE_TOKEN_TTL_DAYS}d` },
+    );
+  }
+
+  /** The user id an unsubscribe token stands for, or null when it is not a valid unsubscribe token. */
+  verifyUnsubscribeToken(token: string, now: Date = new Date()): string | null {
+    const current = this.verifyWith(token, this.unsubscribeKey, now);
+    if (current) {
+      return current.purpose === 'unsubscribe' &&
+        current.v === UNSUBSCRIBE_TOKEN_VERSION &&
+        typeof current.sub === 'string'
+        ? current.sub
+        : null;
+    }
+    // Links already in inboxes: signed with JWT_SECRET, no version, issued before the cut-over and at
+    // most 2 years ago. Session tokens (no purpose) and any versioned token never pass this path.
+    const legacy = this.verifyWith(token, this.legacySecret, now);
+    if (!legacy || legacy.purpose !== 'unsubscribe' || legacy.v !== undefined || typeof legacy.sub !== 'string') {
+      return null;
+    }
+    const issuedMs = typeof legacy.iat === 'number' ? legacy.iat * 1000 : NaN;
+    if (!(issuedMs < this.legacyCutoverMs)) return null;
+    if (now.getTime() - issuedMs > UNSUBSCRIBE_TOKEN_TTL_DAYS * DAY_MS) return null;
+    return legacy.sub;
   }
 
   async unsubscribe(token: string | undefined) {
-    let payload: any;
-    try {
-      payload = this.jwt.verify(String(token || ''));
-    } catch {
-      throw new BadRequestException('Link wypisania jest nieprawidłowy');
-    }
-    if (payload?.purpose !== 'unsubscribe' || !payload?.sub) {
-      throw new BadRequestException('Link wypisania jest nieprawidłowy');
-    }
-    await this.prisma.user.updateMany({ where: { id: payload.sub }, data: { marketingConsentAt: null } });
+    const userId = this.verifyUnsubscribeToken(String(token || ''));
+    if (!userId) throw new BadRequestException('Link wypisania jest nieprawidłowy');
+    await this.prisma.user.updateMany({ where: { id: userId }, data: { marketingConsentAt: null } });
     return { unsubscribed: true };
+  }
+
+  private verifyWith(token: string, secret: Buffer | string, now: Date): Record<string, any> | null {
+    if (!token || !secret || (typeof secret === 'string' && !secret.length)) return null;
+    try {
+      return this.jwt.verify(token, {
+        secret,
+        algorithms: ['HS256'],
+        clockTimestamp: Math.floor(now.getTime() / 1000),
+      }) as Record<string, any>;
+    } catch {
+      return null;
+    }
   }
 
   private marketingFooter(userId: string): EmailFooter {

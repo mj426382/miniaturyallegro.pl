@@ -6,10 +6,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { ReferralsModule } from '../referrals/referrals.module';
+import { AccountTombstoneModule } from '../users/account-tombstone.module';
 
 @Module({
   imports: [
     ReferralsModule,
+    AccountTombstoneModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

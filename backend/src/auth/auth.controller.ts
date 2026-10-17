@@ -12,7 +12,7 @@ import {
   ChangePasswordDto,
   VerifyEmailDto,
 } from './auth.dto';
-import { clearSessionCookie, setSessionCookie } from './session-cookie';
+import { clearSessionCookie, setSessionCookie, withBodyToken } from './session-cookie';
 import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JsonBodyGuard } from './json-body.guard';
@@ -25,29 +25,34 @@ export class AuthController {
   @Post('register')
   @UseGuards(JsonBodyGuard)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @ApiOperation({ summary: 'Rejestracja nowego użytkownika (sesja w cookie httpOnly + token w odpowiedzi)' })
+  @ApiOperation({
+    summary:
+      'Rejestracja nowego użytkownika (sesja w cookie httpOnly; `token` w treści tylko dla aplikacji natywnej i klientów spoza przeglądarki)',
+  })
   @ApiResponse({ status: 201, description: 'Użytkownik zarejestrowany pomyślnie' })
   @ApiResponse({ status: 400, description: 'Nieprawidłowe dane wejściowe' })
   @ApiResponse({ status: 409, description: 'Email już jest w użyciu' })
   @ApiResponse({ status: 429, description: 'Zbyt wiele prób rejestracji. Spróbuj później.' })
-  async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+  async register(@Body() dto: RegisterDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.register(dto);
     setSessionCookie(res, result.token);
-    return result;
+    return withBodyToken(req, result);
   }
 
   @Post('login')
   @UseGuards(JsonBodyGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @ApiOperation({ summary: 'Logowanie za pomocą email i hasła' })
+  @ApiOperation({
+    summary: 'Logowanie za pomocą email i hasła (cookie httpOnly; `token` w treści tylko poza przeglądarką)',
+  })
   @ApiResponse({ status: 200, description: 'Zalogowano pomyślnie' })
   @ApiResponse({ status: 401, description: 'Nieprawidłowy email lub hasło' })
   @ApiResponse({ status: 429, description: 'Zbyt wiele prób logowania. Spróbuj później.' })
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(dto);
     setSessionCookie(res, result.token);
-    return result;
+    return withBodyToken(req, result);
   }
 
   @Post('google')
@@ -57,10 +62,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Logowanie za pomocą Google' })
   @ApiResponse({ status: 200, description: 'Zalogowano przez Google pomyślnie' })
   @ApiResponse({ status: 401, description: 'Nieprawidłowy token Google' })
-  async googleLogin(@Body() dto: GoogleLoginDto, @Res({ passthrough: true }) res: Response) {
+  async googleLogin(@Body() dto: GoogleLoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.googleLogin(dto);
     setSessionCookie(res, result.token);
-    return result;
+    return withBodyToken(req, result);
   }
 
   @Post('logout')
@@ -90,11 +95,12 @@ export class AuthController {
   async changePassword(
     @Body() dto: ChangePasswordDto,
     @CurrentUser() user: SessionUser,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.changePassword(user.userId, dto.currentPassword, dto.newPassword);
     setSessionCookie(res, result.token);
-    return result;
+    return withBodyToken(req, result);
   }
 
   @Post('verify-email')

@@ -43,12 +43,15 @@ konto = jedna darmowa pula; nowe konta generują dopiero po kliknięciu linku z 
   urządzeniu). Nowy link unieważnia poprzednie. Ponowna wysyłka najwcześniej 60 s po poprzedniej.
 - Konta Google są potwierdzone od razu (Google zweryfikował adres; niezweryfikowany adres Google jest
   odrzucany już dziś).
-- **Co może konto niepotwierdzone**: logować się, przeglądać, wgrywać zdjęcia, ustawiać konto. Nie może
+- **Co może konto niepotwierdzone**: logować się, przeglądać, wgrywać zdjęcia (najwyżej 5, spec 04), ustawiać konto. Nie może
   generować grafik (start, własny styl, ponowienie, pakiet poprawek) ani kupować kredytów – odpowiedź 403
   z kodem `EMAIL_NOT_VERIFIED`. Darmowa pula „odblokowuje się” z chwilą potwierdzenia.
 - Przełącznik `EMAIL_VERIFICATION_REQUIRED` (domyślnie `true`) pozwala operatorowi wyłączyć blokadę,
   gdy poczta nie działa – link i baner dalej działają.
 - Demo bez konta: limit 1 próby na skrzynkę liczony po postaci kanonicznej.
+- Ta sama postać kanoniczna (jako skrót HMAC) blokuje drugą darmową pulę po usunięciu konta i ponownej
+  rejestracji – spec 03, „Ślad usuniętego konta” (dodane 2026-10-18).
+- Konto niepotwierdzone może przesłać najwyżej 5 zdjęć (spec 04, `UPLOAD_LIMIT_UNVERIFIED`).
 - **Nadawca**: `AllGrafika <no-reply@allgrafika.pl>` przez serwer pocztowy na VPS (konto SMTP
   `no-reply@allgrafika.pl`, podpis DKIM domeny allgrafika.pl); w DNS rekordy SPF, DKIM i DMARC.
 

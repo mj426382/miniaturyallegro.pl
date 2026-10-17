@@ -39,8 +39,21 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - **Harmonogram**: zadanie co 2 min (paczki) i co 15 min (przypomnienia, sezon), maks. 50 maili na przebieg.
   Maile marketingowe tylko w godzinach 9:00–20:00 czasu polskiego. Każda wysyłka zapisana w `email_log`
   z unikalnym kluczem (konto + klucz) – restart ani drugi przebieg nie wyślą duplikatu.
-- **Wypisanie**: link `/unsubscribe?token=…` (token JWT z celem `unsubscribe`, bez wygasania, nie działa
-  jako sesja) oraz nagłówki `List-Unsubscribe` i `List-Unsubscribe-Post` (one-click, RFC 8058).
+- **Wypisanie**: link `/unsubscribe?token=…` (token JWT z celem `unsubscribe`, nie działa jako sesja) oraz
+  nagłówki `List-Unsubscribe` i `List-Unsubscribe-Post` (one-click, RFC 8058).
+  - Od 2026-10-18 (przegląd bezpieczeństwa) token jest podpisany osobnym kluczem: HKDF-SHA256
+    z `JWT_SECRET` z etykietą celu albo `UNSUBSCRIBE_TOKEN_SECRET`, jeśli ustawiony. Ma `v: 2`, `iat`
+    i ważność 2 lata (marketing bez kliknięcia przez 2 lata nie potrzebuje starego linku – kolejny mail
+    ma nowy).
+  - Linki już wysłane (podpisane `JWT_SECRET`, bez `v`, ważne 10 lat) dalej działają, jeśli wystawiono
+    je przed `UNSUBSCRIBE_LEGACY_CUTOVER` (domyślnie 2026-12-01, nie wcześniej niż wdrożenie) i nie
+    są starsze niż 2 lata. Później zapasowa ścieżka wygasa sama.
+  - Token sesji, token innego celu, zmieniony, przeterminowany albo nowy token z podmienionym
+    kluczem → 400.
+- **Stopka nadawcy** (przegląd 2026-10-17): każdy mail (marketingowy, przypomnienie, powiadomienie,
+  transakcyjny, wiadomość administratora) kończy się stopką z nazwą firmy, adresem, NIP i adresem
+  kontaktowym. Dane pochodzą z jednego miejsca w backendzie, a test pilnuje, że są identyczne
+  z `landing-page/src/legal/entity.ts`.
 - **Panel administratora** dla adresów z `ADMIN_EMAILS` (na produkcji: właściciel). Lista kont: adres,
   data rejestracji, potwierdzenie, sposób logowania, liczba zdjęć i gotowych grafik, plan, kredyty
   (zakupione saldo i wykorzystana darmowa pula), suma płatności, zgoda marketingowa, ostatnia aktywność.
@@ -89,6 +102,8 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - **AC-NOT-006** – Given link wypisania, When `POST /notifications/unsubscribe?token=` (także one-click bez sesji), Then zgoda jest wycofana; zły token → 400; mail marketingowy zawiera link i nagłówki `List-Unsubscribe` oraz `List-Unsubscribe-Post`; token wypisania nie działa jako sesja.
 - **AC-NOT-009** – Given adres z nagłówka `List-Unsubscribe`, When klient poczty otworzy go metodą GET (bez RFC 8058), Then 302 na stronę `/unsubscribe?token=…` aplikacji, a zgoda nie zmienia się, dopóki strona nie potwierdzi wypisania (POST).
 - **AC-NOT-010** – Given maile powiadomień i przypomnień, When wysyłane, Then liczby mają poprawną odmianę (np. „1 darmowa grafika czeka”, „3 darmowe grafiki czekają”), powitanie używa imienia („Cześć Ania,”), powiadomienie o masowym przesyłaniu nie nazywa go „paczką” i ma link do ustawień konta, a teksty nie zakładają płci odbiorcy.
+- **AC-NOT-011** – Given nowy token wypisania, When `POST /notifications/unsubscribe` (link i one-click RFC 8058), Then zgoda jest wycofana, token ma `v: 2` i wygasa po 2 latach i nie weryfikuje się samym `JWT_SECRET`; Given stary token podpisany `JWT_SECRET` wystawiony przed `UNSUBSCRIBE_LEGACY_CUTOVER`, When wypisanie, Then działa; Given stary token wystawiony po tej dacie albo starszy niż 2 lata, zmieniony podpis, przeterminowany nowy token, token sesji, token innego celu albo podpisany kluczem innego celu, When wypisanie, Then 400 i zgoda bez zmian; nowy token wypisania nie działa jako sesja (401).
+- **AC-NOT-012** – Given każdy szablon maila (weryfikacja, reset hasła, demo, przypomnienie o darmowych grafikach, styl sezonowy, koniec przesyłania, wiadomość administratora), When renderowany, Then wersja HTML i tekstowa kończą się stopką z nazwą firmy, adresem, NIP i adresem kontaktowym, a te wartości są równe danym w `landing-page/src/legal/entity.ts`.
 - **AC-NOT-007** – Given aplikacja, When użytkownik rejestruje się z polem zgody, przełącza powiadomienia w koncie i otwiera link wypisania, Then pole jest domyślnie niezaznaczone i wysyłane w rejestracji, przełączniki zapisują się, a strona wypisania potwierdza wycofanie zgody.
 - **AC-NOT-008** – Given masowe przesyłanie z generowaniem dla ≥ 3 zdjęć, When partia się kończy, Then aplikacja rejestruje paczkę z identyfikatorami zdjęć; tryb „tylko prześlij” i mniejsze partie jej nie rejestrują.
 - **AC-ADM-002** – Given konto spoza `ADMIN_EMAILS`, When wywołuje endpointy panelu, Then 403; `/users/me` zwraca `isAdmin=true` tylko administratorowi.

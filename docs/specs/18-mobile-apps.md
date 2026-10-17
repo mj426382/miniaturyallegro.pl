@@ -26,6 +26,10 @@ produkcyjna i buduje SEO, dlatego żadna zmiana nie może pogorszyć działania 
   - Token leży w pamięci aplikacji (Capacitor Preferences) i jest kasowany przy wylogowaniu
     i przy 401.
   - Web dalej używa ciasteczka httpOnly bez zmian.
+  - Od 2026-10-18 API zwraca `token` w treści odpowiedzi tylko aplikacji (spec 03, AC-AUTH-028).
+    Rozpoznaje ją po nagłówku `Origin` z listy originów aplikacji (AC-MOB-007). Ten nagłówek ustawia
+    sam WebView, więc aplikacja nie potrzebuje żadnego dodatkowego nagłówka, a skrypt na stronie
+    webowej nie może się pod nią podszyć. Odpowiedzi dla webu nie zawierają tokenu.
 - **Zakupy**:
   - Aplikacja nie sprzedaje kredytów. Przyciski zakupu i abonamentu otwierają
     `app.allgrafika.pl/credits` w systemowej przeglądarce, a płatność odbywa się na stronie (Stripe).
@@ -60,4 +64,5 @@ produkcyjna i buduje SEO, dlatego żadna zmiana nie może pogorszyć działania 
 - **AC-MOB-005** – Given aplikacja natywna, When wraca na pierwszy plan, Then dane konta (kredyty, potwierdzenie e-maila) są odświeżane.
 - **AC-MOB-006** – Given aplikacja natywna, When otwarty jest ekran logowania, Then przycisk Google (i jego separator) jest ukryty; w przeglądarce zostaje.
 - **AC-MOB-007** – Given API, When żądanie przychodzi z originu aplikacji (`https://native.allgrafika.pl` na Androidzie, `capacitor://native.allgrafika.pl` na iOS – host w naszej domenie, którego nie serwuje żadna strona), Then CORS je przepuszcza, a obce originy (także `https://localhost`) dalej są odrzucane.
+- **AC-MOB-009** – Given API, When rejestracja, logowanie, logowanie Google lub zmiana hasła przychodzi z originu aplikacji Android (`https://native.allgrafika.pl`) albo iOS (`capacitor://native.allgrafika.pl`), Then odpowiedź zawiera `token`, który działa jako `Authorization: Bearer` (także po zmianie hasła), a to samo żądanie z originu webu (`https://app.allgrafika.pl`) dostaje tylko cookie.
 - **AC-MOB-008** – Given strona główna landingu, When otwarta, Then widać sekcję „Aplikacja mobilna w drodze” (Android i iOS), a tytuł, canonical i JSON-LD strony głównej są zgodne ze spec 10 (sekcja nie zmienia SEO strony głównej).

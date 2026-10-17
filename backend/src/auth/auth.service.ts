@@ -20,6 +20,7 @@ import { VERIFICATION_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from './em
 import { freeCreditsForNewAccounts } from '../generation/credits.service';
 import { ReferralsService } from '../referrals/referrals.service';
 import { pluralPl, renderEmail } from '../notifications/email-template';
+import { AccountTombstoneService } from '../users/account-tombstone.service';
 
 // 12 rounds in production; tests lower it via BCRYPT_ROUNDS to stay fast.
 const BCRYPT_ROUNDS = Math.min(14, Math.max(4, Number(process.env.BCRYPT_ROUNDS) || 12));
@@ -60,6 +61,7 @@ export class AuthService {
     private configService: ConfigService,
     private mailService: MailService,
     private referrals: ReferralsService,
+    private tombstones: AccountTombstoneService,
   ) {
     this.googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     this.googleClient = new OAuth2Client(this.googleClientId);
@@ -82,9 +84,13 @@ export class AuthService {
     this.assertPasswordNotTrivial(dto.password, email);
 
     const hashedPassword = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
-    const referredById = await this.referrals.resolveReferrer(dto.referralCode);
+    // Spec 03/20 (AC-AUTH-030, AC-REF-007): a mailbox whose account was deleted gets no second free pool
+    // and no referral – neither the new account nor the link owner is rewarded.
+    const returning = await this.tombstones.isTombstoned(email);
+    const referredById = returning ? null : await this.referrals.resolveReferrer(dto.referralCode);
+    const freeCreditsLimit = returning ? 0 : this.freeCreditsLimit;
 
-    let user: { id: string; email: string; name: string | null; createdAt: Date };
+    let user: { id: string; email: string; name: string | null; createdAt: Date; freeCreditsLimit: number };
     try {
       user = await this.prisma.user.create({
         data: {
@@ -94,10 +100,10 @@ export class AuthService {
           name: dto.name || null,
           termsAcceptedAt: new Date(),
           marketingConsentAt: dto.marketingConsent === true ? new Date() : null,
-          freeCreditsLimit: this.freeCreditsLimit,
+          freeCreditsLimit,
           referredById,
         },
-        select: { id: true, email: true, name: true, createdAt: true },
+        select: { id: true, email: true, name: true, createdAt: true, freeCreditsLimit: true },
       });
     } catch (error: any) {
       // Two concurrent sign-ups with the same e-mail: the unique index wins the race.
@@ -112,7 +118,8 @@ export class AuthService {
       this.logger.error(`Nie udało się wysłać linku weryfikacyjnego do użytkownika ${user.id}: ${err?.message}`),
     );
 
-    return { user: { ...user, emailVerified: false }, token: this.generateToken(user.id, user.email) };
+    const { freeCreditsLimit: _pool, ...publicUser } = user;
+    return { user: { ...publicUser, emailVerified: false }, token: this.generateToken(user.id, user.email) };
   }
 
   async login(dto: LoginDto) {
@@ -190,6 +197,8 @@ export class AuthService {
         );
       }
       const name = [payload.given_name, payload.family_name].filter(Boolean).join(' ') || null;
+      // AC-AUTH-031 / AC-REF-007: same rule as the e-mail sign-up for a mailbox of a deleted account.
+      const returning = await this.tombstones.isTombstoned(email);
       try {
         user = await this.prisma.user.create({
           data: {
@@ -200,8 +209,8 @@ export class AuthService {
             name,
             password: null,
             termsAcceptedAt: new Date(),
-            freeCreditsLimit: this.freeCreditsLimit,
-            referredById: await this.referrals.resolveReferrer(dto.referralCode),
+            freeCreditsLimit: returning ? 0 : this.freeCreditsLimit,
+            referredById: returning ? null : await this.referrals.resolveReferrer(dto.referralCode),
           },
         });
       } catch (error: any) {
@@ -371,7 +380,7 @@ export class AuthService {
   async resendVerification(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, emailVerifiedAt: true },
+      select: { id: true, email: true, emailVerifiedAt: true, freeCreditsLimit: true },
     });
     if (!user) throw new UnauthorizedException();
     if (user.emailVerifiedAt) return { alreadyVerified: true };
@@ -402,7 +411,7 @@ export class AuthService {
   }
 
   /** Issues a fresh single-use link (older ones stop working) and e-mails it. */
-  private async sendVerificationEmail(user: { id: string; email: string }) {
+  private async sendVerificationEmail(user: { id: string; email: string; freeCreditsLimit: number }) {
     const rawToken = randomBytes(32).toString('base64url');
     await this.prisma.$transaction([
       this.prisma.emailVerificationToken.updateMany({
@@ -420,6 +429,12 @@ export class AuthService {
 
     const frontendUrl = (this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173').replace(/\/$/, '');
     const link = `${frontendUrl}/verify-email?token=${rawToken}`;
+    const pool = user.freeCreditsLimit;
+    // The mail promises exactly the account's own pool – none for a mailbox of a deleted account (AC-AUTH-030).
+    const unlock =
+      pool > 0
+        ? `Potwierdź adres e-mail, aby odblokować ${pool} ${pluralPl(pool, 'darmową grafikę', 'darmowe grafiki', 'darmowych grafik')} – do sklepu internetowego albo na OLX, Vinted, eBay czy Amazon.`
+        : 'Potwierdź adres e-mail, aby generować grafiki do sklepu internetowego albo na OLX, Vinted, eBay czy Amazon.';
     await this.mailService.send({
       to: user.email,
       subject: 'AllGrafika – potwierdź adres e-mail',
@@ -427,7 +442,7 @@ export class AuthService {
         heading: 'Potwierdź adres e-mail',
         paragraphs: [
           'Cześć,',
-          `dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} ${pluralPl(this.freeCreditsLimit, 'darmową grafikę', 'darmowe grafiki', 'darmowych grafik')} – do sklepu internetowego albo na OLX, Vinted, eBay czy Amazon. Link jest ważny przez 24 godziny.`,
+          `dziękujemy za założenie konta w AllGrafika. ${unlock} Link jest ważny przez 24 godziny.`,
         ],
         cta: { label: 'Potwierdź adres e-mail', url: link },
         footer: ['Jeśli konto nie zostało założone przez Ciebie, zignoruj tę wiadomość.'],
