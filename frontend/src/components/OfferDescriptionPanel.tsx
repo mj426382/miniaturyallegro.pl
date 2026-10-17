@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ArrowUturnLeftIcon, ClipboardDocumentIcon, DocumentTextIcon, ShoppingBagIcon, SparklesIcon } from '@heroicons/react/24/outline'
-import { descriptionsApi, DescriptionView, OfferDescription } from '../services/api'
+import { ArrowUturnLeftIcon, ClipboardDocumentIcon, DocumentTextIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import { descriptionsApi, DescriptionView, OfferDescription, PlatformId } from '../services/api'
+import { usePlatformPresets } from '../hooks/usePlatformPresets'
 import { track } from '../services/analytics'
-import { allegroHtmlToText, compactAllegroHtml, formatAllegroHtml, MAX_TITLE_LENGTH, splitKeywords } from '../utils/allegroHtml'
-import PublishDescriptionModal from './PublishDescriptionModal'
+import { offerHtmlToText, compactOfferHtml, formatOfferHtml, MAX_TITLE_LENGTH, splitKeywords } from '../utils/offerHtml'
 
 interface Props {
   imageId: string
@@ -15,10 +15,6 @@ interface Props {
   onCreditsChanged?: () => void
   /** Reports whether a description exists (after load and after every change). */
   onStateChange?: (hasDescription: boolean) => void
-  /** Spec 08: "Opublikuj na Allegro" is offered only with a connected seller account. */
-  allegroConnected?: boolean
-  /** Offer the photo was imported from – preselected in the publish dialog. */
-  defaultOfferId?: string | null
 }
 
 interface Draft {
@@ -29,9 +25,9 @@ interface Draft {
 
 const NOTES_PLACEHOLDER = 'Np. kubek ceramiczny 350 ml, biały, nadaje się do zmywarki i mikrofali, w zestawie łyżeczka, prezent na święta, ' + 'producent z Bolesławca, wymiary 9 × 8 cm'
 
-const toDraft = (d: OfferDescription): Draft => ({ title: d.title, html: formatAllegroHtml(d.body), keywords: d.keywords.join(', ') })
+const toDraft = (d: OfferDescription): Draft => ({ title: d.title, html: formatOfferHtml(d.body), keywords: d.keywords.join(', ') })
 
-export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, onCreditsChanged, onStateChange, allegroConnected = false, defaultOfferId = null }: Props) {
+export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, onCreditsChanged, onStateChange }: Props) {
   const navigate = useNavigate()
   const [view, setView] = useState<DescriptionView | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -42,7 +38,9 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
   const [undo, setUndo] = useState<Draft | null>(null)
   const [tab, setTab] = useState<'preview' | 'html'>('preview')
   const [instruction, setInstruction] = useState('')
-  const [publishOpen, setPublishOpen] = useState(false)
+  /** Spec 07/08: the platform drives the prompt and the title limit; generic by default. */
+  const [platform, setPlatform] = useState<PlatformId>('generic')
+  const { presets } = usePlatformPresets()
 
   const applyView = useCallback(
     (next: DescriptionView, options: { keepDraft?: boolean } = {}) => {
@@ -62,6 +60,7 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
         if (cancelled) return
         applyView(data)
         setNotes(data.description?.sellerNotes ?? '')
+        if (data.description?.platform) setPlatform(data.description.platform)
       })
       .catch(() => !cancelled && setLoadFailed(true))
     return () => {
@@ -78,11 +77,19 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
 
   const dirty = useMemo(() => {
     if (!description || !draft) return false
-    return draft.title !== description.title || compactAllegroHtml(draft.html) !== description.body || splitKeywords(draft.keywords).join('|') !== description.keywords.join('|')
-  }, [description, draft])
+    return (
+      platform !== description.platform ||
+      draft.title !== description.title ||
+      compactOfferHtml(draft.html) !== description.body ||
+      splitKeywords(draft.keywords).join('|') !== description.keywords.join('|')
+    )
+  }, [description, draft, platform])
 
-  const previewHtml = useMemo(() => (draft ? compactAllegroHtml(draft.html) : ''), [draft])
-  const titleTooLong = (draft?.title.length ?? 0) > MAX_TITLE_LENGTH
+  const previewHtml = useMemo(() => (draft ? compactOfferHtml(draft.html) : ''), [draft])
+  const preset = presets?.find((p) => p.id === platform)
+  const platformLabel = preset?.label ?? (platform === 'generic' ? 'Sklep internetowy / ogólne' : platform)
+  const titleLimit = preset?.titleMaxLength ?? (description?.platform === platform ? description.titleMaxLength : MAX_TITLE_LENGTH)
+  const titleTooLong = (draft?.title.length ?? 0) > titleLimit
 
   const showError = (err: any, fallback: string) => {
     if (err?.response?.status === 402 && err.response.data?.code !== 'EDIT_PACK_REQUIRED') {
@@ -98,12 +105,12 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
     if (busy) return
     setBusy('create')
     try {
-      const { data } = await descriptionsApi.create(imageId, notes.trim() || undefined)
+      const { data } = await descriptionsApi.create(imageId, notes.trim() || undefined, platform)
       applyView(data)
       setUndo(null)
       setShowNotes(false)
       setTab('preview')
-      track('description_create', { withNotes: Boolean(notes.trim()) })
+      track('description_create', { withNotes: Boolean(notes.trim()), platform })
       toast.success('Opis gotowy. Sprawdź fakty i dopasuj go do siebie.')
       onCreditsChanged?.()
     } catch (err) {
@@ -135,15 +142,16 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
   const save = async (silent = false) => {
     if (!draft) return
     if (titleTooLong) {
-      toast.error(`Tytuł może mieć maksymalnie ${MAX_TITLE_LENGTH} znaków (limit Allegro).`)
+      toast.error(`Tytuł może mieć maksymalnie ${titleLimit} znaków (${platformLabel}).`)
       throw new Error('title too long')
     }
     if (!silent) setBusy('save')
     try {
       const { data } = await descriptionsApi.update(imageId, {
         title: draft.title.trim(),
-        body: compactAllegroHtml(draft.html),
+        body: compactOfferHtml(draft.html),
         keywords: splitKeywords(draft.keywords),
+        platform,
       })
       applyView(data)
       if (!silent) toast.success('Zapisano zmiany w opisie.')
@@ -180,10 +188,10 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
 
   const copy = async (what: 'title' | 'html' | 'text') => {
     if (!draft) return
-    const value = what === 'title' ? draft.title.trim() : what === 'html' ? compactAllegroHtml(draft.html) : allegroHtmlToText(draft.html)
+    const value = what === 'title' ? draft.title.trim() : what === 'html' ? compactOfferHtml(draft.html) : offerHtmlToText(draft.html)
     try {
       await navigator.clipboard.writeText(value)
-      toast.success(what === 'title' ? 'Tytuł skopiowany.' : what === 'html' ? 'Opis (HTML) skopiowany – wklej go w edytorze opisu Allegro.' : 'Opis (tekst) skopiowany.')
+      toast.success(what === 'title' ? 'Tytuł skopiowany.' : what === 'html' ? 'Opis (HTML) skopiowany – wklej go w edytorze opisu sklepu lub eBay.' : 'Opis (tekst) skopiowany.')
       track('description_copy', { what })
     } catch {
       toast.error('Nie udało się skopiować – zaznacz tekst i skopiuj ręcznie.')
@@ -198,11 +206,11 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
         <div>
           <h2 id="offer-description-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <DocumentTextIcon className="h-5 w-5 text-blue-600" />
-            Opis oferty pod SEO Allegro
+            Opis oferty
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Tytuł (do 75 znaków), opis w formacie Allegro i frazy, pod którymi kupujący znajdą produkt. Powstaje z Twoich notatek i analizy zdjęcia. Pierwszy opis jest gratis do wygenerowanej grafiki;
-            w cenie masz {editsLimit} poprawek AI, kolejne {packSize} za {packCredits} kredyt.
+            Tytuł, opis i frazy dopasowane do platformy (OLX, Vinted, eBay, Amazon albo Twój sklep), pod którymi kupujący znajdą produkt. Powstaje z Twoich notatek i analizy zdjęcia. Pierwszy opis
+            jest gratis do wygenerowanej grafiki; w cenie masz {editsLimit} poprawek AI, kolejne {packSize} za {packCredits} kredyt.
           </p>
         </div>
         {description && (
@@ -210,6 +218,23 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
             Poprawki promptem: {editsLeft} z {editsLimit}
           </span>
         )}
+      </div>
+
+      <div className="mt-4 max-w-xs">
+        <label htmlFor="description-platform" className="block text-sm font-medium text-gray-700 mb-1">
+          Platforma
+        </label>
+        <select id="description-platform" value={platform} onChange={(e) => setPlatform(e.target.value as PlatformId)} disabled={busy !== null} className="input-field text-sm">
+          {(presets ?? [{ id: platform, label: platformLabel }]).map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        <p className="help-text mt-1">
+          Limit tytułu: {titleLimit} znaków{preset && !preset.titleMaxOfficial ? ' (zalecane)' : ''}.
+          {description && platform !== description.platform ? ' Zapisz zmiany albo napisz opis od nowa pod nową platformę.' : ''}
+        </p>
       </div>
 
       {(!description || showNotes) && (
@@ -241,7 +266,7 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
                 Tytuł oferty
               </label>
               <span className={`text-xs ${titleTooLong ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
-                {draft.title.length}/{MAX_TITLE_LENGTH}
+                {draft.title.length}/{titleLimit}
               </span>
             </div>
             <input
@@ -283,7 +308,10 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
                   spellCheck={false}
                   className="input-field text-xs font-mono"
                 />
-                <p className="text-xs text-gray-500 mt-1">Allegro dopuszcza tylko: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;b&gt;. Inne tagi zostaną usunięte przy zapisie.</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Dozwolone tylko: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;b&gt;. Inne tagi zostaną usunięte przy zapisie. OLX i Vinted przyjmują czysty tekst – użyj „Kopiuj
+                  tekst”.
+                </p>
               </>
             )}
           </div>
@@ -334,16 +362,6 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
                 <ArrowUturnLeftIcon className="h-4 w-4" /> Cofnij ostatnią poprawkę
               </button>
             )}
-            {allegroConnected && (
-              <button
-                onClick={() => setPublishOpen(true)}
-                disabled={dirty || busy !== null}
-                title={dirty ? 'Najpierw zapisz zmiany – publikujemy zapisany opis' : undefined}
-                className="btn-secondary text-sm flex items-center gap-1"
-              >
-                <ShoppingBagIcon className="h-4 w-4" /> Opublikuj na Allegro
-              </button>
-            )}
             <span className="flex-1" />
             <button onClick={() => copy('title')} className="text-sm text-blue-600 hover:underline flex items-center gap-1">
               <ClipboardDocumentIcon className="h-4 w-4" /> Kopiuj tytuł
@@ -360,10 +378,11 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
               </button>
             )}
           </div>
-          <p className="text-xs text-gray-500">Opis jest tworzony przez AI na podstawie Twoich notatek i zdjęcia – przed publikacją sprawdź parametry i zgodność z regulaminem Allegro.</p>
+          <p className="text-xs text-gray-500">
+            Opis jest tworzony przez AI na podstawie Twoich notatek i zdjęcia – przed publikacją sprawdź parametry i zgodność z regulaminem platformy, na której sprzedajesz.
+          </p>
         </div>
       )}
-      {publishOpen && <PublishDescriptionModal imageId={imageId} defaultOfferId={defaultOfferId} onClose={() => setPublishOpen(false)} />}
     </section>
   )
 }

@@ -1,4 +1,4 @@
-import { AdjustmentsHorizontalIcon, ArrowDownTrayIcon, ArrowPathIcon, ListBulletIcon, ShoppingBagIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import { AdjustmentsHorizontalIcon, ArrowDownTrayIcon, ArrowPathIcon, ListBulletIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import ActionMenu, { ActionMenuItem } from '../ActionMenu'
 import FeedbackButtons from '../FeedbackButtons'
 import type { Generation } from '../../hooks/useGenerations'
@@ -27,20 +27,17 @@ interface Props {
   onInfographic: () => void
   onRework: () => void
   reworking: boolean
-  /** Only offered once a seller account is connected. */
-  onPublish?: () => void
   onRetry: () => void
   onRated: (rating: number) => void
 }
 
 /** One generated graphic: preview, status, primary download, secondary actions in a menu, feedback. */
-export default function ResultCard({ generation: gen, styleName, onPrefetch, onDownload, onExport, onInfographic, onRework, reworking, onPublish, onRetry, onRated }: Props) {
+export default function ResultCard({ generation: gen, styleName, onPrefetch, onDownload, onExport, onInfographic, onRework, reworking, onRetry, onRated }: Props) {
   const ready = gen.status === 'COMPLETED' && Boolean(gen.url)
   const items: ActionMenuItem[] = [
     { label: 'Eksport i edycja', icon: <AdjustmentsHorizontalIcon className="h-4 w-4" />, onSelect: onExport },
     { label: 'Infografika', icon: <ListBulletIcon className="h-4 w-4" />, onSelect: onInfographic },
     { label: 'Przeróbka', icon: <ArrowPathIcon className="h-4 w-4" />, disabled: reworking, onSelect: onRework },
-    ...(onPublish ? [{ label: 'Opublikuj na Allegro', icon: <ShoppingBagIcon className="h-4 w-4" />, onSelect: onPublish }] : []),
   ]
 
   return (

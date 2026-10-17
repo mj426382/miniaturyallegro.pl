@@ -37,7 +37,6 @@ export default function AdminUserImages({ userId, styleNames }: Props) {
               <p className="text-xs text-gray-500 truncate">
                 {countLabel(image.generations.length, 'grafika', 'grafiki', 'grafik')}
                 {image.descriptionTitle ? ` · opis: ${image.descriptionTitle}` : ' · bez opisu'}
-                {image.allegroOfferId ? ` · oferta Allegro ${image.allegroOfferId}` : ''}
               </p>
             </div>
           </div>

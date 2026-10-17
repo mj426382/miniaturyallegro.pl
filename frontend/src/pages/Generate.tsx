@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { imagesApi, generationApi, allegroApi } from '../services/api'
+import { imagesApi, generationApi } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 import { useGenerations, Generation } from '../hooks/useGenerations'
 import { usePageTitle } from '../hooks/usePageTitle'
@@ -10,7 +10,6 @@ import { track } from '../services/analytics'
 import { downloadBlob, shareBlob } from '../utils/download'
 import ExportModal from '../components/ExportModal'
 import InfographicModal from '../components/InfographicModal'
-import PublishToAllegroModal from '../components/PublishToAllegroModal'
 import OfferDescriptionPanel from '../components/OfferDescriptionPanel'
 import StylePicker from '../components/generate/StylePicker'
 import CustomStyleForm from '../components/generate/CustomStyleForm'
@@ -51,12 +50,9 @@ export default function Generate() {
   const [isRework, setIsRework] = useState(false)
   const [exportTarget, setExportTarget] = useState<Generation | null>(null)
   const [infographicTarget, setInfographicTarget] = useState<Generation | null>(null)
-  const [publishTarget, setPublishTarget] = useState<Generation | null>(null)
   const [pendingShare, setPendingShare] = useState<{ blob: Blob; name: string } | null>(null)
   /** Style picker collapses once results exist so they stay in view (phones especially). */
   const [pickerOpen, setPickerOpen] = useState(true)
-  /** "Allegro" on the result cards only makes sense once a seller account is connected. */
-  const [allegroConnected, setAllegroConnected] = useState(false)
 
   const gens = useGenerations(imageId, {
     onBatchFinished: () => {
@@ -66,7 +62,7 @@ export default function Generate() {
         toast(
           (t) => (
             <span className="flex items-center gap-3">
-              <span>Grafika gotowa. Dopisz opis oferty pod SEO Allegro.</span>
+              <span>Grafika gotowa. Dopisz opis oferty pod OLX, Vinted, eBay, Amazon albo sklep.</span>
               <button
                 type="button"
                 className="btn-primary text-xs px-2.5 py-1 whitespace-nowrap"
@@ -93,13 +89,6 @@ export default function Generate() {
   useEffect(() => {
     setPickerOpen(!gens.openedWithResults)
   }, [gens.openedWithResults])
-
-  useEffect(() => {
-    allegroApi
-      .status()
-      .then((r) => setAllegroConnected(Boolean(r.data.connected)))
-      .catch(() => setAllegroConnected(false))
-  }, [])
 
   const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 10) - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
@@ -286,7 +275,6 @@ export default function Generate() {
           <h1 className="text-2xl font-bold text-gray-900">Generator grafik produktowych</h1>
           <p className="text-gray-500 text-sm mt-0.5 truncate">
             {image.createdAt ? `Zdjęcie przesłane ${new Date(image.createdAt).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })}` : 'Zdjęcie produktu'}
-            {image.allegroOfferId ? ` · oferta Allegro ${image.allegroOfferId}` : ''}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2 shrink-0">
@@ -387,7 +375,6 @@ export default function Generate() {
               onInfographic={() => setInfographicTarget(gen)}
               onRework={() => startRework(gen)}
               reworking={reworkingId === gen.id}
-              onPublish={allegroConnected ? () => setPublishTarget(gen) : undefined}
               onRetry={() => retryFailed(gen.id)}
               onRated={(rating) => setGenerations((prev) => prev.map((g) => (g.id === gen.id ? { ...g, rating } : g)))}
             />
@@ -404,8 +391,6 @@ export default function Generate() {
             imageId={imageId!}
             hasCompletedGraphic={completedCount > 0}
             onCreditsChanged={() => refreshUser().catch(() => undefined)}
-            allegroConnected={allegroConnected}
-            defaultOfferId={image.allegroOfferId ?? null}
             onStateChange={(has) => {
               hasDescriptionRef.current = has
             }}
@@ -438,7 +423,6 @@ export default function Generate() {
 
       {exportTarget && exportTarget.url && <ExportModal generationId={exportTarget.id} styleName={exportTarget.style} previewUrl={exportTarget.url} onClose={() => setExportTarget(null)} />}
       {infographicTarget && <InfographicModal generationId={infographicTarget.id} imageId={imageId!} styleName={infographicTarget.style} onClose={() => setInfographicTarget(null)} />}
-      {publishTarget && <PublishToAllegroModal generationId={publishTarget.id} style={publishTarget.style} defaultOfferId={image.allegroOfferId ?? null} onClose={() => setPublishTarget(null)} />}
 
       {!hasResults && (
         <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">

@@ -124,7 +124,6 @@ export interface ImageSummary {
   originalUrl: string
   filename: string
   createdAt: string
-  allegroOfferId?: string | null
   generations: GenerationSummary[]
   hasDescription?: boolean
 }
@@ -203,15 +202,46 @@ export interface ImageAdjustments {
   sharpen?: boolean
 }
 
+export type ExportRatio = '1:1' | '4:3' | '3:4' | '16:9'
+export type ExportFormat = 'jpeg' | 'png' | 'webp'
+export type PlatformId = 'generic' | 'olx' | 'vinted' | 'ebay' | 'amazon'
+
+/** Spec 08: a sales platform preset as served by `GET /generation/platform-presets`. */
+export interface PlatformPreset {
+  id: PlatformId
+  label: string
+  ratios: ExportRatio[]
+  defaultRatio: ExportRatio
+  minSize: number
+  minSizeOfficial: boolean
+  targetSize: number
+  formats: ExportFormat[]
+  defaultFormat: ExportFormat
+  /** Fraction of the canvas the product fills on pure white (Amazon main image), or null. */
+  productFill: number | null
+  badge: 'allowed' | 'discouraged' | 'forbidden'
+  titleMaxLength: number
+  titleMaxOfficial: boolean
+  /** `official` = published platform requirement; otherwise our recommendation („zalecane”). */
+  rules: Array<{ text: string; official: boolean }>
+  source: string
+}
+
+export const platformsApi = {
+  list: () => api.get<PlatformPreset[]>('/generation/platform-presets'),
+}
+
 export interface ExportOptions {
-  ratio?: '1:1' | '4:3' | '3:4' | '16:9'
+  /** Sales platform preset – the API enforces its ratios, formats, minimum size and badge rule. */
+  platform?: PlatformId
+  ratio?: ExportRatio
   /** User-chosen framing (fractions 0-1 of the rotated source). Without it the whole graphic is fitted on white. */
   crop?: { left: number; top: number; width: number; height: number }
   /** Clockwise rotation applied before framing. */
   rotate?: 0 | 90 | 180 | 270
   adjust?: ImageAdjustments
   size?: number
-  format?: 'jpeg' | 'png' | 'webp'
+  format?: ExportFormat
   badgeText?: string
   badgeColor?: 'red' | 'orange' | 'green' | 'blue' | 'black'
   badgePosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -232,6 +262,10 @@ export interface OfferDescription {
   body: string
   keywords: string[]
   sellerNotes: string | null
+  /** Platform the copy is written for (spec 08). */
+  platform: PlatformId
+  /** Title limit of that platform. */
+  titleMaxLength: number
   promptEditsUsed: number
   updatedAt: string
 }
@@ -250,8 +284,8 @@ export interface DescriptionView {
 
 export const descriptionsApi = {
   get: (imageId: string) => api.get<DescriptionView>(`/descriptions/${imageId}`),
-  create: (imageId: string, notes?: string) => api.post<DescriptionView>(`/descriptions/${imageId}`, notes ? { notes } : {}),
-  update: (imageId: string, data: { title: string; body: string; keywords: string[] }) => api.patch<DescriptionView>(`/descriptions/${imageId}`, data),
+  create: (imageId: string, notes?: string, platform?: PlatformId) => api.post<DescriptionView>(`/descriptions/${imageId}`, { ...(notes ? { notes } : {}), ...(platform ? { platform } : {}) }),
+  update: (imageId: string, data: { title: string; body: string; keywords: string[]; platform?: PlatformId }) => api.patch<DescriptionView>(`/descriptions/${imageId}`, data),
   refine: (imageId: string, instruction: string) => api.post<DescriptionView>(`/descriptions/${imageId}/refine`, { instruction }),
   buyEditPack: (imageId: string) => api.post<DescriptionView>(`/descriptions/${imageId}/edit-packs`),
 }
@@ -366,7 +400,6 @@ export interface AdminUserImage {
   id: string
   originalUrl: string
   createdAt: string
-  allegroOfferId: string | null
   descriptionTitle: string | null
   generations: AdminGraphic[]
 }
@@ -387,25 +420,4 @@ export const adminApi = {
   user: (id: string) => api.get<AdminUserDetail>(`/admin/users/${id}`),
   sendEmail: (id: string, subject: string, message: string) => api.post<AdminEmailEntry>(`/admin/users/${id}/email`, { subject, message }),
   grantCredits: (id: string, amount: number, reason: string) => api.post<{ credits: number; grant: AdminCreditGrant }>(`/admin/users/${id}/credits`, { amount, reason }),
-}
-
-// Allegro
-export interface AllegroOffer {
-  id: string
-  name: string
-  primaryImage: string | null
-  status: string
-  price: string | null
-}
-
-export const allegroApi = {
-  status: () => api.get<{ configured: boolean; connected: boolean; sellerLogin: string | null }>('/allegro/status'),
-  authUrl: () => api.get<{ url: string }>('/allegro/auth-url'),
-  callback: (code: string, state: string) => api.post('/allegro/callback', { code, state }),
-  disconnect: () => api.delete('/allegro/connection'),
-  offers: (params: { offset?: number; limit?: number; name?: string } = {}) => api.get<{ offers: AllegroOffer[]; total: number }>('/allegro/offers', { params }),
-  importOffer: (offerId: string) => api.post<{ id: string; offerId: string; offerName: string | null }>(`/allegro/offers/${offerId}/import`),
-  publish: (offerId: string, generationId: string, position: 'first' | 'last') => api.post(`/allegro/offers/${offerId}/publish`, { generationId, position }),
-  /** Sends the photo's offer title/description to the offer (spec 08). */
-  publishDescription: (offerId: string, imageId: string, mode: 'replace' | 'prepend', updateTitle: boolean) => api.post(`/allegro/offers/${offerId}/description`, { imageId, mode, updateTitle }),
 }

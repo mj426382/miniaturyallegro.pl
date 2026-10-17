@@ -1,4 +1,8 @@
 import { Page } from '@playwright/test'
+// Spec 08: the mock serves the real presets – one source of truth shared with the API.
+import { listPlatformPresets, PLATFORM_PRESETS, PlatformId } from '../../backend/src/generation/platform-presets'
+
+export const PLATFORM_PRESET_LIST = listPlatformPresets()
 
 /** 1×1 PNG – enough for the browser to treat the download as an image. */
 export const PNG_BYTES = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64')
@@ -19,7 +23,6 @@ export const IMAGE = {
   id: 'img-1',
   filename: 'originals/img-1.jpg',
   originalUrl: '/api/uploads/originals/img-1.jpg',
-  allegroOfferId: null,
   createdAt: '2026-10-01T00:00:00.000Z',
   generations: [
     { id: 'gen-1', style: 'white-bg', status: 'COMPLETED', url: '/api/uploads/generated/gen-1.png', rating: null, createdAt: '2026-10-01T00:00:00.000Z' },
@@ -49,6 +52,8 @@ export const DESCRIPTION = {
   body: '<p>Solidny kubek na co dzień.</p><h2>Najważniejsze cechy</h2><ul><li>pojemność 350 ml</li><li>można myć w zmywarce</li></ul>',
   keywords: ['kubek ceramiczny', 'kubek 350 ml'],
   sellerNotes: 'kubek 350 ml',
+  platform: 'generic' as PlatformId,
+  titleMaxLength: 75,
   promptEditsUsed: 0,
   updatedAt: '2026-10-02T00:00:00.000Z',
 }
@@ -97,16 +102,12 @@ export interface MockOptions {
   loggedIn?: boolean
   /** Spec 13 – unconfirmed account (banner, gate). */
   emailVerified?: boolean
-  /** Spec 08 – a connected Allegro seller account. */
-  allegroConnected?: boolean
   /** Pre-existing offer copy for IMAGE. */
   withDescription?: boolean
   /** Payment history rows. */
   history?: any[]
   /** Extra gallery photos (spec 15). */
   extraImages?: any[]
-  /** IMAGE was imported from this Allegro offer. */
-  imageOfferId?: string
   /** Spec 16: the account is listed in ADMIN_EMAILS. */
   isAdmin?: boolean
   /** Free pool used up and no paid credits. */
@@ -199,7 +200,6 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
             id: 'img-a',
             originalUrl: '/api/uploads/originals/a.jpg',
             createdAt: '2026-10-04T10:00:00.000Z',
-            allegroOfferId: null,
             descriptionTitle: 'Kubek ceramiczny 350 ml',
             generations: [
               { id: 'g-a1', style: 'white-bg', status: 'COMPLETED', url: '/api/uploads/generated/a1.png', rating: -1, ratingReason: 'artifacts', createdAt: '2026-10-04T10:01:00.000Z' },
@@ -300,10 +300,9 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       requests.push({ url: path, method: 'GET' })
       return json({ url: 'about:blank#invoice' })
     }
-    if (path === '/allegro/offers') return json({ offers: [{ id: 'off-1', name: 'Kubek ceramiczny – oferta', primaryImage: null, status: 'ACTIVE', price: '29.99 PLN' }], total: 1 })
-    if (/^\/allegro\/offers\/[^/]+\/description$/.test(path)) {
-      requests.push({ url: path, method: 'POST', body: req.postDataJSON() })
-      return json({ offerId: 'off-1', mode: req.postDataJSON()?.mode, titleUpdated: Boolean(req.postDataJSON()?.updateTitle), sections: 1 }, 201)
+    if (path === '/generation/platform-presets') {
+      requests.push({ url: path, method: 'GET' })
+      return json(PLATFORM_PRESET_LIST)
     }
     if (path === '/users/me' && req.method() === 'PATCH') {
       const body = req.postDataJSON()
@@ -399,7 +398,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       images.splice(0, images.length)
       return json({ message: 'Image deleted' })
     }
-    if (path === `/images/${IMAGE.id}`) return json({ ...IMAGE, allegroOfferId: options.imageOfferId ?? null })
+    if (path === `/images/${IMAGE.id}`) return json(IMAGE)
     if (path === `/generation/${IMAGE.id}/results`) return json(IMAGE.generations)
     const extra = images.find((i) => i.id !== IMAGE.id && (path === `/generation/${i.id}/results` || path === `/descriptions/${i.id}`))
     if (extra && path.endsWith('/results')) return json(extra.generations)
@@ -434,7 +433,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       return route.fulfill({
         status: 201,
         contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
-        headers: { 'Content-Disposition': `attachment; filename="grafika-white-bg-${(body?.ratio || '1:1').replace(':', 'x')}.${ext}"` },
+        headers: { 'Content-Disposition': `attachment; filename="grafika-white-bg-${body?.platform ? `${body.platform}-` : ''}${(body?.ratio || '1:1').replace(':', 'x')}.${ext}"` },
         body: PNG_BYTES,
       })
     }
@@ -442,13 +441,15 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     if (path === `/descriptions/${IMAGE.id}` && req.method() === 'POST') {
       const body = req.postDataJSON()
       requests.push({ url: path, method: 'POST', body })
-      description = { ...DESCRIPTION, sellerNotes: body?.notes ?? null, promptEditsUsed: description?.promptEditsUsed ?? 0 }
+      const platform: PlatformId = body?.platform ?? description?.platform ?? 'generic'
+      description = { ...DESCRIPTION, sellerNotes: body?.notes ?? null, platform, titleMaxLength: PLATFORM_PRESETS[platform].titleMaxLength, promptEditsUsed: description?.promptEditsUsed ?? 0 }
       return json(descriptionView(), 201)
     }
     if (path === `/descriptions/${IMAGE.id}` && req.method() === 'PATCH') {
       const body = req.postDataJSON()
       requests.push({ url: path, method: 'PATCH', body })
-      description = { ...description!, title: body.title, body: body.body, keywords: body.keywords ?? description!.keywords }
+      const platform: PlatformId = body.platform ?? description!.platform
+      description = { ...description!, title: body.title, body: body.body, keywords: body.keywords ?? description!.keywords, platform, titleMaxLength: PLATFORM_PRESETS[platform].titleMaxLength }
       return json(descriptionView())
     }
     if (path === `/descriptions/${IMAGE.id}/edit-packs`) {
@@ -482,7 +483,6 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       }
       return json(descriptionView(), 201)
     }
-    if (path === '/allegro/status') return json(options.allegroConnected ? { configured: true, connected: true, sellerLogin: 'sklep' } : { configured: false, connected: false, sellerLogin: null })
     if (path === '/payments/subscription') return json({ subscription: null })
     if (path === '/payments/plans') return json([])
     return json({ message: `unmocked ${path}` }, 404)

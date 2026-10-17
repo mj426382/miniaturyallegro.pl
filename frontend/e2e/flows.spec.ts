@@ -53,12 +53,12 @@ test.describe('offer description (SEO copy)', () => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => undefined)
     const { requests } = await mockApp(page)
     await page.goto('/generate/img-1')
-    const panel = page.getByRole('region', { name: 'Opis oferty pod SEO Allegro' })
+    const panel = page.getByRole('region', { name: 'Opis oferty' })
     await expect(panel).toBeVisible()
 
     await panel.getByLabel('Co warto napisać o produkcie?').fill('kubek 350 ml')
     await panel.getByRole('button', { name: 'Wygeneruj opis (gratis)' }).click()
-    expect(requests.find((r) => r.url === '/descriptions/img-1' && r.method === 'POST')!.body).toEqual({ notes: 'kubek 350 ml' })
+    expect(requests.find((r) => r.url === '/descriptions/img-1' && r.method === 'POST')!.body).toEqual({ notes: 'kubek 350 ml', platform: 'generic' })
 
     const title = panel.getByLabel('Tytuł oferty')
     await expect(title).toHaveValue('Kubek ceramiczny 350 ml biały do zmywarki')
@@ -89,6 +89,7 @@ test.describe('offer description (SEO copy)', () => {
       title: 'Kubek ceramiczny 350 ml – edycja',
       body: '<h2>Opis</h2><p>Ręcznie poprawiony opis kubka.</p>',
       keywords: ['kubek', 'biały kubek'],
+      platform: 'generic',
     })
     await expect(panel.getByRole('button', { name: 'Zapisz zmiany' })).toBeDisabled()
   })
@@ -96,7 +97,7 @@ test.describe('offer description (SEO copy)', () => {
   test('[AC-DESC-012, AC-PRC-007] offers a pack of fifteen rewrites for a credit once the free ones are used up', async ({ page }) => {
     const { requests } = await mockApp(page)
     await page.goto('/generate/img-1')
-    const panel = page.getByRole('region', { name: 'Opis oferty pod SEO Allegro' })
+    const panel = page.getByRole('region', { name: 'Opis oferty' })
     await panel.getByRole('button', { name: 'Wygeneruj opis (gratis)' }).click()
     await expect(panel.getByLabel('Tytuł oferty')).toBeVisible()
 
@@ -182,28 +183,28 @@ test.describe('gallery', () => {
     await expect(page.getByText('Opis ✓')).toBeVisible()
   })
 
-  test('[AC-UI-007] the Allegro publish button is hidden until a seller account is connected', async ({ page }) => {
+  test('[AC-UI-007] the card menu offers export, infographic and rework – no publishing to an external service', async ({ page }) => {
     await mockApp(page)
     await page.goto('/generate/img-1')
     await page.getByRole('button', { name: 'Więcej akcji' }).first().click()
     await expect(page.getByRole('menuitem', { name: 'Eksport i edycja' })).toBeVisible()
-    await expect(page.getByRole('menuitem', { name: 'Opublikuj na Allegro' })).toHaveCount(0)
+    await expect(page.getByRole('menuitem', { name: 'Przeróbka' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: /Opublikuj/ })).toHaveCount(0)
   })
 })
 
-test.describe('Allegro integration page', () => {
-  test('[AC-ALG-003] shows the not-configured state and keeps the navigation working', async ({ page }) => {
-    await mockApp(page)
+test.describe('no marketplace integration (spec 08)', () => {
+  test('[AC-PLT-008] the navigation has no Allegro entry and the old address is a 404', async ({ page }) => {
+    const { requests } = await mockApp(page)
+    await page.goto('/')
+    await expect(page.getByRole('link', { name: 'Galeria' }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: /Allegro/i })).toHaveCount(0)
     await page.goto('/allegro')
-    await expect(page.getByText('Integracja z Allegro nie jest jeszcze włączona')).toBeVisible()
-  })
-
-  test('[AC-ALG-004] handles the OAuth callback with a missing code', async ({ page }) => {
-    await mockApp(page)
-    await page.goto('/allegro/callback?error_description=odmowa')
-    await expect(page.getByText('odmowa')).toBeVisible()
-    await page.getByRole('link', { name: 'Spróbuj ponownie' }).click()
-    await expect(page).toHaveURL(/\/allegro$/)
+    await expect(page.getByText('Tej strony nie ma')).toBeVisible()
+    await page.goto('/allegro/callback?code=x&state=y')
+    await expect(page.getByText('Tej strony nie ma')).toBeVisible()
+    expect(requests.some((r) => r.url.startsWith('/allegro'))).toBe(false)
+    await expect(page.locator('body')).not.toContainText(/allegro/i)
   })
 })
 

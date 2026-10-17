@@ -13,7 +13,6 @@ import {
   Bars3Icon,
   XMarkIcon,
   Cog6ToothIcon,
-  ShoppingBagIcon,
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline'
 
@@ -22,7 +21,6 @@ const navigation = [
   { name: 'Prześlij zdjęcie', href: '/upload', icon: ArrowUpTrayIcon },
   { name: 'Masowe przesyłanie', href: '/bulk-upload', icon: RectangleStackIcon },
   { name: 'Galeria', href: '/gallery', icon: Squares2X2Icon },
-  { name: 'Allegro', href: '/allegro', icon: ShoppingBagIcon },
   { name: 'Kredyty', href: '/credits', icon: CreditCardIcon },
   { name: 'Konto', href: '/account', icon: Cog6ToothIcon },
 ]

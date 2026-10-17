@@ -1,16 +1,16 @@
 /**
- * Allegro offer descriptions allow only h2/p/ul/ol/li/b without attributes. The API already
+ * Offer descriptions use a small safe HTML subset: h2/p/ul/ol/li/b without attributes. The API already
  * stores sanitized HTML; this mirror of the server rule guards the live preview and the
  * clipboard output when the user edits the HTML by hand.
  */
-export const ALLEGRO_ALLOWED_TAGS = ['h2', 'p', 'ul', 'ol', 'li', 'b'] as const
-const ALLOWED = new Set<string>(ALLEGRO_ALLOWED_TAGS)
+export const OFFER_ALLOWED_TAGS = ['h2', 'p', 'ul', 'ol', 'li', 'b'] as const
+const ALLOWED = new Set<string>(OFFER_ALLOWED_TAGS)
 const ALIASES: Record<string, string> = { strong: 'b', h1: 'h2', h3: 'h2', h4: 'h2', h5: 'h2', h6: 'h2' }
-const STRAY_LT = new RegExp(`<(?!\\/?(?:${ALLEGRO_ALLOWED_TAGS.join('|')})>)`, 'g')
+const STRAY_LT = new RegExp(`<(?!\\/?(?:${OFFER_ALLOWED_TAGS.join('|')})>)`, 'g')
 
 export const MAX_TITLE_LENGTH = 75
 
-export function sanitizeAllegroHtml(input: string): string {
+export function sanitizeOfferHtml(input: string): string {
   let html = String(input ?? '')
   html = html.replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
   html = html.replace(/<!--[\s\S]*?-->/g, '')
@@ -26,13 +26,13 @@ export function sanitizeAllegroHtml(input: string): string {
 }
 
 /** Sanitized HTML without the whitespace that formatting adds between tags – what gets saved and compared. */
-export function compactAllegroHtml(html: string): string {
-  return sanitizeAllegroHtml(html).replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim()
+export function compactOfferHtml(html: string): string {
+  return sanitizeOfferHtml(html).replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim()
 }
 
 /** Plain-text rendering for sellers who paste into a text-only field. */
-export function allegroHtmlToText(html: string): string {
-  return sanitizeAllegroHtml(html)
+export function offerHtmlToText(html: string): string {
+  return sanitizeOfferHtml(html)
     .replace(/<\/(h2|p|li)>/g, '\n')
     .replace(/<li>/g, '• ')
     .replace(/<[^>]+>/g, '')
@@ -45,8 +45,8 @@ export function allegroHtmlToText(html: string): string {
 }
 
 /** Pretty-prints the compact HTML the API returns so it is editable in a textarea. */
-export function formatAllegroHtml(html: string): string {
-  return sanitizeAllegroHtml(html)
+export function formatOfferHtml(html: string): string {
+  return sanitizeOfferHtml(html)
     .replace(/<(h2|p|ul|ol)>/g, '\n<$1>')
     .replace(/<\/(ul|ol)>/g, '\n</$1>')
     .replace(/<li>/g, '\n  <li>')

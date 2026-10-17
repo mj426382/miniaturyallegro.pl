@@ -149,7 +149,7 @@ export default function InfographicModal({ generationId, imageId, styleName, onC
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
-        <p className="help-text mb-4">Allegro nie pozwala na tekst na zdjęciu głównym – dodaj infografikę jako kolejne zdjęcie oferty. Bezpłatnie.</p>
+        <p className="help-text mb-4">Marketplace’y (np. Amazon, eBay) nie pozwalają na tekst na zdjęciu głównym – dodaj infografikę jako kolejne zdjęcie oferty. Bezpłatnie.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">

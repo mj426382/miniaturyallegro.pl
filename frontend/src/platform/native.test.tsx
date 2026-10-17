@@ -265,21 +265,4 @@ describe('features that need the web', () => {
     await renderLogin()
     expect(screen.getByText('lub')).toBeInTheDocument()
   })
-
-  it('[AC-MOB-006] connecting Allegro in the app opens the web page in the browser', async () => {
-    fake.native = true
-    handler = (config) => (config.url === '/allegro/status' ? { status: 200, data: { configured: true, connected: false, sellerLogin: null } } : { status: 200, data: {} })
-    const { default: Allegro } = await import('../pages/Allegro')
-    const { ConfirmProvider } = await import('../components/ConfirmDialog')
-    render(
-      <ConfirmProvider>
-        <MemoryRouter initialEntries={['/allegro']}>
-          <Allegro />
-        </MemoryRouter>
-      </ConfirmProvider>,
-    )
-    await userEvent.click(await screen.findByRole('button', { name: 'Połącz z Allegro' }))
-    expect(fake.browserOpen).toHaveBeenCalledWith({ url: 'https://app.allgrafika.pl/allegro' })
-    expect(requests.some((r) => r.url === '/allegro/auth-url')).toBe(false)
-  })
 })

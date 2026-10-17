@@ -30,8 +30,8 @@ export default function ReferralCard() {
     if (!data) return
     try {
       await navigator.share({
-        title: 'AllGrafika – miniaturki Allegro z AI',
-        text: `Robię miniaturki na Allegro w AllGrafika. Zarejestruj się z mojego linku, a dostaniesz ${data.bonus} grafiki gratis na start:`,
+        title: 'AllGrafika – zdjęcia produktowe z AI',
+        text: `Robię zdjęcia produktów na OLX, Vinted, eBay i Amazon w AllGrafika. Zarejestruj się z mojego linku, a dostaniesz ${data.bonus} grafiki gratis na start:`,
         url: data.link,
       })
       track('referral_share')

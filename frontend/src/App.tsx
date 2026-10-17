@@ -28,8 +28,6 @@ const ResetPassword = lazyPage(() => import('./pages/ResetPassword'))
 const VerifyEmail = lazyPage(() => import('./pages/VerifyEmail'))
 const Unsubscribe = lazyPage(() => import('./pages/Unsubscribe'))
 const Admin = lazyPage(() => import('./pages/Admin'))
-const Allegro = lazyPage(() => import('./pages/Allegro'))
-const AllegroCallback = lazyPage(() => import('./pages/AllegroCallback'))
 const Regulamin = lazyPage(() => import('./pages/Regulamin'))
 const PolitykaPrywatnosci = lazyPage(() => import('./pages/PolitykaPrywatnosci'))
 const NotFound = lazyPage(() => import('./pages/NotFound'))
@@ -82,8 +80,6 @@ export default function App() {
                     <Route path="gallery" element={<Gallery />} />
                     <Route path="credits" element={<Credits />} />
                     <Route path="account" element={<Account />} />
-                    <Route path="allegro" element={<Allegro />} />
-                    <Route path="allegro/callback" element={<AllegroCallback />} />
                     <Route path="admin" element={auth.user?.isAdmin ? <Admin /> : <Navigate to="/" replace />} />
                     <Route path="*" element={<NotFound />} />
                   </Route>

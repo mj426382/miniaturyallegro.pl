@@ -18,7 +18,6 @@ const SCREENS: Array<{ path: string; loggedIn?: boolean; ready: string }> = [
   { path: '/generate/img-1', ready: 'Generator grafik produktowych' },
   { path: '/credits', ready: 'Kredyty' },
   { path: '/account', ready: 'Ustawienia konta' },
-  { path: '/allegro', ready: 'Allegro' },
   { path: '/nie-ma-takiej-strony', ready: 'Tej strony nie ma' },
 ]
 

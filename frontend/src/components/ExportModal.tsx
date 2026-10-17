@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { XMarkIcon, ArrowDownTrayIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
-import { exportApi, ExportOptions, ImageAdjustments } from '../services/api'
+import { exportApi, ExportFormat, ExportOptions, ExportRatio, ImageAdjustments, PlatformPreset } from '../services/api'
+import { usePlatformPresets } from '../hooks/usePlatformPresets'
 import { track } from '../services/analytics'
 import { downloadBlob, shareBlob } from '../utils/download'
 import { CropRect, ratioToAspect } from '../utils/crop'
@@ -14,13 +15,23 @@ interface Props {
   onClose: () => void
 }
 
-const PRESETS: Array<{ id: string; label: string; hint: string; options: ExportOptions }> = [
-  { id: 'allegro-main', label: 'Allegro – zdjęcie główne', hint: '1:1, 1600 px, bez plakietki', options: { ratio: '1:1', size: 1600, format: 'jpeg' } },
-  { id: 'allegro-gallery', label: 'Allegro – galeria 4:3', hint: '1600×1200 px', options: { ratio: '4:3', size: 1600, format: 'jpeg' } },
-  { id: 'ads', label: 'Allegro Ads / baner 16:9', hint: '1920×1080 px', options: { ratio: '16:9', size: 1920, format: 'jpeg' } },
-  { id: 'social', label: 'Social / stories 3:4', hint: '1350×1800 px', options: { ratio: '3:4', size: 1800, format: 'jpeg' } },
-  { id: 'png', label: 'PNG wysokiej jakości', hint: '1:1, 2000 px, bezstratnie', options: { ratio: '1:1', size: 2000, format: 'png' } },
-]
+const RATIO_HINTS: Record<ExportRatio, string> = {
+  '1:1': 'kwadrat – zdjęcie główne',
+  '4:3': 'poziome – galeria',
+  '3:4': 'pionowe',
+  '16:9': 'panorama – baner',
+}
+const FORMAT_LABELS: Record<ExportFormat, string> = { jpeg: 'JPG', png: 'PNG', webp: 'WebP' }
+
+/** Canvas size for a ratio at the preset's long edge – same maths as the server. */
+function canvasSize(ratio: ExportRatio, size: number): string {
+  const [w, h] = ratio.split(':').map(Number)
+  const width = w >= h ? size : Math.round((size * w) / h)
+  const height = w >= h ? Math.round((size * h) / w) : size
+  return `${width}×${height} px`
+}
+
+const isUrl = (value: string) => /^https:\/\//.test(value)
 
 const COLORS: Array<{ id: NonNullable<ExportOptions['badgeColor']>; className: string; name: string }> = [
   { id: 'red', className: 'bg-red-600', name: 'czerwony' },
@@ -55,8 +66,12 @@ const STEPS: Array<{ id: Step; label: string }> = [
 
 export default function ExportModal({ generationId, styleName, previewUrl, onClose }: Props) {
   const [step, setStep] = useState<Step>(1)
-  const [preset, setPreset] = useState(PRESETS[0])
-  const [framing, setFraming] = useState<Framing>(defaultFraming(PRESETS[0].options.ratio))
+  const { presets, failed: presetsFailed, retry: retryPresets } = usePlatformPresets()
+  const [platformId, setPlatformId] = useState<PlatformPreset['id']>('generic')
+  const preset = presets?.find((p) => p.id === platformId) ?? null
+  const [ratio, setRatio] = useState<ExportRatio>('1:1')
+  const [format, setFormat] = useState<ExportFormat>('jpeg')
+  const [framing, setFraming] = useState<Framing>(defaultFraming('1:1'))
   const [crop, setCrop] = useState<CropRect | null>(null)
   const [rotation, setRotation] = useState<Rotation>(0)
   const [adjust, setAdjust] = useState<Required<ImageAdjustments>>(DEFAULT_ADJUST)
@@ -74,10 +89,16 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const choosePreset = (p: (typeof PRESETS)[number]) => {
-    setPreset(p)
-    setFraming(defaultFraming(p.options.ratio))
+  const chooseRatio = (next: ExportRatio) => {
+    setRatio(next)
+    setFraming(defaultFraming(next))
     setCrop(null)
+  }
+
+  const choosePlatform = (p: PlatformPreset) => {
+    setPlatformId(p.id)
+    setFormat(p.defaultFormat)
+    chooseRatio(p.defaultRatio)
   }
 
   const onCropChange = useCallback((next: CropRect) => setCrop(next), [])
@@ -86,28 +107,29 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
     setCrop(null)
   }
 
-  const ratio = preset.options.ratio ?? '1:1'
   const isSquare = ratio === '1:1'
   const cropPending = framing === 'crop' && !crop
+  const badgeForbidden = preset?.badge === 'forbidden'
   const filter = isDefaultAdjust(adjust) ? undefined : cssFilter(adjust)
 
   const download = async () => {
     setIsExporting(true)
     try {
-      const options: ExportOptions = { ...preset.options }
+      if (!preset) return
+      const options: ExportOptions = { platform: preset.id, ratio, size: preset.targetSize, format }
       if (framing === 'crop' && crop) options.crop = crop
       if (rotation !== 0) options.rotate = rotation
       if (!isDefaultAdjust(adjust)) options.adjust = adjust
-      if (badgeText.trim()) {
+      if (badgeText.trim() && !badgeForbidden) {
         options.badgeText = badgeText.trim()
         options.badgeColor = badgeColor
         options.badgePosition = badgePosition
       }
       const { data } = await exportApi.export(generationId, options)
       const ext = options.format === 'png' ? 'png' : options.format === 'webp' ? 'webp' : 'jpg'
-      const name = `grafika-${styleName}-${ratio.replace(':', 'x')}.${ext}`
+      const name = `grafika-${styleName}-${preset.id}-${ratio.replace(':', 'x')}.${ext}`
       const method = await downloadBlob(data, name)
-      if (method !== 'cancelled') track('export', { preset: preset.id, framing, rotated: rotation !== 0, adjusted: Boolean(options.adjust), badge: Boolean(options.badgeText), method })
+      if (method !== 'cancelled') track('export', { platform: preset.id, ratio, framing, rotated: rotation !== 0, adjusted: Boolean(options.adjust), badge: Boolean(options.badgeText), method })
       if (method === 'share-rejected') setReadyToShare({ blob: data, name })
       if (method === 'open-tab' || method === 'anchor-ios') toast('Przytrzymaj obraz i wybierz „Zapisz obraz”, aby zapisać go w Zdjęciach.', { duration: 6000 })
     } catch (err: any) {
@@ -151,7 +173,13 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                 <div className="w-full rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden" style={{ aspectRatio: ratioToAspect(ratio) }}>
                   <img src={previewUrl} alt={styleName} className="max-w-full max-h-full object-contain" style={{ transform: `rotate(${rotation}deg)`, filter }} />
                 </div>
-                <p className="help-text mt-2">{isSquare ? 'Cała grafika bez zmian.' : 'Cała grafika na białym tle – puste pasy wypełnią brakującą część formatu.'}</p>
+                <p className="help-text mt-2">
+                  {preset?.productFill
+                    ? `Produkt wypełni ok. ${Math.round(preset.productFill * 100)} % kadru na czysto białym tle (białe marginesy grafiki zostaną przycięte).`
+                    : isSquare
+                      ? 'Cała grafika bez zmian.'
+                      : 'Cała grafika na białym tle – puste pasy wypełnią brakującą część formatu.'}
+                </p>
               </>
             )}
 
@@ -168,7 +196,7 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                 </span>
               </div>
             )}
-            {badgeText.trim() && step === 2 && (
+            {badgeText.trim() && !badgeForbidden && step === 2 && (
               <p className="help-text mt-2">
                 Plakietka „{badgeText.trim()}” zostanie dodana w rogu: {badgePosition}.
               </p>
@@ -177,20 +205,89 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
 
           {step === 1 ? (
             <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Format</p>
-                <div className="space-y-1.5">
-                  {PRESETS.map((p) => (
-                    <label key={p.id} className={`flex items-start gap-2 rounded-lg border p-2.5 cursor-pointer ${preset.id === p.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
-                      <input type="radio" name="preset" checked={preset.id === p.id} onChange={() => choosePreset(p)} className="mt-0.5" />
-                      <span>
-                        <span className="block text-sm text-gray-800">{p.label}</span>
-                        <span className="block text-xs text-gray-600">{p.hint}</span>
-                      </span>
-                    </label>
-                  ))}
+              {presetsFailed && (
+                <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                  Nie udało się pobrać ustawień platform.{' '}
+                  <button type="button" onClick={retryPresets} className="underline font-medium">
+                    Spróbuj ponownie
+                  </button>
                 </div>
-              </div>
+              )}
+              {!presets && !presetsFailed && <p className="help-text">Ładowanie ustawień platform...</p>}
+              {presets && preset && (
+                <>
+                  <fieldset>
+                    <legend className="text-sm font-medium text-gray-700 mb-2">Platforma</legend>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {presets.map((p) => (
+                        <label
+                          key={p.id}
+                          className={`flex items-center gap-2 rounded-lg border p-2 cursor-pointer text-sm text-gray-800 ${p.id === 'generic' ? 'col-span-2' : ''} ${platformId === p.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                        >
+                          <input type="radio" name="platform" checked={platformId === p.id} onChange={() => choosePlatform(p)} />
+                          {p.label}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <fieldset>
+                    <legend className="text-sm font-medium text-gray-700 mb-2">Proporcje</legend>
+                    <div className="space-y-1.5">
+                      {preset.ratios.map((r) => (
+                        <label key={r} className={`flex items-start gap-2 rounded-lg border p-2.5 cursor-pointer ${ratio === r ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                          <input type="radio" name="ratio" checked={ratio === r} onChange={() => chooseRatio(r)} className="mt-0.5" />
+                          <span>
+                            <span className="block text-sm text-gray-800">{r}</span>
+                            <span className="block text-xs text-gray-600">
+                              {RATIO_HINTS[r]} · {canvasSize(r, preset.targetSize)}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  {preset.formats.length > 1 && (
+                    <fieldset>
+                      <legend className="text-sm font-medium text-gray-700 mb-2">Plik</legend>
+                      <div className="flex flex-wrap gap-3">
+                        {preset.formats.map((f) => (
+                          <label key={f} className="flex items-center gap-1.5 text-sm text-gray-800">
+                            <input type="radio" name="file-format" checked={format === f} onChange={() => setFormat(f)} />
+                            {FORMAT_LABELS[f]}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  )}
+
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-3" data-testid="platform-rules">
+                    <p className="text-xs font-medium text-gray-700 mb-1.5">Zasady zdjęć: {preset.label}</p>
+                    <ul className="space-y-1">
+                      {preset.rules.map((rule) => (
+                        <li key={rule.text} className="text-xs text-gray-700 flex items-start gap-1.5">
+                          <span className={`shrink-0 rounded px-1.5 py-px font-medium ${rule.official ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}`}>
+                            {rule.official ? 'wymóg platformy' : 'zalecane'}
+                          </span>
+                          <span>{rule.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-gray-500 mt-1.5">
+                      Źródło:{' '}
+                      {isUrl(preset.source) ? (
+                        <a href={preset.source} target="_blank" rel="noopener noreferrer" className="underline">
+                          pomoc {preset.label}
+                        </a>
+                      ) : (
+                        preset.source
+                      )}
+                    </p>
+                    {preset.productFill && <p className="text-xs text-amber-700 mt-1.5">Na zdjęcie główne wybierz grafikę w stylu „Białe tło” – tła sceny AI nie zmienia przy eksporcie.</p>}
+                  </div>
+                </>
+              )}
 
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">Kadr</p>
@@ -216,7 +313,7 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                 </div>
               </div>
 
-              <button type="button" onClick={() => setStep(2)} disabled={cropPending} className="btn-primary w-full flex items-center justify-center gap-2">
+              <button type="button" onClick={() => setStep(2)} disabled={cropPending || !preset} className="btn-primary w-full flex items-center justify-center gap-2">
                 {cropPending ? 'Ładowanie podglądu...' : 'Dalej'}
                 {!cropPending && <ArrowRightIcon className="h-4 w-4" />}
               </button>
@@ -263,14 +360,22 @@ export default function ExportModal({ generationId, styleName, previewUrl, onClo
                 <input
                   id="badge-text"
                   type="text"
-                  value={badgeText}
+                  value={badgeForbidden ? '' : badgeText}
                   onChange={(e) => setBadgeText(e.target.value)}
+                  disabled={badgeForbidden}
+                  aria-describedby="badge-note"
                   maxLength={24}
                   placeholder="np. -20%, NOWOŚĆ, DARMOWA DOSTAWA"
                   className="input-field text-sm"
                 />
-                <p className="text-xs text-amber-700 mt-1">Uwaga: Allegro nie dopuszcza napisów na zdjęciu głównym. Plakietki używaj na kolejnych zdjęciach w galerii.</p>
-                {badgeText.trim() && (
+                <p id="badge-note" className="text-xs text-amber-700 mt-1">
+                  {badgeForbidden
+                    ? `${preset?.label} nie dopuszcza napisów ani plakietek na zdjęciu (wymóg platformy).`
+                    : preset?.badge === 'discouraged'
+                      ? `${preset.label}: lepiej bez napisów na zdjęciach (zalecane).`
+                      : 'Uwaga: marketplace’y zwykle nie dopuszczają napisów na zdjęciu głównym. Plakietki używaj na kolejnych zdjęciach w galerii.'}
+                </p>
+                {badgeText.trim() && !badgeForbidden && (
                   <div className="flex flex-wrap items-center gap-3 mt-2">
                     <div className="flex gap-1.5" role="radiogroup" aria-label="Kolor plakietki">
                       {COLORS.map((c) => (

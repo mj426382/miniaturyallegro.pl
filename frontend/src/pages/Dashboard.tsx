@@ -21,7 +21,7 @@ export default function Dashboard() {
     <div className="px-4 py-6 sm:p-8">
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Witaj, {user?.name || 'Użytkowniku'}! 👋</h1>
-        <p className="text-gray-500 mt-1">Generuj profesjonalne grafiki produktowe dla swoich ofert na Allegro</p>
+        <p className="text-gray-500 mt-1">Generuj profesjonalne grafiki produktowe dla swoich ofert na OLX, Vinted, eBay, Amazon i w sklepie internetowym</p>
       </div>
 
       <ConsentPrompt />
