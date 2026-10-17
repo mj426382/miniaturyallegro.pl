@@ -11,12 +11,42 @@
 
 - Stripe Checkout dla pakietów (jednorazowo) i Stripe Billing dla abonamentów (price ID z env; plan
   oferowany tylko, gdy skonfigurowany). Billing Portal do anulowania.
+- **Strażnik ceny planu** (2026-10-17): plan ma `available: true` tylko wtedy, gdy jego Price w Stripe
+  istnieje, jest aktywna, cykliczna co 1 miesiąc, w PLN i ma `unit_amount` równe `priceGrosze` z `plans.ts`.
+  Wynik sprawdzenia jest trzymany w pamięci 5 min (błąd Stripe: 1 min). Brak ceny, niezgodność albo błąd
+  Stripe → plan niedostępny i ostrzeżenie w logu (fail closed). `POST /payments/subscribe` sprawdza to samo
+  i odmawia (400). Strona nigdy nie pokaże 19 zł, gdy Stripe pobierałby inną kwotę.
 - Przed zakupem pakietu użytkownik zaznacza żądanie natychmiastowego udostępnienia i utratę prawa
   odstąpienia (art. 38 pkt 13); przed abonamentem zgodę z art. 35. Bez zgody → 400.
 - Webhook: weryfikacja podpisu i `livemode`; kredyty dodawane dokładnie raz na sesję/fakturę
   (idempotencja po id); `invoice.paid` tylko dla `subscription_create|subscription_cycle` (proraty nie
   dają kredytów); plan rozpoznawany po zafakturowanej cenie; nieopłacone/wygasłe sesje oznaczane.
 - Usunięcie konta anuluje aktywny abonament.
+- **Zwroty i chargebacki** (2026-10-17, review produkcji):
+  - Przy opłaceniu zapisujemy przy transakcji id PaymentIntent (sesja Checkout: `payment_intent`; faktura
+    abonamentu: `payments[].payment.payment_intent` albo stare pole `payment_intent`) i `completedAt`.
+  - `charge.refunded` (pełny i częściowy): Stripe podaje narastająco `amount_refunded`. Odbieramy kredyty
+    proporcjonalnie: `round(creditsAdded × (zwrócone + kwota sporu) / amountPln)`, najwyżej `creditsAdded`.
+    Liczy się tylko przyrost względem już odebranych, więc kolejność zdarzeń nie ma znaczenia, a kredyty
+    nigdy nie wracają przez starsze zdarzenie. Status: `partially_refunded` albo `refunded`.
+  - `charge.dispute.created`: tak samo dla kwoty sporu, status `disputed`. `charge.dispute.closed`:
+    `won` (i `warning_closed`) oddaje odebrane kredyty (najpierw kasuje niedobór), status wraca do
+    `completed`/`partially_refunded`; `lost` zostawia `disputed`. Zamknięty spór nie otwiera się ponownie.
+  - Saldo nigdy nie spada poniżej 0: czego nie da się odebrać (kredyty już wydane), zapisujemy jako
+    `creditsShortfall` przy transakcji. Odbieramy tylko kupione kredyty, nigdy darmowej puli.
+  - Zwrot przed realizacją (zdarzenia poza kolejnością): zapisujemy zwrot, a realizacja doda tylko
+    `creditsAdded − creditsReversed`.
+  - Idempotencja po id zdarzenia Stripe (`stripe_events`, wstawiane w tej samej transakcji co zmiana salda);
+    blokada wiersza transakcji, potem konta – równoległe dostarczenia nie zdublują zmian.
+  - Dopasowanie: najpierw po PaymentIntent w bazie, potem (transakcje sprzed zmiany) przez Stripe: sesja
+    Checkout z tym PaymentIntent albo faktura z tą płatnością (`invoicePayments`). Konto Stripe jest wspólne
+    ze sklepem JAN-MAT, więc obce płatności są pomijane bez powiadomień (200). Płatność naszego klienta
+    Stripe bez dopasowania: przez pierwsze 6 h odpowiadamy 503 (Stripe ponowi – np. `invoice.paid` jeszcze
+    nie doszło), potem alert do administratorów i 200.
+  - Każda zmiana z powodu zwrotu lub sporu wysyła mail do adresów z `ADMIN_EMAILS` (MailService, spec 16):
+    konto, transakcja, kwoty, odebrane kredyty, niedobór, saldo po zmianie. Błąd wysyłki nie cofa zmian.
+  - Zwrot faktury abonamentu działa identycznie na kredytach przyznanych przez tę fakturę.
+  - Webhooki do włączenia w Stripe: `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`.
 - Kredyty nie wygasają; historia transakcji widoczna w aplikacji.
 - **Faktury z NIP-em (decyzja właściciela: przez Stripe, bez KSeF)**: każda płatność (pakiet i abonament)
   tworzy fakturę Stripe. Checkout pozwala zaznaczyć zakup jako firma z NIP (`tax_id_collection`); adres
@@ -55,5 +85,15 @@
 - **AC-PAY-012** – Given checkout pakietu albo abonamentu, When sesja Stripe jest tworzona, Then ma klienta Stripe, `tax_id_collection.enabled`, adres rozliczeniowy zbierany tylko w razie potrzeby (`billing_address_collection: auto`, nie `required`), `customer_update` (nazwa i adres) i – dla pakietu – `invoice_creation.enabled`.
 - **AC-PAY-013** – Given opłacona sesja z fakturą albo opłacona faktura abonamentu, When webhook, Then id faktury jest zapisane przy transakcji, a historia zwraca `hasInvoice=true`.
 - **AC-PAY-014** – Given transakcja z fakturą, When `GET /payments/invoices/:id`, Then zwracany jest aktualny link PDF ze Stripe; transakcja cudza albo bez faktury → 404.
+- **AC-PAY-016** – Given opłacona sesja Checkout albo opłacona faktura abonamentu, When webhook, Then przy transakcji zapisane są id PaymentIntent (oba kształty faktury) i `completedAt`, a pakiet ma zapisany `packageId`.
+- **AC-PAY-017** – Given opłacony pakiet, When `charge.refunded` częściowy, a potem pełny (także zdublowany i w odwrotnej kolejności), Then kredyty są odbierane proporcjonalnie (narastająco, łącznie dokładnie `creditsAdded`), status to `partially_refunded`, potem `refunded`, każde zdarzenie działa raz, starsze zdarzenie niczego nie oddaje, a administratorzy dostają mail.
+- **AC-PAY-018** – Given kupujący wydał już kredyty, When zwrot albo spór, Then saldo spada najwyżej do 0, a brakująca część jest zapisana jako `creditsShortfall`.
+- **AC-PAY-019** – Given opłacony pakiet, When `charge.dispute.created`, a potem `charge.dispute.closed` wygrany albo przegrany, Then przy otwarciu kredyty są odbierane i status to `disputed`; wygrana oddaje odebrane kredyty (niedobór kasowany najpierw) i przywraca status, przegrana zostawia `disputed`; zamknięcie przed otwarciem nie otwiera sporu ponownie; każdy krok powiadamia administratorów.
+- **AC-PAY-020** – Given opłacona faktura abonamentu, When jej płatność zostaje zwrócona, Then odbierane są kredyty przyznane przez tę fakturę (proporcjonalnie), także dla faktury bez zapisanego PaymentIntent (dopasowanie przez Stripe).
+- **AC-PAY-021** – Given zwrot zarejestrowany przed `checkout.session.completed` (zdarzenia poza kolejnością), When sesja zostaje zrealizowana, Then dodawane jest tylko `creditsAdded − creditsReversed` (przy pełnym zwrocie nic), a status zwrotu zostaje.
+- **AC-PAY-022** – Given zwrot płatności spoza AllGrafiki (wspólne konto Stripe), When webhook, Then 200, brak zmian i powiadomień; płatność naszego klienta bez dopasowania → 503 przez pierwsze 6 h, potem alert i 200; transakcja sprzed zmiany jest dopasowana przez sesję Checkout ze Stripe.
+- **AC-PAY-023** – Given plan z Price w Stripe, When lista planów albo subskrypcja, Then plan jest dostępny tylko przy aktywnej cenie miesięcznej w PLN równej `priceGrosze`; niezgodna kwota, waluta lub interwał, brak ceny albo błąd Stripe → `available: false`, ostrzeżenie i 400 przy subskrypcji; wynik jest cache'owany (jedno zapytanie do Stripe na wiele wywołań).
+- **AC-PAY-024** – Given to samo zdarzenie realizacji albo zwrotu dostarczone równolegle wiele razy, When przetworzone, Then kredyty są dodane (odebrane) dokładnie raz.
+- **AC-PAY-025** – Given losowa sekwencja operacji kilku kont (zakup, generowanie, błąd ze zwrotem, ponowienie, zwrot i spór w Stripe, zdublowane zdarzenia), When po każdym kroku, Then saldo darmowe i kupione każdego konta równa się księdze (zrealizowane transakcje minus odebrane plus niedobór, minus aktywne generacje z danej puli) i nigdy nie jest ujemne.
 - **AC-PAY-011** – Given strona kredytów, When użytkownik kliknie „Kup” bez zgody, Then widzi wskazówkę; ze zgodą i podwójnym kliknięciem powstaje dokładnie jedna sesja.
 - **AC-PAY-015** – Given historia z płatnością z fakturą, When użytkownik kliknie „Faktura”, Then otwiera się link z API; przy płatności bez faktury przycisku nie ma, a pod pakietami jest informacja, że NIP podaje się w formularzu płatności.

@@ -22,7 +22,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | FR-EXP-001 | Eksport w formatach platform sprzedażowych z kadrem, obrotem, korektą i plakietką; pobieranie na telefonach | 06 |
 | FR-DESC-001 | Opis oferty pod wybraną platformę z poprawkami AI i edycją ręczną | 07 |
 | FR-PLT-001 | Presety platform (OLX, Vinted, eBay, Amazon, sklep internetowy) dla eksportu i opisu, bez integracji; integracja z Allegro usunięta 2026-10-17 | 08 |
-| FR-PAY-001 | Pakiety kredytów i abonamenty przez Stripe, zgodnie z prawem konsumenckim; faktury z NIP-em | 09 |
+| FR-PAY-001 | Pakiety kredytów i abonamenty przez Stripe, zgodnie z prawem konsumenckim; faktury z NIP-em; zwroty i chargebacki odbierają kredyty; plan oferowany tylko przy zgodnej cenie w Stripe | 09 |
 | FR-INF-001 | Darmowe infografiki (cechy z ikonami, wymiary) z ukończonej grafiki | 14 |
 | FR-BAT-001 | Paczka ZIP z grafikami i opisami wielu zdjęć | 15 |
 | FR-BAT-002 | Hurtowe pisanie opisów z postępem | 15 |
@@ -66,7 +66,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | NFR-PERF-002 | Hydratacja bez błędów React na każdej trasie landingu | T: AC-SEO-001 |
 | NFR-PERF-003 | Generacja jednej grafiki ≤ 60 s p95; status widoczny w UI bez odświeżania (polling ≤ 4 s) | M: logi; T: AC-GEN-021 |
 | NFR-PERF-004 | Koszt AI na kredyt ≤ 0,20 zł; współbieżność Gemini ograniczona semaforem (`GEMINI_MAX_CONCURRENT`) | M; T: AC-GEN-019 |
-| NFR-PERF-005 | Kredyty rozliczane atomowo (blokada wiersza), limit 30 generacji w toku na użytkownika | T: AC-GEN-004/006 |
+| NFR-PERF-005 | Kredyty rozliczane atomowo (blokada wiersza), limit 30 generacji w toku na użytkownika; zwrot do puli, z której pobrano | T: AC-GEN-004/006/027/029 |
 | NFR-PERF-006 | Budżety pakietów (gzip): JS strony głównej landingu ≤ 110 KB, wejściowy JS aplikacji ≤ 150 KB, chunk ≤ 120 KB, favicon ≤ 16 KB | T: AC-PERF-001/003/004 |
 
 ### Niezawodność (NFR-REL)
@@ -74,7 +74,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | ID | Wymaganie | Weryfikacja |
 |---|---|---|
 | NFR-REL-001 | Nieudana generacja zwraca kredyt; zawieszone generacje sprząta reconciler (20 min / co 5 min) | T: AC-GEN-007/011 |
-| NFR-REL-002 | Webhooki Stripe idempotentne, odporne na kolejność i livemode | T: AC-PAY-004/008/009 |
+| NFR-REL-002 | Webhooki Stripe idempotentne (także po id zdarzenia), odporne na kolejność, równoległe dostarczenia i livemode; saldo zgodne z księgą po każdej operacji | T: AC-PAY-004/008/009/017/021/024/025 |
 | NFR-REL-003 | Migracje uruchamiane przy starcie kontenera, zgodne wstecz z danymi produkcyjnymi | R: `scripts/migrate.js` |
 | NFR-REL-004 | Healthcheck `GET /api/health` | T: AC-API-003 |
 

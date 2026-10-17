@@ -3,7 +3,8 @@
  *
  * One-time packs are the entry point; monthly plans are for shops with many SKUs.
  * Stripe Price IDs for plans come from env (created in the Stripe dashboard), so a
- * plan is only offered when its price is configured.
+ * plan is only offered when its price is configured – and only when that Stripe Price really is
+ * `priceGrosze` PLN per month (price guard in PaymentsService, spec 09 AC-PAY-023).
  */
 export interface CreditPackage {
   id: string;
@@ -71,26 +72,41 @@ export interface SubscriptionPlan {
   description: string;
 }
 
+/**
+ * Owner decision 2026-10-17: lower plan prices. A graphic in every plan must stay cheaper than in the
+ * cheapest pack (200 credits / 99 zł = 0,50 zł) – asserted by the AC-PRC-010 test, which also checks
+ * that the per-graphic prices in the descriptions are the computed ones.
+ */
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: 'sub_start',
     name: 'Start',
     credits: 40,
-    priceGrosze: 4900,
-    priceLabel: '49 zł / mies.',
+    priceGrosze: 1900,
+    priceLabel: '19 zł / mies.',
     priceEnv: 'STRIPE_PRICE_SUB_START',
-    description: '40 grafik miesięcznie (1,23 zł / grafikę). Dla sklepów dodających kilka produktów tygodniowo.',
+    description: '40 grafik miesięcznie (0,48 zł / grafikę). Dla sklepów dodających kilka produktów tygodniowo.',
   },
   {
     id: 'sub_pro',
     name: 'Pro',
     credits: 150,
-    priceGrosze: 14900,
-    priceLabel: '149 zł / mies.',
+    priceGrosze: 5900,
+    priceLabel: '59 zł / mies.',
     priceEnv: 'STRIPE_PRICE_SUB_PRO',
-    description: '150 grafik miesięcznie (0,99 zł / grafikę). Dla sklepów z setkami SKU i hurtowym przesyłaniem.',
+    description: '150 grafik miesięcznie (0,39 zł / grafikę). Dla sklepów z setkami SKU i hurtowym przesyłaniem.',
   },
 ];
+
+/** Price of one graphic in grosze (not rounded). */
+export function perGraphicGrosze(item: { priceGrosze: number; credits: number }): number {
+  return item.priceGrosze / item.credits;
+}
+
+/** Polish price label rounded to the grosz: 47.5 → "0,48 zł", 1900 → "19,00 zł". */
+export function formatPln(grosze: number): string {
+  return `${(Math.round(grosze) / 100).toFixed(2).replace('.', ',')} zł`;
+}
 
 export function findPackage(id: string): CreditPackage | undefined {
   return [...CREDIT_PACKAGES, WELCOME_PACKAGE].find((p) => p.id === id);

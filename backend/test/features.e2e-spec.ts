@@ -26,6 +26,18 @@ describe('Feedback, export, demo, subscriptions & platform presets (integration)
       sessions: { create: async (p: any) => ({ id: 'cs_sub_1', url: 'https://checkout.stripe.com/sub', ...p }) },
     };
     stripe.billingPortal = { sessions: { create: async () => ({ url: 'https://billing.stripe.com/portal' }) } };
+    // Spec 09, AC-PAY-023: the plan price guard reads the Stripe price (monthly PLN, amount of plans.ts).
+    const amounts: Record<string, number> = { price_start_test: 1900, price_pro_test: 5900 };
+    stripe.prices = {
+      retrieve: async (id: string) => ({
+        id,
+        active: true,
+        currency: 'pln',
+        type: 'recurring',
+        recurring: { interval: 'month', interval_count: 1 },
+        unit_amount: amounts[id],
+      }),
+    };
     ctx.payments.setStripeClient(stripe);
     process.env.STRIPE_PRICE_SUB_START = 'price_start_test';
   });

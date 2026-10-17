@@ -135,7 +135,8 @@ export class AdminService {
       procedure: [
         'Stripe → Subscriptions → anuluj subskrypcję natychmiast (bez proraty).',
         `Stripe → ostatnia faktura → Refund na kwotę ${(refundGrosze / 100).toFixed(2)} zł.`,
-        `W bazie: credits -= ${Math.min(plan.credits, user.credits)} (zabierz niewykorzystane kredyty z planu).`,
+        // Spec 09, AC-PAY-020: the charge.refunded webhook takes the credits back proportionally to the refund.
+        `Kredyty: webhook charge.refunded odejmie automatycznie ok. ${Math.min(plan.credits, user.credits)} niewykorzystanych kredytów (proporcjonalnie do kwoty zwrotu) i powiadomi administratorów – sprawdź saldo po zwrocie.`,
         'Odpowiedz konsumentowi w ciągu 14 dni od otrzymania oświadczenia (art. 32 u.p.k.).',
       ],
     };

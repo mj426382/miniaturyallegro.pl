@@ -25,8 +25,20 @@
   semaforem; retry z backoff, bez retry przy błędach limitu.
 - Kredyty: pobierane w transakcji z blokadą wiersza razem z utworzeniem wierszy generacji; max 30 w toku;
   nieudane zwracane; reconciler co 5 min oznacza generacje > 20 min jako nieudane i zwraca kredyty.
+- Pula kredytu (od 2026-10-18): każda generacja zapisuje, z której puli pobrano jej kredyt (`creditPool`:
+  `free`, `paid`, `none` dla administratora bez limitu). Partia pobiera najpierw darmowe, więc pierwsze
+  wiersze dostają `free`, kolejne `paid`. Oznaczenie jako nieudana i zwrot dzieją się w jednej transakcji
+  (z blokadą wiersza konta) i zwracają kredyt do tej samej puli – także w reconcilerze i przy awarii analizy
+  zdjęcia. Wiersze sprzed zmiany (`creditPool = NULL`) są zwracane po staremu (najpierw darmowa pula).
+  Ponowienie pobiera kredyt od nowa i zapisuje nową pulę. Inne miejsca pobierające kredyty: pakiet
+  poprawek opisu (07) – pobierany w transakcji razem z dodaniem poprawek, nie ma ścieżki zwrotu;
+  infografiki, eksport, ZIP i hurtowe opisy są bezpłatne (02, 14, 15).
 - Własny styl: prompt po polsku (3–500 znaków), opcjonalne zdjęcie referencyjne; przeróbka = baza to
   wcześniejsza grafika. Ponowienie nieudanej generacji jest bezpłatne (kredyt już zwrócony → pobierany ponownie).
+- Zdjęcie referencyjne własnego stylu i przeróbki jest zapisywane (skompresowane jak do AI, katalog
+  `references/`) razem z generacją (`referenceKey`, `isRework`), więc ponowienie używa tej samej referencji
+  i tego samego trybu. Po udanej grafice plik jest usuwany (minimalizacja danych); usuwa się też razem ze
+  zdjęciem i kontem (03). Brak pliku przy ponowieniu przeróbki → generacja nieudana, kredyt wraca.
 - Ocena: kciuk góra/dół z powodem; agregaty per styl dla operatora (`/admin/feedback-stats`).
 - Statusy odświeżają się w UI co 4 s bez przeładowania, limit 15 min, potem komunikat.
 
@@ -52,6 +64,9 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 - **AC-GEN-011** – Given generacje zawieszone > 20 min, When reconciler działa, Then są nieudane, a kredyty zwrócone.
 - **AC-GEN-025** – Given grafika w trakcie generowania, którą reconciler oznaczył jako nieudaną i zwrócił kredyt (albo której zdjęcie usunięto), When wywołanie AI zakończy się później, Then grafika zostaje nieudana, kredyt nie jest zwracany drugi raz, a wygenerowany plik jest usuwany z magazynu.
 - **AC-GEN-026** – Given generator, When minął 15-minutowy limit odpytywania, a użytkownik uruchomi kolejne grafiki albo ponowi nieudaną, Then odpytywanie wznawia się; When partia się kończy, Then komunikat podaje liczbę gotowych i nieudanych grafik, a gdy wszystkie są nieudane – błąd z informacją o zwrocie kredytów zamiast „Grafika gotowa”; przycisk „Ponów (1 kredyt)” jest nieaktywny w trakcie żądania.
+- **AC-GEN-027** – Given konto z 2 darmowymi i kupionymi kredytami, When partia 3 grafik (2 z darmowej puli, 1 z kupionych) albo własny styl, przeróbka czy ponowienie kończy się błędem (generowanie, analiza zdjęcia, reconciler), Then każda generacja ma zapisaną pulę, a kredyt wraca dokładnie do tej puli (kupiony nie zamienia się w darmowy ani odwrotnie); administrator ma pulę `none` i nic nie dostaje; wiersz sprzed zmiany wraca po staremu.
+- **AC-GEN-028** – Given własny styl albo przeróbka ze zdjęciem referencyjnym, When generacja się nie uda i użytkownik ją ponowi, Then ponowienie używa tej samej (zapisanej) referencji i trybu przeróbki; po udanej grafice plik referencji jest usuwany, a usunięcie zdjęcia albo konta usuwa też referencje nieudanych generacji.
+- **AC-GEN-029** – Given wiele równoległych startów, ponowień i błędów generacji jednego konta, When wszystkie się zakończą, Then saldo darmowe i kupione równa się księdze (wpłaty minus generacje w toku i gotowe z danej puli), nigdy nie jest ujemne, a każdy błąd zwrócił dokładnie jeden kredyt.
 - **AC-GEN-012** – Given identyfikator stylu, When wyszukany, Then zwraca definicję lub `undefined`.
 - **AC-GEN-013** – Given zmienna środowiskowa z listą stylów startowych, When zawiera nieznane id, Then są ignorowane.
 - **AC-GEN-014** – Given wywołanie Gemini, When budowane, Then zawiera oryginalne zdjęcie, prompt z regułami i podpowiedź proporcji 1:1.

@@ -15,7 +15,7 @@ import * as http from 'http';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
 import { GeminiService } from './gemini.service';
-import { CreditsService } from './credits.service';
+import { CreditsService, poolsOf } from './credits.service';
 import { ExportService, ExportOptions } from './export.service';
 import { InfographicOptions, InfographicService } from './infographic.service';
 import { detectMimeTypeFromUrl, prepareForAi } from '../images/image-prep';
@@ -30,6 +30,16 @@ const MAX_ACTIVE_PER_USER = 30;
 /** Generations stuck in PENDING/PROCESSING longer than this are failed and refunded. */
 const STALE_GENERATION_MINUTES = 20;
 const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
+/** Storage folder of custom-style / rework reference images (spec 05, AC-GEN-028). */
+const REFERENCE_FOLDER = 'references';
+
+type PreparedReference = { buffer: Buffer; mimeType: string };
+
+function extensionFor(mimeType: string): string {
+  if (mimeType === 'image/png') return '.png';
+  if (mimeType === 'image/webp') return '.webp';
+  return '.jpg';
+}
 
 @Injectable()
 export class GenerationService implements OnModuleInit, OnModuleDestroy {
@@ -84,15 +94,8 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
 
     let refunded = 0;
     for (const gen of stale) {
-      // Conditional update: only the instance that flips the row refunds.
-      const { count } = await this.prisma.generation.updateMany({
-        where: { id: gen.id, status: { in: ['PENDING', 'PROCESSING'] } },
-        data: { status: 'FAILED' },
-      });
-      if (count === 1) {
-        await this.credits.refund(gen.image.userId, 1);
-        refunded++;
-      }
+      // Conditional flip + refund to the charged pool in one transaction: only one caller refunds.
+      if (await this.credits.failGeneration(gen.image.userId, gen.id)) refunded++;
     }
     if (refunded) this.logger.warn(`Reconciled ${refunded} stale generation(s) – credits refunded`);
     return refunded;
@@ -122,14 +125,16 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     if (!styles.length) throw new HttpException('Nie wybrano żadnego stylu', HttpStatus.BAD_REQUEST);
 
     // Charge, enforce the in-flight cap and create the rows in ONE transaction under the user row lock.
+    // Each row records the pool of its credit (free ones first), so a failure refunds the right pool.
     const { result: generations } = await this.credits.deduct(userId, styles.length, {
       maxActive: MAX_ACTIVE_PER_USER,
-      within: async (tx) => {
+      within: async (tx, charge) => {
+        const pools = poolsOf(charge, styles.length);
         const rows: { id: string }[] = [];
-        for (const style of styles) {
+        for (const [i, style] of styles.entries()) {
           rows.push(
             await tx.generation.create({
-              data: { imageId, style: style.id, prompt: style.prompt, status: 'PENDING' },
+              data: { imageId, style: style.id, prompt: style.prompt, status: 'PENDING', creditPool: pools[i] },
               select: { id: true },
             }),
           );
@@ -169,14 +174,45 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const { result: generation } = await this.credits.deduct(userId, 1, {
-      maxActive: MAX_ACTIVE_PER_USER,
-      within: (tx) =>
-        tx.generation.create({
-          data: { imageId, style: 'custom', prompt: userPrompt, status: 'PENDING' },
-          select: { id: true },
-        }),
-    });
+    // Spec 05, AC-GEN-028: the reference is stored (compressed like for the AI) with the generation, so a
+    // retry uses the same reference. Uploaded before the charge; removed again when the charge fails.
+    let reference: PreparedReference | undefined;
+    let referenceKey: string | null = null;
+    if (referenceBuffer && referenceMimeType) {
+      const compressed = await prepareForAi(referenceBuffer, referenceMimeType);
+      reference = { buffer: compressed.buffer, mimeType: compressed.mimeType };
+      const stored = await this.storageService.uploadFile(
+        compressed.buffer,
+        `reference${extensionFor(compressed.mimeType)}`,
+        compressed.mimeType,
+        REFERENCE_FOLDER,
+      );
+      referenceKey = stored.url;
+    }
+
+    let generation: { id: string };
+    try {
+      const deduction = await this.credits.deduct(userId, 1, {
+        maxActive: MAX_ACTIVE_PER_USER,
+        within: (tx, charge) =>
+          tx.generation.create({
+            data: {
+              imageId,
+              style: 'custom',
+              prompt: userPrompt,
+              status: 'PENDING',
+              creditPool: poolsOf(charge, 1)[0],
+              referenceKey,
+              isRework,
+            },
+            select: { id: true },
+          }),
+      });
+      generation = deduction.result;
+    } catch (err) {
+      if (referenceKey) await this.deleteQuietly(referenceKey, 'unused reference');
+      throw err;
+    }
 
     const originalUrlSigned = await this.storageService.getSignedUrl(image.originalUrl);
     this.processCustomGeneration(
@@ -184,9 +220,8 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       originalUrlSigned,
       generation.id,
       userPrompt,
-      referenceBuffer,
-      referenceMimeType,
       isRework,
+      async () => reference,
     ).catch((err) => this.logger.error('Custom generation failed', err));
 
     return { generationId: generation.id };
@@ -200,8 +235,9 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       orderBy: { createdAt: 'asc' },
     });
 
+    // `referenceKey` is an internal storage key – never sent to the client.
     return Promise.all(
-      generations.map(async (g) => ({
+      generations.map(async ({ referenceKey: _referenceKey, ...g }) => ({
         ...g,
         url: g.url ? await this.storageService.getSignedUrl(g.url) : null,
       })),
@@ -209,7 +245,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getGenerationById(id: string, userId: string) {
-    const generation = await this.getOwnedGeneration(id, userId);
+    const { referenceKey: _referenceKey, ...generation } = await this.getOwnedGeneration(id, userId);
     return {
       ...generation,
       url: generation.url ? await this.storageService.getSignedUrl(generation.url) : null,
@@ -234,12 +270,13 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     }
 
     // Charge and claim the row in one transaction – a double click must not start two retries.
+    // The new charge may come from another pool than the first one – record it (AC-GEN-027).
     await this.credits.deduct(userId, 1, {
       maxActive: MAX_ACTIVE_PER_USER,
-      within: async (tx) => {
+      within: async (tx, charge) => {
         const { count } = await tx.generation.updateMany({
           where: { id: generationId, status: 'FAILED' },
-          data: { status: 'PENDING' },
+          data: { status: 'PENDING', creditPool: poolsOf(charge, 1)[0] },
         });
         if (count !== 1) throw new HttpException('Ta generacja jest już ponawiana', HttpStatus.CONFLICT);
       },
@@ -248,9 +285,24 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     const originalUrlSigned = await this.storageService.getSignedUrl(generation.image.originalUrl);
 
     if (generation.style === 'custom') {
-      this.processCustomGeneration(generation.imageId, originalUrlSigned, generationId, generation.prompt || '').catch(
-        (err) => this.logger.error('Retry custom generation failed', err),
-      );
+      // AC-GEN-028: the same reference and mode as the first attempt (the stored file is read again).
+      const referenceKey = generation.referenceKey;
+      const loadReference = async (): Promise<PreparedReference | undefined> => {
+        if (!referenceKey) return undefined;
+        const { buffer, contentType } = await this.storageService.getFileBuffer(referenceKey);
+        return {
+          buffer,
+          mimeType: contentType.startsWith('image/') ? contentType : detectMimeTypeFromUrl(referenceKey),
+        };
+      };
+      this.processCustomGeneration(
+        generation.imageId,
+        originalUrlSigned,
+        generationId,
+        generation.prompt || '',
+        generation.isRework,
+        loadReference,
+      ).catch((err) => this.logger.error('Retry custom generation failed', err));
     } else {
       this.processGenerations(generation.imageId, originalUrlSigned, [generationId]).catch((err) =>
         this.logger.error('Retry generation failed', err),
@@ -391,9 +443,8 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     originalUrl: string,
     generationId: string,
     userPrompt: string,
-    referenceBuffer?: Buffer,
-    referenceMimeType?: string,
-    isRework = false,
+    isRework: boolean,
+    loadReference: () => Promise<PreparedReference | undefined>,
   ) {
     try {
       if (!(await this.claimForProcessing(generationId))) return;
@@ -401,12 +452,10 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       const original = await this.prepareOriginal(originalUrl);
       const description = await this.getOrCreateDescription(imageId, original.base64, original.mimeType);
 
-      // Reference uploads are user-controlled – compress & validate them like the original.
-      let reference: { base64: string; mimeType: string } | undefined;
-      if (referenceBuffer && referenceMimeType) {
-        const compressed = await prepareForAi(referenceBuffer, referenceMimeType);
-        reference = { base64: compressed.buffer.toString('base64'), mimeType: compressed.mimeType };
-      }
+      // Reference uploads are user-controlled – compressed & validated like the original before storing.
+      const loaded = await loadReference();
+      const reference = loaded ? { base64: loaded.buffer.toString('base64'), mimeType: loaded.mimeType } : undefined;
+      if (isRework && !reference) throw new Error('Rework reference image is missing');
 
       // Rework: the previously generated graphic is edited; the original photo is the identity reference.
       const primary = isRework && reference ? reference : original;
@@ -468,29 +517,36 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
    * not be orphaned in storage (spec 05, AC-GEN-025).
    */
   private async completeGeneration(generationId: string, prompt: string, url: string) {
+    const row = await this.prisma.generation.findUnique({
+      where: { id: generationId },
+      select: { referenceKey: true },
+    });
     const { count } = await this.prisma.generation.updateMany({
       where: { id: generationId, status: 'PROCESSING' },
-      data: { prompt, status: 'COMPLETED', url },
+      data: { prompt, status: 'COMPLETED', url, referenceKey: null },
     });
-    if (count === 1) return;
+    if (count === 1) {
+      // A finished graphic is never retried – its reference is no longer needed (data minimisation).
+      if (row?.referenceKey) await this.deleteQuietly(row.referenceKey, `reference of ${generationId}`);
+      return;
+    }
     this.logger.warn(`Generation ${generationId} finished after it was failed or deleted – result discarded`);
     await this.storageService
       .deleteFile(url)
       .catch((err) => this.logger.error(`Could not delete discarded result of ${generationId}`, err));
   }
 
-  /** Marks a generation FAILED and refunds exactly once (conditional update). */
+  /** Marks a generation FAILED and refunds exactly once, to the pool it was charged from (AC-GEN-027). */
   private async failGeneration(generationId: string) {
-    const { count } = await this.prisma.generation.updateMany({
-      where: { id: generationId, status: { in: ['PENDING', 'PROCESSING'] } },
-      data: { status: 'FAILED' },
-    });
-    if (count !== 1) return;
     const gen = await this.prisma.generation.findUnique({
       where: { id: generationId },
       select: { image: { select: { userId: true } } },
     });
-    if (gen) await this.credits.refund(gen.image.userId, 1);
+    if (gen) await this.credits.failGeneration(gen.image.userId, generationId);
+  }
+
+  private async deleteQuietly(key: string, what: string) {
+    await this.storageService.deleteFile(key).catch((err) => this.logger.error(`Could not delete ${what}`, err));
   }
 
   /** The product description is generated once per uploaded image and reused. */

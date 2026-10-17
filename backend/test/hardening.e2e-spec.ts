@@ -182,11 +182,11 @@ describe('Hardening (integration)', () => {
         .get(`/api/admin/withdrawal-quote?email=${encodeURIComponent(user.email)}`)
         .set('Authorization', `Bearer ${admin.token}`)
         .expect(200);
-      // plan 40 credits for 4900 gr, 30 left → 10 used × 123 gr = 1230 gr charged, refund 3670 gr
+      // plan 40 credits for 1900 gr, 30 left → 10 used × 48 gr = 480 gr charged, refund 1420 gr
       expect(quote.body).toMatchObject({
         creditsUsedFromPlan: 10,
-        chargeForUsedGrosze: 1230,
-        suggestedRefundGrosze: 3670,
+        chargeForUsedGrosze: 480,
+        suggestedRefundGrosze: 1420,
         withinWithdrawalWindow: true,
       });
     });

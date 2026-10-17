@@ -25,11 +25,18 @@ Cel: przesunąć użytkowników do pierwszego zakupu bez odbierania obiecanych d
   - Nowe konta dostają 5 darmowych grafik (konfiguracja `FREE_CREDITS_LIMIT`).
   - Konta założone wcześniej zachowują 10.
   - Limit jest zapisany na koncie (`users.freeCreditsLimit`) w chwili rejestracji, więc zmiana
-    konfiguracji nie zmienia puli istniejących kont.
+    konfiguracji nie zmienia puli istniejących kont. Domyślna wartość kolumny to 5 (jak na produkcji),
+    choć kod zawsze ustawia ją jawnie.
 - **Pakiet powitalny**:
   - 5 kredytów za 5 zł (zwykle 10 zł), wyłącznie przy pierwszym zakupie.
-  - Dotyczy kont bez żadnej opłaconej transakcji. Serwer sprawdza warunek przy tworzeniu płatności.
+  - Dotyczy kont bez żadnej opłaconej transakcji (zrealizowanej – także później zwróconej). Serwer
+    sprawdza warunek przy tworzeniu płatności.
   - Nie jest widoczny w publicznym katalogu pakietów.
+  - Jednorazowość jest atomowa (2026-10-17): transakcja ma `packageId`, a częściowy unikalny indeks
+    pozwala na jeden niezakończony niepowodzeniem wiersz `welcome_5` na konto. Wiersz jest rezerwowany
+    przed utworzeniem sesji Stripe, więc równoległe żądania tworzą najwyżej jedną sesję (pozostałe dostają
+    409 albo link do tej samej otwartej sesji). Ponowna próba z otwartą sesją dostaje jej link; po
+    wygaśnięciu sesji można zacząć od nowa. Realizacja nigdy nie doda pakietu powitalnego drugi raz.
 - **Oferta w momencie braku kredytów**:
   - Gdy użytkownikowi (nie administratorowi) brakuje kredytów na wybrane grafiki, przycisk
     generowania otwiera okno z ofertą zamiast wysyłać żądanie.
@@ -62,4 +69,6 @@ Cel: przesunąć użytkowników do pierwszego zakupu bez odbierania obiecanych d
 - **AC-MON-004** – Given powrót z anulowanej płatności, When strona Kredyty się otworzy, Then baner wyjaśnia ważność kodu BLIK i alternatywę kartą, a „Spróbuj ponownie” tworzy nową sesję dla tego samego pakietu.
 - **AC-MON-005** – Given rejestracja, When formularz się wyświetla, Then zgoda marketingowa opisuje korzyść i możliwość wypisania i jest odznaczona. Given zalogowany użytkownik bez zgody, When otwiera dashboard, Then widzi kartę z przyciskiem włączającym zgodę (także w generatorze, gdy są gotowe grafiki, a nigdy przed pierwszym generowaniem), a po decyzji karta znika wszędzie.
 - **AC-MON-006** – Given administrator, When doda kredyty kontu (1–100, z powodem), Then saldo rośnie o tę liczbę, wpis trafia do `credit_grants` i historii konta, a konto spoza `ADMIN_EMAILS` dostaje 403.
+- **AC-MON-008** – Given konto uprawnione do pakietu powitalnego, When 15 równoległych żądań checkoutu `welcome_5`, Then powstaje dokładnie jedna sesja Stripe i jedna transakcja z `packageId=welcome_5` (pozostałe: 409 albo link tej samej sesji); kolejna próba przy otwartej sesji dostaje jej link, a po wygaśnięciu – nową sesję; baza odrzuca drugi aktywny wiersz `welcome_5`; zwrócony pakiet powitalny nie przywraca uprawnienia.
+- **AC-MON-009** – Given baza po migracjach, When wiersz konta powstaje bez jawnego `freeCreditsLimit`, Then dostaje 5 (domyślna wartość kolumny), a istniejące konta zachowują swoją wartość.
 - **AC-MON-007** – Given strona główna, regulamin i aplikacja, When są wyświetlane, Then komunikują 5 darmowych grafik dla nowych kont, a regulamin zachowuje 10 dla kont założonych przed datą zmiany.

@@ -97,14 +97,18 @@ export class ImagesService {
   async deleteImage(id: string, userId: string) {
     const image = await this.prisma.image.findUnique({
       where: { id },
-      include: { generations: { select: { url: true } } },
+      include: { generations: { select: { url: true, referenceKey: true } } },
     });
     if (!image) throw new NotFoundException('Image not found');
     if (image.userId !== userId) throw new ForbiddenException('Access denied');
 
     await this.prisma.image.delete({ where: { id } });
 
-    const keys = [image.filename, ...image.generations.map((g) => g.url).filter(Boolean)];
+    // Spec 05, AC-GEN-028: stored reference images of custom styles / reworks go with the photo.
+    const keys = [
+      image.filename,
+      ...image.generations.flatMap((g) => [g.url, g.referenceKey]).filter((k): k is string => Boolean(k)),
+    ];
     const results = await Promise.allSettled(keys.map((k) => this.storageService.deleteFile(k)));
     const failed = results.filter((r) => r.status === 'rejected').length;
     if (failed) this.logger.warn(`Image ${id}: ${failed}/${keys.length} storage objects could not be deleted`);
@@ -119,7 +123,8 @@ export class ImagesService {
       ...rest,
       originalUrl: await this.storageService.getSignedUrl(image.originalUrl),
       generations: await Promise.all(
-        (image.generations ?? []).map(async (g: any) => ({
+        // `referenceKey` is an internal storage key (spec 05) – never sent to the client.
+        (image.generations ?? []).map(async ({ referenceKey: _referenceKey, ...g }: any) => ({
           ...g,
           url: g.url ? await this.storageService.getSignedUrl(g.url) : null,
         })),

@@ -44,6 +44,16 @@ describe('Payments (integration)', () => {
     stripe.invoices = {
       retrieve: async (id: string) => ({ id, invoice_pdf: `https://pay.stripe.com/invoice/${id}/pdf?s=fresh` }),
     };
+    stripe.prices = {
+      retrieve: async (id: string) => ({
+        id,
+        active: true,
+        currency: 'pln',
+        type: 'recurring',
+        recurring: { interval: 'month', interval_count: 1 },
+        unit_amount: 1900,
+      }),
+    };
     ctx.payments.setStripeClient(stripe);
   });
   beforeEach(async () => {
