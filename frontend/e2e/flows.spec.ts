@@ -197,8 +197,9 @@ test.describe('no marketplace integration (spec 08)', () => {
   test('[AC-PLT-008] the navigation has no Allegro entry and the old address is a 404', async ({ page }) => {
     const { requests } = await mockApp(page)
     await page.goto('/')
-    await expect(page.getByRole('link', { name: 'Galeria' }).first()).toBeVisible()
-    await expect(page.getByRole('link', { name: /Allegro/i })).toHaveCount(0)
+    // includeHidden: on phones the closed drawer is (correctly) hidden from assistive tech.
+    await expect(page.getByRole('link', { name: 'Galeria', includeHidden: true }).first()).toBeAttached()
+    await expect(page.getByRole('link', { name: /Allegro/i, includeHidden: true })).toHaveCount(0)
     await page.goto('/allegro')
     await expect(page.getByText('Tej strony nie ma')).toBeVisible()
     await page.goto('/allegro/callback?code=x&state=y')

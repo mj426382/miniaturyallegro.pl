@@ -111,4 +111,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 - **AC-SEC-005** – Given dowolne środowisko, When brakuje `DATABASE_URL` lub `JWT_SECRET`, Then aplikacja odmawia startu.
 - **AC-SEC-006** – Given `FREE_CREDITS_LIMIT`, When nie jest nieujemną liczbą całkowitą, Then walidacja konfiguracji zgłasza błąd.
 - **AC-SEC-007** – Given zmienne listowe i logiczne (np. `ADMIN_EMAILS`, `TRUST_PROXY`), When parsowane, Then listy są dzielone po przecinku, a wartości logiczne akceptują `true/false/1/0`.
+- **AC-SEC-009** – Given publiczny endpoint uwierzytelniania (rejestracja, logowanie, Google, reset i potwierdzenie adresu), When żądanie nie ma treści JSON (np. formularz z innej strony), Then 415 i nic się nie dzieje – ochrona przed login CSRF przy cookie `SameSite=None`.
+- **AC-SEC-010** – Given adres żądania z tajnym parametrem (`token`, `code`, `state`, `key`, `signature`), When trafia do logów albo raportu błędu, Then wartość jest zastąpiona `[redacted]`, a reszta adresu zostaje.
+- **AC-SEC-011** – Given `NODE_ENV=production`, When `THROTTLE_DISABLED=true`, Then aplikacja odmawia startu (przełącznik tylko dla testów).
 - **AC-SEC-008** – Given dowolne żądanie, When obsłużone, Then odpowiedź ma nagłówek `x-request-id` (przekazany z żądania albo wygenerowany UUID), a odpowiedzi błędów zawierają `requestId` i nigdy nie zdradzają stosu ani ścieżek plików.

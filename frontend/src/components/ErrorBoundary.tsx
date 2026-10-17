@@ -43,7 +43,7 @@ export default class ErrorBoundary extends Component<Props, State> {
               Odśwież stronę
             </button>
             <a href="/" className="btn-secondary">
-              Wróć na dashboard
+              Wróć na pulpit
             </a>
           </div>
         </div>

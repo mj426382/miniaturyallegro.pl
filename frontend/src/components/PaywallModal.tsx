@@ -76,7 +76,7 @@ export default function PaywallModal({ open, onClose, missing }: Props) {
         <h2 id="paywall-title" className="text-xl font-bold text-gray-900 pr-8">
           {missing && missing > 0 ? `Brakuje Ci ${countLabel(missing, 'kredytu', 'kredytów', 'kredytów')}` : 'Skończyły się kredyty'}
         </h2>
-        <p className="text-sm text-gray-600 mt-1">1 kredyt = 1 grafika. Kredyty nie wygasają, a opis oferty pod SEO jest gratis do każdego zdjęcia.</p>
+        <p className="text-sm text-gray-600 mt-1">1 kredyt = 1 grafika. Kredyty nie wygasają, a pierwszy opis oferty do zdjęcia z grafiką jest gratis.</p>
 
         <label className="flex items-start gap-2 mt-4 rounded-xl border border-gray-200 p-3 text-xs text-gray-600 cursor-pointer">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600" />
@@ -107,7 +107,7 @@ export default function PaywallModal({ open, onClose, missing }: Props) {
                   <span>
                     <span className="block font-semibold text-gray-900">{pkg.label}</span>
                     <span className="block text-xs text-gray-500">
-                      {(pkg.priceGrosze / 100 / pkg.credits).toFixed(2).replace('.', ',')} zł / grafika{pkg.savingLabel ? ` · ${pkg.savingLabel}` : ''}
+                      {(pkg.priceGrosze / 100 / pkg.credits).toFixed(2).replace('.', ',')} zł za grafikę{pkg.savingLabel ? ` · ${pkg.savingLabel}` : ''}
                     </span>
                   </span>
                   <span className="text-lg font-bold text-blue-600 whitespace-nowrap">{buying === pkg.id ? 'Przekierowuję…' : pkg.priceLabel}</span>

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { usePageTitle } from '../hooks/usePageTitle'
 import GoogleLoginButton from '../components/GoogleLoginButton'
@@ -24,6 +24,10 @@ export default function Login() {
   const [pendingGoogleCredential, setPendingGoogleCredential] = useState<string | null>(null)
   const { login, googleLogin } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  /** Spec 03, AC-AUTH-027: back to the page that asked for the login (only app paths, never another site). */
+  const from = (location.state as { from?: unknown } | null)?.from
+  const returnTo = typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') && !from.startsWith('/login') ? from : '/'
 
   const emailError = useMemo(() => {
     if (!touched.email || !email) return ''
@@ -48,7 +52,7 @@ export default function Login() {
     setError('')
     try {
       await login(email.trim().toLowerCase(), password)
-      navigate('/')
+      navigate(returnTo)
     } catch (err: any) {
       setError(describeError(err, 'Nieprawidłowy email lub hasło'))
     } finally {
@@ -79,7 +83,7 @@ export default function Login() {
               setIsLoading(true)
               try {
                 await googleLogin(credentialResponse.credential, acceptedTerms || undefined)
-                navigate('/')
+                navigate(returnTo)
               } catch (err: any) {
                 if (err.response?.data?.code === 'TERMS_REQUIRED') {
                   // New account: the backend refuses to create it without explicit acceptance.
@@ -119,7 +123,7 @@ export default function Login() {
                   setIsLoading(true)
                   try {
                     await googleLogin(pendingGoogleCredential, true)
-                    navigate('/')
+                    navigate(returnTo)
                   } catch (err: any) {
                     setError(describeError(err, 'Nie udało się założyć konta. Zaloguj się przez Google ponownie.'))
                     setPendingGoogleCredential(null)

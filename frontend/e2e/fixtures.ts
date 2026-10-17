@@ -116,6 +116,8 @@ export interface MockOptions {
   hasPurchased?: boolean
   /** Spec 19: free pool of the account (default 10, accounts from 2026-10-09: 5). */
   freeCreditsLimit?: number
+  /** The existing offer copy has used all of its free AI rewrites. */
+  editsUsedUp?: boolean
   /** Spec 19: the user already said yes or no to marketing e-mails. */
   marketingConsent?: boolean
 }
@@ -127,7 +129,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
   const settings = { marketingConsent: false, notifyBatchDone: true }
   const images: any[] = [IMAGE, ...(options.extraImages ?? [])]
   // Offer description state lives for the duration of the page – mirrors the API behaviour.
-  let description: typeof DESCRIPTION | null = options.withDescription ? { ...DESCRIPTION } : null
+  let description: typeof DESCRIPTION | null = options.withDescription ? { ...DESCRIPTION, promptEditsUsed: options.editsUsedUp ? 5 : 0 } : null
   let editsPurchased = 0
   const descriptionView = () => ({
     description,
@@ -437,6 +439,17 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
         body: PNG_BYTES,
       })
     }
+    if (path === `/generation/export-original/${IMAGE.id}`) {
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: req.method(), body })
+      const ext = body?.format === 'png' ? 'png' : 'jpg'
+      return route.fulfill({
+        status: 201,
+        contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        headers: { 'Content-Disposition': `attachment; filename="zdjecie-${body?.platform ? `${body.platform}-` : ''}${(body?.ratio || '1:1').replace(':', 'x')}.${ext}"` },
+        body: PNG_BYTES,
+      })
+    }
     if (path === `/descriptions/${IMAGE.id}` && req.method() === 'GET') return json(descriptionView())
     if (path === `/descriptions/${IMAGE.id}` && req.method() === 'POST') {
       const body = req.postDataJSON()
@@ -454,6 +467,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     }
     if (path === `/descriptions/${IMAGE.id}/edit-packs`) {
       requests.push({ url: path, method: 'POST' })
+      if (options.noCredits) return json({ statusCode: 402, error: 'Payment Required', message: 'Niewystarczająca liczba kredytów.', creditsRequired: 1, creditsAvailable: 0 }, 402)
       editsPurchased += 15
       return json(descriptionView(), 201)
     }

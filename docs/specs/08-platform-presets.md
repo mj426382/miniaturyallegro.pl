@@ -40,6 +40,12 @@ zasad. Nie ma żadnych integracji – tylko pobranie pliku i skopiowanie tekstu.
   format pliku do listy presetu (400), rozmiar domyślnie = docelowy presetu i nigdy poniżej minimum presetu,
   plakietka przy presecie z plakietką zabronioną → 400. Nazwa pliku zawiera platformę:
   `grafika-<styl>-<platforma>-<proporcje>.<ext>`. Bez `platform` eksport działa jak dotąd (06).
+- **Oryginalne zdjęcie (Vinted)**: Vinted wymaga własnych, nieprzerobionych zdjęć, więc scen AI tam nie
+  polecamy. `POST /generation/export-original/:imageId` eksportuje przesłane zdjęcie użytkownika z tym samym
+  presetem – tylko kadr, obrót, proporcje, rozmiar i format; plakietka i korekta → 400; bez AI i bez kredytów.
+  Orientacja z EXIF telefonu jest stosowana przed kadrem. Nazwa pliku `zdjecie-<platforma>-<proporcje>.<ext>`.
+  W aplikacji: przycisk „Eksportuj oryginał” przy zdjęciu w generatorze, a w eksporcie grafiki AI wybór Vinted
+  pokazuje ostrzeżenie z przełączeniem na oryginalne zdjęcie.
 - **Amazon – wypełnienie kadru**: przy „Całej grafice” (bez kadru) eksport obcina jednolicie białe
   marginesy grafiki i skaluje produkt tak, by dłuższy wymiar zajmował 85 % płótna, wyśrodkowany na
   czystej bieli. Grafika bez białych marginesów jest tylko dopasowana na białym tle. AI nie zmienia tła –
@@ -56,6 +62,7 @@ zasad. Nie ma żadnych integracji – tylko pobranie pliku i skopiowanie tekstu.
 formats[], defaultFormat, productFill|null, badge: 'allowed'|'discouraged'|'forbidden', titleMaxLength,
 rules[{ text, official }], source }`.
 `POST /generation/export/:id { platform?, ratio, … }` (06).
+`POST /generation/export-original/:imageId { platform?, ratio?, crop?, rotate?, size?, format? }` – oryginał bez AI.
 
 ## 4. Kryteria akceptacji
 
@@ -66,4 +73,6 @@ rules[{ text, official }], source }`.
 - **AC-PLT-005** – Given endpoint eksportu z `platform`, When eksport, Then nazwa pliku zawiera platformę i proporcje (`grafika-<styl>-olx-4x3.jpg`), a nieznana platforma → 400.
 - **AC-PLT-006** – Given modal eksportu, When użytkownik wybierze platformę, Then widzi jej proporcje i reguły z etykietą „wymóg platformy” albo „zalecane”, a żądanie zawiera `platform`, proporcje i rozmiar docelowy presetu.
 - **AC-PLT-007** – Given preset z zabronioną plakietką (eBay, Amazon), When drugi krok modalu, Then pole plakietki jest wyłączone z wyjaśnieniem, a żądanie nie zawiera plakietki.
+- **AC-PLT-009** – Given własne zdjęcie z telefonu (orientacja w EXIF), When `POST /generation/export-original/:imageId` z presetem Vinted i kadrem, Then plik ma rozmiar docelowy presetu (3:4 → 1200×1600), kadr odpowiada zdjęciu obróconemu jak w przeglądarce, nazwa to `zdjecie-vinted-3x4.jpg`, kredyty bez zmian; plakietka, korekta albo proporcje spoza presetu → 400; cudze zdjęcie → 403.
+- **AC-PLT-010** – Given eksport grafiki AI, When użytkownik wybierze Vinted, Then widzi ostrzeżenie, że Vinted wymaga własnych zdjęć bez scen AI, i przycisk „Użyj oryginalnego zdjęcia”; po przełączeniu (albo po „Eksportuj oryginał” w generatorze) podgląd pokazuje oryginał, krok korekty i plakietki jest pominięty, a żądanie idzie na `export-original` z platformą, proporcjami i rozmiarem docelowym.
 - **AC-PLT-008** – Given aplikacja po usunięciu Allegro, When użytkownik przegląda nawigację i stare adresy `/allegro`, Then nie ma pozycji „Allegro”, a stary adres prowadzi do strony 404.

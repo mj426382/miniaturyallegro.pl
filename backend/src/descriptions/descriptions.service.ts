@@ -25,6 +25,9 @@ export const DEFAULT_FREE_PROMPT_EDITS = 5;
 export const EDIT_PACK_SIZE = 15;
 export const EDIT_PACK_CREDITS = 1;
 
+/** Offer copy after sanitising, ready to store. */
+type CleanCopy = { title: string; body: string; keywords: string[] };
+
 export interface DescriptionView {
   description: {
     title: string;
@@ -84,16 +87,21 @@ export class DescriptionsService {
     // Writing again from scratch is an AI call like any other rewrite – it spends one prompt edit.
     if (existing) await this.reserveEdit(image.id);
 
-    let copy: OfferCopy;
+    // An empty or malformed answer counts as a model failure: 503 and the rewrite is given back.
+    let data: CleanCopy;
     try {
-      copy = await this.gemini.generateOfferCopy({ productAnalysis: image.description, sellerNotes: notes, platform });
+      const copy = await this.gemini.generateOfferCopy({
+        productAnalysis: image.description,
+        sellerNotes: notes,
+        platform,
+      });
+      data = this.clean(copy, platform);
     } catch (error) {
       this.logger.error(`Offer copy generation failed for image ${image.id}`, error);
       if (existing) await this.releaseEdit(image.id);
       throw new ServiceUnavailableException('Nie udało się wygenerować opisu. Spróbuj ponownie za chwilę.');
     }
 
-    const data = this.clean(copy, platform);
     await this.prisma.offerDescription.upsert({
       where: { imageId: image.id },
       create: { imageId: image.id, ...data, sellerNotes: notes, platform },
@@ -138,15 +146,16 @@ export class DescriptionsService {
 
     await this.reserveEdit(image.id);
 
-    let copy: OfferCopy;
+    let data: CleanCopy;
     try {
-      copy = await this.gemini.generateOfferCopy({
+      const copy = await this.gemini.generateOfferCopy({
         productAnalysis: image.description,
         sellerNotes: existing.sellerNotes,
         current: { title: existing.title, body: existing.body, keywords: existing.keywords },
         instruction: dto.instruction,
         platform: getPlatformPreset(existing.platform).id,
       });
+      data = this.clean(copy, existing.platform);
     } catch (error) {
       this.logger.error(`Offer copy refinement failed for image ${image.id}`, error);
       await this.releaseEdit(image.id);
@@ -155,10 +164,7 @@ export class DescriptionsService {
       );
     }
 
-    await this.prisma.offerDescription.update({
-      where: { imageId: image.id },
-      data: this.clean(copy, existing.platform),
-    });
+    await this.prisma.offerDescription.update({ where: { imageId: image.id }, data });
     return this.view(image.id, true);
   }
 
@@ -206,7 +212,7 @@ export class DescriptionsService {
     });
   }
 
-  private clean(copy: OfferCopy, platform: string | null) {
+  private clean(copy: OfferCopy, platform: string | null): CleanCopy {
     const body = sanitizeOfferHtml(copy.body);
     const title = clampTitle(copy.title, getPlatformPreset(platform).titleMaxLength);
     if (!title || body.replace(/<[^>]+>/g, '').trim().length < 20) {

@@ -9,7 +9,7 @@
 
 ## 1. Problem i cel
 
-Każde nowe konto dostaje 10 darmowych grafik. Bez potwierdzenia adresu i bez normalizacji można zakładać
+Każde nowe konto dostaje darmową pulę grafik (dziś 5, spec 19). Bez potwierdzenia adresu i bez normalizacji można zakładać
 konta seryjnie (`jan@gmail.com`, `jan+1@gmail.com`, `j.an@gmail.com`, `JAN@gmail.com`) i zbierać darmowe
 kredyty, a reset hasła nie ma pewności, że mail trafia do właściciela konta. Sukces: jedna skrzynka = jedno
 konto = jedna darmowa pula; nowe konta generują dopiero po kliknięciu linku z maila.
@@ -109,7 +109,7 @@ Migracja `20261004090000_email_verification_invoices`:
 
 ## 10. Wpływ na dokumenty
 
-Regulamin: darmowa pula po potwierdzeniu adresu. Landing/cennik: „10 darmowych grafik po potwierdzeniu e-maila”.
+Regulamin: darmowa pula po potwierdzeniu adresu. Landing/cennik: „5 darmowych grafik po potwierdzeniu e-maila” (pula ze spec 19).
 
 ## 11. Ryzyka i pytania otwarte
 

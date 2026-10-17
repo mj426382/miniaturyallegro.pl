@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as https from 'https';
+import sharp from 'sharp';
 import * as http from 'http';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
@@ -296,6 +297,24 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     return { ...exported, style: generation.style || 'custom' };
   }
 
+  /**
+   * The user's own photo, only framed and converted for a platform (spec 08, AC-PLT-009) – for platforms
+   * that want the seller's real photo (Vinted). No AI, no badge, no tone correction; the phone's EXIF
+   * orientation is applied first so the crop matches what the browser shows.
+   */
+  async exportOriginal(imageId: string, userId: string, options: ExportOptions) {
+    if (options.badgeText?.trim() || options.adjust) {
+      throw new HttpException(
+        'Oryginalne zdjęcie eksportujesz tylko z kadrem, obrotem i formatem – bez plakietki i korekty',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const image = await this.getOwnedImage(imageId, userId);
+    const { buffer } = await this.storageService.getFileBuffer(image.originalUrl);
+    const oriented = await sharp(buffer, { limitInputPixels: 40_000_000 }).rotate().toBuffer();
+    return this.exportService.exportImage(oriented, options);
+  }
+
   /** Free infographic for an additional offer photo (spec 14) – rendered, never stored. */
   async renderInfographic(id: string, userId: string, options: InfographicOptions) {
     const generation = await this.getOwnedGeneration(id, userId);
@@ -353,10 +372,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
             if (!(await this.claimForProcessing(generationId))) return;
             const generated = await this.geminiService.generateImage(base64Image, mimeType, optimizedPrompt);
             const url = await this.storeGenerated(generated.base64, generated.mimeType, `${style.id}.png`);
-            await this.prisma.generation.update({
-              where: { id: generationId },
-              data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
-            });
+            await this.completeGeneration(generationId, optimizedPrompt, url);
           } catch (error) {
             this.logger.error(`Failed to process generation ${generationId}`, error);
             await this.failGeneration(generationId);
@@ -409,10 +425,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       );
 
       const url = await this.storeGenerated(generated.base64, generated.mimeType, 'custom.png');
-      await this.prisma.generation.update({
-        where: { id: generationId },
-        data: { prompt: optimizedPrompt, status: 'COMPLETED', url },
-      });
+      await this.completeGeneration(generationId, optimizedPrompt, url);
     } catch (error) {
       this.logger.error(`Custom generation ${generationId} failed`, error);
       await this.failGeneration(generationId);
@@ -446,6 +459,24 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     });
     if (count !== 1) this.logger.warn(`Generation ${generationId} is no longer PENDING – skipping`);
     return count === 1;
+  }
+
+  /**
+   * PROCESSING → COMPLETED only if the row is still being processed. When the reconciler has already
+   * failed and refunded it (a very slow AI call) or the photo/account was deleted meanwhile, the
+   * result is discarded – the user must not keep both the graphic and the refund, and the file must
+   * not be orphaned in storage (spec 05, AC-GEN-025).
+   */
+  private async completeGeneration(generationId: string, prompt: string, url: string) {
+    const { count } = await this.prisma.generation.updateMany({
+      where: { id: generationId, status: 'PROCESSING' },
+      data: { prompt, status: 'COMPLETED', url },
+    });
+    if (count === 1) return;
+    this.logger.warn(`Generation ${generationId} finished after it was failed or deleted – result discarded`);
+    await this.storageService
+      .deleteFile(url)
+      .catch((err) => this.logger.error(`Could not delete discarded result of ${generationId}`, err));
   }
 
   /** Marks a generation FAILED and refunds exactly once (conditional update). */

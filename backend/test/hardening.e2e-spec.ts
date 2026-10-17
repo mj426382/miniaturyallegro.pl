@@ -23,6 +23,29 @@ describe('Hardening (integration)', () => {
   });
 
   describe('session cookie', () => {
+    it('[AC-SEC-009] public auth endpoints refuse non-JSON bodies (login CSRF through a cross-site form)', async () => {
+      const { email } = await registerUser(ctx);
+      const login = await ctx
+        .http()
+        .post('/api/auth/login')
+        .type('form')
+        .send({ email, password: STRONG_PASSWORD })
+        .expect(415);
+      expect(login.headers['set-cookie']).toBeUndefined();
+
+      const fresh = uniqueEmail();
+      await ctx
+        .http()
+        .post('/api/auth/register')
+        .set('Content-Type', 'text/plain')
+        .send(JSON.stringify({ email: fresh, password: STRONG_PASSWORD, acceptedTerms: true }))
+        .expect(415);
+      expect(await ctx.prisma.user.findUnique({ where: { email: fresh } })).toBeNull();
+      await ctx.http().post('/api/auth/forgot-password').type('form').send({ email }).expect(415);
+      // The app sends JSON – unchanged.
+      await ctx.http().post('/api/auth/login').send({ email, password: STRONG_PASSWORD }).expect(200);
+    });
+
     it('sets an httpOnly cookie on login and requires the CSRF header for cookie auth', async () => {
       const { email } = await registerUser(ctx);
       const login = await ctx.http().post('/api/auth/login').send({ email, password: STRONG_PASSWORD }).expect(200);

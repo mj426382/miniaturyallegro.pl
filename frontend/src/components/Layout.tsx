@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import EmailVerificationBanner from './EmailVerificationBanner'
 import PageFallback from './PageFallback'
+import { openCookieSettings } from '../consent/googleTag'
 import {
   HomeIcon,
   ArrowUpTrayIcon,
@@ -17,7 +18,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
+  { name: 'Pulpit', href: '/', icon: HomeIcon },
   { name: 'Prześlij zdjęcie', href: '/upload', icon: ArrowUpTrayIcon },
   { name: 'Masowe przesyłanie', href: '/bulk-upload', icon: RectangleStackIcon },
   { name: 'Galeria', href: '/gallery', icon: Squares2X2Icon },
@@ -80,9 +81,9 @@ export default function Layout() {
             <div className="flex-1 min-w-0">
               {user.unlimitedCredits ? (
                 <p className="text-xs text-blue-700 font-medium">Kredyty: bez limitu</p>
-              ) : (user.freeCreditsUsed ?? 0) < (user.freeCreditsLimit ?? 10) ? (
+              ) : (user.freeCreditsUsed ?? 0) < (user.freeCreditsLimit ?? 5) ? (
                 <p className="text-xs text-blue-700 font-medium">
-                  Darmowe: {(user.freeCreditsLimit ?? 10) - (user.freeCreditsUsed ?? 0)} / {user.freeCreditsLimit ?? 10}
+                  Darmowe grafiki: {(user.freeCreditsLimit ?? 5) - (user.freeCreditsUsed ?? 0)} / {user.freeCreditsLimit ?? 5}
                 </p>
               ) : (
                 <p className="text-xs text-blue-700 font-medium">
@@ -113,6 +114,9 @@ export default function Layout() {
           <Link to="/polityka-prywatnosci" className="text-xs text-gray-500 hover:text-gray-600 transition-colors">
             Prywatność
           </Link>
+          <button type="button" onClick={openCookieSettings} className="text-xs text-gray-500 hover:text-gray-600 transition-colors">
+            Cookies
+          </button>
         </div>
       </div>
     </>
@@ -125,8 +129,9 @@ export default function Layout() {
 
       {/* Mobile sidebar (slide-in) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto transform transition-transform duration-200 ease-in-out lg:hidden ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        aria-hidden={!sidebarOpen}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto transform transition-[transform,visibility] duration-200 ease-in-out lg:hidden ${
+          sidebarOpen ? 'translate-x-0 visible' : '-translate-x-full invisible'
         }`}
       >
         {sidebarContent}

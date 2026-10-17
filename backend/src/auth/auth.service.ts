@@ -19,6 +19,7 @@ import { canonicalEmail } from './email-canonical';
 import { VERIFICATION_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from './email-verification';
 import { freeCreditsForNewAccounts } from '../generation/credits.service';
 import { ReferralsService } from '../referrals/referrals.service';
+import { pluralPl, renderEmail } from '../notifications/email-template';
 
 // 12 rounds in production; tests lower it via BCRYPT_ROUNDS to stay fast.
 const BCRYPT_ROUNDS = Math.min(14, Math.max(4, Number(process.env.BCRYPT_ROUNDS) || 12));
@@ -33,7 +34,7 @@ const COMMON_PASSWORDS = [
   'admin123',
   'haslo123',
   'polska123',
-  'allegro1',
+  'qwerty1',
   'test1234',
 ];
 
@@ -211,11 +212,16 @@ export class AuthService {
       // Spec 20: Google confirms the address, so the referral bonus is paid right away.
       await this.referrals.rewardIfEligible(user.id);
     } else if (!user.googleId || !user.emailVerifiedAt) {
+      // Spec 03, AC-AUTH-024 (account pre-hijacking): a password set on a never-confirmed account may
+      // belong to someone who signed up with this address before its owner. Google proves the owner,
+      // so that password stops working (and its sessions die); the owner can set one via the reset link.
+      const dropUnconfirmedPassword = !user.emailVerifiedAt && Boolean(user.password);
       user = await this.prisma.user.update({
         where: { id: user.id },
         data: {
           ...(user.googleId ? {} : { googleId }),
           ...(user.emailVerifiedAt ? {} : { emailVerifiedAt: new Date() }),
+          ...(dropUnconfirmedPassword ? { password: null, passwordChangedAt: new Date() } : {}),
         },
       });
       this.logger.log(`Połączono konto Google z istniejącym użytkownikiem: ${user.id}`);
@@ -258,20 +264,24 @@ export class AuthService {
     const frontendUrl = (this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173').replace(/\/$/, '');
     const link = `${frontendUrl}/reset-password?token=${rawToken}`;
 
-    await this.mailService.send({
-      to: user.email,
-      subject: 'AllGrafika – resetowanie hasła',
-      text: [
-        'Cześć,',
-        '',
-        'Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta AllGrafika.',
-        `Aby ustawić nowe hasło, otwórz ten link (ważny przez 1 godzinę):`,
-        link,
-        '',
-        'Jeśli to nie Ty wysłałeś tę prośbę, zignoruj tę wiadomość – Twoje hasło pozostanie bez zmian.',
-      ].join('\n'),
-      html: `<p>Cześć,</p><p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta AllGrafika.</p><p><a href="${link}">Ustaw nowe hasło</a> (link ważny przez 1 godzinę).</p><p>Jeśli to nie Ty wysłałeś tę prośbę, zignoruj tę wiadomość.</p>`,
-    });
+    // A mail outage must not turn into a 500 that only existing accounts get (e-mail enumeration).
+    await this.mailService
+      .send({
+        to: user.email,
+        subject: 'AllGrafika – resetowanie hasła',
+        ...renderEmail({
+          heading: 'Ustaw nowe hasło',
+          paragraphs: [
+            'Cześć,',
+            'otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta AllGrafika. Link jest ważny przez 1 godzinę.',
+          ],
+          cta: { label: 'Ustaw nowe hasło', url: link },
+          footer: ['Jeśli to nie Ty prosisz o zmianę hasła, zignoruj tę wiadomość – hasło pozostanie bez zmian.'],
+        }),
+      })
+      .catch((err) =>
+        this.logger.error(`Nie udało się wysłać linku resetu hasła do użytkownika ${user.id}: ${err?.message}`),
+      );
 
     return { message: GENERIC_RESET_MESSAGE };
   }
@@ -289,14 +299,19 @@ export class AuthService {
     this.assertPasswordNotTrivial(newPassword, record.user.email);
     const hashedPassword = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
 
-    await this.prisma.$transaction([
+    await this.prisma.$transaction(async (tx) => {
+      // Claim the token first: of two parallel requests with the same link only one may win.
+      const { count } = await tx.passwordResetToken.updateMany({
+        where: { id: record.id, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+      if (count !== 1) throw new BadRequestException('Link do resetowania hasła jest nieprawidłowy lub wygasł');
       // passwordChangedAt invalidates every JWT issued before the reset (see JwtStrategy).
-      this.prisma.user.update({
+      await tx.user.update({
         where: { id: record.userId },
         data: { password: hashedPassword, passwordChangedAt: new Date() },
-      }),
-      this.prisma.passwordResetToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
-    ]);
+      });
+    });
 
     this.logger.log(`Hasło zresetowane dla użytkownika ${record.userId}`);
     return { message: 'Hasło zostało zmienione. Możesz się teraz zalogować.' };
@@ -408,18 +423,15 @@ export class AuthService {
     await this.mailService.send({
       to: user.email,
       subject: 'AllGrafika – potwierdź adres e-mail',
-      text: [
-        'Cześć,',
-        '',
-        `dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} darmowych grafik:`,
-        link,
-        '',
-        'Link jest ważny przez 24 godziny. Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.',
-      ].join('\n'),
-      html:
-        `<p>Cześć,</p><p>dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} darmowych grafik.</p>` +
-        `<p><a href="${link}">Potwierdź adres e-mail</a> (link ważny przez 24 godziny).</p>` +
-        '<p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>',
+      ...renderEmail({
+        heading: 'Potwierdź adres e-mail',
+        paragraphs: [
+          'Cześć,',
+          `dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} ${pluralPl(this.freeCreditsLimit, 'darmową grafikę', 'darmowe grafiki', 'darmowych grafik')} – do sklepu internetowego albo na OLX, Vinted, eBay czy Amazon. Link jest ważny przez 24 godziny.`,
+        ],
+        cta: { label: 'Potwierdź adres e-mail', url: link },
+        footer: ['Jeśli konto nie zostało założone przez Ciebie, zignoruj tę wiadomość.'],
+      }),
     });
   }
 

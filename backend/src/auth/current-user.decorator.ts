@@ -4,6 +4,8 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 export interface SessionUser {
   userId: string;
   email: string;
+  /** The mailbox was confirmed (link or Google) – required for administrator rights (spec 16, AC-ADM-014). */
+  emailVerified: boolean;
 }
 
 /**

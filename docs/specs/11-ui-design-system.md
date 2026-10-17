@@ -71,9 +71,10 @@
 
 - **AC-UI-001** – Given dowolny ekran aplikacji (zalogowany i niezalogowany), When uruchomiony jest audyt axe (WCAG 2.1 A/AA), Then nie ma naruszeń o wadze serious ani critical.
 - **AC-UI-002** – Given otwarty modal eksportu lub okno potwierdzenia, When audyt axe, Then brak naruszeń serious/critical i modal ma rolę dialogu z nazwą.
-- **AC-UI-003** – Given nieznany adres w aplikacji, When użytkownik go otworzy, Then widzi stronę 404 z linkiem na dashboard.
+- **AC-UI-003** – Given nieznany adres w aplikacji, When użytkownik go otworzy, Then widzi stronę 404 z linkiem na pulpit (strona startowa aplikacji).
 - **AC-UI-004** – Given telefon (< 768 px), When użytkownik otworzy menu, Then przycisk ma `aria-expanded=true`, nawigacja działa, a po wyborze menu się zamyka.
 - **AC-UI-005** – Given logowanie z błędnym hasłem, When wysłano formularz, Then błąd pojawia się w alercie przy formularzu (`role="alert"`), a nie w toaście, a toggle „Pokaż” odsłania hasło.
 - **AC-UI-006** – Given dashboard lub galeria, When API zwróci błąd, Then widać alert „Nie udało się pobrać…” z przyciskiem „Spróbuj ponownie”, a stan pusty nie jest wyświetlany.
+- **AC-UI-009** – Given aplikacja app.allgrafika.pl, When robot wyszukiwarki albo serwis społecznościowy pobiera dowolny adres, Then strona ma meta `noindex, nofollow`, hosting wysyła `X-Robots-Tag: noindex, nofollow`, `robots.txt` nie blokuje odczytu tych sygnałów, a link (np. polecający `/register?ref=…`) ma podgląd: `og:title`, `og:description` o sklepie internetowym i marketplace'ach oraz `og:image` z allgrafika.pl; strony publiczne (logowanie, rejestracja, regulamin, polityka) mają własne tytuły.
 - **AC-UI-008** – Given komputer (≥ 1024 px) i strona dłuższa niż ekran, When użytkownik przewinie ją do końca, Then panel boczny zostaje w miejscu przy lewej krawędzi (logo, nawigacja, kredyty i „Wyloguj się” są widoczne), a przewija się tylko treść; gdy panel nie mieści się w oknie, przewija się sam.
 - **AC-UI-007** – Given karta gotowej grafiki, When użytkownik otworzy „Więcej akcji”, Then widzi pozycje „Eksport i edycja” i „Przeróbka” i nie ma żadnej pozycji publikacji na zewnętrzny serwis (integracje usunięte, spec 08).

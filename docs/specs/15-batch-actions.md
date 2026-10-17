@@ -58,6 +58,7 @@ trzeba otwierać osobno. Cel: jedno kliknięcie pobiera wszystko jako ZIP, drugi
 - **AC-BAT-003** – Given plik grafiki niedostępny w magazynie, When ZIP, Then paczka powstaje z pozostałymi plikami i `BLEDY.txt` z nazwą brakującego.
 - **AC-BAT-004** – Given kolejka opisów (zdjęcie z opisem, zdjęcie z gotową grafiką, zdjęcie z grafiką w toku, zdjęcie bez grafik), When przetwarzanie, Then pierwsze pominięte, drugie i trzecie (po ukończeniu grafiki) dostają opis ze wspólnymi informacjami, czwarte kończy się błędem „brak gotowej grafiki”; przy 429 kolejka czeka i ponawia.
 - **AC-BAT-005** – Given galeria, When użytkownik włączy zaznaczanie, wybierze zdjęcia i kliknie „Pobierz ZIP”, Then wywołany jest ZIP z wybranymi id i plik jest pobierany; „Napisz opisy” otwiera okno, które pokazuje postęp i podsumowanie.
+- **AC-BAT-007** – Given okno opisów dla wielu zdjęć, When użytkownik wybierze platformę (np. Vinted), Then każde żądanie opisu zawiera tę platformę (domyślnie „Sklep internetowy / ogólne”), więc limit tytułu i ton pasują do platformy jak przy pojedynczym opisie (07/08).
 - **AC-BAT-006** – Given zakończone masowe przesyłanie z generowaniem, When podsumowanie, Then przyciski „Pobierz wszystko (ZIP)” i „Napisz opisy dla wszystkich” działają na przesłanych zdjęciach.
 
 ## 7. API

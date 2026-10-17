@@ -8,6 +8,8 @@ import {
   waitFor,
   waitForGenerations,
 } from './test-app';
+import * as fs from 'fs';
+import * as path from 'path';
 import { makePng } from './fakes';
 
 describe('Generation & credits (integration)', () => {
@@ -294,6 +296,38 @@ describe('Generation & credits (integration)', () => {
     expect(res.headers['content-type']).toContain('image/png');
     expect(res.headers['content-disposition']).toContain('grafika-white-bg.png');
     expect(res.body.length).toBeGreaterThan(50);
+  });
+
+  it('[AC-GEN-025] a result that arrives after the reconciler refunded the graphic is discarded', async () => {
+    const { token, userId } = await registerUser(ctx);
+    const image = await uploadImage(ctx, token);
+    const generatedDir = path.join(process.env.LOCAL_UPLOAD_DIR!, 'generated');
+    const filesIn = () => (fs.existsSync(generatedDir) ? fs.readdirSync(generatedDir).length : 0);
+    const filesBefore = filesIn();
+    ctx.gemini.delayMs = 1500;
+    const started = await ctx
+      .http()
+      .post(`/api/generation/${image.id}/start`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ styles: ['white-bg'] })
+      .expect(201);
+    const id = started.body.generationIds[0] as string;
+    await waitFor(
+      async () => (await ctx.prisma.generation.findUniqueOrThrow({ where: { id } })).status === 'PROCESSING',
+    );
+
+    // The AI call is still running when the row looks stale to the reconciler.
+    await ctx.prisma.$executeRaw`UPDATE "generations" SET "updatedAt" = NOW() - INTERVAL '1 hour' WHERE "id" = ${id}`;
+    const { GenerationService } = await import('../src/generation/generation.service');
+    expect(await ctx.app.get(GenerationService).reconcileStaleGenerations()).toBe(1);
+    expect(await getCredits(ctx, userId)).toEqual({ credits: 0, freeCreditsUsed: 0 });
+
+    await waitFor(async () => ctx.gemini.calls.image === 1);
+    await new Promise((r) => setTimeout(r, 1800));
+    const row = await ctx.prisma.generation.findUniqueOrThrow({ where: { id } });
+    expect(row).toMatchObject({ status: 'FAILED', url: null });
+    expect(await getCredits(ctx, userId)).toEqual({ credits: 0, freeCreditsUsed: 0 });
+    expect(filesIn()).toBe(filesBefore);
   });
 
   it('[AC-GEN-011] reconciles generations stuck after a crash and refunds them', async () => {

@@ -1,4 +1,5 @@
 import { createTestApp, registerUser, resetDatabase, STRONG_PASSWORD, TestContext, uniqueEmail } from './test-app';
+import { freeCreditsForNewAccounts } from '../src/generation/credits.service';
 
 describe('Auth & users (integration)', () => {
   let ctx: TestContext;
@@ -32,6 +33,9 @@ describe('Auth & users (integration)', () => {
       expect(dbUser.password).not.toBe(STRONG_PASSWORD);
       expect(dbUser.credits).toBe(0);
       expect(dbUser.freeCreditsUsed).toBe(0);
+      // The pool comes from FREE_CREDITS_LIMIT (10 in this test environment); without it the default is 5.
+      expect(dbUser.freeCreditsLimit).toBe(freeCreditsForNewAccounts(process.env.FREE_CREDITS_LIMIT));
+      expect(freeCreditsForNewAccounts(undefined)).toBe(5);
     });
 
     it('[AC-AUTH-002] rejects registration without accepting the terms', async () => {
@@ -241,6 +245,60 @@ describe('Auth & users (integration)', () => {
     });
   });
 
+  it('[AC-AUTH-024] Google sign-in drops the password of a never-confirmed account (pre-hijacking), keeps it on a confirmed one', async () => {
+    const { AuthService } = await import('../src/auth/auth.service');
+    const service = ctx.app.get(AuthService) as any;
+    service.googleClientId = 'test-client';
+    const payloads: any[] = [];
+    service.googleClient = { verifyIdToken: async () => ({ getPayload: () => payloads.shift() }) };
+
+    // Someone registered the owner's address first and knows the password.
+    const squat = await registerUser(ctx, 'ofiara@example.com', { verified: false });
+    // Session timestamps have one-second resolution – let the squatter's session be clearly older.
+    await new Promise((r) => setTimeout(r, 1100));
+    payloads.push({ sub: 'g-owner', email: 'ofiara@example.com', email_verified: true });
+    const owner = await ctx.http().post('/api/auth/google').send({ googleToken: 't' }).expect(200);
+    expect(owner.body.user.id).toBe(squat.userId);
+    await ctx
+      .http()
+      .post('/api/auth/login')
+      .send({ email: 'ofiara@example.com', password: STRONG_PASSWORD })
+      .expect(401);
+    await ctx.http().get('/api/users/me').set('Authorization', `Bearer ${squat.token}`).expect(401);
+    await ctx.http().get('/api/users/me').set('Authorization', `Bearer ${owner.body.token}`).expect(200);
+
+    // A confirmed account linking Google keeps its password.
+    await registerUser(ctx, 'potwierdzony@example.com');
+    payloads.push({ sub: 'g-confirmed', email: 'potwierdzony@example.com', email_verified: true });
+    await ctx.http().post('/api/auth/google').send({ googleToken: 't' }).expect(200);
+    await ctx
+      .http()
+      .post('/api/auth/login')
+      .send({ email: 'potwierdzony@example.com', password: STRONG_PASSWORD })
+      .expect(200);
+  });
+
+  it('[AC-AUTH-025] a reset link wins only once under a race, and a mail outage looks like an unknown address', async () => {
+    const { email } = await registerUser(ctx);
+    await ctx.http().post('/api/auth/forgot-password').send({ email }).expect(200);
+    const token = ctx.mail.lastResetToken();
+    const results = await Promise.all(
+      ['Pierwsze!Haslo1', 'Drugie!Haslo2'].map((password) =>
+        ctx.http().post('/api/auth/reset-password').send({ token, password }),
+      ),
+    );
+    expect(results.map((r) => r.status).sort()).toEqual([200, 400]);
+
+    ctx.mail.fail = true;
+    try {
+      const known = await ctx.http().post('/api/auth/forgot-password').send({ email }).expect(200);
+      const unknown = await ctx.http().post('/api/auth/forgot-password').send({ email: uniqueEmail() }).expect(200);
+      expect(known.body.message).toBe(unknown.body.message);
+    } finally {
+      ctx.mail.fail = false;
+    }
+  });
+
   describe('profile & account deletion (RODO)', () => {
     it('[AC-AUTH-013] returns the profile with credit information', async () => {
       const { token, email } = await registerUser(ctx);
@@ -280,6 +338,24 @@ describe('Auth & users (integration)', () => {
       expect(await ctx.prisma.user.findUnique({ where: { id: userId } })).toBeNull();
       // the token of a deleted user is rejected by JwtStrategy outright
       await ctx.http().get('/api/users/me').set('Authorization', `Bearer ${token}`).expect(401);
+    });
+
+    it('[AC-AUTH-026] erases the landing demo requests of the same mailbox with the account', async () => {
+      const { token, email } = await registerUser(ctx, 'jan.kowalski@gmail.com');
+      const demo = (data: { email: string; emailCanonical: string }) =>
+        ctx.prisma.demoRequest.create({ data: { ...data, ipHash: 'h', imageKey: 'demo/x.png', status: 'COMPLETED' } });
+      const own = await demo({ email: 'Jan.Kowalski+demo@gmail.com', emailCanonical: 'jankowalski@gmail.com' });
+      const other = await demo({ email: 'ktos@example.com', emailCanonical: 'ktos@example.com' });
+
+      await ctx
+        .http()
+        .delete('/api/users/me')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ confirmEmail: email })
+        .expect(200);
+
+      expect(await ctx.prisma.demoRequest.findUnique({ where: { id: own.id } })).toBeNull();
+      expect(await ctx.prisma.demoRequest.findUnique({ where: { id: other.id } })).not.toBeNull();
     });
   });
 

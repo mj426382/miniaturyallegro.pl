@@ -65,7 +65,7 @@ Aplikacja i landing działają na produkcji, a landing buduje pozycje w Google. 
 - **AC-RWD-003** – Given administrator na telefonie, When otworzy listę użytkowników, Then każdy użytkownik jest kartą z e-mailem, planem i liczbą grafik, a kliknięcie otwiera szczegóły (bez tabeli przewijanej w poziomie).
 - **AC-RWD-004** – Given landing na Pixel 7 i iPad, When otwarte są `/`, `/blog`, wpis i `/regulamin`, Then hydratacja przebiega bez błędów, a strona nie przewija się w poziomie.
 - **AC-UX-001** – Given liczba n, When funkcja `plural` dobiera formę, Then zwraca „1 zdjęcie”, „2–4 zdjęcia”, „5–21 zdjęć”, „22 zdjęcia”, „12–14 zdjęć”, „0 zdjęć”, a galeria z jednym zdjęciem pokazuje „1 przesłane zdjęcie”.
-- **AC-UX-002** – Given strona rejestracji, When otwarta, Then podtytuł informuje, że 10 darmowych grafik odblokowuje potwierdzenie adresu e-mail.
+- **AC-UX-002** – Given strona rejestracji, When otwarta, Then podtytuł informuje, że darmowe grafiki (5, spec 19) odblokowuje potwierdzenie adresu e-mail.
 - **AC-PERF-001** – Given build produkcyjny landingu, When zsumowany jest JS ładowany przez stronę główną, Then jest ≤ 110 KB gzip, a żaden plik nie zawiera axios.
 - **AC-PERF-002** – Given prerenderowane `/regulamin` i `/polityka-prywatnosci`, When pobrany HTML, Then zawiera pełną treść dokumentu (np. ostatni paragraf), a w przeglądarce hydratacja przebiega bez błędów mimo leniwego chunku treści.
 - **AC-PERF-003** – Given build produkcyjny aplikacji, When zmierzone są pakiety, Then wejściowy JS ≤ 150 KB gzip, każdy chunk ≤ 120 KB gzip, a ekrany za logowaniem są w osobnych chunkach.

@@ -626,5 +626,56 @@ describe('Feedback, export, demo, subscriptions & platform presets (integration)
       expect(String(badge.body.message)).toContain('eBay');
       await send({ platform: 'olx', badgeText: '-20%' }).expect(201);
     });
+
+    it('[AC-PLT-009] exports the original photo (EXIF orientation applied) without AI, badge or credits', async () => {
+      const owner = await registerUser(ctx);
+      const stranger = await registerUser(ctx);
+      // A phone photo stored landscape with "rotate 90° clockwise" in EXIF: left half red, right half blue.
+      const half = (r: number, b: number) =>
+        sharp({ create: { width: 200, height: 200, channels: 3, background: { r, g: 0, b } } })
+          .png()
+          .toBuffer();
+      const photo = await sharp({ create: { width: 400, height: 200, channels: 3, background: '#000' } })
+        .composite([
+          { input: await half(255, 0), left: 0, top: 0 },
+          { input: await half(0, 255), left: 200, top: 0 },
+        ])
+        .jpeg()
+        .withMetadata({ orientation: 6 })
+        .toBuffer();
+      const upload = await ctx
+        .http()
+        .post('/api/images/upload')
+        .set('Authorization', `Bearer ${owner.token}`)
+        .attach('file', photo, { filename: 'telefon.jpg', contentType: 'image/jpeg' })
+        .expect(201);
+      const before = await getCredits(ctx, owner.userId);
+      const send = (token: string, body: object) =>
+        ctx
+          .http()
+          .post(`/api/generation/export-original/${upload.body.id}`)
+          .set('Authorization', `Bearer ${token}`)
+          .send(body);
+
+      const res = await send(owner.token, {
+        platform: 'vinted',
+        crop: { left: 0, top: 0, width: 1, height: 0.5 },
+      }).expect(201);
+      expect(res.headers['content-disposition']).toContain('zdjecie-vinted-3x4.jpg');
+      const meta = await sharp(res.body).metadata();
+      expect([meta.width, meta.height]).toEqual([1200, 1600]);
+      // Upright the photo is 200×400 with the red half on top – the crop of the top half is all red.
+      const { data } = await sharp(res.body).raw().toBuffer({ resolveWithObject: true });
+      const at = (400 * 1200 + 1000) * 3; // upper right area – blue if the EXIF rotation were ignored
+      const corner = [data[at], data[at + 2]];
+      expect(corner[0]).toBeGreaterThan(200);
+      expect(corner[1]).toBeLessThan(60);
+
+      await send(owner.token, { platform: 'vinted', badgeText: '-20%' }).expect(400);
+      await send(owner.token, { platform: 'vinted', adjust: { brightness: 1.2 } }).expect(400);
+      await send(owner.token, { platform: 'vinted', ratio: '16:9' }).expect(400);
+      await send(stranger.token, { platform: 'vinted' }).expect(403);
+      expect(await getCredits(ctx, owner.userId)).toEqual(before);
+    });
   });
 });

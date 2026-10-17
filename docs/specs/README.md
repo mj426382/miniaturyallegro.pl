@@ -31,6 +31,7 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [20-referrals.md](20-referrals.md) | Program poleceń: link z kodem, nagroda po potwierdzeniu e-maila, sekcja w koncie |
 | [21-google-ads.md](21-google-ads.md) | Google Ads za zgodą na cookies, Consent Mode v2, konwersje rejestracji i zakupu |
 | [22-google-analytics.md](22-google-analytics.md) | GA4 w tym samym tagu co Ads, zgoda per kategoria, migracja decyzji, zdarzenia i `purchase` |
+| [23-blog-bot.md](23-blog-bot.md) | Automatyczny bot bloga na landingu (allgrafika.pl) |
 | [adr/](adr/) | Architecture Decision Records – decyzje, których nie da się wyczytać z kodu |
 | [TEMPLATE-feature-spec.md](TEMPLATE-feature-spec.md) | Szablon nowej specyfikacji |
 | [glossary.md](glossary.md) | Słownik pojęć (Kredyt, Grafika, Opis oferty, Poprawka…) |

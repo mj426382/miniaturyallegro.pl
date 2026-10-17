@@ -18,6 +18,7 @@ import { MailService } from '../mail/mail.service';
 import { prepareForAi } from '../images/image-prep';
 import { sha256 } from '../common/crypto';
 import { freeCreditsForNewAccounts } from '../generation/credits.service';
+import { pluralPl, renderEmail } from '../notifications/email-template';
 
 /** Hard caps – the demo is a lead magnet, not a free tier. */
 const MAX_PER_IP_PER_DAY = 2;
@@ -175,26 +176,19 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
       // Transactional by default; the promotional line is added only with explicit marketing consent (art. 10 UŚUDE).
       const promo = request.marketingOk
         ? [
-            `Załóż darmowe konto, aby wygenerować ${this.freeCredits} kolejnych grafik bez karty: ${this.frontendUrl}/register`,
-            '',
+            `Załóż darmowe konto, aby wygenerować ${this.freeCredits} ${pluralPl(this.freeCredits, 'kolejną grafikę', 'kolejne grafiki', 'kolejnych grafik')} bez karty – do sklepu internetowego albo na OLX, Vinted, eBay czy Amazon: ${this.frontendUrl}/register`,
           ]
         : [];
-      const promoHtml = request.marketingOk
-        ? `<p><a href="${this.frontendUrl}/register">Załóż darmowe konto</a>, aby wygenerować ${this.freeCredits} kolejnych grafik bez karty.</p>`
-        : '';
       await this.mail
         .send({
           to: request.email,
-          subject: 'Twoja próbna grafika AllGrafika jest gotowa',
-          text: [
-            'Cześć,',
-            '',
-            `Twoja próbna grafika w stylu „${style.name}” jest gotowa: ${resultLink}`,
-            '',
-            ...promo,
-            'Jeśli to nie Ty wysłałeś zdjęcie, zignoruj tę wiadomość.',
-          ].join('\n'),
-          html: `<p>Cześć,</p><p>Twoja próbna grafika w stylu „${style.name}” jest gotowa: <a href="${resultLink}">zobacz wynik</a>.</p>${promoHtml}`,
+          subject: 'AllGrafika – Twoja próbna grafika jest gotowa',
+          ...renderEmail({
+            heading: 'Twoja próbna grafika jest gotowa',
+            paragraphs: ['Cześć,', `Twoja próbna grafika w stylu „${style.name}” jest gotowa.`, ...promo],
+            cta: { label: 'Zobacz wynik', url: resultLink },
+            footer: ['Jeśli zdjęcie nie zostało wysłane przez Ciebie, zignoruj tę wiadomość.'],
+          }),
         })
         .catch((err) => this.logger.error(`Demo ${id}: result e-mail failed`, err));
     } catch (error) {

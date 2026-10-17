@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { imagesApi, generationApi } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
-import { useGenerations, Generation } from '../hooks/useGenerations'
+import { useGenerations, Generation, BatchSummary } from '../hooks/useGenerations'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useConfirm } from '../hooks/useConfirm'
 import { track } from '../services/analytics'
@@ -48,15 +48,24 @@ export default function Generate() {
   const [referencePreview, setReferencePreview] = useState<string | null>(null)
   const [reworkingId, setReworkingId] = useState<string | null>(null)
   const [isRework, setIsRework] = useState(false)
-  const [exportTarget, setExportTarget] = useState<Generation | null>(null)
+  /** A graphic, or 'original' for the seller's own photo (Vinted, spec 08). */
+  const [exportTarget, setExportTarget] = useState<Generation | 'original' | null>(null)
   const [infographicTarget, setInfographicTarget] = useState<Generation | null>(null)
   const [pendingShare, setPendingShare] = useState<{ blob: Blob; name: string } | null>(null)
   /** Style picker collapses once results exist so they stay in view (phones especially). */
   const [pickerOpen, setPickerOpen] = useState(true)
 
   const gens = useGenerations(imageId, {
-    onBatchFinished: () => {
-      if (!hasDescriptionRef.current && !nudgedRef.current) {
+    onBatchFinished: ({ completed, failed }: BatchSummary) => {
+      refreshUser().catch(() => undefined)
+      if (completed === 0 && failed > 0) {
+        // Nothing to show – say so instead of celebrating (credits are refunded server-side).
+        toast.error('Nie udało się wygenerować grafik – kredyty wróciły na konto. Spróbuj ponownie przyciskiem „Ponów” na karcie.', { duration: 8000 })
+        return
+      }
+      if (failed > 0) {
+        toast(`Gotowe: ${completed}, nieudane: ${failed}. Kredyty za nieudane grafiki wróciły na konto.`, { duration: 8000 })
+      } else if (!hasDescriptionRef.current && !nudgedRef.current) {
         // First finished graphic: offer the SEO copy once, with a one-tap jump to the panel.
         nudgedRef.current = true
         toast(
@@ -81,16 +90,16 @@ export default function Generate() {
         toast.success('Generowanie zakończone!')
       }
       setPickerOpen(false)
-      refreshUser().catch(() => undefined)
     },
   })
-  const { image, generations, setGenerations, styles, styleNames, generatedStyleIds, selectedStyles, toggleStyle, isLoading, pollTimedOut, hasActive, completedCount, hasResults } = gens
+  const { image, generations, setGenerations, styles, styleNames, generatedStyleIds, selectedStyles, toggleStyle, restartPolling, isLoading, pollTimedOut, hasActive, completedCount, hasResults } =
+    gens
 
   useEffect(() => {
     setPickerOpen(!gens.openedWithResults)
   }, [gens.openedWithResults])
 
-  const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 10) - (user?.freeCreditsUsed ?? 0))
+  const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 5) - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
   const unlimited = Boolean(user?.unlimitedCredits)
   const locked = hasActive && !pollTimedOut
@@ -137,6 +146,7 @@ export default function Generate() {
       toast.success(`Generowanie ${data.count} ${data.count === 1 ? 'grafiki' : 'grafik'} rozpoczęte! To może potrwać kilka minut.`)
       const placeholders: Generation[] = (data.generationIds as string[]).map((id, i) => ({ id, style: data.styles?.[i] || selectedStyles[i] || 'custom', status: 'PENDING', url: null }))
       setGenerations((prev) => [...prev, ...placeholders])
+      restartPolling()
       track('generation_start', { styles: data.count, mode: 'auto' })
       scrollToResults()
       refreshUser().catch(() => undefined)
@@ -168,6 +178,7 @@ export default function Generate() {
       const { data } = await generationApi.startCustomGeneration(imageId!, customPrompt.trim(), referenceFile || undefined, isRework)
       toast.success('Generowanie własnej grafiki rozpoczęte!')
       setGenerations((prev) => [...prev, { id: data.generationId, style: 'custom', status: 'PENDING', url: null }])
+      restartPolling()
       track('generation_start', { styles: 1, mode: isRework ? 'rework' : 'custom' })
       scrollToResults()
       setCustomPrompt('')
@@ -180,14 +191,21 @@ export default function Generate() {
     }
   }
 
+  const [retryingId, setRetryingId] = useState<string | null>(null)
   const retryFailed = async (genId: string) => {
+    if (retryingId) return
+    if (needsPaywall(1)) return
+    setRetryingId(genId)
     try {
       await generationApi.retryGeneration(genId)
       toast.success('Ponowienie generowania rozpoczęte!')
       setGenerations((prev) => prev.map((g) => (g.id === genId ? { ...g, status: 'PENDING' } : g)))
+      restartPolling()
       refreshUser().catch(() => undefined)
     } catch (err: any) {
       handleCreditsError(err, 'Nie udało się ponowić generowania')
+    } finally {
+      setRetryingId(null)
     }
   }
 
@@ -254,6 +272,22 @@ export default function Generate() {
     )
   }
 
+  if (!image && gens.loadError === 'failed') {
+    return (
+      <div className="p-8 text-center" role="alert">
+        <p className="text-gray-700 mb-4">Nie udało się wczytać zdjęcia. Sprawdź połączenie i spróbuj ponownie.</p>
+        <div className="flex justify-center gap-2">
+          <button type="button" onClick={gens.reload} className="btn-primary">
+            Spróbuj ponownie
+          </button>
+          <Link to="/gallery" className="btn-secondary">
+            Galeria
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (!image) {
     return (
       <div className="p-8 text-center">
@@ -276,6 +310,9 @@ export default function Generate() {
           <p className="text-gray-500 text-sm mt-0.5 truncate">
             {image.createdAt ? `Zdjęcie przesłane ${new Date(image.createdAt).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })}` : 'Zdjęcie produktu'}
           </p>
+          <button type="button" onClick={() => setExportTarget('original')} className="text-xs text-blue-700 hover:underline mt-0.5" title="Twoje zdjęcie bez AI – tylko kadr i format, np. na Vinted">
+            Eksportuj oryginał (np. na Vinted)
+          </button>
         </div>
         <div className="ml-auto flex items-center gap-2 shrink-0">
           <Link to="/credits" className="hidden sm:flex items-center gap-1.5 text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg">
@@ -376,6 +413,7 @@ export default function Generate() {
               onRework={() => startRework(gen)}
               reworking={reworkingId === gen.id}
               onRetry={() => retryFailed(gen.id)}
+              retrying={retryingId === gen.id}
               onRated={(rating) => setGenerations((prev) => prev.map((g) => (g.id === gen.id ? { ...g, rating } : g)))}
             />
           ))}
@@ -421,7 +459,19 @@ export default function Generate() {
         </div>
       )}
 
-      {exportTarget && exportTarget.url && <ExportModal generationId={exportTarget.id} styleName={exportTarget.style} previewUrl={exportTarget.url} onClose={() => setExportTarget(null)} />}
+      {exportTarget === 'original' && <ExportModal original={{ imageId: image.id, url: image.originalUrl }} initialPlatform="vinted" onClose={() => setExportTarget(null)} />}
+      {exportTarget && exportTarget !== 'original' && exportTarget.url && (
+        <ExportModal
+          generation={{
+            id: exportTarget.id,
+            style: exportTarget.style,
+            styleName: exportTarget.style === 'custom' ? 'Własny styl' : styleNames[exportTarget.style] || exportTarget.style,
+            url: exportTarget.url,
+          }}
+          original={{ imageId: image.id, url: image.originalUrl }}
+          onClose={() => setExportTarget(null)}
+        />
+      )}
       {infographicTarget && <InfographicModal generationId={infographicTarget.id} imageId={imageId!} styleName={infographicTarget.style} onClose={() => setInfographicTarget(null)} />}
 
       {!hasResults && (

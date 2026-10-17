@@ -12,6 +12,14 @@ const REDACT = [
   'req.body.newPassword',
 ];
 
+/** Query parameters that carry one-time or long-lived secrets (e-mail unsubscribe links, OAuth callbacks). */
+const SECRET_QUERY_PARAMS = /([?&](?:token|code|state|key|signature)=)[^&#]*/gi;
+
+/** URL for logs and error reports: secret query values are replaced, the path stays readable (AC-SEC-010). */
+export function redactUrl(url: string | undefined): string | undefined {
+  return url?.replace(SECRET_QUERY_PARAMS, '$1[redacted]');
+}
+
 export function logLevel(): string {
   if (process.env.LOG_LEVEL) return process.env.LOG_LEVEL;
   if (process.env.NODE_ENV === 'test') return 'silent';
@@ -37,7 +45,7 @@ export function loggingModule() {
         req: (req: { id?: string; method?: string; url?: string; remoteAddress?: string }) => ({
           id: req.id,
           method: req.method,
-          url: req.url,
+          url: redactUrl(req.url),
           ip: req.remoteAddress,
         }),
         res: (res: { statusCode?: number }) => ({ statusCode: res.statusCode }),

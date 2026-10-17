@@ -213,7 +213,7 @@ export default function Account() {
               className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-sm text-gray-700">
-              <strong className="font-medium">Koniec dużej paczki</strong>
+              <strong className="font-medium">Koniec masowego przesyłania</strong>
               <span className="block text-gray-500">Mail, gdy wszystkie grafiki z masowego przesyłania (od 3 zdjęć) są gotowe.</span>
             </span>
           </label>

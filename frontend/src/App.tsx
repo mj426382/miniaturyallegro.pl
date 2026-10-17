@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import CookieBanner from './consent/CookieBanner'
 import PageViewTracker from './consent/PageViewTracker'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
@@ -32,8 +32,10 @@ const Regulamin = lazyPage(() => import('./pages/Regulamin'))
 const PolitykaPrywatnosci = lazyPage(() => import('./pages/PolitykaPrywatnosci'))
 const NotFound = lazyPage(() => import('./pages/NotFound'))
 
+/** Spec 03, AC-AUTH-027: the address the visitor wanted is kept, so login brings them back to it. */
 function PrivateRoute({ children, isAuthenticated }: { children: React.ReactNode; isAuthenticated: boolean }) {
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
+  const location = useLocation()
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
 }
 
 export default function App() {

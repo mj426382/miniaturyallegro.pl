@@ -15,6 +15,7 @@ import {
 import { clearSessionCookie, setSessionCookie } from './session-cookie';
 import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { JsonBodyGuard } from './json-body.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -22,6 +23,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @UseGuards(JsonBodyGuard)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Rejestracja nowego użytkownika (sesja w cookie httpOnly + token w odpowiedzi)' })
   @ApiResponse({ status: 201, description: 'Użytkownik zarejestrowany pomyślnie' })
@@ -35,6 +37,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(JsonBodyGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Logowanie za pomocą email i hasła' })
@@ -48,6 +51,7 @@ export class AuthController {
   }
 
   @Post('google')
+  @UseGuards(JsonBodyGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Logowanie za pomocą Google' })
@@ -94,6 +98,7 @@ export class AuthController {
   }
 
   @Post('verify-email')
+  @UseGuards(JsonBodyGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Confirm the e-mail address with the token from the verification link (public)' })
@@ -115,6 +120,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
+  @UseGuards(JsonBodyGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: 'Żądanie resetu hasła (wysyła e-mail z linkiem)' })
@@ -125,6 +131,7 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @UseGuards(JsonBodyGuard)
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Ustawienie nowego hasła na podstawie tokenu z e-maila' })

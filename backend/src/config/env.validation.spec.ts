@@ -33,6 +33,14 @@ describe('validateEnv', () => {
     ).not.toThrow();
   });
 
+  it('[AC-SEC-011] refuses to start production with rate limiting switched off', () => {
+    expect(() => validateEnv({ ...base, NODE_ENV: 'production', THROTTLE_DISABLED: 'true' })).toThrow(
+      /THROTTLE_DISABLED/,
+    );
+    expect(() => validateEnv({ ...base, NODE_ENV: 'production', THROTTLE_DISABLED: 'false' })).not.toThrow();
+    expect(() => validateEnv({ ...base, NODE_ENV: 'test', THROTTLE_DISABLED: 'true' })).not.toThrow();
+  });
+
   it('[AC-SEC-005] always requires DATABASE_URL and JWT_SECRET', () => {
     expect(() => validateEnv({ ...base, DATABASE_URL: '' })).toThrow(/DATABASE_URL/);
     expect(() => validateEnv({ ...base, JWT_SECRET: '' })).toThrow(/JWT_SECRET/);

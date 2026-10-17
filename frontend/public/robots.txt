@@ -1,2 +1,5 @@
+# app.allgrafika.pl is the logged-in panel. Crawling is allowed so search engines can read the
+# noindex meta tag and X-Robots-Tag header (a Disallow would hide them and leave bare URLs indexed).
+# The public site with the blog and pricing is https://allgrafika.pl
 User-agent: *
-Disallow: /
+Allow: /

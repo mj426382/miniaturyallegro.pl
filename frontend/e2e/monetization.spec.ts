@@ -56,6 +56,19 @@ test.describe('offer when the balance runs out', () => {
     expect(requests.some((r) => r.url.startsWith('/images/upload'))).toBe(false)
   })
 
+  test('[AC-MON-003] buying an edit pack without credits opens the offer in place and keeps the draft', async ({ page }) => {
+    const { requests } = await mockApp(page, { noCredits: true, withDescription: true, editsUsedUp: true })
+    await page.goto(`/generate/${IMAGE.id}`)
+    const panel = page.getByRole('region', { name: 'Opis oferty' })
+    await panel.getByLabel('Tytuł oferty').fill('Kubek ceramiczny – mój szkic')
+    await panel.getByRole('button', { name: /^Dokup 15 poprawek/ }).click()
+    await expect(page.getByRole('dialog', { name: /Brakuje Ci/ })).toBeVisible()
+    expect(requests.some((r) => r.url === `/descriptions/${IMAGE.id}/edit-packs`)).toBe(true)
+    await page.keyboard.press('Escape')
+    await expect(page).toHaveURL(new RegExp(`/generate/${IMAGE.id}$`))
+    await expect(panel.getByLabel('Tytuł oferty')).toHaveValue('Kubek ceramiczny – mój szkic')
+  })
+
   test('[AC-MON-003] the admin never sees the offer', async ({ page }) => {
     await mockApp(page, { noCredits: true, isAdmin: true })
     await page.goto(`/generate/${IMAGE.id}`)

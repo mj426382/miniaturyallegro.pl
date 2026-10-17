@@ -11,6 +11,21 @@ export interface EmailContent {
   footer?: Array<string | { text: string; link: { label: string; url: string } }>;
 }
 
+/** Polish plural form: 1 → one, 2–4 (not 12–14) → few, otherwise many. */
+export function pluralPl(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(n);
+  if (abs === 1) return one;
+  const last = abs % 10;
+  const lastTwo = abs % 100;
+  return last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? few : many;
+}
+
+/** „Cześć Ania,” – the first word of the profile name (it holds the full name), or a plain „Cześć,”. */
+export function greeting(name: string | null | undefined): string {
+  const first = (name ?? '').trim().split(/\s+/)[0];
+  return first ? `Cześć ${first},` : 'Cześć,';
+}
+
 export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }

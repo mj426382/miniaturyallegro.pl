@@ -28,11 +28,13 @@ interface Props {
   onRework: () => void
   reworking: boolean
   onRetry: () => void
+  /** A retry request is in flight – the button is disabled (no double charge). */
+  retrying?: boolean
   onRated: (rating: number) => void
 }
 
 /** One generated graphic: preview, status, primary download, secondary actions in a menu, feedback. */
-export default function ResultCard({ generation: gen, styleName, onPrefetch, onDownload, onExport, onInfographic, onRework, reworking, onRetry, onRated }: Props) {
+export default function ResultCard({ generation: gen, styleName, onPrefetch, onDownload, onExport, onInfographic, onRework, reworking, onRetry, retrying = false, onRated }: Props) {
   const ready = gen.status === 'COMPLETED' && Boolean(gen.url)
   const items: ActionMenuItem[] = [
     { label: 'Eksport i edycja', icon: <AdjustmentsHorizontalIcon className="h-4 w-4" />, onSelect: onExport },
@@ -69,10 +71,17 @@ export default function ResultCard({ generation: gen, styleName, onPrefetch, onD
           </>
         )}
         {gen.status === 'FAILED' && (
-          <button onClick={onRetry} className="flex items-center justify-center gap-1 w-full text-xs text-red-600 hover:text-red-700 py-1.5 rounded hover:bg-red-50 transition-colors mt-1">
-            <ArrowPathIcon className="h-3.5 w-3.5" />
-            Ponów (kredyt zwrócony)
-          </button>
+          <>
+            <p className="text-xs text-gray-500 mt-1">Kredyt za tę grafikę wrócił na konto.</p>
+            <button
+              onClick={onRetry}
+              disabled={retrying}
+              className="flex items-center justify-center gap-1 w-full text-xs text-red-600 hover:text-red-700 py-1.5 rounded hover:bg-red-50 transition-colors mt-1 disabled:opacity-50"
+            >
+              <ArrowPathIcon className="h-3.5 w-3.5" />
+              {retrying ? 'Ponawiam...' : 'Ponów (1 kredyt)'}
+            </button>
+          </>
         )}
       </div>
     </div>

@@ -58,13 +58,18 @@ export function validateEnv(config: Record<string, unknown>): Record<string, unk
     if (!config.SMTP_HOST && config.ALLOW_NO_SMTP !== 'true') {
       errors.push('SMTP_HOST is required in production (password reset e-mails); set ALLOW_NO_SMTP=true to override');
     }
+    // The test-only switch would remove brute-force protection from login and reset (AC-SEC-011).
+    if (String(config.THROTTLE_DISABLED ?? '').toLowerCase() === 'true') {
+      errors.push('THROTTLE_DISABLED=true is only for tests and is not allowed in production');
+    }
     const stripeKey = config.STRIPE_SECRET_KEY as string | undefined;
     if (stripeKey && !isPlaceholder(stripeKey) && isPlaceholder(config.STRIPE_WEBHOOK_SECRET as string)) {
       errors.push('STRIPE_WEBHOOK_SECRET is required when STRIPE_SECRET_KEY is set (credits are granted by webhook)');
     }
   }
 
-  const freeLimit = Number(config.FREE_CREDITS_LIMIT ?? 10);
+  // Same default as freeCreditsForNewAccounts() – 5 since spec 19.
+  const freeLimit = Number(config.FREE_CREDITS_LIMIT ?? 5);
   if (!Number.isInteger(freeLimit) || freeLimit < 0 || freeLimit > 100) {
     errors.push('FREE_CREDITS_LIMIT must be an integer between 0 and 100');
   }

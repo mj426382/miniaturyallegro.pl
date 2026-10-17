@@ -52,7 +52,7 @@ export default function Upload() {
     <div className="px-4 py-6 sm:p-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Prześlij zdjęcie produktu</h1>
-        <p className="text-gray-500 mt-1">Wyślij zdjęcie produktu, a AI wygeneruje profesjonalne grafiki w wybranych przez Ciebie stylach (do 6)</p>
+        <p className="text-gray-500 mt-1">Wyślij zdjęcie produktu z telefonu, a AI przygotuje profesjonalne grafiki w wybranych stylach – do sklepu internetowego i na marketplace&apos;y.</p>
       </div>
 
       <div
@@ -61,11 +61,11 @@ export default function Upload() {
           isDragActive ? 'border-blue-500 bg-blue-50' : preview ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
         }`}
       >
-        <input {...getInputProps()} aria-label="Wybierz zdjęcia z dysku" />
+        <input {...getInputProps()} aria-label="Wybierz zdjęcie z dysku" />
 
         {preview ? (
           <div>
-            <img src={preview} alt="Preview" className="max-h-64 mx-auto rounded-lg object-contain" />
+            <img src={preview} alt="Podgląd wybranego zdjęcia" className="max-h-64 mx-auto rounded-lg object-contain" />
             <p className="mt-3 text-sm text-gray-600">{file?.name}</p>
             <p className="text-xs text-gray-500">{((file?.size || 0) / 1024 / 1024).toFixed(2)} MB</p>
           </div>
@@ -74,7 +74,7 @@ export default function Upload() {
             {isDragActive ? <ArrowUpTrayIcon className="h-16 w-16 text-blue-500 mx-auto mb-4" /> : <PhotoIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />}
             <p className="text-lg font-medium text-gray-700">{isDragActive ? 'Upuść zdjęcie tutaj' : 'Przeciągnij i upuść zdjęcie'}</p>
             <p className="text-sm text-gray-500 mt-1">lub kliknij, aby wybrać plik</p>
-            <p className="text-xs text-gray-500 mt-2">JPG, PNG, WebP • Max 10 MB</p>
+            <p className="text-xs text-gray-500 mt-2">JPG, PNG, WebP • maks. 10 MB</p>
           </div>
         )}
       </div>
@@ -86,6 +86,7 @@ export default function Upload() {
               setFile(null)
               setPreview(null)
             }}
+            disabled={isUploading}
             className="btn-secondary flex-1"
           >
             Zmień zdjęcie

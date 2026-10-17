@@ -10,7 +10,7 @@ export default function NotFound() {
         <h1 className="text-xl font-bold text-gray-900 mb-2">Tej strony nie ma</h1>
         <p className="text-sm text-gray-500 mb-6">Adres jest nieprawidłowy albo strona została przeniesiona.</p>
         <Link to="/" className="btn-primary">
-          Wróć na dashboard
+          Wróć na pulpit
         </Link>
       </div>
     </div>

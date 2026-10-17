@@ -9,6 +9,7 @@ import { usePageTitle } from '../hooks/usePageTitle'
 import toast from 'react-hot-toast'
 import { CreditCardIcon, CheckCircleIcon, XCircleIcon, SparklesIcon, ClockIcon, DocumentArrowDownIcon } from '@heroicons/react/24/outline'
 import { countLabel } from '../utils/plural'
+import { formatZl } from '../utils/format'
 import { isNativeApp, nativePurchaseMode, openInSystemBrowser, webUrl } from '../platform/native'
 
 const HIGHLIGHTED_PACKAGE = 'credits_15'
@@ -47,9 +48,21 @@ interface CreditsPageData {
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending: { label: 'Oczekuje', color: 'text-yellow-700 bg-yellow-50' },
-  completed: { label: 'Opłacono', color: 'text-green-700 bg-green-50' },
+  completed: { label: 'Opłacona', color: 'text-green-700 bg-green-50' },
   failed: { label: 'Nieudana', color: 'text-red-700 bg-red-50' },
   expired: { label: 'Wygasła', color: 'text-gray-600 bg-gray-50' },
+}
+
+/** Stripe subscription states in plain Polish (raw values like `past_due` never reach the user). */
+const SUBSCRIPTION_STATUS: Record<string, string> = {
+  active: 'aktywny',
+  trialing: 'aktywny (okres próbny)',
+  past_due: 'zaległa płatność – zaktualizuj kartę w „Zarządzaj abonamentem”',
+  unpaid: 'nieopłacony',
+  incomplete: 'płatność niedokończona',
+  incomplete_expired: 'wygasł przed opłaceniem',
+  canceled: 'anulowany',
+  paused: 'wstrzymany',
 }
 
 async function loadCreditsPage(): Promise<CreditsPageData> {
@@ -68,7 +81,7 @@ async function loadCreditsPage(): Promise<CreditsPageData> {
     subscription: subRes.data.subscription,
     credits: userRes.data.credits,
     freeCreditsUsed: userRes.data.freeCreditsUsed,
-    freeCreditsLimit: userRes.data.freeCreditsLimit ?? 10,
+    freeCreditsLimit: userRes.data.freeCreditsLimit ?? 5,
     welcome: welcomeRes.data.available ? welcomeRes.data.package : null,
     transactions: histRes.data as Transaction[],
   }
@@ -221,7 +234,7 @@ export default function Credits() {
       const { data } = await paymentsApi.portal()
       if (data.url) window.location.href = data.url
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Nie udało się otworzyć panelu subskrypcji')
+      toast.error(describeError(err, 'Nie udało się otworzyć panelu abonamentu'))
     } finally {
       setIsOpeningPortal(false)
     }
@@ -259,8 +272,8 @@ export default function Credits() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Kredyty</h1>
       <p className="text-gray-500 mb-8">
-        1 kredyt = 1 wygenerowana grafika. Zestaw startowy to 3 kredyty, każdy kolejny styl (z 19, także sezonowe i branżowe) to 1 kredyt. Opis oferty pod SEO jest gratis do każdego zdjęcia z gotową
-        grafiką (5 poprawek AI w cenie, kolejne 15 poprawek = 1 kredyt).
+        1 kredyt = 1 wygenerowana grafika. Zestaw startowy to 3 kredyty, każdy kolejny styl (także sezonowe i branżowe) to 1 kredyt. Pierwszy opis oferty do zdjęcia z gotową grafiką jest gratis (5
+        poprawek AI w cenie, kolejne 15 poprawek = 1 kredyt). Grafiki i opisy przygotujesz pod sklep internetowy, OLX, Vinted, eBay i Amazon.
       </p>
 
       {retry && (
@@ -303,7 +316,7 @@ export default function Credits() {
           <div className="w-full bg-gray-100 rounded-full h-2" role="progressbar" aria-valuenow={freeUsed} aria-valuemin={0} aria-valuemax={FREE_LIMIT} aria-label="Zużyte darmowe grafiki">
             <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${Math.min(100, (freeUsed / FREE_LIMIT) * 100)}%` }} />
           </div>
-          <p className="text-xs text-gray-500 mt-2">{freeUsed === 0 ? 'Nie użyto jeszcze żadnego darmowego kredytu' : `Użyto ${Math.min(freeUsed, FREE_LIMIT)} z ${FREE_LIMIT} darmowych grafik`}</p>
+          <p className="text-xs text-gray-500 mt-2">{freeUsed === 0 ? 'Nie użyto jeszcze żadnej darmowej grafiki' : `Użyto ${Math.min(freeUsed, FREE_LIMIT)} z ${FREE_LIMIT} darmowych grafik`}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -316,7 +329,7 @@ export default function Credits() {
               <p className="text-2xl font-bold text-gray-900">{paidCredits}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-3">Kredyty nie wygasają. Nieudane generacje są automatycznie zwracane.</p>
+          <p className="text-xs text-gray-500 mt-3">Kredyty nie wygasają. Kredyty za nieudane grafiki wracają automatycznie.</p>
         </div>
       </div>
 
@@ -339,12 +352,12 @@ export default function Credits() {
                   {subscription.creditsPerMonth ? ` · ${countLabel(subscription.creditsPerMonth, 'kredyt', 'kredyty', 'kredytów')} / mies.` : ''}
                 </p>
                 <p className="text-sm text-gray-600 mt-0.5">
-                  Status: {subscription.active ? 'aktywny' : subscription.status}
+                  Status: {SUBSCRIPTION_STATUS[subscription.status] ?? (subscription.active ? 'aktywny' : subscription.status)}
                   {subscription.currentPeriodEnd && ` · ${subscription.cancelAtPeriodEnd ? 'wygasa' : 'odnowienie'} ${new Date(subscription.currentPeriodEnd).toLocaleDateString('pl-PL')}`}
                 </p>
               </div>
               <button onClick={openPortal} disabled={isOpeningPortal} className="btn-secondary text-sm">
-                {isOpeningPortal ? 'Otwieram...' : 'Zarządzaj subskrypcją'}
+                {isOpeningPortal ? 'Otwieram...' : 'Zarządzaj abonamentem'}
               </button>
             </div>
           )}
@@ -434,7 +447,7 @@ export default function Credits() {
                   <div>
                     <p className="text-xl font-bold text-gray-900">{pkg.label}</p>
                     <p className="text-3xl font-bold text-blue-600 mt-1">{pkg.priceLabel}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{(pkg.priceGrosze / 100 / pkg.credits).toFixed(2)} zł / kredyt · brutto</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{formatZl(pkg.priceGrosze / pkg.credits)} za grafikę · brutto</p>
                     {pkg.savingLabel && <p className="text-xs text-green-700 font-medium mt-1">{pkg.savingLabel}</p>}
                   </div>
                   <ul className="text-sm text-gray-600 space-y-1 flex-1">
@@ -497,7 +510,7 @@ export default function Credits() {
                         +{tx.creditsAdded}
                         {tx.kind === 'subscription' && <span className="ml-1 text-xs font-normal text-gray-500">abonament</span>}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{(tx.amountPln / 100).toFixed(2)} zł</td>
+                      <td className="px-4 py-3 text-gray-600">{formatZl(tx.amountPln)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
                           {tx.status === 'completed' ? (
@@ -534,13 +547,13 @@ export default function Credits() {
         <div className="text-center py-8 text-gray-500">
           <CreditCardIcon className="h-12 w-12 mx-auto mb-3 opacity-40" />
           <p>Brak historii transakcji</p>
-          <p className="text-sm mt-1">Pierwsze {FREE_LIMIT} grafik jest darmowych!</p>
+          {freeLeft > 0 && <p className="text-sm mt-1">Masz jeszcze {countLabel(freeLeft, 'darmową grafikę', 'darmowe grafiki', 'darmowych grafik')}.</p>}
         </div>
       )}
 
       <div className="mt-6 text-center">
         <Link to="/" className="text-sm text-blue-600 hover:underline">
-          ← Wróć do dashboardu
+          ← Wróć na pulpit
         </Link>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import * as Sentry from '@sentry/node';
+import { redactUrl } from './logging';
 
 type RequestWithContext = Request & { user?: { userId?: string } };
 
@@ -50,14 +51,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private report(exception: unknown, request: RequestWithContext, requestId?: string) {
     const error = exception instanceof Error ? exception : new Error(String(exception));
     this.logger.error(
-      `${request.method} ${request.originalUrl ?? request.url} failed (requestId=${requestId ?? '-'}, user=${request.user?.userId ?? 'anonymous'}): ${error.message}`,
+      `${request.method} ${redactUrl(request.originalUrl ?? request.url)} failed (requestId=${requestId ?? '-'}, user=${request.user?.userId ?? 'anonymous'}): ${error.message}`,
       error.stack,
     );
     if (Sentry.getClient()) {
       Sentry.withScope((scope) => {
         scope.setTag('requestId', requestId ?? 'unknown');
         if (request.user?.userId) scope.setUser({ id: request.user.userId });
-        scope.setContext('request', { method: request.method, url: request.originalUrl ?? request.url });
+        scope.setContext('request', { method: request.method, url: redactUrl(request.originalUrl ?? request.url) });
         Sentry.captureException(error);
       });
     }
