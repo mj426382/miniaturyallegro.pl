@@ -157,6 +157,85 @@ describe('Hardening (integration)', () => {
   });
 
   describe('admin endpoints', () => {
+    it('[AC-ADM-015] revenue is net of refunds and lost or open disputes, per account too', async () => {
+      const admin = await registerUser(ctx, uniqueEmail('owner'));
+      const buyer = await registerUser(ctx);
+      const other = await registerUser(ctx);
+      const { AdminGuard } = await import('../src/admin/admin.guard');
+      (ctx.app.get(AdminGuard) as any).admins = new Set([admin.email]);
+
+      const old = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000);
+      let n = 0;
+      const tx = (userId: string, data: Record<string, unknown>) =>
+        ctx.prisma.paymentTransaction.create({
+          data: { userId, stripeSessionId: `cs_adm015_${++n}`, kind: 'package', ...data } as any,
+        });
+      // buyer: 99 zł fully kept, 28 zł half refunded, 10 zł fully refunded, 70 zł lost dispute, 70 zł won dispute (old)
+      await tx(buyer.userId, { amountPln: 9900, creditsAdded: 200, status: 'completed' });
+      await tx(buyer.userId, {
+        amountPln: 2800,
+        creditsAdded: 40,
+        status: 'partially_refunded',
+        amountRefunded: 1400,
+        creditsReversed: 20,
+      });
+      await tx(buyer.userId, {
+        amountPln: 1000,
+        creditsAdded: 5,
+        status: 'refunded',
+        amountRefunded: 1000,
+        creditsReversed: 5,
+      });
+      await tx(buyer.userId, {
+        amountPln: 7000,
+        creditsAdded: 100,
+        status: 'disputed',
+        disputeStatus: 'lost',
+        disputeAmount: 7000,
+        creditsReversed: 100,
+      });
+      await tx(buyer.userId, {
+        amountPln: 7000,
+        creditsAdded: 100,
+        status: 'completed',
+        disputeStatus: 'won',
+        disputeAmount: 0,
+        createdAt: old,
+      });
+      // other: an open dispute on half of the payment, plus rows that were never paid
+      await tx(other.userId, {
+        amountPln: 2800,
+        creditsAdded: 40,
+        status: 'disputed',
+        disputeStatus: 'open',
+        disputeAmount: 1400,
+        creditsReversed: 20,
+      });
+      await tx(other.userId, { amountPln: 9900, creditsAdded: 200, status: 'pending' });
+      await tx(other.userId, { amountPln: 9900, creditsAdded: 200, status: 'expired' });
+      await tx(other.userId, { amountPln: 9900, creditsAdded: 200, status: 'failed' });
+
+      const overview = await ctx
+        .http()
+        .get('/api/admin/overview')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .expect(200);
+      // gross of paid rows 9900+2800+1000+7000+7000+2800 = 30500; held back 1400+1000+7000+1400 = 10800
+      expect(overview.body.revenue).toMatchObject({
+        completedTransactions: 6,
+        totalGrosze: 19700,
+        refundedGrosze: 10800,
+        last30dGrosze: 19700 - 7000,
+        creditsSold: 200 + 40 + 5 + 100 + 100 + 40 - (20 + 5 + 100 + 20),
+      });
+
+      const users = await ctx.http().get('/api/admin/users').set('Authorization', `Bearer ${admin.token}`).expect(200);
+      const byId = new Map(users.body.users.map((u: any) => [u.id, u]));
+      expect((byId.get(buyer.userId) as any).paidTotalGrosze).toBe(9900 + 1400 + 0 + 0 + 7000);
+      expect((byId.get(other.userId) as any).paidTotalGrosze).toBe(1400);
+      expect((byId.get(admin.userId) as any).paidTotalGrosze).toBe(0);
+    });
+
     it('[AC-ADM-001] are limited to ADMIN_EMAILS and expose the operational overview', async () => {
       const admin = await registerUser(ctx, uniqueEmail('owner'));
       const user = await registerUser(ctx);

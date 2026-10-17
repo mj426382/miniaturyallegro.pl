@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Prisma } from '@prisma/client';
+import { HELD_SQL, PAID_STATUSES } from './revenue';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { CreditsService } from '../generation/credits.service';
@@ -212,11 +213,12 @@ export class AdminUsersService {
         FROM "generations" g JOIN "images" i ON i."id" = g."imageId"
         WHERE i."userId" IN (${Prisma.join(userIds)})
         GROUP BY i."userId"`,
-      this.prisma.paymentTransaction.groupBy({
-        by: ['userId'],
-        where: { userId: { in: userIds }, status: 'completed' },
-        _sum: { amountPln: true },
-      }),
+      // AC-ADM-015: net of refunds and open/lost disputes.
+      this.prisma.$queryRaw<Array<{ userId: string; net: bigint | null }>>`
+        SELECT "userId", sum("amountPln" - ${HELD_SQL}) AS net
+        FROM "payment_transactions"
+        WHERE "userId" IN (${Prisma.join(userIds)}) AND "status" IN (${Prisma.join(PAID_STATUSES)})
+        GROUP BY "userId"`,
     ]);
     for (const id of userIds) {
       result.set(id, { completedGenerations: 0, failedGenerations: 0, lastGenerationAt: null, paidTotalGrosze: 0 });
@@ -228,7 +230,7 @@ export class AdminUsersService {
         lastGenerationAt: row.last,
       });
     }
-    for (const row of payments) result.get(row.userId)!.paidTotalGrosze = row._sum.amountPln ?? 0;
+    for (const row of payments) result.get(row.userId)!.paidTotalGrosze = Number(row.net ?? 0);
     return result;
   }
 }

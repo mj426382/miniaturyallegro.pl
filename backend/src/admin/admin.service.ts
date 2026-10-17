@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { findPlan } from '../payments/plans';
+import { HELD_SQL, PAID_STATUSES } from './revenue';
 
 const STALE_MINUTES = 20;
 
@@ -12,7 +14,7 @@ export class AdminService {
     const staleCutoff = new Date(Date.now() - STALE_MINUTES * 60 * 1000);
     const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    const [users, usersLast30d, byStatus, stale, revenue, revenue30d, subscriptions, demoLeads, demoLeads30d, rated] =
+    const [users, usersLast30d, byStatus, stale, revenue, subscriptions, demoLeads, demoLeads30d, rated] =
       await Promise.all([
         this.prisma.user.count(),
         this.prisma.user.count({ where: { createdAt: { gte: monthAgo } } }),
@@ -20,15 +22,23 @@ export class AdminService {
         this.prisma.generation.count({
           where: { status: { in: ['PENDING', 'PROCESSING'] }, updatedAt: { lt: staleCutoff } },
         }),
-        this.prisma.paymentTransaction.aggregate({
-          where: { status: 'completed' },
-          _sum: { amountPln: true, creditsAdded: true },
-          _count: { _all: true },
-        }),
-        this.prisma.paymentTransaction.aggregate({
-          where: { status: 'completed', createdAt: { gte: monthAgo } },
-          _sum: { amountPln: true },
-        }),
+        // AC-ADM-015: revenue is net – refunds and open/lost disputes are held back (a won dispute has disputeAmount 0).
+        this.prisma.$queryRaw<
+          Array<{
+            count: bigint;
+            gross: bigint | null;
+            held: bigint | null;
+            net30d: bigint | null;
+            credits: bigint | null;
+          }>
+        >`
+          SELECT count(*) AS count,
+                 sum("amountPln") AS gross,
+                 sum(${HELD_SQL}) AS held,
+                 sum("amountPln" - ${HELD_SQL}) FILTER (WHERE "createdAt" >= ${monthAgo}) AS net30d,
+                 sum("creditsAdded" - "creditsReversed") AS credits
+          FROM "payment_transactions"
+          WHERE "status" IN (${Prisma.join(PAID_STATUSES)})`,
         this.prisma.subscription.groupBy({ by: ['status'], _count: { _all: true } }),
         this.prisma.demoRequest.count(),
         this.prisma.demoRequest.count({ where: { createdAt: { gte: monthAgo } } }),
@@ -41,10 +51,11 @@ export class AdminService {
       /** Rows the reconciler will fail + refund on its next run – check before a deploy. */
       staleGenerations: stale,
       revenue: {
-        completedTransactions: revenue._count._all,
-        totalGrosze: revenue._sum.amountPln ?? 0,
-        last30dGrosze: revenue30d._sum.amountPln ?? 0,
-        creditsSold: revenue._sum.creditsAdded ?? 0,
+        completedTransactions: Number(revenue[0]?.count ?? 0),
+        totalGrosze: Number(revenue[0]?.gross ?? 0) - Number(revenue[0]?.held ?? 0),
+        refundedGrosze: Number(revenue[0]?.held ?? 0),
+        last30dGrosze: Number(revenue[0]?.net30d ?? 0),
+        creditsSold: Number(revenue[0]?.credits ?? 0),
       },
       subscriptions: Object.fromEntries(subscriptions.map((r) => [r.status, r._count._all])),
       demo: { leads: demoLeads, last30d: demoLeads30d },
