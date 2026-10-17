@@ -20,6 +20,8 @@ export const LEGAL_DATES = {
   effectiveIso: '2026-10-09',
   /** Spec 22: polityka prywatności uzupełniona o Google Analytics 4 (zmiana wymaga zgody, więc obowiązuje od publikacji). */
   privacyUpdated: '12 października 2026 r.',
+  /** Integracja z zewnętrzną platformą sprzedażową wycofana – usunięto ją z regulaminu (dawny § 4b) i z polityki prywatności. */
+  integrationRemoved: '17 października 2026 r.',
 }
 
 export const PRICING = {
@@ -63,12 +65,6 @@ export const PROCESSORS = [
     role: 'automatyczny opis produktu i przygotowanie instrukcji dla modelu graficznego',
     location: 'USA / Irlandia – transfer na podstawie EU-U.S. Data Privacy Framework / standardowych klauzul umownych; dane przesyłane przez API nie są używane do trenowania modeli',
     url: 'https://openai.com/policies/privacy-policy',
-  },
-  {
-    name: 'Allegro.pl sp. z o.o.',
-    role: 'integracja z kontem sprzedawcy (pobieranie zdjęć ofert i publikacja grafik) – wyłącznie po połączeniu konta przez Użytkownika',
-    location: 'Polska',
-    url: 'https://allegro.pl/regulamin/pl/polityka-prywatnosci',
   },
   {
     name: 'Google LLC (Google Sign-In)',

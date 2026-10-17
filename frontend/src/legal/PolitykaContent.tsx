@@ -10,7 +10,7 @@ export default function PolitykaContent() {
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Polityka prywatności</h1>
       <p className="text-sm text-gray-400 mb-10">
-        Obowiązuje od: {LEGAL_DATES.effective} · ostatnia zmiana: {LEGAL_DATES.privacyUpdated} (Google Analytics 4)
+        Obowiązuje od: {LEGAL_DATES.effective} · ostatnia zmiana: {LEGAL_DATES.integrationRemoved} (usunięcie integracji z zewnętrzną platformą sprzedażową)
       </p>
 
       <div className="space-y-8 text-gray-700 leading-relaxed">
@@ -44,10 +44,6 @@ export default function PolitykaContent() {
             <li>
               <strong>Darmowa próba bez konta:</strong> adres e-mail, przesłane zdjęcie, wygenerowana grafika oraz skrót (hash) adresu IP używany wyłącznie do ograniczenia liczby prób; ewentualna
               dobrowolna zgoda na wiadomości marketingowe.
-            </li>
-            <li>
-              <strong>Integracja z Allegro:</strong> login sprzedawcy, zaszyfrowane tokeny dostępu OAuth oraz identyfikatory ofert, z których pobrano zdjęcia – wyłącznie po połączeniu konta przez
-              Użytkownika.
             </li>
             <li>
               <strong>Subskrypcja:</strong> identyfikator klienta i subskrypcji w systemie Stripe, status i okres rozliczeniowy.
@@ -129,11 +125,6 @@ export default function PolitykaContent() {
                   </td>
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. f – prawnie uzasadniony interes Administratora</td>
                   <td className="border border-gray-200 px-3 py-2">czas przechowywania zdjęć na koncie</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-200 px-3 py-2">Integracja z Allegro (pobieranie zdjęć, publikacja grafik)</td>
-                  <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. b – wykonanie umowy</td>
-                  <td className="border border-gray-200 px-3 py-2">do odłączenia konta Allegro</td>
                 </tr>
                 <tr>
                   <td className="border border-gray-200 px-3 py-2">Pomiar skuteczności reklam Google Ads (pliki cookies reklamowe – tylko po Twojej zgodzie)</td>
