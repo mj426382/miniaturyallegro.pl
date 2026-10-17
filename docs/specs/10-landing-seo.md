@@ -4,8 +4,8 @@
 |---|---|
 | Status | Accepted |
 | Właściciel | Mateusz Janduła |
-| Data | 2026-10-03 (zmiana 2026-10-17: rezygnacja z Allegro) |
-| Powiązane | FR-SEO-001, NFR-PERF-001/002, ADR-0005, `landing-page/vercel.json`, `scripts/check-redirects.js` |
+| Data | 2026-10-03 (zmiany 2026-10-17: rezygnacja z Allegro; pozycjonowanie e-commerce ogólnie) |
+| Powiązane | FR-SEO-001, NFR-PERF-001/002, ADR-0005, `landing-page/vercel.json`, `scripts/check-redirects.js`, `docs/seo/2026-10-ecommerce-seo-audit.md` |
 
 ## 1. Decyzje
 
@@ -25,6 +25,25 @@
   ogłoszeń OLX/Vinted/eBay/Amazon, białe tło online/aplikacja) mają własne strony docelowe z demo (cenę zdjęć
   produktowych obsługuje istniejący wpis o kosztach); frazy poradnikowe (wymiary i wymagania zdjęć na platformach,
   zdjęcia telefonem) obsługuje blog.
+- Pozycjonowanie 2026-10-17 (audyt `docs/seo/2026-10-ecommerce-seo-audit.md`): strona główna celuje w e-commerce
+  ogólnie – „zdjęcia produktowe AI dla sklepów internetowych i marketplace’ów” – a nie w listę platform. Klastry
+  e-commerce mają strony filarowe: generator zdjęć produktowych AI (`/zdjecia-ai-do-ofert`), fotografia produktowa AI
+  (`/fotografia-produktowa-ai`), packshot (`/packshot-online`), białe tło (`/biale-tlo-zdjecie-produktu`), zdjęcia do
+  sklepu internetowego (`/zdjecia-produktowe-do-sklepu-internetowego`) oraz strony platform (OLX, Vinted, eBay, Amazon).
+  Osobnych stron per platforma sklepowa (Shopify, WooCommerce, Shoper, PrestaShop) nie tworzymy – brak popytu w PL
+  i ryzyko cienkich stron; ich oficjalne dane są sekcją strony o sklepie internetowym.
+- Strony docelowe mają unikalną treść (bez powielonych akapitów), datę aktualizacji, listę źródeł dla faktów
+  o platformach (tylko oficjalna pomoc/dokumentacja), FAQ, CTA, linki do wpisów i do innych stron docelowych.
+  Treść stron docelowych to osobne chunki JS ładowane leniwie (jak wpisy) – wspólny bundle zawiera tylko metadane.
+- Blog jest podzielony na klastry tematyczne (hub na `/blog` z linkiem do strony filarowej klastra). Wpis z klastra
+  linkuje stronę filarową i wpisy z tego samego klastra; wpis spoza klastra (np. nowy wpis bota) trafia do sekcji
+  „Pozostałe poradniki”. Linki wewnętrzne w treści wpisów otwierają się w tej samej karcie.
+- Dane strukturalne tworzą graf z `@id` (Organization, WebSite, SoftwareApplication z `AggregateOffer`). Ceny na stronie
+  i w JSON-LD pochodzą z jednego modułu zgodnego z `backend/src/payments/plans.ts` (test pilnuje zgodności). Nie
+  publikujemy ocen, opinii ani statystyk, których nie mamy.
+- Sitemapa ma jedno źródło (`scripts/generate-sitemap.js`); `lastmod` to data zmiany treści (strona główna – stała
+  w kodzie aktualizowana przy zmianie treści, nie data buildu).
+- CSS strony jest wstawiany inline w prerenderowanym HTML (brak blokującego arkusza).
 - Demo bez konta: e-mail + zdjęcie, 1 grafika; limity 1/e-mail, 2/IP/dzień, honeypot; wynik e-mailem;
   dane usuwane po 30 dniach.
 - Komunikacja pain-first, przykłady przed/po, cennik z „1 kredyt = 1 grafika, opis gratis”.
@@ -40,10 +59,18 @@
 - **AC-SEO-004** – Given generator bloga uruchomiony w trybie testowym z przykładowym artykułem, When zakończy pracę, Then powstaje plik wpisu z poprawnym slugiem i linkiem końcowym, wpis pojawia się dokładnie raz w generowanym indeksie, a sitemapa zawiera jego adres.
 - **AC-SEO-005** – Given wpis o tym samym slugu już istnieje, When generator uruchomi się ponownie, Then kończy pracę bez zmian z komunikatem o duplikacie.
 - **AC-SEO-006** – Given wpis, którego temat (tytuł, slug, nagłówki – z uwzględnieniem polskiej odmiany) albo treść pokrywa się z istniejącym wpisem, When generator go przygotuje albo build sprawdzi bloga, Then wpis jest odrzucony (bot prosi model o inny temat), a fraza z planu już pokryta przez istniejący wpis jest pomijana bez pisania artykułu (kanibalizacja słów kluczowych).
-- **AC-SEO-007** – Given strony docelowe `/zdjecia-ai-do-ofert`, `/biale-tlo-zdjecie-produktu`, `/zdjecia-produktowe-olx`, `/zdjecia-produktowe-vinted`, `/zdjecia-produktowe-ebay` i `/zdjecia-produktowe-amazon`, When pobrany HTML, Then każda ma unikalny tytuł (≤ 60 znaków z dopiskiem), meta description 120–160 znaków, canonical na swój adres, jedno `<h1>` z frazą docelową, JSON-LD `FAQPage` i `BreadcrumbList`, jest w sitemapie i podlinkowana ze stopki, a demo działa po hydratacji bez błędów.
-- **AC-SEO-008** – Given strona główna, When pobrany HTML, Then tytuł zawiera frazy „Zdjęcia produktowe”, „AI”, „OLX” i „Vinted” (≤ 60 znaków), a `<h1>` zawiera „Zdjęcia produktowe z AI”; frazy zarezerwowane dla stron docelowych nie są celem wpisów bloga (bot je pomija).
+- **AC-SEO-007** – Given strony docelowe `/zdjecia-ai-do-ofert`, `/fotografia-produktowa-ai`, `/packshot-online`, `/biale-tlo-zdjecie-produktu`, `/zdjecia-produktowe-do-sklepu-internetowego`, `/zdjecia-produktowe-olx`, `/zdjecia-produktowe-vinted`, `/zdjecia-produktowe-ebay` i `/zdjecia-produktowe-amazon`, When pobrany HTML, Then każda ma unikalny tytuł (≤ 60 znaków z dopiskiem), meta description 120–158 znaków, canonical na swój adres, jedno `<h1>` z frazą docelową (tekst nagłówka bez sklejonych słów), treść w prerenderowanym HTML, JSON-LD `WebPage`, `FAQPage` i `BreadcrumbList`, jest w sitemapie i podlinkowana ze stopki, a demo działa po hydratacji bez błędów.
+- **AC-SEO-008** – Given strona główna, When pobrany HTML, Then tytuł (≤ 60 znaków) zaczyna się od „Zdjęcia produktowe AI” i zawiera „sklep”, meta description (≤ 158 znaków) wymienia sklep internetowy i marketplace, `<h1>` brzmi „Zdjęcia produktowe AI dla sklepów internetowych i marketplace’ów”, sekcja „Gdzie wykorzystasz zdjęcia” linkuje każdą stronę docelową, a pytania FAQ widoczne na stronie są tymi samymi pytaniami co w JSON-LD `FAQPage`; frazy zarezerwowane dla stron docelowych nie są celem wpisów bloga (bot je pomija).
 - **AC-SEO-009** – Given dowolna prerenderowana trasa (wpis bloga, `/blog`, strona docelowa, regulamin, polityka, 404), When pobrany HTML, Then `<title>` ma ≤ 60 znaków: dopisek „ | AllGrafika.pl” jest doklejany tylko wtedy, gdy cały tytuł z dopiskiem mieści się w 60 znakach, w przeciwnym razie tytuł jest bez dopisku; tytuł każdego wpisu ma ≤ 60 znaków, a jego meta description ≤ 160 znaków.
 - **AC-SEO-010** – Given wpis połączony z innym (cienkie/zduplikowane wpisy, np. dawne wpisy „miniaturka dla kategorii X” → poradnik `zdjecia-produktowe-dla-kategorii-poradnik`), When build, Then jego adres ma 301 w `vercel.json` na istniejący wpis (bez łańcuchów), nie ma go w indeksie bloga ani w sitemapie, a wpis docelowy zwraca stronę z jednym `<h1>`.
 - **AC-SEO-011** – Given prerenderowana strona (`/`, `/blog`, każdy wpis, strony docelowe, regulamin, polityka, 404) oraz sitemapa, When pobrany HTML/XML, Then nie zawiera słowa „Allegro” (w treści, `<head>`, JSON-LD i linkach), stopka zawiera neutralną notę o znakach towarowych platform, a każdy dawny adres z „allegro” (wpisy, np. `/blog/wymiary-zdjec-allegro-rozmiary-piksele-waga-bledy`, i `/zdjecia-ai-allegro`) ma w `vercel.json` przekierowanie 301 na istniejącą stronę bez łańcucha.
 - **AC-SEO-012** – Given generator bloga, When model zaproponuje artykuł, którego slug, tytuł, opis lub treść dotyczy Allegro, Then wpis jest odrzucony z komunikatem (bot prosi o inny temat), a plan słów kluczowych i prompty nie zawierają tematów Allegro.
 - **AC-SEO-013** – Given regulamin i polityka prywatności (landing i kopia w aplikacji), When pobrane, Then są identyczne w obu pakietach, nie opisują integracji z platformą sprzedażową (łączenie kont, tokeny, publikacja), a regulamin zawiera notę o zmianie z datą 17 października 2026 r.
+- **AC-SEO-014** – Given każda strona docelowa, When pobrany HTML, Then ma co najmniej 450 słów własnej treści (lead, sekcje, FAQ), żaden jej akapit sekcji nie występuje na innej stronie docelowej, pokazuje datę aktualizacji, każdy fakt o platformie ma źródło na liście „Źródła” (adresy oficjalnej pomocy lub dokumentacji), linkuje co najmniej 2 istniejące wpisy bloga i co najmniej 2 inne strony docelowe, a jej frazy docelowe nie pokrywają się z frazami innej strony docelowej.
+- **AC-SEO-015** – Given dowolna prerenderowana trasa (`/`, `/blog`, wpis, strona docelowa), When pobrany HTML, Then każdy blok JSON-LD jest poprawnym JSON z `@context` `https://schema.org`; strona główna ma `Organization`, `WebSite`, `SoftwareApplication` z `AggregateOffer` (najniższa cena 0, najwyższa równa najdroższej ofercie) i `FAQPage`; `/blog` ma `Blog` z listą wpisów i `BreadcrumbList`; wpis ma `BlogPosting` (z datami i obrazem) i `BreadcrumbList`, a wpis z sekcją „Najczęstsze pytania” także `FAQPage` z pytaniami z treści; nie ma ocen (`aggregateRating`, `review`).
+- **AC-SEO-016** – Given cennik na stronie głównej i oferty w JSON-LD, When porównane z `backend/src/payments/plans.ts`, Then pakiety (kredyty i cena) i abonamenty (kredyty i cena miesięczna) są identyczne, a liczba darmowych grafik równa się puli z cennika (spec 02).
+- **AC-SEO-017** – Given `/blog` i wpisy, When pobrany HTML, Then `/blog` ma sekcję dla każdego klastra tematycznego z opisem i linkiem do strony filarowej, każdy wpis należy do co najwyżej jednego klastra i jest linkowany z `/blog`, wpis z klastra linkuje swoją stronę filarową i co najmniej 2 wpisy z tego samego klastra, a linki do allgrafika.pl w treści wpisów prowadzą do istniejących adresów i otwierają się w tej samej karcie (bez `target="_blank"`); listy w treści są poprawnymi listami `<ul>`/`<ol>`.
+- **AC-SEO-018** – Given sitemapa i prerenderowane trasy, When porównane, Then każda indeksowalna trasa (strona główna, `/blog`, strony docelowe, wpisy) występuje w sitemapie dokładnie raz, sitemapa nie zawiera adresów z przekierowaniem ani `noindex`, `lastmod` strony głównej jest datą zmiany treści (nie datą buildu), `lastmod` wpisu równa się jego dacie modyfikacji, a `robots.txt` wskazuje sitemapę; nieznany adres zwraca 404 z `noindex`.
+- **AC-SEO-019** – Given dowolna indeksowalna trasa (strona główna, `/blog`, strona docelowa, wpis), When pobrany HTML, Then `og:image` i `twitter:image` to bezwzględne adresy istniejących plików PNG 1200×630 z `og:image:width`, `og:image:height` i `og:image:alt`; strony docelowe i `/blog` mają własne obrazy OG; strona ma dokładnie jedno `<h1>`, poziomy nagłówków w treści nie przeskakują (np. H2 → H4), a każdy obraz ma niepusty `alt`.
+- **AC-SEO-020** – Given wszystkie wpisy, When pobrany indeks bloga, Then tytuły wpisów są unikalne i mają ≤ 60 znaków, meta description ma 70–158 znaków i jest unikalny w obrębie serwisu, a żaden tytuł nie używa słowa „miniaturka”/„miniaturki” (dawne słownictwo Allegro).
+- **AC-SEO-021** – Given prerenderowana trasa, When pobrany HTML, Then arkusz stylów strony jest wstawiony inline (`<style>`) zamiast blokującego `<link rel="stylesheet">` do własnego pliku CSS, a treść strony docelowej jest w osobnym chunku JS, który nie trafia do wspólnego bundla strony głównej.

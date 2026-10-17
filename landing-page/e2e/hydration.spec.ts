@@ -24,7 +24,10 @@ const ROUTES = [
   '/regulamin',
   '/polityka-prywatnosci',
   '/zdjecia-ai-do-ofert',
+  '/fotografia-produktowa-ai',
+  '/packshot-online',
   '/biale-tlo-zdjecie-produktu',
+  '/zdjecia-produktowe-do-sklepu-internetowego',
   '/zdjecia-produktowe-vinted',
 ]
 
@@ -84,12 +87,12 @@ test('[AC-PERF-002] client-side navigation loads the legal document chunk', asyn
 
 test('[AC-SEO-002] prerendered HTML carries the per-route SEO head', async ({ page }) => {
   await page.goto('/blog/jak-zrobic-profesjonalne-zdjecia-produktow')
-  // 55-character title: with the brand suffix it would exceed 60, so it stays bare (AC-SEO-009).
-  await expect(page).toHaveTitle('Jak zrobić profesjonalne zdjęcia produktów – cały proces')
+  // 49-character title: with the brand suffix it would exceed 60, so it stays bare (AC-SEO-009).
+  await expect(page).toHaveTitle('Jak zrobić profesjonalne zdjęcia produktów w domu')
   const canonical = await page.locator('link[rel="canonical"]').getAttribute('href')
   expect(canonical).toBe('https://allgrafika.pl/blog/jak-zrobic-profesjonalne-zdjecia-produktow')
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent()
-  expect(ld).toContain('"Article"')
+  expect(ld).toContain('"BlogPosting"')
 })
 
 test('[AC-SEO-003] the demo widget is interactive after hydration', async ({ page }) => {
