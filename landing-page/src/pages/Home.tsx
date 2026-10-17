@@ -134,7 +134,7 @@ const faq = [
 const latestPosts = [...blogIndex].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()).slice(0, 3)
 
 const offers = [
-  { '@type': 'Offer', price: '0', priceCurrency: 'PLN', description: `Pierwsze ${FREE_GRAPHICS} grafik za darmo po potwierdzeniu e-maila` },
+  { '@type': 'Offer', price: '0', priceCurrency: 'PLN', description: `Pierwsze ${FREE_GRAPHICS} grafik za darmo` },
   ...packages.map((p) => ({ '@type': 'Offer', price: String(p.price), priceCurrency: 'PLN', description: `${p.name} – ${p.credits} kredytów (1 kredyt = 1 grafika)` })),
   ...plans.map((p) => ({
     '@type': 'Offer',
