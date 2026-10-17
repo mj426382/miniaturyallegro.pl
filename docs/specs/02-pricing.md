@@ -42,7 +42,7 @@
 
 ## Kryteria akceptacji
 
-- **AC-PRC-001** – Given nowe konto, When zostanie utworzone, Then ma 10 darmowych kredytów i 0 zakupionych.
+- **AC-PRC-001** – Given nowe konto, When zostanie utworzone, Then ma zapisaną na koncie darmową pulę z `FREE_CREDITS_LIMIT` – domyślnie 5 (tyle dostają nowe konta na produkcji od 2026-10-09, spec 19) – i 0 zakupionych kredytów.
 - **AC-PRC-002** – Given konto z darmowymi kredytami, When uruchomi zestaw startowy, Then pobierane są dokładnie 3 kredyty, najpierw z darmowej puli.
 - **AC-PRC-003** – Given brak wystarczających kredytów, When użytkownik próbuje generować, Then odpowiedź 402 i nic nie jest tworzone ani pobierane.
 - **AC-PRC-004** – Given generacja zakończona błędem po stronie serwisu, When zostanie oznaczona jako nieudana, Then kredyt wraca na konto (najpierw darmowy).

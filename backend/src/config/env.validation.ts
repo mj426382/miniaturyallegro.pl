@@ -68,7 +68,8 @@ export function validateEnv(config: Record<string, unknown>): Record<string, unk
     }
   }
 
-  const freeLimit = Number(config.FREE_CREDITS_LIMIT ?? 10);
+  // Same default as freeCreditsForNewAccounts() – 5 since spec 19.
+  const freeLimit = Number(config.FREE_CREDITS_LIMIT ?? 5);
   if (!Number.isInteger(freeLimit) || freeLimit < 0 || freeLimit > 100) {
     errors.push('FREE_CREDITS_LIMIT must be an integer between 0 and 100');
   }

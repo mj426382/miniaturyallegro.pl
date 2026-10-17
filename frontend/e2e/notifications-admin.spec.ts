@@ -23,7 +23,7 @@ test.describe('e-mail notifications (spec 16)', () => {
     const { requests } = await mockApp(page)
     await page.goto('/account')
     const tips = page.getByLabel(/Wskazówki, przypomnienia i zniżki/)
-    const batch = page.getByLabel(/Koniec dużej paczki/)
+    const batch = page.getByLabel(/Koniec masowego przesyłania/)
     await expect(tips).not.toBeChecked()
     await expect(batch).toBeChecked()
 

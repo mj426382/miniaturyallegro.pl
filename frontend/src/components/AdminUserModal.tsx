@@ -18,7 +18,7 @@ const KIND_LABEL: Record<string, string> = {
   admin: 'wiadomość od administratora',
   'free-credits-reminder': 'przypomnienie o darmowych kredytach',
   seasonal: 'styl sezonowy',
-  'batch-done': 'koniec paczki',
+  'batch-done': 'koniec masowego przesyłania',
 }
 
 const SUBJECT_MIN = 3

@@ -13,7 +13,7 @@ import { MailService } from '../mail/mail.service';
 import { CreditsService } from '../generation/credits.service';
 import { GENERATION_STYLES, GenerationStyle } from '../generation/styles';
 import { parseBool } from '../config/env.validation';
-import { renderEmail } from './email-template';
+import { greeting, pluralPl, renderEmail } from './email-template';
 
 /** Spec 16 constants. */
 export const MIN_BATCH_IMAGES = 3;
@@ -152,8 +152,8 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         const content = renderEmail({
           heading: 'Twoje grafiki są gotowe',
           paragraphs: [
-            `Cześć${batch.user.name ? ` ${batch.user.name}` : ''},`,
-            `zakończyliśmy generowanie grafik dla paczki ${batch.imageIds.length} zdjęć. Gotowe: ${completed}` +
+            greeting(batch.user.name),
+            `zakończyliśmy generowanie grafik dla ${batch.imageIds.length} ${pluralPl(batch.imageIds.length, 'zdjęcia', 'zdjęć', 'zdjęć')} z masowego przesyłania. Gotowe: ${completed}` +
               (failed
                 ? `, nieudane: ${failed} (kredyty za nie wróciły na konto – możesz je ponowić jednym kliknięciem).`
                 : '.'),
@@ -161,14 +161,15 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           ],
           cta: { label: 'Otwórz galerię', url: `${this.frontendUrl}/gallery` },
           footer: [
-            'Wysyłamy to powiadomienie, bo uruchomiłeś generowanie wielu zdjęć naraz. Wyłączysz je w ustawieniach konta.',
+            'To powiadomienie wysyłamy po masowym przesyłaniu (od 3 zdjęć z generowaniem).',
+            { text: 'Wyłączysz je w', link: { label: 'ustawieniach konta', url: `${this.frontendUrl}/account` } },
           ],
         });
         const ok = await this.send(
           batch.user,
           'batch-done',
           `batch:${batch.id}`,
-          'AllGrafika – grafiki z paczki są gotowe',
+          'AllGrafika – grafiki z masowego przesyłania są gotowe',
           content,
         );
         if (ok) {
@@ -223,11 +224,11 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     for (const user of users.filter((u) => u.freeCreditsUsed < u.freeCreditsLimit).slice(0, quota)) {
       const left = user.freeCreditsLimit - user.freeCreditsUsed;
       const content = renderEmail({
-        heading: `Masz jeszcze ${left} ${left === 1 ? 'darmową grafikę' : left < 5 ? 'darmowe grafiki' : 'darmowych grafik'}`,
+        heading: `Masz jeszcze ${left} ${pluralPl(left, 'darmową grafikę', 'darmowe grafiki', 'darmowych grafik')}`,
         paragraphs: [
-          `Cześć${user.name ? ` ${user.name}` : ''},`,
-          `na Twoim koncie AllGrafika czeka ${left} z ${user.freeCreditsLimit} darmowych grafik. Wgraj zdjęcie produktu, a w kilka minut dostaniesz miniatury na OLX, Vinted, eBay, Amazon albo do własnego sklepu – na białym tle, w aranżacji albo w stylu sezonowym.`,
-          'Do każdego zdjęcia z grafiką napiszemy też gratis opis oferty pod wybraną platformę.',
+          greeting(user.name),
+          `na Twoim koncie AllGrafika czeka ${left} z ${user.freeCreditsLimit} darmowych grafik. Wgraj zdjęcie produktu, a w kilka minut dostaniesz profesjonalne grafiki do swojego sklepu internetowego albo na OLX, Vinted, eBay czy Amazon – na białym tle, w aranżacji albo w stylu sezonowym.`,
+          'Do zdjęcia z gotową grafiką pierwszy opis oferty pod wybraną platformę napiszemy gratis.',
         ],
         cta: { label: 'Wygeneruj grafiki', url: `${this.frontendUrl}/upload` },
         footer: this.marketingFooter(user.id),
@@ -237,7 +238,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           user,
           'free-credits-reminder',
           'free-credits-reminder',
-          `AllGrafika – czeka na Ciebie ${left} darmowych grafik`,
+          `AllGrafika – ${left} ${pluralPl(left, 'darmowa grafika czeka', 'darmowe grafiki czekają', 'darmowych grafik czeka')} na Ciebie`,
           content,
           true,
         )
@@ -268,11 +269,11 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         const content = renderEmail({
           heading: `Nowy sezon: styl „${style.name}”`,
           paragraphs: [
-            `Cześć${user.name ? ` ${user.name}` : ''},`,
+            greeting(user.name),
             `zaczyna się sezon „${style.name}” – dobry moment, żeby odświeżyć zdjęcia ofert. W AllGrafika czeka na Ciebie styl sezonowy: ${style.description}`,
             'Grafika sezonowa świetnie sprawdza się jako kolejne zdjęcie oferty i w kampaniach – zdjęcie główne zostaw na białym tle, zgodnie z zasadami marketplace’ów.',
           ],
-          cta: { label: 'Wygeneruj grafikę sezonową', url: `${this.frontendUrl}/gallery` },
+          cta: { label: 'Wybierz zdjęcie z galerii', url: `${this.frontendUrl}/gallery` },
           footer: this.marketingFooter(user.id),
         });
         if (
@@ -315,7 +316,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   private marketingFooter(userId: string): EmailFooter {
     const token = this.unsubscribeToken(userId);
     return [
-      'Dostajesz tę wiadomość, bo zgodziłeś się na wskazówki i przypomnienia od AllGrafika.',
+      'Dostajesz tę wiadomość, bo na Twoim koncie jest włączona zgoda na wskazówki i przypomnienia od AllGrafika.',
       {
         text: 'Nie chcesz ich więcej?',
         link: { label: 'Wypisz się jednym kliknięciem', url: `${this.frontendUrl}/unsubscribe?token=${token}` },

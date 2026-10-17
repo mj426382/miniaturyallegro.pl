@@ -201,7 +201,7 @@ describe('Notifications & admin panel (integration)', () => {
       return ids;
     }
 
-    it('[AC-NOT-005] mails once when every graphic of the batch is finished', async () => {
+    it('[AC-NOT-005, AC-NOT-010] mails once when every graphic of the batch is finished', async () => {
       const { token, email } = await registerUser(ctx);
       const ids = await photosWithGraphics(token, 3);
       const other = await registerUser(ctx);
@@ -242,6 +242,9 @@ describe('Notifications & admin panel (integration)', () => {
       expect(ctx.mail.sent[0].text).toContain('Gotowe: 3, nieudane: 1');
       expect(ctx.mail.sent[0].text).toContain('http://localhost:5173/gallery');
       expect(ctx.mail.sent[0].headers).toBeUndefined(); // transactional, no unsubscribe header
+      expect(ctx.mail.sent[0].subject).toBe('AllGrafika – grafiki z masowego przesyłania są gotowe');
+      expect(ctx.mail.sent[0].text).not.toContain('paczki'); // „paczka ZIP” is the only paczka
+      expect(ctx.mail.sent[0].text).toContain('http://localhost:5173/account');
       const batch = await ctx.prisma.notificationBatch.findUniqueOrThrow({ where: { id: res.body.id } });
       expect(batch.notifiedAt).toBeInstanceOf(Date);
       expect(batch.closedAt).toBeInstanceOf(Date);
@@ -279,6 +282,33 @@ describe('Notifications & admin panel (integration)', () => {
   });
 
   describe('unsubscribe', () => {
+    it('[AC-NOT-010] reminders use the right plural, the first name and no gendered wording', async () => {
+      const one = await consentingUser(new Date(NOON.getTime() - 4 * DAY), { freeCreditsUsed: 9, name: 'Anna Nowak' });
+      const three = await consentingUser(new Date(NOON.getTime() - 4 * DAY), { freeCreditsUsed: 7, name: null });
+      ctx.mail.sent = [];
+      expect((await notifications.runReminderJob(NOON)).free).toBe(2);
+      const to = (email: string) => ctx.mail.sent.find((m) => m.to === email)!;
+      expect(to(one.email).subject).toBe('AllGrafika – 1 darmowa grafika czeka na Ciebie');
+      expect(to(one.email).text).toContain('Masz jeszcze 1 darmową grafikę');
+      expect(to(one.email).html).toContain('Cześć Anna,');
+      expect(to(three.email).subject).toBe('AllGrafika – 3 darmowe grafiki czekają na Ciebie');
+      expect(to(three.email).text).toContain('Cześć,');
+      for (const mail of ctx.mail.sent) {
+        expect(mail.text).not.toMatch(/zgodziłeś|uruchomiłeś|miniatur/);
+        expect(mail.text).toContain('sklepu internetowego');
+      }
+    });
+
+    it('[AC-NOT-009] a GET on the List-Unsubscribe URL opens the confirmation page and changes nothing', async () => {
+      const user = await consentingUser(new Date(NOON.getTime() - 4 * DAY));
+      const token = notifications.unsubscribeToken(user.userId);
+      const res = await ctx.http().get(`/api/notifications/unsubscribe?token=${token}`).expect(302);
+      expect(res.headers.location).toBe(`http://localhost:5173/unsubscribe?token=${token}`);
+      expect(
+        (await ctx.prisma.user.findUniqueOrThrow({ where: { id: user.userId } })).marketingConsentAt,
+      ).toBeInstanceOf(Date);
+    });
+
     it('[AC-NOT-006] the one-click link withdraws consent without a session; the token is not a session', async () => {
       const user = await consentingUser(new Date(NOON.getTime() - 4 * DAY));
       const token = notifications.unsubscribeToken(user.userId);

@@ -1496,6 +1496,28 @@
         "tags": [
           "notifications"
         ]
+      },
+      "get": {
+        "operationId": "NotificationsController_unsubscribePage",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Redirects a GET on the List-Unsubscribe URL to the app page that confirms it",
+        "tags": [
+          "notifications"
+        ]
       }
     },
     "/api/descriptions/{imageId}": {

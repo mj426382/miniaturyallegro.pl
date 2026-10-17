@@ -1,4 +1,5 @@
 import { createTestApp, registerUser, resetDatabase, STRONG_PASSWORD, TestContext, uniqueEmail } from './test-app';
+import { freeCreditsForNewAccounts } from '../src/generation/credits.service';
 
 describe('Auth & users (integration)', () => {
   let ctx: TestContext;
@@ -32,6 +33,9 @@ describe('Auth & users (integration)', () => {
       expect(dbUser.password).not.toBe(STRONG_PASSWORD);
       expect(dbUser.credits).toBe(0);
       expect(dbUser.freeCreditsUsed).toBe(0);
+      // The pool comes from FREE_CREDITS_LIMIT (10 in this test environment); without it the default is 5.
+      expect(dbUser.freeCreditsLimit).toBe(freeCreditsForNewAccounts(process.env.FREE_CREDITS_LIMIT));
+      expect(freeCreditsForNewAccounts(undefined)).toBe(5);
     });
 
     it('[AC-AUTH-002] rejects registration without accepting the terms', async () => {

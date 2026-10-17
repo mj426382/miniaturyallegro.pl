@@ -19,6 +19,7 @@ import { canonicalEmail } from './email-canonical';
 import { VERIFICATION_RESEND_COOLDOWN_MS, VERIFICATION_TOKEN_TTL_MS } from './email-verification';
 import { freeCreditsForNewAccounts } from '../generation/credits.service';
 import { ReferralsService } from '../referrals/referrals.service';
+import { pluralPl, renderEmail } from '../notifications/email-template';
 
 // 12 rounds in production; tests lower it via BCRYPT_ROUNDS to stay fast.
 const BCRYPT_ROUNDS = Math.min(14, Math.max(4, Number(process.env.BCRYPT_ROUNDS) || 12));
@@ -268,16 +269,15 @@ export class AuthService {
       .send({
         to: user.email,
         subject: 'AllGrafika – resetowanie hasła',
-        text: [
-          'Cześć,',
-          '',
-          'Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta AllGrafika.',
-          `Aby ustawić nowe hasło, otwórz ten link (ważny przez 1 godzinę):`,
-          link,
-          '',
-          'Jeśli to nie Ty wysłałeś tę prośbę, zignoruj tę wiadomość – Twoje hasło pozostanie bez zmian.',
-        ].join('\n'),
-        html: `<p>Cześć,</p><p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta AllGrafika.</p><p><a href="${link}">Ustaw nowe hasło</a> (link ważny przez 1 godzinę).</p><p>Jeśli to nie Ty wysłałeś tę prośbę, zignoruj tę wiadomość.</p>`,
+        ...renderEmail({
+          heading: 'Ustaw nowe hasło',
+          paragraphs: [
+            'Cześć,',
+            'otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta AllGrafika. Link jest ważny przez 1 godzinę.',
+          ],
+          cta: { label: 'Ustaw nowe hasło', url: link },
+          footer: ['Jeśli to nie Ty prosisz o zmianę hasła, zignoruj tę wiadomość – hasło pozostanie bez zmian.'],
+        }),
       })
       .catch((err) =>
         this.logger.error(`Nie udało się wysłać linku resetu hasła do użytkownika ${user.id}: ${err?.message}`),
@@ -423,18 +423,15 @@ export class AuthService {
     await this.mailService.send({
       to: user.email,
       subject: 'AllGrafika – potwierdź adres e-mail',
-      text: [
-        'Cześć,',
-        '',
-        `dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} darmowych grafik:`,
-        link,
-        '',
-        'Link jest ważny przez 24 godziny. Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.',
-      ].join('\n'),
-      html:
-        `<p>Cześć,</p><p>dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} darmowych grafik.</p>` +
-        `<p><a href="${link}">Potwierdź adres e-mail</a> (link ważny przez 24 godziny).</p>` +
-        '<p>Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>',
+      ...renderEmail({
+        heading: 'Potwierdź adres e-mail',
+        paragraphs: [
+          'Cześć,',
+          `dziękujemy za założenie konta w AllGrafika. Potwierdź adres e-mail, aby odblokować ${this.freeCreditsLimit} ${pluralPl(this.freeCreditsLimit, 'darmową grafikę', 'darmowe grafiki', 'darmowych grafik')} – do sklepu internetowego albo na OLX, Vinted, eBay czy Amazon. Link jest ważny przez 24 godziny.`,
+        ],
+        cta: { label: 'Potwierdź adres e-mail', url: link },
+        footer: ['Jeśli konto nie zostało założone przez Ciebie, zignoruj tę wiadomość.'],
+      }),
     });
   }
 
