@@ -4,142 +4,117 @@ const post: BlogPostData = {
   id: '110',
   slug: 'jak-fotografowac-buty-do-sprzedazy',
   title: 'Jak fotografować buty do sprzedaży',
-  excerpt: 'Jak fotografować buty do sprzedaży? Poznaj kluczowe ujęcia, światło i tło, które przekonają kupujących. Praktyczne wskazówki dla Twoich ofert.',
+  excerpt: 'Jak fotografować buty do sprzedaży? Kluczowe ujęcia, światło i tło oraz zasady zdjęć butów nowych i używanych na Vinted, OLX, eBay i w sklepie.',
   content: `
-## Sytuacja sprzedawcy: Pierwsze zdjęcia butów na Allegro
+## Sytuacja sprzedawcy: pierwsze zdjęcia butów
 
-Masz kilkanaście par nowych sneakersów do wystawienia i wiesz już, że bez wyraźnych zdjęć nikt nie kliknie w Twoją ofertę. Ale jak fotografować buty do sprzedaży, żeby przyciągnąć uwagę – i jednocześnie pokazać je uczciwie? W tej sekcji podsumowuję najważniejsze odpowiedzi na to pytanie.
-
-Kupujący na Allegro oczekują zdjęć butów, które pokazują produkt z różnych perspektyw, są ostre i zgodne z rzeczywistością. Kluczowe są zdjęcia z boku, z góry, detale oraz realistyczne tło.
+Masz kilkanaście par butów do wystawienia – część nowych, część z własnej szafy – i wiesz, że bez wyraźnych zdjęć nikt nie kliknie w ofertę. Jak fotografować buty do sprzedaży, żeby przyciągnąć uwagę i jednocześnie pokazać je uczciwie? Krótka odpowiedź: **kilka stałych ujęć, miękkie światło, spokojne tło i zero upiększania stanu**. Poniżej szczegóły, a na końcu zasady dla poszczególnych platform, bo buty nowe i używane fotografuje się według innych reguł.
 
 ## Jakie ujęcia butów są kluczowe dla kupującego?
 
-Nie wystarczy jedno zdjęcie – kupujący chcą zobaczyć buty z kilku perspektyw. Oto najważniejsze ujęcia, których oczekują:
+Jedno zdjęcie nie wystarczy – kupujący chce zobaczyć buty z kilku stron. Najważniejsze ujęcia:
 
-- **Bok buta (cały profil)** – pozwala ocenić kształt i linię produktu
-- **Z góry/pary przodem** – prezentuje szerokość, układ sznurowadeł i noski
-- **Zbliżenia na detale** – np. przeszycia, logo, faktura materiału
-- **Oba buty razem, lekko rozstawione** – pokazuje komplet
-- **Podeszwa (spód buta)** – ważna dla butów sportowych i używanych
-- **But w użyciu (na nodze, lifestyle)** – pozwala wyobrazić sobie produkt w rzeczywistym otoczeniu
+- **Bok buta (cały profil)** – kształt, linia podeszwy i wysokość cholewki
+- **Para z przodu lub z góry** – szerokość, sznurowanie, czubki
+- **Pięta i tył** – zapiętek, logo, ślady ścierania
+- **Podeszwa** – bieżnik i jego zużycie, kluczowe przy butach sportowych i używanych
+- **Wnętrze i metka z rozmiarem** – rozmiar, wkładka, stan podszewki
+- **Zbliżenia na detale** – przeszycia, logo, faktura materiału
+- **But na nodze** – opcjonalnie, żeby było widać, jak leży
 
-Większość sprzedawców ogranicza się do zdjęcia z boku – to błąd. Zadbaj o przekrój ujęć, by zwiększyć zaufanie i atrakcyjność oferty. Styl „Wiele ujęć” (kolaż 3-4 zdjęć) dostępny w [AllGrafika.pl](https://app.allgrafika.pl/register) pozwala pokazać różne perspektywy w jednej miniaturce.
+Większość sprzedawców ogranicza się do zdjęcia z boku – to błąd. Komplet ujęć odpowiada na pytania, zanim kupujący je zada.
 
-## Światło i tło – eliminacja typowych błędów przy fotografii butów
+## Światło i tło – jak uniknąć typowych błędów
 
-Oświetlenie i tło wpływają nie tylko na estetykę, ale i wiarygodność zdjęcia. Poniżej znajdziesz checklistę elementów, które warto sprawdzić przed publikacją zdjęć butów:
+- **Światło dzienne lub rozproszone** – przy oknie, bez bezpośredniego słońca i bez żółtych żarówek
+- **Spokojne, jednolite tło** – biały lub jasnoszary karton, gładka podłoga, ściana
+- **Bez rozpraszaczy** – inne buty, kable i wzorzyste dywany w tle odciągają wzrok
+- **Stabilizacja** – statyw albo oparcie telefonu eliminuje poruszenia
+- **Wierne kolory** – bez filtrów i podbijania kontrastu
+- **Czyste buty** – nawet drobne zabrudzenia są widoczne na zbliżeniach
 
-- **Światło naturalne lub rozproszone** – unikaj ostrych cieni i żółtych żarówek
-- **Białe tło** – najlepiej sprawdza się dla zdjęcia głównego, zgodnie z wymogami Allegro ([Zdjęcie produktu na białym tle](https://allgrafika.pl/biale-tlo-zdjecie-produktu))
-- **Unikaj rozpraszających elementów** – nie umieszczaj z tyłu innych przedmiotów czy wzorzystych powierzchni
-- **Stabilizacja aparatu** – statyw lub podparcie eliminuje poruszenia
-- **Kolorystyka zgodna z realnym produktem** – nie przesadzaj z filtrami czy kontrastem
-- **Zadbaj o czystość butów** – nawet niewielkie zabrudzenia są widoczne na zbliżeniach
+Prosty zestaw lamp do wieczornych sesji opisaliśmy w artykule [oświetlenie DIY do zdjęć produktowych](https://allgrafika.pl/blog/oswietlenie-diy-do-zdjec-produktowych).
 
-W [AllGrafika.pl](https://app.allgrafika.pl/register) możesz automatycznie wybrać styl białe tło lub lifestyle, a AI samodzielnie wygeneruje profesjonalne tło dopasowane do rodzaju butów.
+## Krok po kroku: mini-sesja butów
 
-## Konkretne kroki: Jak zrobić profesjonalne zdjęcia butów do sprzedaży
+1. **Przygotuj buty** – wyczyść powierzchnię i podeszwę, wyprostuj sznurówki, wypełnij wnętrze papierem, żeby cholewka trzymała kształt.
+2. **Zorganizuj miejsce** – przy oknie rozłóż biały karton wygięty w łuk lub gładką tkaninę.
+3. **Przygotuj sprzęt** – aparat albo smartfon z czystym obiektywem, pełna rozdzielczość, lampa błyskowa wyłączona. Ustawienia telefonu znajdziesz w poradniku [zdjęcia produktów telefonem](https://allgrafika.pl/blog/zdjecia-produktow-telefonem-poradnik).
+4. **Ustaw aparat na wysokości buta** – zdjęcie profilu rób z poziomu podeszwy, nie z góry. Unikniesz zniekształceń.
+5. **Wykonaj zdjęcia** w stałej kolejności:
+   - profil pojedynczego buta (zwykle zewnętrzna strona lewego)
+   - para z przodu i z góry
+   - pięta i tył
+   - podeszwa
+   - wnętrze i metka z rozmiarem
+   - detale i ewentualne wady
+6. **Kadruj z marginesem** – kwadrat 1:1 sprawdza się na większości platform, np. eBay podaje, że [proporcje 1:1 lub 16:9 zwykle wyglądają najlepiej](https://www.ebay.com/help/selling/listings/adding-pictures-listings?id=4148).
+7. **Popraw tylko to, co aparat zrobił źle** – kadr i prostowanie. Na Vinted nie edytuj zdjęć wcale (szczegóły niżej).
+8. **Porównaj z oryginałem** – kolor na ekranie musi zgadzać się z butem w świetle dziennym.
 
-Opracowanie własnej mini-sesji zdjęciowej wcale nie wymaga profesjonalnego sprzętu. Oto sprawdzony proces krok po kroku:
+## Buty nowe, używane i markowe – zasady platform
 
-1. **Przygotuj buty** – dokładnie wyczyść całą powierzchnię, sprawdź sznurówki, wypełnij wnętrze papierem, aby zachowały kształt.
-2. **Zorganizuj miejsce** – wybierz dobrze oświetlone miejsce, najlepiej przy oknie. Rozłóż biały karton lub rozciągnij białą tkaninę jako tło.
-3. **Zadbaj o sprzęt** – wykorzystaj aparat fotograficzny lub dobrej jakości smartfon. Ustaw tryb zdjęć w wysokiej rozdzielczości.
-4. **Stabilizacja** – wykorzystaj statyw lub ustaw aparat na stabilnej powierzchni, by uniknąć drgań.
-5. **Wykonaj zdjęcia**:
-   - Z boku pojedynczego buta
-   - Z góry, prezentując oba buty jako parę
-   - Zbliżenia na detale: przeszycia, logo, metki
-   - Spód buta (podeszwa)
-   - But w użyciu – załóż buty na nogę lub poproś kogoś o pozowanie
-6. **Kadruj zdjęcia** – przytnij do formatu 1:1 lub 4:3, aby dobrze prezentowały się na Allegro.
-7. **Dostosuj zdjęcia** – sprawdź ostrość, popraw jasność i kontrast, ale unikaj przesadnego retuszowania.
-8. **Stwórz kolaż lub dodać plakietkę** – jeśli korzystasz z [AllGrafika.pl](https://app.allgrafika.pl/register), skorzystaj z narzędzi AI do generowania miniaturek z wybranym stylem.
-9. **Publikacja** – załaduj zestaw zdjęć: główna miniatura na białym tle, kolaż z detalami i zdjęcie lifestyle.
+### Vinted
+Na Vinted sprzedaje się dużo używanego obuwia, a zasady są tu ścisłe. [Regulamin katalogu](https://www.vinted.com/catalog-rules) wymaga zdjęć zrobionych przez Ciebie, ostrych i bez edycji obrazu, bez zdjęć stockowych i znaków wodnych. Pierwsze zdjęcie ma pokazywać cały przedmiot, a wady warto pokazać wprost. Możesz dodać do 20 zdjęć. Przy markowych butach Vinted w [pomocy dotyczącej zdjęć markowych produktów](https://www.vinted.pl/help/4/601-jak-robic-zdjecia-markowych-produktow) zaleca co najmniej trzy zdjęcia potwierdzające autentyczność – np. metki, szwów czy numeru seryjnego. Na Vinted publikuj więc wyłącznie własne zdjęcia z telefonu, bez wygenerowanego tła.
 
-## Hipotetyczne przykłady: Praktyczne zastosowanie kroków
+### eBay
+[Zasady zdjęć eBay](https://www.ebay.com/help/policies/listing-policies/picture-policy?id=4370) zabraniają zdjęć katalogowych przy przedmiotach używanych oraz dodanych napisów, ramek i znaków wodnych. Używane buty fotografujesz więc sam, jak na Vinted. Oferta może mieć do 24 zdjęć, a pierwsze jest zdjęciem głównym.
 
-### Przykład 1: Buty sportowe (hipotetyczne)
+### OLX
+Według starszego artykułu pomocy OLX ogłoszenie mieści do 8 zdjęć, które nie mogą pochodzić z internetu ([pomoc OLX](https://pomoc.olx.pl/hc/pl/articles/211658765-Jak-doda%C4%87-og%C5%82oszenie-)). Sprawdź aktualny limit przy dodawaniu ogłoszenia i wybierz najważniejsze ujęcia: profil, para, podeszwa, metka, wady.
 
-Jan chce sprzedać nowe buty do biegania. Wykonuje:
-- Zdjęcie z boku na białym tle, wyraźne i dobrze oświetlone
-- Zdjęcie z góry, pokazujące szerokość i fason
-- Zbliżenie na logo marki i szwy
-- Fotkę podeszwy, by pokazać bieżnik
-- Zdjęcie butów na nodze podczas joggingu – styl lifestyle
-- Wszystkie zdjęcia kadruje do 1:1 i 4:3, a główną miniaturę tworzy w [AllGrafika.pl](https://app.allgrafika.pl/register) z białym tłem
+### Własny sklep i nowe buty
+Przy nowych butach w sklepie internetowym albo w ofercie nowego towaru możesz pójść dalej: zdjęcie profilu z telefonu wgrywasz do [AllGrafika.pl](https://app.allgrafika.pl/register) i dostajesz grafikę na białym tle, we wnętrzu albo w stylu „Wiele ujęć” – kolaż kilku perspektyw w jednym obrazie. AI zmienia tło i scenę, a kształt, kolory i logo buta zostają takie jak na zdjęciu. Więcej o białym tle znajdziesz na stronie [zdjęcie produktu na białym tle](https://allgrafika.pl/biale-tlo-zdjecie-produktu).
 
-### Przykład 2: Buty dziecięce (hipotetyczne)
+## Przykłady hipotetyczne
 
-Anna wystawia dziecięce sneakersy. Przygotowuje:
-- Zdjęcie obu butów ustawionych razem
-- Zbliżenie na rzepy i ozdobne elementy
-- Zdjęcie podeszwy
-- Kolaż zdjęć detali w jednym pliku
-- Lifestyle: buty na stopach dziecka, na trawie
-- Korzysta z AI do automatycznej zmiany tła na pastelowe
+### Przykład hipotetyczny 1: buty do biegania z szafy (Vinted)
+Sprzedajesz noszone kilka razy buty do biegania. Robisz przy oknie, na jasnym kartonie: profil, parę z przodu, podeszwę z bliska, metkę z rozmiarem, zbliżenie na lekkie zabrudzenie przy piętce. Nie poprawiasz zdjęć – publikujesz je tak, jak wyszły z telefonu.
 
-### Przykład 3: Eleganckie półbuty (hipotetyczne)
+### Przykład hipotetyczny 2: nowe buty dziecięce w sklepie
+W sklepie internetowym sprzedajesz nowe sneakersy dziecięce. Fotografujesz profil i parę z góry, a w AllGrafika robisz z nich grafikę na białym tle na kartę produktu i scenę we wnętrzu na drugie zdjęcie. Dokładasz własne zbliżenia rzepów i podeszwy.
 
-Piotr sprzedaje męskie półbuty. Wykonuje:
-- Zdjęcie z boku na białym tle
-- Zbliżenie na przeszycia i fakturę skóry
-- Oba buty razem – lekko rozstawione
-- Podeszwa z bliska
-- Lifestyle: buty w zestawie z garniturem
-- Generuje miniaturkę w stylu premium w [AllGrafika.pl](https://app.allgrafika.pl/register)
+### Przykład hipotetyczny 3: skórzane półbuty używane (eBay)
+Wystawiasz używane półbuty. Kluczowe są zbliżenia skóry na zgięciach, podeszwy z obcasem i wnętrza. Wszystkie zdjęcia przedstawiają ten konkretny egzemplarz, bez napisów i ramek.
 
-## Lista kontrolna: Idealna sesja zdjęciowa butów do sprzedaży
+## Lista kontrolna: sesja zdjęciowa butów
 
-- Buty czyste, bez kurzu i zagnieceń
-- Zdjęcia wszystkich najważniejszych ujęć (bok, góra, detale, spód)
-- Naturalne lub miękkie światło, brak ostrych cieni
-- Białe tło do zdjęcia głównego
-- Kadrowanie zgodnie z formatami Allegro (1:1, 4:3, 3:4)
-- Brak zbędnych obiektów w kadrze
-- Przed publikacją sprawdź zgodność kolorystyki i ostrość
-- Jeżeli korzystasz z AI, przetestuj różne style miniaturek i kolaże
+- Buty czyste, z wypełnionym wnętrzem
+- Komplet ujęć: profil, para, pięta, podeszwa, wnętrze z metką, detale
+- Wady pokazane na osobnych zdjęciach
+- Miękkie, dzienne światło, bez lampy błyskowej
+- Spokojne, jednolite tło
+- Aparat na wysokości buta
+- Kolory porównane z oryginałem
+- Na Vinted i przy używanych butach na eBay – tylko własne, nieedytowane zdjęcia
 
 ## Najczęstsze pytania (FAQ)
 
 ### Jakie tło najlepiej sprawdza się przy zdjęciach butów?
-
-Białe tło jest najbardziej uniwersalne i zgodne z wymaganiami Allegro. Do zdjęć dodatkowych sprawdzi się styl lifestyle lub gradient, podkreślający charakter produktu.
+Jasne, jednolite: biały lub jasnoszary karton albo gładka ściana. W sklepie na zdjęcie główne najlepiej sprawdza się czyste białe tło.
 
 ### Ile zdjęć butów dodać do jednej oferty?
+Tyle, żeby kupujący nie miał pytań o stan i rozmiar – zwykle profil, parę, podeszwę, metkę i zbliżenia. Limity zależą od platformy: Vinted do 20, eBay do 24 zdjęć.
 
-Rekomenduje się 5-7 zdjęć z różnych perspektyw: bok, góra, detale, podeszwa oraz buty w użyciu.
+### Czy mogę użyć AI do zdjęć butów?
+Do nowych butów w sklepie i w ofertach nowego towaru – tak, o ile grafika pokazuje dokładnie ten model i kolor. Do używanych butów na Vinted i eBay – nie, tam potrzebne są Twoje prawdziwe zdjęcia konkretnej pary.
 
-### Czy można użyć AI do tworzenia zdjęć butów na Allegro?
+### Jakie błędy popełniają początkujący?
+Słabe światło i mocne cienie, przypadkowe przedmioty w kadrze, jedno ujęcie zamiast kilku, przekłamane kolory i brak zdjęcia podeszwy.
 
-Tak, narzędzia takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) generują profesjonalne grafiki, zmieniając tło i scenę bez ingerencji w sam produkt.
+### Czy smartfon wystarczy?
+Tak. Kluczowe są światło, czysty obiektyw, ustawienie aparatu na wysokości buta i stabilne trzymanie telefonu.
 
-### Jakie najczęstsze błędy popełniają początkujący przy fotografowaniu butów?
+## Sprawdź swoje zdjęcia przed kolejną ofertą
 
-- Robienie zdjęć przy słabym świetle lub z mocnymi cieniami
-- Zostawianie w kadrze zbędnych przedmiotów
-- Robienie tylko jednego ujęcia
-- Publikowanie zdjęć z nieodpowiednią kolorystyką
-- Brak ujęć detali lub podeszwy
-
-### Czy smartfon wystarczy do profesjonalnych zdjęć?
-
-Tak, nowoczesny smartfon w trybie wysokiej rozdzielczości wystarczy. Kluczowe są światło, ustawienie i kadrowanie.
-
-### Jak poprawić kolory i ostrość zdjęć?
-
-Można delikatnie poprawić jasność, kontrast i ostrość, ale nie przesadzać z filtrami. Warto porównać zdjęcie z rzeczywistym produktem przed publikacją.
-
-## Podsumowanie z zadaniem: Sprawdź swoje zdjęcia butów już dziś
-
-Zanim opublikujesz kolejną ofertę, przejdź przez powyższą checklistę i porównaj swoje zdjęcia z przykładowymi ujęciami czołowych sprzedawców. Przetestuj także automatyczne generowanie miniaturek w [AllGrafika.pl](https://app.allgrafika.pl/register), by zobaczyć różnicę jakości i oszczędzić czas na obróbce grafiki.
+Zanim wystawisz następną parę, przejdź przez listę kontrolną powyżej. Jeśli sprzedajesz nowe obuwie we własnym sklepie, wypróbuj grafiki z jednego zdjęcia w [AllGrafika.pl](https://app.allgrafika.pl/register) – pierwsze 5 jest darmowych po potwierdzeniu adresu e-mail.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-10-17',
   modifiedAt: '2026-10-17',
   author: 'AllGrafika.pl',
-  readTime: 6,
+  readTime: 7,
   category: 'Poradniki',
 }
 

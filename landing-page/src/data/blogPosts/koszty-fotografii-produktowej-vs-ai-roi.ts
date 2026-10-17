@@ -4,49 +4,86 @@ const post: BlogPostData = {
   id: '31',
   slug: 'koszty-fotografii-produktowej-vs-ai-roi',
   title: 'Koszty fotografii produktowej: studio vs AI – ROI',
-  excerpt: 'Porównaj koszty tradycyjnych sesji fotograficznych ze zautomatyzowanym rozwiązaniem AI i dowiedz się, jak obliczyć ROI dla Twojego sklepu na Allegro.',
+  excerpt: 'Studio, freelancer, własne zdjęcia czy AI? Porównaj koszty fotografii produktowej i policz zwrot z inwestycji na własnych liczbach.',
   content: `
-## Dlaczego warto analizować koszty fotografii produktowej?
+## Ile naprawdę kosztuje zdjęcie produktu?
 
-Fotografia produktowa to kluczowy element każdego e-sklepu, szczególnie na Allegro, gdzie konkurencja jest ogromna. **Dobre zdjęcia produktów mogą znacząco zwiększyć sprzedaż**, ale często wiążą się z wysokimi kosztami. W tym artykule porównamy koszty tradycyjnych sesji fotograficznych, usług freelancerów oraz nowoczesnych narzędzi opartych na AI, takich jak AllGrafika.pl.
+Koszt zdjęcia produktowego to nie tylko faktura od fotografa. Liczy się też czas przygotowania produktów, wysyłka do studia, oczekiwanie na pliki, poprawki i to, ile dni produkt nie sprzedaje się, bo nie ma zdjęć. Dla sklepu z kilkunastoma produktami to drobiazg, przy kilkuset – realna pozycja w budżecie.
 
-## Koszty tradycyjnych sesji fotograficznych
+W tym artykule porównujemy cztery drogi: studio fotograficzne, freelancera, własne zdjęcia i narzędzia AI. Pokazujemy też, jak policzyć zwrot z inwestycji na własnych liczbach, zamiast wierzyć w cudze obietnice.
 
-- Profesjonalne studio fotograficzne to koszt rzędu **200-500 zł za jeden produkt**.
-- Dodatkowo, jeśli chcesz uzyskać różne style zdjęć, np. **białe tło**, **lifestyle** lub **flat lay**, koszty mogą się zwiększyć.
-- Czas realizacji zdjęć w studiu często wynosi **kilka dni** lub nawet tygodni, co może opóźnić start sprzedaży.
+## Studio fotograficzne
 
-## Usługi freelancerów — tańsza, ale ryzykowna opcja
+- **Przykładowe ceny** – studia wyceniają pracę różnie: za produkt, za ujęcie albo za dzień zdjęciowy. Przykładowo może to być od kilkudziesięciu do kilkuset złotych za produkt, w zależności od miasta, liczby ujęć i obróbki. Zawsze poproś o konkretną wycenę.
+- **Zalety** – powtarzalna jakość, kontrola światła, możliwość sesji z modelką czy aranżacji.
+- **Koszty ukryte** – wysyłka lub dowóz produktów, czas oczekiwania, dopłaty za dodatkowe style (np. osobno białe tło i osobno sesja lifestyle).
 
-- Freelancerzy często oferują **niższe ceny** niż studia, ale jakość zdjęć może być nierówna.
-- Koszt za zdjęcie zaczyna się od **50-150 zł**, jednak mogą wystąpić dodatkowe opłaty za edycję i poprawki.
-- Brak gwarancji spójności stylu zdjęć, co wpływa na **identyfikację wizualną sklepu**.
+Studio ma przewagę tam, gdzie liczy się sesja wizerunkowa, zdjęcia z ludźmi albo bardzo trudne materiały (szkło, biżuteria z refleksami).
 
-## Automatyzacja z AI — szybciej i taniej
+## Freelancer
 
-- Narzędzia takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) umożliwiają generowanie profesjonalnych miniaturek za jedyne **1 zł za zdjęcie**.
-- Wybór spośród różnych stylów, takich jak **białe tło**, **dark luxury** czy **minimalistyczny**, pozwala na dostosowanie zdjęć do charakteru produktu.
-- Czas realizacji — **60 sekund na wygenerowanie 12 opcji zdjęć**, co przyspiesza proces w porównaniu z tradycyjnymi metodami.
+- **Przykładowe ceny** – często niższe niż w studiu, ale rozrzut jest duży. Przykładowo kilkadziesiąt złotych za zdjęcie, plus ewentualne dopłaty za retusz.
+- **Zalety** – elastyczność, możliwość dojazdu do magazynu.
+- **Ryzyko** – nierówna jakość i trudność w utrzymaniu spójnego stylu, gdy przy kolejnej partii pracuje ktoś inny.
 
-## Jak obliczyć ROI dla fotografii produktowej?
+## Własne zdjęcia
 
-Aby obliczyć zwrot z inwestycji (ROI), warto wziąć pod uwagę:
+- **Koszt** – sprzęt, który zwykle już masz (telefon), plus przykładowo kilkadziesiąt do kilkuset złotych na namiot bezcieniowy, tło i lampy.
+- **Największy koszt** – Twój czas: ustawienie, zdjęcia, obróbka, kadrowanie pod kilka platform.
+- **Kiedy to najlepsza opcja** – przy rzeczach używanych i na Vinted. Regulamin katalogu Vinted wymaga zdjęć zrobionych przez Ciebie, pokazujących przedmiot bez edycji ([zasady katalogu Vinted](https://www.vinted.com/catalog-rules)). Na eBay przy rzeczach używanych nie wolno używać zdjęć stockowych ([zasady zdjęć eBay](https://www.ebay.com/help/policies/listing-policies/picture-policy?id=4370)).
 
-- **Koszty przygotowania zdjęć** — ile wydajesz na jedno zdjęcie produktu?
-- **CTR** — czy miniaturki zwiększają współczynnik klikalności na Allegro?
-- **Wzrost sprzedaży** — jaki procent wzrostu odnotowałeś dzięki lepszym zdjęciom?
+Wskazówki, jak zrobić to dobrze, znajdziesz w poradniku [jak zrobić profesjonalne zdjęcia produktów](https://allgrafika.pl/blog/jak-zrobic-profesjonalne-zdjecia-produktow).
 
-### Przykład kalkulacji
+## Narzędzia AI
 
-Jeśli za tradycyjną sesję fotograficzną wydasz 300 zł na zdjęcie, a dzięki AllGrafika.pl zrealizujesz to za 1 zł, oszczędzasz 299 zł. Przy wzroście sprzedaży o 10% w skali miesiąca, ROI z inwestycji w narzędzie AI staje się oczywiste.
+W [AllGrafika.pl](https://app.allgrafika.pl/register) cennik jest prosty:
+
+- **1 kredyt = 1 grafika** (jeden styl dla jednego zdjęcia),
+- **pierwsze 5 grafik bezpłatnie** po potwierdzeniu adresu e-mail,
+- **pakiety kredytów** – cena za grafikę spada z 2 zł w najmniejszym pakiecie do 0,50 zł w największym,
+- **tytuł i opis oferty** – bezpłatnie dla każdego zdjęcia z gotową grafiką.
+
+Na wejściu wystarczy zdjęcie z telefonu. AI zmienia tło, scenę i oświetlenie, a produkt zostaje taki jak na zdjęciu. Grafiki eksportujesz w formatach pod OLX, eBay, Amazon lub własny sklep.
+
+Ograniczenia też warto znać: AI nie zastąpi sesji z modelką, nie poprawi bardzo słabego zdjęcia wejściowego i nie nadaje się na Vinted, gdzie liczą się Twoje własne, nieedytowane zdjęcia. Każdą grafikę trzeba sprawdzić, czy wiernie pokazuje produkt.
+
+## Jak policzyć ROI fotografii produktowej
+
+ROI (zwrot z inwestycji) to stosunek zysku do poniesionego kosztu. Dla zdjęć produktowych prosty wzór wygląda tak:
+
+**ROI = (dodatkowy zysk dzięki nowym zdjęciom − koszt zdjęć) / koszt zdjęć**
+
+Żeby go policzyć, potrzebujesz trzech liczb:
+
+1. **Koszt zdjęć** – faktura plus wycena Twojego czasu.
+2. **Zmiana sprzedaży** – zmierzona na własnych danych, w porównywalnych okresach przed i po zmianie zdjęć.
+3. **Marża** – liczysz dodatkowy zysk, a nie dodatkowy przychód.
+
+Do kosztów warto doliczyć zwroty: lepsze zdjęcia, które wiernie pokazują produkt, mogą je zmniejszyć, a zdjęcia „ładniejsze niż produkt” – zwiększyć.
+
+### Przykład hipotetyczny
+
+Liczby są wymyślone na potrzeby rachunku. Masz 40 produktów. Wycena studia to przykładowo 4000 zł za komplet. Ten sam komplet trzech stylów na produkt (120 grafik) w AI to 120 kredytów – przy cenie 0,50 zł za grafikę 60 zł, przy 2 zł za grafikę 240 zł, plus Twój czas na zrobienie zdjęć wejściowych telefonem.
+
+Jeśli po zmianie zdjęć Twój dodatkowy zysk w kwartale wyniesie przykładowo 600 zł, ROI wariantu za 240 zł to (600 − 240) / 240 = 1,5, czyli 150%. Ten sam zysk przy studiu nie pokryje kosztu w tym kwartale. Kluczowe słowo to „jeśli” – zmianę sprzedaży musisz zmierzyć sam.
+
+## Kiedy co wybrać
+
+- **Studio** – sesje wizerunkowe, zdjęcia z ludźmi, kampanie, produkty premium o trudnych materiałach.
+- **Freelancer** – średnie partie, gdy potrzebujesz kogoś na miejscu.
+- **Własne zdjęcia** – rzeczy używane, Vinted, pojedyncze przedmioty, zdjęcia wejściowe do AI.
+- **AI** – duży asortyment, kilka stylów na produkt, szybkie dodawanie nowości, zdjęcia pod kilka platform naraz.
+
+Wiele sklepów łączy te drogi: kluczowe produkty w studiu, reszta asortymentu z AI, rzeczy używane na własnych zdjęciach.
 
 ## Podsumowanie
 
-Wybór metody tworzenia zdjęć produktowych zależy od budżetu, ilości produktów i oczekiwań co do jakości. Narzędzia AI, takie jak AllGrafika.pl, oferują **kosztową efektywność**, szybkość i różnorodność stylów. Tradycyjne rozwiązania mogą być bardziej prestiżowe, ale ich koszty i czas realizacji często nie mają uzasadnienia dla sprzedawców online.
+Porównuj nie tylko cenę za zdjęcie, ale też czas, spójność i zasady platform, na których sprzedajesz. ROI licz na własnych danych sprzedażowych. Jeśli chcesz sprawdzić AI bez ryzyka, zacznij od 5 bezpłatnych grafik w [AllGrafika.pl](https://app.allgrafika.pl/register).
 
 [← Przejdź do strony głównej](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-02',
+  modifiedAt: '2026-10-17',
   readTime: 6,
   category: 'Optymalizacja',
 }

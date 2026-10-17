@@ -4,142 +4,116 @@ const post: BlogPostData = {
   id: '107',
   slug: 'jaki-rozmiar-zdjecia-do-sklepu-internetowego',
   title: 'Jaki rozmiar zdjęcia do sklepu internetowego – poradnik',
-  excerpt: 'Jaki rozmiar zdjęcia do sklepu internetowego wybrać? Tabele wymiarów dla Allegro, OLX, Vinted i innych. Sprawdź i uniknij błędów!',
+  excerpt: 'Jaki rozmiar zdjęcia do sklepu internetowego wybrać? WooCommerce, Shopify, PrestaShop i Google Merchant Center: piksele, proporcje i kompresja.',
   content: `
-## Jaki rozmiar zdjęcia do sklepu internetowego – poradnik
+## Własny sklep rządzi się innymi prawami niż marketplace
 
-Dobór odpowiedniego rozmiaru zdjęcia do sklepu internetowego to jeden z kluczowych elementów skutecznej sprzedaży online. Każda platforma – Allegro, Shopify, WooCommerce, OLX czy Vinted – ma swoje wymagania techniczne dotyczące rozdzielczości, formatu oraz maksymalnej wagi pliku. W tym poradniku znajdziesz konkretne kroki, checklistę i praktyczne przykłady (hipotetyczne), które pomogą Ci zoptymalizować zdjęcia produktowe na różnych marketplace’ach.
+Na OLX czy eBay to platforma mówi Ci, jakie zdjęcia przyjmie. We własnym sklepie internetowym jest odwrotnie: to Twój motyw, ustawienia sklepu i – jeśli reklamujesz produkty w Google – Merchant Center decydują, jak duże pliki mają sens. Za małe zdjęcie rozmyje się przy powiększeniu, za duże spowolni stronę produktu.
 
-## Tabela wymagań – wymiary zdjęć dla najpopularniejszych platform
+W tym poradniku skupiamy się wyłącznie na **sklepach na własnej domenie**: WooCommerce, Shopify, PrestaShop i podobnych systemach. Limity marketplace’ów (OLX, Vinted, eBay, Amazon) zebraliśmy w osobnym artykule [Wymiary zdjęć OLX, Vinted, eBay i Amazon](https://allgrafika.pl/blog/wymiary-zdjec-olx-vinted-ebay-amazon).
 
-| Platforma    | Zalecany rozmiar (px)   | Format główny zdjęcia    | Max waga pliku |
-|--------------|-------------------------|--------------------------|----------------|
-| Allegro      | 1600x1600 (min. 1000x1000) | JPG, PNG, WebP           | 12 MB          |
-| Shopify      | 2048x2048 (min. 800x800)  | JPG, PNG                 | 20 MB          |
-| WooCommerce  | 1200x1200 (min. 600x600)  | JPG, PNG, WebP           | 2 MB           |
-| OLX          | 1200x900 (min. 500x500)   | JPG, PNG                 | 5 MB           |
-| Vinted       | 400x600 (min. 400x400)    | JPG, PNG                 | 20 MB          |
+## Rozmiary obrazków w WooCommerce – wartości domyślne
 
-> **Uwaga:** Zawsze weryfikuj aktualny regulamin wybranej platformy. Limity mogą się zmieniać! Dla Allegro zdjęcie główne musi mieć **białe tło** i najlepiej zachowaną proporcję 1:1.
+WooCommerce nie ma „wymaganego” rozmiaru zdjęcia. Zamiast tego z każdego wgranego pliku tworzy kilka mniejszych wersji. Według [dokumentacji WooCommerce](https://developer.woocommerce.com/docs/theming/theme-development/image-sizes/) domyślnie są to:
 
-## Krok po kroku: jak przygotować zdjęcie produktowe do sklepu internetowego
+- **woocommerce_thumbnail** – 300 px szerokości, przycięte do kwadratu (lista produktów, kategorie),
+- **woocommerce_single** – 600 px szerokości, bez przycinania (główne zdjęcie na stronie produktu),
+- **woocommerce_gallery_thumbnail** – 100 x 100 px, kwadrat (miniatury pod zdjęciem głównym).
 
-1. **Zrób zdjęcie wysokiej jakości**
-   - Użyj dobrego aparatu lub smartfona z trybem manualnym.
-   - Zadbaj o jasne, równomierne oświetlenie i stabilny kadr.
+Proporcję przycinania miniatur ustawisz w Customizerze: 1:1, własną albo bez przycinania. Motyw może te wartości nadpisać, dlatego sprawdź, jak duże zdjęcie faktycznie wyświetla Twoja strona produktu, a jeśli używasz powiększenia (lupy), wgrywaj plik wyraźnie większy niż 600 px.
 
-2. **Zgraj zdjęcia na komputer**
-   - Pliki prosto z aparatu mogą mieć rozmiar np. 4000x3000 px i wagę powyżej 3 MB.
+## Shopify – jakie pliki wgrywać
 
-3. **Wybierz docelową platformę i sprawdź jej wymagania**
-   - Skorzystaj z powyższej tabeli lub przejdź do regulaminu platformy.
+Strony pomocy Shopify nie dały się nam otworzyć bezpośrednio, więc poniższe dane podajemy za opisami tych stron w wyszukiwarce – sprawdź je przed wdrożeniem:
 
-4. **Kadruj zdjęcie do odpowiedniej proporcji**
-   - Allegro – kwadrat 1:1 (np. 1600x1600 px)
-   - OLX – prostokąt poziomy (np. 1200x900 px)
-   - Vinted – pionowy układ (np. 400x600 px)
-   - Sklepy WooCommerce/Shopify – najczęściej kwadrat lub zbliżony do kwadratu
+- według [pomocy Shopify o mediach produktowych](https://help.shopify.com/en/manual/products/product-media/product-media-types) kwadratowe zdjęcia produktów zwykle najlepiej wyglądają w rozmiarze **2048 x 2048 px**,
+- według [pomocy o przesyłaniu plików](https://help.shopify.com/en/manual/shopify-admin/productivity-tools/file-uploads) zdjęcia mogą mieć do **5000 x 5000 px (25 MP)** i ważyć do **20 MB**,
+- starsza strona o [obrazach w motywie](https://help.shopify.com/en/manual/online-store/images/theme-images) podaje 20 MP i 20 MB.
 
-5. **Usuń tło lub ustaw wymagany kolor**
-   - Allegro wymaga białego tła. Skorzystaj z narzędzi typu [zdjęcie produktu na białym tle](https://allgrafika.pl/biale-tlo-zdjecie-produktu).
-   - Inne platformy dopuszczają dowolne neutralne tło, ale biel jest najbezpieczniejsza.
+Shopify sam tworzy mniejsze wersje zdjęć na potrzeby motywu, więc wgrywanie dużego, kwadratowego pliku jest tu zwykle najprostszą drogą.
 
-6. **Zmień rozmiar zdjęcia**
-   - Ustaw dokładne wymiary px, najlepiej korzystając z programów do edycji zdjęć lub narzędzi online.
+## PrestaShop i inne platformy – jak sprawdzić rozmiary w motywie
 
-7. **Skompresuj plik bez utraty jakości**
-   - Zapisz w formacie JPG lub PNG.
-   - Użyj narzędzi takich jak TinyPNG, Squoosh lub [AllGrafika.pl](https://app.allgrafika.pl/register) do kompresji.
-   - Sprawdź, czy plik nie przekracza limitu MB.
+W PrestaShop i wielu innych systemach rozmiary obrazków definiuje motyw – w panelu znajdziesz ustawienia typów obrazków (np. dla miniatury na liście, zdjęcia na stronie produktu i powiększenia). Nie podajemy tu konkretnych liczb, bo różnią się między motywami i wersjami. Zasada jest prosta:
 
-8. **Zweryfikuj efekt końcowy**
-   - Otwórz zdjęcie na komputerze i telefonie.
-   - Sprawdź, czy nie ma rozmycia, artefaktów lub błędów.
+1. Sprawdź w ustawieniach motywu największy rozmiar, jaki jest wyświetlany (zwykle powiększenie).
+2. Wgrywaj plik co najmniej tak duży, a najlepiej trochę większy.
+3. Po zmianie rozmiarów w ustawieniach wygeneruj miniatury ponownie, jeśli system tego wymaga.
+4. Trzymaj jedną proporcję dla wszystkich produktów w kategorii.
 
-9. **Zapisz zdjęcie pod unikalną nazwą**
-   - Warto dodać w nazwie pliku np. platformę, rozmiar i wersję (np. kubek_allegro_1600x1600.jpg).
+## Google Merchant Center – minimum dla reklam produktowych
 
-10. **Załaduj zdjęcie do systemu sklepu lub marketplace’u**
+Jeśli Twój sklep wysyła produkty do Google (Zakupy, reklamy produktowe, bezpłatne informacje o produktach), zdjęcie musi spełnić [wymagania Google Merchant Center](https://support.google.com/merchants/answer/6324350?hl=en):
 
-## Hipotetyczny przykład: jeden produkt na trzech platformach
+- od **31 stycznia 2027** minimum **500 x 500 px** dla wszystkich produktów, zalecane około **1500 x 1500 px**,
+- maksymalnie **64 megapiksele** i **16 MB** na plik,
+- formaty JPEG, WebP, PNG, GIF, BMP i TIFF,
+- bez dodanych tekstów promocyjnych, cen, znaków wodnych, logo, ramek i kodów QR,
+- grafiki wygenerowane przez AI muszą zachować metadane oznaczające je jako AI.
 
-Załóżmy, że sprzedajesz zestaw kubków porcelanowych i chcesz wystawić ofertę na Allegro, WooCommerce (własny sklep) oraz Vinted.
+To ważne dla właścicieli WooCommerce: domyślne 600 px wystarcza na stronie produktu, ale do Merchant Center Twoja wtyczka powinna wysyłać **pełny oryginał**, nie zmniejszoną wersję.
 
-- **Oryginał**: zdjęcie 4000x3000 px z aparatu.
-- **Dla Allegro:** kadrujesz do 1600x1600 px, usuwasz tło, wstawiasz białe. Kompresujesz do JPG poniżej 1 MB.
-- **Dla WooCommerce:** kopiujesz zdjęcie Allegro, zmniejszasz do 1200x1200 px. Kompresujesz do WebP dla lepszej jakości i mniejszej wagi.
-- **Dla Vinted:** z oryginału kadrujesz w pionie do 400x600 px, zachowujesz lekko szare tło (zgodne z Vinted). Kompresujesz do JPG ok. 700 KB.
+## Ile pikseli wgrać, żeby wszystko działało
 
-> **Efekt:** Każda platforma ma idealnie dopasowane, szybkie wczytujące się zdjęcia – Twój produkt wygląda profesjonalnie, a oferta jest zgodna z regulaminem.
+Przykład podejścia, które pokrywa powyższe zalecenia: **kwadratowy plik o boku około 2000 px**. Jest większy niż zalecenie Merchant Center (ok. 1500 px), bliski zaleceniu Shopify (2048 px wg pomocy) i daje WooCommerce zapas na powiększenie. Jeśli Twój motyw używa zdjęć pionowych (np. w modzie), przyjmij jedną proporcję pionową, np. 4:5, i trzymaj się jej w całym katalogu.
 
-## Checklist: przygotowanie zdjęć do sklepu internetowego
+Więcej pikseli nie poprawi zdjęcia, które jest nieostre lub źle oświetlone. Zacznij od dobrego zdjęcia źródłowego – pomoże Ci w tym [poradnik zdjęć produktów telefonem](https://allgrafika.pl/blog/zdjecia-produktow-telefonem-poradnik).
 
-- [ ] Sprawdź wymagania techniczne każdej platformy (piksele, format, waga)
-- [ ] Przygotuj zdjęcie w wysokiej rozdzielczości
-- [ ] Kadruj do odpowiedniej proporcji (1:1, 4:3, pion/poziom)
-- [ ] Dopasuj, usuń lub zmodyfikuj tło zgodnie z regulaminem
-- [ ] Zmień rozmiar zdjęcia do zalecanych wymiarów
-- [ ] Skompresuj plik (JPG/PNG/WebP), najlepiej poniżej 1 MB
-- [ ] Przetestuj wygląd zdjęcia na komputerze i smartfonie
-- [ ] Nadaj zdjęciu czytelną nazwę z informacją o platformie i wymiarze
-- [ ] Dodaj metadane ALT (dla SEO i dostępności)
-- [ ] Zachowuj oryginały oraz wersje finalne zdjęć
+## Kompresja: mniejsza waga bez widocznej straty jakości
 
-## Najczęstsze pytania (FAQ)
+Duży plik to wolniejsza strona, szczególnie na telefonie. Kilka zasad:
 
-### Czy zdjęcie musi mieć dokładnie 1600x1600 px na Allegro?
-Nie, wystarczy przekroczyć minimalny próg (1000x1000 px), ale zalecany rozmiar (1600x1600 px lub większy) daje lepszą jakość przy powiększeniu.
+- **Zmniejsz wymiary przed kompresją.** Plik 4000 x 3000 px z telefonu waży wielokrotnie więcej niż potrzebuje sklep.
+- **JPG do zdjęć, PNG tylko do grafik z przezroczystością.** WebP daje zwykle mniejsze pliki przy podobnej jakości – szczegóły w artykule [JPG vs WebP vs PNG](https://allgrafika.pl/blog/jpg-vs-webp-vs-png-format-zdjec-produktowych).
+- **Sprawdzaj wzrokowo.** Ustaw kompresję, porównaj z oryginałem w powiększeniu i cofnij, jeśli widzisz artefakty na krawędziach lub w gradientach.
+- **Narzędzia:** Squoosh i TinyPNG w przeglądarce, wtyczki do optymalizacji obrazów w WordPressie, wbudowana optymalizacja w Shopify.
 
-### Czy mogę wrzucić to samo zdjęcie na Allegro i OLX?
-Możesz, jednak lepiej przygotować odrębne wersje – głównie ze względu na różny format (kwadrat vs prostokąt) i wymagania tła.
+## Proporcje i spójny kadr w całym katalogu
 
-### Jaki format wybrać: JPG czy PNG?
-JPG jest lepszy dla zdjęć produktów (mniejsza waga przy dobrej jakości), PNG do grafik z przezroczystością lub logotypów.
+Rozmiar w pikselach to połowa sukcesu. Druga to spójność: jeśli jedne produkty są kwadratowe, a inne poziome, siatka kategorii zaczyna „skakać”. Ustal dla sklepu:
 
-### Co jeśli zdjęcie przekracza maksymalny rozmiar MB?
-Kompresuj je za pomocą narzędzi online lub programów graficznych. Redukcja rozmiaru nie powinna wpływać znacząco na jakość, jeśli wykonasz ją ostrożnie.
+- jedną proporcję (najczęściej 1:1),
+- podobny margines wokół produktu,
+- jedno tło dla zdjęć głównych (np. białe lub jasnoszare),
+- tę samą wielkość produktu w kadrze.
 
-### Jak automatycznie przygotować kilkadziesiąt zdjęć pod różne platformy?
-Wypróbuj rozwiązania do automatycznego batch processingu, np. [AllGrafika.pl](https://app.allgrafika.pl/register), które generuje wersje w wymaganych formatach, rozmiarach i stylach tła.
+O budowaniu jednolitego wyglądu sklepu piszemy w artykule [Spójna identyfikacja wizualna sklepu internetowego](https://allgrafika.pl/blog/spojna-identyfikacja-wizualna-sklepu-internetowego).
 
-## Typowe błędy przy przygotowywaniu zdjęć produktowych
+## Checklista przed wgraniem zdjęć do sklepu
 
-- Wgrywanie zdjęcia o zbyt niskiej rozdzielczości (rozmycie, pikseloza)
-- Przekroczenie limitu MB – platforma odrzuca zdjęcie
-- Niewłaściwy format pliku (np. TIFF zamiast JPG/PNG)
-- Brak dopasowania proporcji (np. kwadrat wymagany, wrzucasz prostokąt)
-- Brak białego tła na Allegro
-- Brak kompresji – wolne wczytywanie strony
+- [ ] Znasz największy rozmiar wyświetlany przez Twój motyw (z powiększeniem)
+- [ ] Plik jest od niego większy – np. kwadrat około 2000 px
+- [ ] Wszystkie zdjęcia w kategorii mają tę samą proporcję
+- [ ] Plik jest skompresowany i obejrzany w powiększeniu
+- [ ] Nazwa pliku opisuje produkt, a pole alt jest uzupełnione
+- [ ] Zdjęcie do Merchant Center nie ma napisów, logo ani ramek
+- [ ] Grafika AI ma zachowane metadane AI
+- [ ] Oryginał w pełnej rozdzielczości jest zachowany na dysku
 
-**Wskazówka:** Korzystaj z narzędzi do automatycznego kadrowania i kompresji, jak [AllGrafika.pl](https://app.allgrafika.pl/register), aby uniknąć ręcznego błędnego przetwarzania.
+## Najczęstsze pytania
 
-## Automatyzacja przygotowania zdjęć: kiedy warto?
+### Czy WooCommerce potrzebuje zdjęć 600 x 600 px?
+600 px to domyślna szerokość zdjęcia na stronie produktu, a nie wymaganie dla pliku. Wgraj większy plik – WooCommerce zrobi z niego mniejsze wersje, a Ty zachowasz zapas na powiększenie i Merchant Center.
 
-Przy większej liczbie produktów i ofert na kilku platformach ręczne przygotowywanie zdjęć jest nieefektywne. W takich przypadkach zautomatyzuj proces:
+### Czy zdjęcie 5000 px spowolni sklep?
+Nie musi, jeśli platforma serwuje klientom zmniejszone wersje, tak jak robią to WooCommerce i Shopify. Spowalnia za to wgrywanie i zajmuje miejsce, dlatego około 2000 px zwykle wystarczy.
 
-- Masowe kadrowanie i zmiana rozmiaru
-- Automatyczne ustawianie białego tła
-- Kompresja bez utraty jakości
-- Ekspresowe generowanie miniatur pod różne platformy
+### Jak nazwać pliki zdjęć produktów?
+Opisowo i bez polskich znaków, np. kubek-porcelanowy-bialy-350ml.jpg. Więcej w artykule [SEO zdjęć produktowych](https://allgrafika.pl/blog/seo-zdjec-produktowych).
 
-Polecamy narzędzia takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) – pozwalają na szybkie przygotowanie setek zdjęć zgodnych z wymaganiami Allegro, OLX, Vinted, WooCommerce czy Shopify. Przeczytaj więcej w artykule [Batch processing zdjęć produktowych na Allegro](https://allgrafika.pl/blog/batch-processing-zdjecia-produktowe-szybko-i-latwo).
+### Jak szybko przygotować zdjęcia dla kilkudziesięciu produktów?
+Pomaga praca seriami – opisujemy ją w artykule [Batch processing zdjęć produktowych](https://allgrafika.pl/blog/batch-processing-zdjecia-produktowe-szybko-i-latwo). W [AllGrafika.pl](https://app.allgrafika.pl/register) wgrasz do 50 zdjęć naraz, a gotowe grafiki pobierzesz jako ZIP z presetem eksportu „sklep internetowy”.
 
-## Podsumowanie i szybka lista kontrolna
+## Podsumowanie
 
-- Sprawdź wymagania (rozmiar, format, tło) każdej platformy
-- Przygotuj zdjęcie wysokiej jakości
-- Kadruj i kompresuj zgodnie z wymaganiami
-- Przetestuj efekty końcowe
-- Zautomatyzuj procesy dla większej liczby produktów
-
-Dbając o prawidłowe przygotowanie zdjęć, zwiększasz szansę na lepszą prezentację produktu, szybszą sprzedaż i mniejszą liczbę odrzuconych ofert. 
+We własnym sklepie nie ma jednego obowiązkowego rozmiaru. Sprawdź, co wyświetla Twój motyw, wgrywaj pliki większe od tego (np. kwadrat około 2000 px), trzymaj jedną proporcję w całym katalogu, kompresuj z głową i pamiętaj o zasadach Merchant Center, jeśli reklamujesz produkty w Google.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-10-14',
-  modifiedAt: '2026-10-14',
+  modifiedAt: '2026-10-17',
   author: 'AllGrafika.pl',
-  readTime: 6,
+  readTime: 7,
   category: 'Technologia',
 }
 

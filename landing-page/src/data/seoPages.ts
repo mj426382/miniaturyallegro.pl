@@ -50,7 +50,7 @@ export const seoPages: SeoPage[] = [
     h1: 'Zdjęcia AI do ofert',
     h1Accent: 'z jednego zdjęcia z telefonu',
     lead: 'AllGrafika to generator zdjęć produktowych AI dla sprzedawców internetowych. Wgrywasz zwykłe zdjęcie produktu, a w kilka minut dostajesz grafiki na białym tle, w aranżacji wnętrza, w stylu sezonowym albo z produktem w użyciu – z presetem eksportu pod własny sklep, eBay, Amazon, OLX lub Vinted.',
-    keywords: ['zdjęcia ai do ofert', 'generator zdjęć produktowych ai', 'zdjęcia produktowe ai', 'grafika produktowa ai', 'zdjęcia ai do sklepu internetowego'],
+    keywords: ['zdjęcia ai do ofert', 'generator zdjęć produktowych ai', 'zdjęcia produktowe ai', 'grafika produktowa ai'],
     sections: [
       {
         heading: 'Jak działa generator zdjęć produktowych AI',

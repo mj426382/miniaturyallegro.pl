@@ -3,68 +3,78 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '52',
   slug: 'jak-dostosowac-miniaturki-do-sezonowych-kampanii',
-  title: 'Jak dostosować miniaturki do sezonowych kampanii na Allegro',
-  excerpt: 'Dowiedz się, jak tworzyć miniaturki dopasowane do świątecznych i sezonowych kampanii na Allegro, aby zwiększyć sprzedaż i przyciągnąć uwagę klientów.',
+  title: 'Jak dostosować miniaturki do sezonowych kampanii – kalendarz',
+  excerpt: 'Kalendarz sezonów w e-commerce, terminy przygotowań i rotacja zdjęć: które grafiki zmieniać na okazje, a których nie ruszać na OLX, eBay i Amazon.',
   content: `
-## Dlaczego sezonowe kampanie potrafią wyraźnie podnieść sprzedaż?
+## Sezon to plan, a nie jedna grafika
 
-Badania pokazują, że odpowiednio dopasowana komunikacja wizualna w trakcie sezonowych wydarzeń, takich jak Boże Narodzenie, Wielkanoc czy Black Friday, może podnieść sprzedaż o nawet 30%. Jednym z najważniejszych elementów tej układanki są **miniaturki aukcji**, które przyciągają uwagę klientów i zachęcają ich do kliknięcia. Zastanówmy się, jak skutecznie dostosować miniaturki do sezonowych kampanii na Allegro.
+Sezonowa kampania w sklepie internetowym to nie tylko ładna świąteczna scena. To decyzja, **które zdjęcia zmienić, kiedy je przygotować, gdzie je opublikować i kiedy wrócić do wersji standardowej**. Jeśli zaczynasz o tym myśleć tydzień przed okazją, zwykle kończy się na pośpiesznych grafikach dla kilku produktów. Jeśli masz kalendarz – możesz przygotować cały katalog spokojnie i w jednym stylu.
 
-## Kluczowe elementy sezonowej miniaturki
+O samym projektowaniu świątecznych scen i plakietek piszemy w osobnym artykule: [jak tworzyć grafiki świąteczne i promocyjne](https://allgrafika.pl/blog/jak-tworzyc-grafiki-swiateczne-i-promocyjne). Tutaj skupiamy się na planowaniu.
 
-Sezonowa miniaturka powinna przyciągać uwagę i natychmiast komunikować, że dana oferta jest związana z aktualnym wydarzeniem lub świętem. Oto, co warto uwzględnić:
+## Kalendarz okazji w polskim e-commerce
 
-### 1. Dodaj tematyczne elementy graficzne
-- **Ikonki i wzory:** Świąteczne gwiazdki, śnieżynki, jajka wielkanocne, choinki czy letnie słońce to wizualne sygnały, które przyciągają uwagę.
-- **Kolorystyka:** Dopasuj kolory do okazji. Czerwony i zielony na Boże Narodzenie, pastele na Wielkanoc, a jaskrawe barwy na lato.
+Nie każda okazja pasuje do każdego asortymentu. Wybierz te, które naprawdę dotyczą Twoich klientów:
 
-### 2. Wykorzystaj tło, aby podkreślić sezonowy klimat
-- **Białe tło:** Doskonałe na minimalistyczne i eleganckie kampanie świąteczne.
-- **Lifestyle:** Idealne do letnich promocji, gdzie produkt może zostać przedstawiony w kontekście wakacyjnego wypoczynku.
-- **Flat lay:** Świetnie sprawdzi się przy prezentowaniu zestawów prezentowych na różne okazje.
+- **Styczeń:** wyprzedaże poświąteczne, postanowienia noworoczne (sport, zdrowie, organizacja).
+- **Luty:** Walentynki – biżuteria, kosmetyki, prezenty, gadżety dla par.
+- **Marzec–kwiecień:** Dzień Kobiet, Wielkanoc, wiosenne porządki, ogród.
+- **Maj–czerwiec:** komunie, Dzień Matki, Dzień Dziecka, Dzień Ojca, początek sezonu grillowego.
+- **Lipiec–sierpień:** wakacje, turystyka, plaża; pod koniec – powrót do szkoły.
+- **Wrzesień–październik:** jesień w domu, Halloween.
+- **Listopad:** Black Friday i Cyber Monday.
+- **Grudzień:** Mikołajki, Boże Narodzenie, Sylwester.
 
-### 3. Sezonowe hasła i CTA
-- Używaj fraz takich jak „Świąteczna Wyprzedaż”, „Letnie Okazje” czy „Wielkanocne Promocje”, aby podkreślić aktualność oferty.
-- Dodaj przyciski (np. „Kup Teraz”), aby zachęcić do działania.
+## Ile wcześniej przygotować grafiki?
 
-## Przykład: Boże Narodzenie i zegarki jako upominek
+Nie ma jednej reguły, ale dobrze sprawdza się prosty podział:
 
-Rozważmy przykład sprzedawcy zegarków, który chce zwiększyć sprzedaż podczas kampanii świątecznej.
+- **4–6 tygodni przed okazją** – wybór produktów do kampanii i styl przewodni (kolory, dekoracje, klimat).
+- **2–3 tygodnie przed** – gotowe grafiki dla całej listy, sprawdzone na telefonie i komputerze.
+- **Na kilka dni przed startem** – wymiana zdjęć dodatkowych i banerów w sklepie.
+- **Zaraz po okazji** – powrót do zdjęć standardowych, żeby choinka nie wisiała w ofercie w lutym.
 
-1. **Styl miniaturki:** Wybierz styl „Dark Luxury” z ciemnym tłem i dramatycznym oświetleniem, aby podkreślić elegancję zegarków.
-2. **Elementy sezonowe:** Dodaj subtelne akcenty, takie jak złote iskierki czy delikatny motyw śniegu w tle.
-3. **Hasło:** Wprowadź napis „Wyjątkowy Prezent na Święta” na grafice.
-4. **Układ:** Umieść zegarek w centrum, na delikatnie rozmytym tle w odcieniach czerwieni i złota, dodając małe gałązki ostrokrzewu na pierwszym planie.
+Przy prezentach warto zacząć wcześniej: kupujący szukają ich z wyprzedzeniem, a Ty chcesz mieć grafiki gotowe, zanim ruch wzrośnie.
 
-Efekt? Zegarki prezentują się jako idealny, luksusowy prezent świąteczny, co wpływa na pozytywną percepcję wartości produktu.
+## Które zdjęcia rotować, a których nie ruszać
 
-## Dlaczego warto korzystać z automatyzacji przy tworzeniu miniaturek?
+To miejsce, w którym zasady platform mają największe znaczenie.
 
-Sezonowe kampanie oznaczają więcej pracy w krótkim czasie. Automatyzacja, np. za pomocą [AllGrafika.pl](https://app.allgrafika.pl/register), może stać się Twoim najlepszym narzędziem do szybkiego generowania profesjonalnych miniaturek. Platforma pozwala:
+- **Zdjęcie główne na Amazonie – bez zmian.** Według [wytycznych Amazon dla sprzedawców](https://sellercentral.amazon.com/seller-forums/discussions/t/13af96ea-6b07-4bf9-8dbe-a13292c2e3b1) musi mieć czysto białe tło i nie może zawierać dodatkowego tekstu ani grafik. Sezonową scenę dodaj jako kolejne zdjęcie.
+- **eBay – scena tak, napisy nie.** [Zasady dotyczące zdjęć](https://www.ebay.com/help/policies/listing-policies/picture-policy?id=4370) zabraniają dodanego tekstu, materiałów marketingowych i ramek. Hasło „Świąteczna wyprzedaż” umieść w tytule lub opisie, nie na zdjęciu.
+- **Vinted – bez sezonowych scen.** [Zasady katalogu](https://www.vinted.com/catalog-rules) wymagają własnych, nieedytowanych zdjęć. Sezonowość pokażesz najwyżej tym, co sprzedajesz, i opisem.
+- **OLX** – pierwsze zdjęcie niech jasno pokazuje produkt; sezonową wersję możesz dodać jako kolejną, jeśli produkt jest nowy. Sprawdź aktualne zasady w pomocy OLX.
+- **Własny sklep – największe pole do zmian.** Banery, kafelki kategorii, strona promocji, zdjęcia dodatkowe w kartach produktów. Jeśli wysyłasz produkty do Google, pamiętaj, że [Merchant Center](https://support.google.com/merchants/answer/6324350?hl=en) nie akceptuje dodanego tekstu promocyjnego na zdjęciach.
 
-- Szybko stworzyć aż 6 wariantów miniaturek dla jednego produktu.
-- Wybrać odpowiednie tło, takie jak „Lifestyle” lub „Białe tło”, w zaledwie kilka kliknięć.
-- Wprowadzić indywidualne pomysły na tło, np. przez własne prompty.
+## Rotacja bez chaosu: porządek w plikach
 
-## Jak strategicznie planować sezonowe kampanie na Allegro?
+- **Nazwy plików z sezonem i datą**, np. kubek-termiczny-swieta-2026.jpg – łatwo znaleźć i łatwo wycofać.
+- **Folder ze zdjęciami standardowymi**, do których wracasz po kampanii. Nigdy ich nie nadpisuj.
+- **Lista zmian:** jaka oferta, które zdjęcie podmienione, od kiedy i do kiedy. Bez niej po kilku kampaniach nie wiadomo, co jest aktualne.
+- **Jeden styl na kampanię.** Wszystkie produkty w tej samej palecie i z podobnymi dekoracjami wyglądają jak przemyślana kolekcja, a nie przypadkowy zbiór.
 
-Skuteczna sezonowa kampania na Allegro wymaga planowania. Oto, co warto zrobić:
+## Przykład hipotetyczny: zegarki na Boże Narodzenie
 
-- **Analizuj dane historyczne:** Sprawdź, co sprzedawało się najlepiej w poprzednich sezonach.
-- **Segmentuj klientów:** Dostosuj miniaturki i oferty do różnych grup docelowych.
-- **Testuj różne warianty:** Wykorzystaj narzędzie do automatycznego generowania miniaturek, takie jak [AllGrafika.pl](https://app.allgrafika.pl/register), aby wybrać najlepszy styl i wersję graficzną.
-- **Integruj tytuł i cenę:** Grafika jest ważna, ale musi współgrać z krótkim, skutecznym tytułem i atrakcyjną ceną.
+Sprzedawca zegarków prowadzi sklep na Shopify i wystawia część asortymentu na eBay. W połowie listopada wybiera dziesięć modeli na kampanię prezentową. Dla każdego przygotowuje grafikę dark luxury z drobnymi złotymi refleksami i gałązką ostrokrzewu. W sklepie trafiają one na baner i jako drugie zdjęcie w kartach produktów, na eBay – jako dodatkowe zdjęcie bez napisów. Zdjęcia główne zostają bez zmian. Po Trzech Królach sprzedawca usuwa sezonowe grafiki według swojej listy zmian. To przykład ilustracyjny, bez wyników z konkretnego sklepu.
 
-## Podsumowanie: Zacznij od planowania, działaj z narzędziem AllGrafika.pl
+## Jak ocenić kampanię po sezonie
 
-Sezonowe kampanie to doskonała okazja, by zwiększyć sprzedaż na Allegro, ale wymagają odpowiedniego podejścia do miniaturki. Pamiętaj o stylu, szczegółach graficznych i używaj profesjonalnych narzędzi, takich jak [AllGrafika.pl](https://app.allgrafika.pl/register), aby wyróżnić swoje produkty na tle konkurencji.
+- Porównaj sprzedaż produktów z sezonową grafiką z tym samym okresem poprzedniego roku lub z produktami bez zmian.
+- Zapisz, które style i dekoracje sprawdziły się najlepiej – to gotowy punkt startu na kolejny rok.
+- Zwróć uwagę na zwroty: jeśli rosną, grafika mogła sugerować coś, czego w paczce nie było.
+
+Więcej o porównywaniu wariantów przeczytasz w artykule [testy A/B zdjęć produktowych](https://allgrafika.pl/blog/jak-zwiekszyc-ctr-ab-testowanie-miniaturek).
+
+## Cały katalog na sezon w AllGrafika.pl
+
+Przy kampanii obejmującej wiele produktów najwięcej czasu zajmuje powtarzalna praca. W [AllGrafika.pl](https://app.allgrafika.pl/register) możesz wgrać do 50 zdjęć naraz, wybrać jeden styl sezonowy lub własny opis sceny po polsku i pobrać gotowe grafiki w pliku ZIP. Przy eksporcie dobierasz ustawienia pod OLX, Vinted, eBay, Amazon lub własny sklep. Pliki dodajesz do ofert samodzielnie – AllGrafika nie łączy się z kontami na platformach. Pierwsze 5 grafik jest bezpłatnych po potwierdzeniu adresu e-mail.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-05-23',
-  modifiedAt: '2026-10-02',
+  modifiedAt: '2026-10-17',
   author: 'AllGrafika.pl',
-  readTime: 6,
+  readTime: 7,
   category: 'E-commerce',
 }
 

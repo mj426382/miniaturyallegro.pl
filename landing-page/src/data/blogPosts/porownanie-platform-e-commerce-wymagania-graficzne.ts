@@ -3,61 +3,100 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '63',
   slug: 'porownanie-platform-e-commerce-wymagania-graficzne',
-  title: 'Wymagania graficzne: Allegro vs Shopify vs WooCommerce',
-  excerpt: 'Dowiedz się, jak różnią się wymagania dotyczące grafik na Allegro, Shopify i WooCommerce. Która platforma jest najbardziej wymagająca?',
+  title: 'Marketplace czy własny sklep – wymagania graficzne',
+  excerpt: 'Amazon i eBay narzucają zasady zdjęć, a w Shopify i WooCommerce ustalasz je sam. Porównujemy wymagania graficzne i to, czego potrzebuje każdy kanał.',
   content: `
-## Czy Allegro naprawdę wymaga więcej niż Shopify czy WooCommerce?
+## Kto ustala zasady: platforma czy Ty
 
-Wiesz, że **miniaturki na Allegro znacząco wpływają na sprzedaż**, ale czy zastanawiałeś się kiedyś, jak wymagania tej platformy dotyczące grafik produktowych wypadają na tle konkurencyjnych rozwiązań e-commerce? Shopify, WooCommerce i inne platformy mają swoje własne standardy. Sprawdź, gdzie łatwiej zoptymalizować zdjęcia i na czym się skupić.
+Sprzedaż na marketplace i we własnym sklepie wymaga tych samych produktów, ale zupełnie innego podejścia do grafiki. Na Amazonie czy eBay zasady zdjęć są narzucone z góry i egzekwowane przez moderację. W Shopify czy WooCommerce nikt Ci niczego nie zablokuje – ale też nikt nie zadba za Ciebie o to, żeby katalog wyglądał spójnie.
 
-## Wymagania graficzne na Allegro
+Ten artykuł nie powtarza tabel z pikselami. Konkretne limity plików znajdziesz w poradnikach [Wymiary zdjęć OLX, Vinted, eBay i Amazon](https://allgrafika.pl/blog/wymiary-zdjec-olx-vinted-ebay-amazon) oraz [Jaki rozmiar zdjęcia do sklepu internetowego](https://allgrafika.pl/blog/jaki-rozmiar-zdjecia-do-sklepu-internetowego). Tutaj porównujemy, **czego każdy z czterech kanałów oczekuje od Twoich grafik** i jak przygotować jeden zestaw zdjęć, który obsłuży je wszystkie.
 
-- **Rozdzielczość i formaty**: Allegro zaleca zdjęcia o minimalnej rozdzielczości 500x500 pikseli. Obsługiwane formaty to JPG, PNG oraz WebP.
-- **Tło**: Produkty w wielu kategoriach wymagają białego tła, co sprzyja profesjonalnemu wyglądowi i lepszej widoczności.
-- **Oświetlenie**: Allegro rekomenduje jasne, równomierne oświetlenie, które odwzorowuje prawdziwe kolory produktu.
+## Amazon – katalog, w którym wszyscy wyglądają podobnie
 
-### Allegro a SEO zdjęć produktowych
+Amazon traktuje zdjęcie główne jak element katalogu, a nie reklamę. Według wytycznych Amazon dla sprzedawców, opublikowanych przez pracownika na [forum Seller Central](https://sellercentral.amazon.com/seller-forums/discussions/t/13af96ea-6b07-4bf9-8dbe-a13292c2e3b1), zdjęcie główne ma mieć czysto białe tło (RGB 255, 255, 255), produkt na co najmniej 85% kadru i żadnego dodanego tekstu, grafik ani znaków wodnych.
 
-Miniaturki na Allegro integrują się z algorytmem wyszukiwania platformy. Im wyższa jakość zdjęcia i zgodność z wymaganiami, tym większe szanse na wyższą pozycję w wynikach.
+Co z tego wynika dla Ciebie:
 
-## Jak wypada Shopify?
+- **wyróżniasz się jakością, a nie stylem** – ostrość, światło i dobrze wykadrowany produkt,
+- **kreatywność przenosisz do galerii** – zdjęcia w użyciu, detale, porównanie wielkości,
+- **potrzebujesz packshotu** na każdy produkt i wariant.
 
-- **Rozdzielczość i formaty**: Shopify oferuje większą swobodę, ponieważ zdjęcia mogą być w różnych formatach (JPG, PNG, GIF). Zaleca rozdzielczość 2048x2048 pikseli dla optymalnych rezultatów.
-- **Elastyczność tła**: Nie ma obowiązku stosowania białego tła, co pozwala na kreatywność w aranżacji.
-- **Wymogi techniczne**: Kompresja jest automatyczna, co sprawia, że zdjęcia szybciej się ładują, ale można stracić na detalach.
+## eBay – zdjęcie ma dokumentować konkretną rzecz
 
-### WooCommerce: Idealny dla prostych sklepów
+eBay nie wymaga białego tła, ale jego [polityka zdjęć](https://www.ebay.com/help/policies/listing-policies/picture-policy?id=4370) zabrania ramek, dodanego tekstu, materiałów marketingowych i znaków wodnych na wszystkich zdjęciach. Przy przedmiotach używanych, uszkodzonych lub wadliwych nie wolno używać zdjęć stockowych – trzeba pokazać tę konkretną sztukę.
 
-- **Rozdzielczość i formaty**: WooCommerce działa na WordPressie i pozwala na szeroką gamę formatów grafik.
-- **Personalizacja**: W WooCommerce to Ty decydujesz o stylu grafik. Brak z góry narzuconych wymagań.
-- **Optymalizacja mobilna**: WooCommerce wymaga dodatkowych wtyczek, aby grafiki dobrze wyglądały na urządzeniach mobilnych.
+Co z tego wynika:
 
-## Studium przypadku: Allegro kontra Shopify
+- **czyste zdjęcia bez dodatków** – żadnych plakietek, infografik i logo,
+- **dużo ujęć** – eBay pozwala na wiele zdjęć w ofercie, więc pokaż produkt z każdej strony,
+- **przy rzeczach używanych prawdziwe zdjęcia stanu**, nie ładne wizualizacje.
 
-Wyobraź sobie sklep sprzedający zegarki premium. Na Allegro wymagałoby to zastosowania stylu **Dark Luxury**, który podkreśli ekskluzywność produktu dzięki ciemnemu tłu i wyrazistemu oświetleniu. Na Shopify ten sam produkt mógłby być zaprezentowany w stylu **Lifestyle**, w eleganckim otoczeniu, by przyciągnąć uwagę estetyką.
+## Shopify – motyw decyduje o kadrze
 
-Efekt? Na Allegro większy nacisk na precyzję i zgodność z wymaganiami. Na Shopify większa swoboda twórcza, ale mniejsza gwarancja, że miniaturka wpasuje się w ogólny wygląd platformy.
+W Shopify to Ty decydujesz, czy zdjęcia mają białe tło, aranżacje czy ciemne, luksusowe tło. Platforma nie moderuje stylu, a o tym, jak zdjęcia się wyświetlają, decyduje motyw: jedne przycinają do kwadratu, inne do pionu, jeszcze inne pokazują oryginalną proporcję. Według pomocy Shopify kwadratowe zdjęcia produktów zwykle najlepiej wyglądają w rozmiarze 2048 x 2048 px – szczegóły i źródła w poradniku o rozmiarze zdjęć do sklepu.
 
-## Dopasowanie strategii do platformy
+Co z tego wynika:
 
-### Jak optymalizować grafiki dla każdej platformy?
+- **musisz sam ustalić standard** – proporcję, tło, margines, kąt ujęcia,
+- **możesz budować markę obrazem** – spójny styl zdjęć to część identyfikacji sklepu,
+- **zdjęcia lifestyle i infografiki są dozwolone na stronie produktu**, o ile nie wprowadzają w błąd.
 
-- **Allegro**: Priorytetem jest **zgodność z wymaganiami**. Korzystaj z narzędzia [AllGrafika.pl](https://app.allgrafika.pl/register), aby automatycznie generować miniaturki zgodne z wymogami Allegro.
-- **Shopify**: Skup się na **kreatywności i oryginalnym stylu**. Testuj różne formaty i rozdzielczości, aby znaleźć idealne rozwiązanie dla swoich produktów.
-- **WooCommerce**: Postaw na **uniwersalność i prostotę**. Użyj narzędzi optymalizujących obrazy, takich jak wtyczki do WordPressa.
+## WooCommerce – ustawienia w Customizerze i motywie
 
-## Jak wybrać idealną platformę dla Twojego sklepu?
+WooCommerce działa podobnie jak Shopify, ale daje więcej ustawień technicznych. Według [dokumentacji WooCommerce](https://developer.woocommerce.com/docs/theming/theme-development/image-sizes/) sklep tworzy z każdego pliku miniaturę listy (domyślnie kwadrat 300 px), zdjęcie strony produktu (600 px szerokości) i małe miniatury galerii, a proporcję przycinania ustawisz w Customizerze.
 
-Jeśli sprzedajesz na Allegro, koniecznie stosuj się do ich specyficznych wytycznych, aby maksymalizować widoczność i CTR. Jeśli prowadzisz multichannel retail — Shopify i WooCommerce pozwalają na większą elastyczność, ale wymagają więcej pracy przy optymalizacji.
+Co z tego wynika:
 
-Na szczęście narzędzie takie jak [AllGrafika.pl](https://app.allgrafika.pl/register) pozwala łatwo dostosować grafiki do specyfikacji każdej platformy. Tylko jedno kliknięcie dzieli Cię od profesjonalnych miniaturek gotowych do użycia na Allegro, Shopify i WooCommerce.
+- **ustal proporcję przed dodaniem katalogu** – zmiana później oznacza ponowne generowanie miniatur i często poprawki kadrów,
+- **wgrywaj większe pliki niż domyślne rozmiary**, żeby działało powiększenie,
+- **zadbaj o optymalizację** – na WordPressie wolne zdjęcia to częsty powód wolnej strony.
+
+## Co się zmienia, gdy reklamujesz własny sklep w Google
+
+Swoboda własnego sklepu kończy się w momencie, gdy wysyłasz produkty do Google. [Google Merchant Center](https://support.google.com/merchants/answer/6324350?hl=en) zabrania na zdjęciach dodanych tekstów promocyjnych, cen, znaków wodnych, logo, ramek i kodów QR, a grafiki AI muszą mieć zachowane metadane AI. W praktyce Twój sklep potrzebuje wtedy dwóch rodzajów zdjęć: **czystego zdjęcia głównego** dla Google i **dowolnych zdjęć dodatkowych** na stronie produktu.
+
+## Porównanie w pigułce
+
+| Co porównujemy | Amazon | eBay | Shopify | WooCommerce |
+|----------------|--------|------|---------|-------------|
+| Kto ustala styl zdjęcia głównego | platforma | platforma (zakazy) | Ty i motyw | Ty i motyw |
+| Białe tło | wymagane na zdjęciu głównym | nie jest wymagane | Twoja decyzja | Twoja decyzja |
+| Napisy, plakietki, ramki | zakazane na zdjęciu głównym | zakazane na wszystkich zdjęciach | dozwolone (poza feedem Google) | dozwolone (poza feedem Google) |
+| Najważniejsza praca | packshot każdego wariantu | prawdziwe zdjęcia sztuki | spójny styl katalogu | spójny kadr i optymalizacja |
+
+## Jeden zestaw zdjęć dla wielu kanałów – plan pracy
+
+Jeśli sprzedajesz jednocześnie na marketplace i we własnym sklepie, nie rób osobnych sesji dla każdego kanału. Przygotuj jeden zestaw i eksportuj z niego wersje:
+
+1. **Packshot na białym tle** – zdjęcie główne na Amazon, zdjęcie do Merchant Center, a w sklepie zdjęcie na listę produktów.
+2. **2–3 ujęcia z detalami** – działają wszędzie, także na eBay.
+3. **Zdjęcie w scenie lub w użyciu** – galeria na Amazonie i strona produktu w sklepie.
+4. **Grafika z opisem cech lub plakietką** – tylko we własnym sklepie i w mediach społecznościowych, nigdy jako zdjęcie główne na marketplace i nigdy na eBay.
+
+Przykład hipotetyczny: sprzedajesz zegarki. Na Amazonie zdjęciem głównym jest zegarek na czystej bieli, a w galerii zegarek na nadgarstku. Na eBay pokazujesz te same zdjęcia bez żadnych dodatków. W sklepie na Shopify możesz użyć ciemnego, eleganckiego tła na stronie kategorii, jeśli tak wygląda cały katalog, i infografiki z wymiarami koperty na stronie produktu.
+
+## Gdzie pomaga AllGrafika.pl
+
+Z jednego zdjęcia z telefonu w [AllGrafika.pl](https://app.allgrafika.pl/register) zrobisz packshot na białym tle, aranżację we wnętrzu, ujęcie w użyciu czy kolaż kilku ujęć, a przy pobieraniu wybierzesz preset eksportu pod Amazon, eBay albo ogólny sklep internetowy. AI zmienia tło, scenę i światło, ale nie kształt, kolory, logo ani napisy produktu. Pliki pobierasz na dysk i sam wgrywasz je na platformę lub do sklepu – aplikacja nie łączy się z kontami sprzedażowymi. Przegląd stylów znajdziesz w artykule [Najlepsze style zdjęć produktowych](https://allgrafika.pl/blog/najlepsze-style-zdjec-produktowych).
+
+## Najczęstsze pytania
+
+### Który kanał jest najbardziej wymagający graficznie?
+Pod względem zasad – Amazon na zdjęciu głównym i eBay na wszystkich zdjęciach. Pod względem pracy – własny sklep, bo spójność katalogu zależy wyłącznie od Ciebie.
+
+### Czy mogę użyć w sklepie tych samych zdjęć co na Amazonie?
+Tak, packshot na białym tle świetnie sprawdza się też na liście produktów w sklepie. Upewnij się tylko, że masz do nich pełne prawa i oryginały w dużej rozdzielczości.
+
+### Czy infografiki są gdziekolwiek dozwolone?
+We własnym sklepie tak, na stronie produktu. Na eBay dodany tekst jest zakazany, na Amazonie nie może być go na zdjęciu głównym, a w feedzie do Google nie powinien się znaleźć.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-06-03',
-  modifiedAt: '2026-06-03',
+  modifiedAt: '2026-10-17',
   author: 'AllGrafika.pl',
-  readTime: 6,
+  readTime: 7,
   category: 'E-commerce',
 }
 

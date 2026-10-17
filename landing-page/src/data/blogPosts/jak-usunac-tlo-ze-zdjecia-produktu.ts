@@ -3,97 +3,121 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '102',
   slug: 'jak-usunac-tlo-ze-zdjecia-produktu',
-  title: 'Jak usunąć tło ze zdjęcia produktu poradnik darmowe i AI',
-  excerpt: 'Jak usunąć tło ze zdjęcia produktu – darmowe metody i AI. Dowiedz się, które rozwiązanie wybrać i kiedy zwykłe usuwanie tła to za mało.',
+  title: 'Jak usunąć tło ze zdjęcia produktu – darmowo i z AI',
+  excerpt: 'Jak usunąć tło ze zdjęcia produktu: darmowe narzędzia, programy graficzne i AI. Zobacz, kiedy samo wycięcie tła wystarczy, a kiedy potrzebujesz więcej.',
   content: `
-## Praktyczny dylemat: Usuwanie tła — czy to naprawdę wystarczy?
+## Usunięcie tła – szybka poprawka czy za mało?
 
-Masz świetny produkt, ale na Twoim zdjęciu dominuje rozpraszające tło? Wielu sprzedawców Allegro zaczyna od pytania: **jak szybko i tanio usunąć tło ze zdjęcia produktu**, by spełnić wytyczne platformy lub poprawić wizualny odbiór oferty. Najszybsza odpowiedź: możesz skorzystać z darmowych narzędzi online, prostych programów graficznych lub rozwiązań opartych na AI. Jednak czy zawsze sama eliminacja tła rozwiązuje problem atrakcyjności miniaturki?
+Masz dobry produkt, ale zdjęcie zrobiłeś na kuchennym blacie, obok kubka z kawą i ładowarki? Pierwsza myśl to: **usunąć tło i gotowe**. Często to wystarczy – zwłaszcza gdy potrzebujesz czystego packshotu na Amazon albo do własnego sklepu. Czasem jednak wycięty produkt wygląda płasko i sztucznie, a na niektórych platformach przerabianie zdjęć w ogóle nie jest mile widziane.
 
-## Jak usunąć tło ze zdjęcia produktu? Przegląd metod (featured snippet)
+W tym poradniku porównujemy darmowe sposoby usuwania tła z narzędziami AI i podpowiadamy, kiedy która metoda ma sens.
 
-Aby usunąć tło ze zdjęcia produktu, możesz użyć darmowych narzędzi online typu remove.bg, funkcji w programach graficznych (GIMP, Canva) lub rozwiązań AI, które automatycznie wykrywają i wycinają tło. Wybór metody zależy od jakości wejściowego zdjęcia, ilości produktów oraz celu — czy chcesz tylko białe tło, czy efektowną scenę dopasowaną do branży.
+## Najkrótsza odpowiedź: trzy sposoby na usunięcie tła
 
-## Darmowe sposoby na usuwanie tła: plusy i minusy (lista)
+Tło ze zdjęcia produktu usuniesz na trzy sposoby: **darmowym narzędziem online**, które automatycznie wykrywa obiekt, **programem graficznym** z ręcznym zaznaczaniem albo **generatorem AI**, który nie tylko wycina produkt, ale od razu tworzy nowe tło – białe, we wnętrzu albo gradientowe. Wybór zależy od tego, ile masz zdjęć, jak skomplikowany jest kształt produktu i do czego zdjęcie ma posłużyć.
 
-- **remove.bg** – bardzo szybkie, bezpłatne dla pojedynczych plików, efekt czasem wymaga poprawek przy złożonych konturach produktu.
+## Darmowe narzędzia do usuwania tła – plusy i minusy
 
-- **GIMP** (narzędzie „Zaznaczenie rozmyte” lub ścieżki) – darmowy, wymaga instalacji i podstawowej znajomości programu, wymaga manualnej precyzji.
+- **remove.bg** – automatyczne wycinanie w kilka sekund. Przy włosach, futrze, szkle czy drobnych elementach krawędzie bywają do poprawki, a darmowe pliki mają ograniczoną rozdzielczość.
+- **GIMP** – darmowy program z narzędziami zaznaczania i ścieżkami. Daje precyzję, ale wymaga instalacji i trochę wprawy.
+- **Canva** – ma funkcję usuwania tła, ale jej dostępność w darmowym planie się zmienia, więc sprawdź aktualne warunki.
+- **Wbudowane funkcje telefonu** – nowsze wersje iOS pozwalają wyodrębnić obiekt ze zdjęcia przez przytrzymanie go palcem, podobne funkcje mają też niektóre telefony z Androidem. Szybkie, ale jakość krawędzi bywa różna.
 
-- **Canva** (wersja darmowa) – ma opcję automatycznego usuwania tła, ale bywa niedostępna dla bardziej zaawansowanych funkcji w planie bezpłatnym.
+**Wskazówka:** darmowe opcje najlepiej działają przy prostych kształtach, kontrastowym tle i niewielkiej liczbie zdjęć. Im bardziej tło różni się kolorem od produktu, tym czystsze wycięcie.
 
-- **Photoshop Express** (online) – bezpłatny, szybki dla prostych zdjęć, ograniczone możliwości retuszu w „lajtowej” wersji.
+## Jak zrobić zdjęcie, z którego tło łatwo usunąć
 
-- **Google Zdjęcia** (funkcja „Wymaż tło” w smartfonach Pixel) – szybkie, lecz precyzja zależy od zdjęcia i nie jest dostępne na każdym urządzeniu.
+Najwięcej pracy oszczędzasz jeszcze przed edycją:
 
-**Wskazówka:** Darmowe opcje najlepiej sprawdzają się przy prostych konturach, małej ilości szczegółów i mniejszej liczbie produktów do przerobienia.
+1. **Ustaw produkt na jednolitym tle** – kartka, ściana albo prześcieradło w kolorze kontrastującym z produktem.
+2. **Odsuń produkt od tła** – kilkadziesiąt centymetrów zmniejsza cień rzucany na tło.
+3. **Fotografuj przy rozproszonym świetle dziennym** – ostre cienie narzędzia często biorą za część produktu.
+4. **Zadbaj o ostrość krawędzi** – rozmyty kontur to rozmyte wycięcie.
+5. **Zostaw margines wokół produktu** – łatwiej później wykadrować zdjęcie.
 
-## AI vs. tradycyjne metody: kiedy wybrać inteligentne narzędzie?
+Więcej o samym fotografowaniu przeczytasz w artykule [Jak przygotować zdjęcie do generatora AI](https://allgrafika.pl/blog/jak-przygotowac-zdjecie-do-generatora-ai).
 
-Rozwiązania AI do usuwania tła, takie jak [AllGrafika.pl](https://app.allgrafika.pl/register), idą o krok dalej niż klasyczne wycinanie tła. Oprócz ekspresowego wyodrębnienia produktu:
+## AI vs. tradycyjne metody – kiedy wybrać generator
 
-- **Automatycznie generują spójne, profesjonalne tło** (np. białe, wnętrze, gradient), zgodne z wymaganiami Allegro.
-- Zachowują oryginalny wygląd produktu (zmiana dotyczy wyłącznie otoczenia).
-- Pozwalają na dalszą edycję – kadrowanie, zmiana formatu, dodanie plakietek promocyjnych.
-- Oferują gotowe style tematyczne zamiast samego białego tła.
+Generator AI, taki jak [AllGrafika.pl](https://app.allgrafika.pl/register), idzie krok dalej niż samo wycinanie:
 
-Jeśli zależy Ci nie tylko na usunięciu tła, ale i na **atrakcyjnej prezentacji produktu w kilku stylach**, AI sprawdzi się lepiej niż darmowe narzędzia. Przykład: [Zdjęcie produktu na białym tle](https://allgrafika.pl/biale-tlo-zdjecie-produktu) przygotujesz w kilka sekund, a jednocześnie uzyskasz plik gotowy do Allegro.
+- **tworzy nowe tło od razu** – białe, wnętrze, ciemne luksusowe, gradient i inne style,
+- **dopasowuje światło i cień** do nowej sceny, więc produkt nie „wisi” w powietrzu,
+- **zachowuje produkt bez zmian** – AI zmienia tło, scenę i światło, ale nie kształt, kolory, logo ani napisy,
+- **pozwala dalej edytować** gotową grafikę i pobrać ją z presetem eksportu pod OLX, eBay, Amazon lub sklep internetowy,
+- **obsługuje serie** – do 50 zdjęć naraz zamiast wycinania każdego osobno.
 
-## Hipotetyczny przykład: Kiedy usunięcie tła to za mało
+Jeśli potrzebujesz po prostu czystej bieli, zobacz [zdjęcie produktu na białym tle](https://allgrafika.pl/biale-tlo-zdjecie-produktu). Jeśli chcesz kilku stylów do jednego produktu, przyda się [zdjęcia AI do ofert](https://allgrafika.pl/zdjecia-ai-do-ofert).
 
-Wyobraź sobie, że sprzedajesz designerską lampę stołową. Robisz zdjęcie na tle domowej biblioteczki. Po zastosowaniu remove.bg pozostaje lampa na białym tle, ale:
+## Gdzie nowe tło pasuje, a gdzie nie
 
-- Produkt wygląda płasko, brakuje mu głębi i kontekstu.
-- Cień i refleksy są sztuczne lub wycięte.
-- Lampa wydaje się oderwana od rzeczywistości, przez co traci efekt "wow".
+Zanim usuniesz tło, sprawdź, dokąd trafi zdjęcie:
 
-Gdybyś użył narzędzia AI, jak [AllGrafika.pl](https://app.allgrafika.pl/register), możesz wybrać styl "Lifestyle (wnętrze)" — lampa pojawia się w stylizowanym, jasnym wnętrzu, z realistycznym światłem. W efekcie miniaturka przyciąga uwagę i wygląda jak zdjęcie z katalogu, a nie wycięty produkt. To właśnie ta różnica często decyduje o skuteczności grafiki na Allegro.
+- **Amazon** – według wytycznych Amazon dla sprzedawców zdjęcie główne powinno mieć czysto białe tło (RGB 255, 255, 255) i produkt na co najmniej 85% kadru ([wpis pracownika Amazon](https://sellercentral.amazon.com/seller-forums/discussions/t/13af96ea-6b07-4bf9-8dbe-a13292c2e3b1)). Tu usunięcie tła to często konieczność.
+- **eBay** – tło może zostać inne niż białe, ale [polityka zdjęć](https://www.ebay.com/help/policies/listing-policies/picture-policy?id=4370) zakazuje dodanych ramek, tekstu i znaków wodnych. Przy rzeczach używanych pokaż prawdziwe zdjęcia konkretnej sztuki.
+- **Vinted** – [zasady katalogu](https://www.vinted.com/catalog-rules) mówią, że edycja obrazu nie jest dozwolona. Tu nie usuwaj tła – zrób zdjęcie od razu na neutralnym tle w świetle dziennym.
+- **OLX** – zdjęcie ma pokazywać Twój przedmiot i nie może pochodzić z internetu. Nowe tło jest w porządku, jeśli przedmiot wygląda tak jak w rzeczywistości.
+- **Własny sklep** – pełna swoboda, ale trzymaj jeden styl tła w całym katalogu. W Google Merchant Center grafiki AI muszą zachować metadane AI.
 
-## Gdzie usuwanie tła nie wystarczy? Najczęstsze błędy (podpunkty z H3)
+## Przykład hipotetyczny: kiedy samo usunięcie tła to za mało
 
-### Brak spójnego stylu sklepu
-Usunięcie tła jednego produktu nie wystarczy, jeśli każdy kolejny ma inne tło lub kadr. Klient odbiera ofertę jako niespójną.
+Przykład hipotetyczny: sprzedajesz designerską lampę stołową. Robisz zdjęcie na tle domowej biblioteczki i wycinasz tło darmowym narzędziem. Efekt:
 
-### Złe kadrowanie i proporcje
-Wycięty produkt może być źle skadrowany — za mały w kadrze, albo z uciętym detalem, co psuje odbiór miniaturki.
+- lampa jest na białym tle, ale wygląda płasko,
+- brakuje naturalnego cienia pod podstawą,
+- przy kloszu zostały szare obwódki.
 
-### Odrzut przez wymagania Allegro
-Allegro wymaga białego tła tylko na głównym zdjęciu, ale kolejne mogą być bardziej inspirujące. Samo usunięcie tła nie gwarantuje zgodności z wytycznymi formatu (np. 1:1 lub 4:3).
+Na zdjęcie główne na Amazonie po poprawieniu krawędzi to wystarczy. Do własnego sklepu i do galerii lepiej sprawdzi się jednak druga wersja: ta sama lampa w jasnym wnętrzu z realistycznym światłem, wygenerowana z tego samego zdjęcia. Klient widzi wtedy nie tylko produkt, ale i jego skalę.
 
-### Sztuczne krawędzie
-Darmowe narzędzia czasem zostawiają "schodki" lub szare obwódki. AI potrafi je automatycznie wygładzić.
+## Najczęstsze błędy po usunięciu tła
 
-## Checklista: Co zrobić, by Twoje zdjęcie produktowe po usunięciu tła zwiększało sprzedaż?
+### Szare obwódki i „schodki” na krawędziach
+Typowe przy jasnych produktach wyciętych z ciemnego tła. Powiększ zdjęcie do 200% i sprawdź cały kontur.
 
-- Sprawdź, czy produkt wycięto z pełną dokładnością (bez artefaktów przy krawędzi)
-- Upewnij się, że format zdjęcia zgadza się z Allegro (minimum 1000x1000 px i zgodność proporcji)
-- Wybierz tło (białe, lifestyle lub gradient), które pasuje do Twojej branży
-- Zadbaj o spójność stylu dla wszystkich produktów w sklepie
-- Dodaj plakietkę promocyjną lub informacyjną, jeśli to uzasadnione
-- Zweryfikuj, czy na miniaturce widać najważniejsze cechy produktu
-- Skorzystaj z testowej prezentacji zdjęcia na różnych urządzeniach (telefon, komputer)
+### Brak cienia
+Produkt bez żadnego cienia wygląda jak naklejony. Delikatny, naturalny cień pod spodem często wygląda lepiej niż całkowita biel.
+
+### Ucięte detale
+Automat może uznać cienki kabel, pasek albo przezroczysty element za tło. Porównaj wycięcie z oryginałem.
+
+### Każde zdjęcie w innym stylu
+Jeden produkt na czystej bieli, drugi na szarym tle, trzeci we wnętrzu – katalog wygląda chaotycznie. Ustal jeden styl dla zdjęć głównych.
+
+### Plakietki tam, gdzie są zakazane
+Napisy „-20%” czy „Nowość” dodane do zdjęcia są zakazane na eBay i w Merchant Center, a na Amazonie na zdjęciu głównym. Zostaw je na własny sklep i media społecznościowe.
+
+## Checklista po usunięciu tła
+
+- [ ] Krawędzie są czyste w powiększeniu, bez obwódek i ubytków
+- [ ] Wszystkie detale produktu zostały w kadrze
+- [ ] Produkt ma naturalny cień lub świadomie czyste tło
+- [ ] Na Amazon: tło czysto białe, produkt na co najmniej 85% kadru
+- [ ] Na Vinted: zamiast edycji – nowe, własne zdjęcie
+- [ ] Brak plakietek i napisów na zdjęciach dla eBay i Merchant Center
+- [ ] Jednolity styl zdjęć głównych w całym katalogu
+- [ ] Zdjęcie sprawdzone na telefonie i komputerze
 
 ## Najczęstsze pytania
 
-### Czy darmowe narzędzia do usuwania tła są wystarczające na Allegro?
-Do prostych zdjęć i małych sklepów tak, ale AI oferuje lepszą kontrolę nad efektem i zgodność ze standardami Allegro.
+### Czy darmowe narzędzia wystarczą?
+Przy kilku produktach o prostym kształcie – tak. Przy włosach, szkle, biżuterii albo dziesiątkach zdjęć szybciej i równiej zrobisz to narzędziem AI.
 
-### Czy usuwanie tła wpływa na pozycjonowanie oferty?
-Zdjęcia na białym tle są wymagane na głównym zdjęciu i mogą poprawiać CTR, ale liczy się też jakość i spójność całego listingu.
+### Czy białe tło jest wymagane wszędzie?
+Nie. Wymaga go Amazon na zdjęciu głównym. Szczegóły dla innych platform znajdziesz w artykule [Zdjęcie główne oferty – wymagania platform](https://allgrafika.pl/blog/zdjecie-glowne-oferty-wymagania-platform).
 
-### Co zrobić, jeśli po usunięciu tła produkt traci "realizm"?
-Wypróbuj style "lifestyle" lub "produkt w użyciu" w narzędziach AI, by dodać kontekst wizualny i przyciągnąć uwagę kupujących. Sprawdź też [Zdjęcia AI na Allegro](https://allgrafika.pl/zdjecia-ai-allegro).
+### Co zrobić, gdy po usunięciu tła produkt traci realizm?
+Wybierz scenę zamiast pustego tła: wnętrze, produkt w użyciu albo gradient z naturalnym cieniem. Porównanie podejść znajdziesz w artykule [Białe tło: DIY vs. AI](https://allgrafika.pl/blog/biale-tlo-diy-vs-ai-w-fotografii-produktowej).
 
-## Co dalej? Twoja decyzja: proste usuwanie tła czy kompletny upgrade zdjęć
+## Twoja decyzja: samo wycięcie czy kompletne zdjęcie
 
-Zdecyduj, czy wystarczy Ci szybkie, darmowe usunięcie tła, czy wolisz zyskać przewagę dzięki gotowym stylom, kadrowaniu i automatyzacji AI. Przetestuj obie opcje — i porównaj efekty na realnych ofertach.
+Jeśli potrzebujesz pojedynczego packshotu, zacznij od darmowego narzędzia. Jeśli chcesz kilku spójnych wersji jednego produktu albo masz cały katalog, wypróbuj [AllGrafika.pl](https://app.allgrafika.pl/register) – pierwsze 5 grafik jest darmowe po potwierdzeniu adresu e-mail. Porównaj efekty na własnych zdjęciach i wybierz to, co lepiej pokazuje Twój produkt.
 
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-10-10',
-  modifiedAt: '2026-10-10',
+  modifiedAt: '2026-10-17',
   author: 'AllGrafika.pl',
-  readTime: 6,
+  readTime: 7,
   category: 'Technologia',
 }
 

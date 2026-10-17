@@ -4,70 +4,70 @@ const post: BlogPostData = {
   id: '17',
   slug: 'flat-lay-jak-tworzyc-estetyczne-uklady-produktow',
   title: 'Flat lay: jak tworzyć estetyczne układy produktów',
-  excerpt: 'Dowiedz się, jak tworzyć estetyczne układy flat lay dla zdjęć produktowych i zwiększ atrakcyjność swoich ofert na Allegro dzięki przemyślanej kompozycji.',
+  excerpt: 'Flat lay krok po kroku: planowanie układu, tło, światło z boku, aparat nad produktem i zasady platform, czyli gdzie zdjęcie z rekwizytami ma sens.',
   content: `
-## Czym jest styl flat lay w fotografii produktowej?
+## Czym jest flat lay w fotografii produktowej?
 
-Styl **flat lay** to popularna technika fotograficzna, w której produkty są aranżowane na płaskiej powierzchni i fotografowane z góry. Tego typu zdjęcia doskonale prezentują produkty w kontekście, podkreślając ich funkcjonalność i estetykę. Są szczególnie popularne w takich kategoriach jak moda, kosmetyki, jedzenie czy akcesoria.
+**Flat lay** to zdjęcie z góry: produkty leżą na płaskiej powierzchni, a aparat patrzy na nie prostopadle. Taki układ dobrze pokazuje zestawy, ubrania, kosmetyki, akcesoria, jedzenie i papeterię – wszystko, co ma ciekawy kształt widziany z góry i co kupujący chce zobaczyć „w komplecie”.
 
-## Dlaczego warto używać układów flat lay na Allegro?
+## Kiedy flat lay pomaga w sprzedaży
 
-Flat lay to świetny sposób na wyróżnienie Twoich produktów na tle konkurencji. Dzięki estetycznym i dobrze skomponowanym zdjęciom możesz:
+- **Zestawy i komplety** – widać od razu, ile elementów jest w pudełku.
+- **Odzież** – ubranie rozłożone płasko pokazuje krój, długość i proporcje lepiej niż wieszak.
+- **Spójny wygląd sklepu lub profilu** – stała paleta kolorów i to samo tło budują rozpoznawalność.
+- **Kontekst bez sceny** – rekwizyty mówią, do czego produkt służy, bez budowania całego wnętrza.
 
-- **Przyciągnąć uwagę kupujących**, którzy przeglądają setki ofert.
-- **Zwiększyć CTR (współczynnik klikalności)** dzięki bardziej atrakcyjnym miniaturkom.
-- **Zbudować profesjonalny wizerunek marki**, pokazując, że dbasz o detale.
-- **Zwiększyć sprzedaż**, prezentując produkt w jego naturalnym otoczeniu użytkowania.
+Flat lay ma też słabe strony: nie pokazuje wysokości ani bryły. Butelka, kubek czy but widziane wyłącznie z góry wyglądają płasko, więc w galerii uzupełnij je ujęciem z boku.
 
-## Jak zaplanować idealny flat lay?
+## Jak zaplanować układ
 
-Zanim zaczniesz układać produkty, warto przemyśleć kilka kluczowych kwestii:
+- **Temat** – czy pokazujesz sam produkt w minimalistycznym układzie, czy produkt w kontekście (np. krem z ręcznikiem i gałązką eukaliptusa)?
+- **Paleta kolorów** – dwa, trzy kolory, które pasują do produktu i do Twojej marki. Rekwizyty nie mogą być bardziej wyraziste niż produkt.
+- **Hierarchia** – produkt główny jest największy i stoi w najmocniejszym punkcie kadru. Reszta mu towarzyszy.
+- **Rekwizyty, których nie sprzedajesz** – używaj ich ostrożnie. Kupujący może uznać, że są w zestawie.
 
-- **Określ temat zdjęcia**: Czy chcesz pokazać produkt w konkretnym kontekście, np. kosmetyki w łazience, czy skupić się na minimalistycznym układzie?
-- **Zaplanuj kolorystykę**: Wybierz paletę kolorów, która będzie spójna z Twoją marką i kategorią produktu.
-- **Dobierz komplementarne elementy**: Użyj rekwizytów, które uzupełnią zdjęcie, np. filiżanka kawy obok książki lub okulary przeciwsłoneczne obok torebki.
+## Krok po kroku: tworzenie flat lay
 
-## Krok po kroku: Tworzenie układu flat lay
+### 1. Powierzchnia i tło
+Biały karton, płyta w kolorze betonu, drewniana deska, lniana tkanina. Tło ma być spokojne i matowe – błyszczące powierzchnie odbijają światło i aparat.
 
-### 1. Wybierz odpowiednią powierzchnię i tło
-- Wybierz neutralne tło, takie jak białe, marmurowe lub drewniane, które nie odwróci uwagi od produktu.
-- Możesz także skorzystać z [AllGrafika.pl](https://app.allgrafika.pl/register), aby automatycznie wygenerować estetyczne tło w stylu flat lay.
+### 2. Światło z jednego boku
+Najlepsze jest rozproszone światło dzienne z okna, padające z boku. Delikatny cień nadaje przedmiotom głębię. Po drugiej stronie połóż białą kartkę jako blendę, żeby cienie nie były zbyt ciemne. Unikaj lampy sufitowej – daje cień aparatu i Twojej głowy na środku kadru.
 
-### 2. Oświetlenie to klucz do sukcesu
-- Użyj naturalnego światła, np. z okna, lub zastosuj sztuczne oświetlenie, takie jak softboxy.
-- Unikaj ostrych cieni — możesz użyć dyfuzora, aby zmiękczyć światło.
+### 3. Aparat dokładnie nad produktem
+Telefon lub aparat trzymaj równolegle do blatu. Pomaga statyw z wysięgnikiem albo stołek, na którym stoisz. Włącz siatkę w aparacie i poziomicę, jeśli telefon ją ma – lekki przechył zamienia prostokątne pudełka w trapezy.
 
-### 3. Ułóż produkty z głową
-- Zacznij od głównego produktu i ustaw go w centralnym punkcie.
-- Dodaj mniejsze, komplementarne elementy wokół, aby stworzyć harmonijną kompozycję.
+### 4. Układanie
+- Zacznij od produktu głównego i ustaw go w punkcie przecięcia linii siatki lub w centrum.
+- Dodawaj mniejsze elementy wokół, zostawiając równe odstępy.
+- Stosuj nieparzystą liczbę rekwizytów i zostaw trochę pustej przestrzeni – zbyt gęsty układ wygląda chaotycznie.
+- Rób zdjęcie po każdej zmianie. Łatwiej porównać kilka wersji na ekranie niż w głowie.
 
-### 4. Eksperymentuj z perspektywą
-- Fotografuj z różnych wysokości i kątów, aby znaleźć najlepszy układ.
-- Pamiętaj, że flat lay to zdjęcia z góry, ale delikatne przechylenie może dodać głębi.
+### 5. Detale
+Wygładź tkaniny, usuń kurz i okruchy, wyrównaj krawędzie. Z góry widać każde zagniecenie.
 
-## Optymalizacja zdjęć flat lay na Allegro
+## Flat lay a zasady platform
 
-Aby Twoje zdjęcia flat lay były skuteczne na Allegro, pamiętaj o kilku zasadach:
+- **Zdjęcie główne w sklepie i na Amazon** – tu potrzebny jest sam produkt na białym tle. Według wytycznych Amazon dla sprzedawców zdjęcie główne ma mieć [czysto białe tło, a produkt zajmować co najmniej 85% kadru](https://sellercentral.amazon.com/seller-forums/discussions/t/13af96ea-6b07-4bf9-8dbe-a13292c2e3b1). Flat lay z rekwizytami zostaw na dalsze zdjęcia.
+- **Vinted** – ubrania rozłożone płasko na neutralnym tle to tam bardzo dobry sposób prezentacji, pod warunkiem że zdjęcie jest Twoje i nieedytowane, jak wymaga [regulamin katalogu Vinted](https://www.vinted.com/catalog-rules). Pierwsze zdjęcie ma pokazywać cały przedmiot.
+- **eBay** – rekwizyty są dopuszczalne, jeśli zdjęcie dokładnie pokazuje sprzedawany przedmiot, ale [zasady zdjęć eBay](https://www.ebay.com/help/policies/listing-policies/picture-policy?id=4370) zabraniają dodawania napisów, ramek i grafik marketingowych. W opisie jasno napisz, co jest w zestawie.
+- **Nazwa pliku** – opisowa, np. zestaw-kosmetykow-lawenda-flat-lay.jpg, pomaga w wyszukiwarce grafik i w porządku w katalogu.
 
-- **Zachowaj jasne tło**: W przypadku miniaturek głównych konieczne jest białe tło, które możesz uzyskać za pomocą narzędzia, takiego jak [AllGrafika.pl](https://app.allgrafika.pl/register).
-- **Stosuj odpowiedni rozmiar**: Allegro wymaga zdjęć o minimalnej szerokości 500 pikseli.
-- **Dostosuj pliki pod SEO**: Nadawaj nazwom plików znaczące nazwy, np. „zegarek-damski-zloty-flat-lay.jpg”.
+## Flat lay z pomocą AI
 
-## Zalety korzystania z AllGrafika.pl przy tworzeniu układów flat lay
+Jeśli nie masz czasu na układanie rekwizytów, możesz zrobić jedno porządne zdjęcie produktu z góry i w [AllGrafika.pl](https://app.allgrafika.pl/register) opisać po polsku scenę, jakiej potrzebujesz – np. „widok z góry, jasny len, gałązka eukaliptusa” – a nawet dołączyć zdjęcie referencyjne z inspiracją. AI buduje tło i otoczenie, ale produkt zostaje taki jak na Twoim zdjęciu, także w tej samej perspektywie. Dlatego zdjęcie wejściowe musi być zrobione z góry. Gotową grafikę zawsze sprawdź: czy rekwizyty nie sugerują, że są w zestawie, i czy kolor produktu się zgadza. Do Vinted takich grafik nie używaj.
 
-AllGrafika.pl oferuje wsparcie w tworzeniu profesjonalnych zdjęć w stylu flat lay dzięki:
+Przegląd innych stylów zdjęć znajdziesz w artykule [najlepsze style zdjęć produktowych](https://allgrafika.pl/blog/najlepsze-style-zdjec-produktowych).
 
-- **Automatycznemu generowaniu miniaturek** z komplementarnymi elementami i perfekcyjnym oświetleniem.
-- Możliwości wyboru spośród kilku stylów, takich jak **lifestyle** czy **minimalistyczny**.
-- Szybkiej obróbce zdjęć dzięki technologii AI — oszczędzasz czas i pieniądze.
+## W skrócie
 
-## Podsumowanie
+Dobry flat lay to spokojne tło, światło z boku, aparat dokładnie nad produktem i przemyślana, oszczędna kompozycja. Na zdjęcie główne wybierz sam produkt na białym tle, a układ z rekwizytami wykorzystaj w galerii, w sklepie i w mediach społecznościowych.
 
-Styl flat lay to doskonałe narzędzie zwiększające atrakcyjność Twoich ofert na Allegro. Poprawnie zaplanowany i zrealizowany układ przyciąga uwagę klientów, zwiększa współczynnik klikalności i buduje profesjonalny wizerunek marki. Pamiętaj, że dzięki takim narzędziom jak [AllGrafika.pl](https://app.allgrafika.pl/register) możesz znacząco przyspieszyć proces tworzenia pięknych i skutecznych zdjęć.
-
-[← Przejdź do strony głównej](https://allgrafika.pl/)
+[← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-18',
+  modifiedAt: '2026-10-17',
+  author: 'AllGrafika.pl',
   readTime: 6,
   category: 'Styl i design',
 }
