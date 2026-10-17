@@ -60,6 +60,7 @@ TOPIC_LIMIT = 0.6
 TOPIC_WITH_CONTENT = (0.35, 0.06)
 CONTENT_LIMIT = 0.15
 KEYWORD_LIMIT = 0.75
+HEAD_TERM_SHARE = 0.5
 
 
 def compare(new: dict, old: dict) -> dict:
@@ -90,6 +91,11 @@ def keyword_taken(keyword: str, corpus: list):
     for old in corpus:
         title = set(stems(old["slug"].replace("-", " ") + " " + old["title"]))
         if len(k & title) / len(k) >= KEYWORD_LIMIT:
+            # A two-word head term ("fotografia produktowa") appears inside many narrower titles ("Białe tło w
+            # fotografii produktowej"); it is only taken when the old title is essentially about it
+            # (spec 23, AC-BOT-001). The full article is still judged by duplicate_reason().
+            if len(k) == 2 and len(k & title) / len(title) < HEAD_TERM_SHARE:
+                continue
             return old
     return None
 

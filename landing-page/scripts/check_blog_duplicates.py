@@ -3,6 +3,7 @@ Build guard (spec 10, AC-SEO-006): no two blog posts may duplicate each other (t
 duplicates compete for the same query and hurt the whole blog in Google. Exit 1 lists the pairs.
 Run: python3 landing-page/scripts/check_blog_duplicates.py
 """
+import os
 import re
 import sys
 from pathlib import Path
@@ -10,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from blog_similarity import duplicate_reason  # noqa: E402
 
-POSTS = Path(__file__).resolve().parents[1] / "src/data/blogPosts"
+POSTS = Path(os.environ.get("BLOG_POSTS_DIR") or (Path(__file__).resolve().parents[1] / "src/data/blogPosts"))
 
 
 def load_posts():
