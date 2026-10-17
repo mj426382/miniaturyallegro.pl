@@ -6,6 +6,7 @@ import { descriptionsApi, DescriptionView, OfferDescription, PlatformId } from '
 import { usePlatformPresets } from '../hooks/usePlatformPresets'
 import { track } from '../services/analytics'
 import { offerHtmlToText, compactOfferHtml, formatOfferHtml, MAX_TITLE_LENGTH, splitKeywords } from '../utils/offerHtml'
+import { countLabel } from '../utils/plural'
 
 interface Props {
   imageId: string
@@ -41,6 +42,7 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
   /** Spec 07/08: the platform drives the prompt and the title limit; generic by default. */
   const [platform, setPlatform] = useState<PlatformId>('generic')
   const { presets } = usePlatformPresets()
+  const [reloadKey, setReloadKey] = useState(0)
 
   const applyView = useCallback(
     (next: DescriptionView, options: { keepDraft?: boolean } = {}) => {
@@ -54,6 +56,7 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
 
   useEffect(() => {
     let cancelled = false
+    setLoadFailed(false)
     descriptionsApi
       .get(imageId)
       .then(({ data }) => {
@@ -66,12 +69,12 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
     return () => {
       cancelled = true
     }
-  }, [imageId, applyView])
+  }, [imageId, applyView, reloadKey])
 
   const description = view?.description ?? null
   const canCreate = (view?.canCreate ?? false) || hasCompletedGraphic
   const editsLeft = view?.promptEditsLeft ?? 0
-  const editsLimit = view?.promptEditsLimit ?? 10
+  const editsLimit = view?.promptEditsLimit ?? 5
   const packSize = view?.editPackSize ?? 15
   const packCredits = view?.editPackCredits ?? 1
 
@@ -198,7 +201,17 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
     }
   }
 
-  if (loadFailed) return null
+  if (loadFailed)
+    return (
+      <section className="mt-10 bg-white rounded-xl border border-red-200 p-5 sm:p-6" aria-label="Opis oferty">
+        <p role="alert" className="text-sm text-gray-700">
+          Nie udało się wczytać opisu oferty.{' '}
+          <button type="button" onClick={() => setReloadKey((k) => k + 1)} className="text-blue-600 underline">
+            Spróbuj ponownie
+          </button>
+        </p>
+      </section>
+    )
 
   return (
     <section className="mt-10 bg-white rounded-xl border border-gray-200 p-5 sm:p-6" aria-labelledby="offer-description-title">
@@ -209,8 +222,8 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
             Opis oferty
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Tytuł, opis i frazy dopasowane do platformy (OLX, Vinted, eBay, Amazon albo Twój sklep), pod którymi kupujący znajdą produkt. Powstaje z Twoich notatek i analizy zdjęcia. Pierwszy opis
-            jest gratis do wygenerowanej grafiki; w cenie masz {editsLimit} poprawek AI, kolejne {packSize} za {packCredits} kredyt.
+            Tytuł, opis i frazy, po których kupujący znajdą produkt – dopasowane do Twojego sklepu internetowego albo OLX, Vinted, eBay czy Amazon. Powstaje z Twoich notatek i analizy zdjęcia.
+            Pierwszy opis jest gratis do wygenerowanej grafiki, poprawki AI masz w cenie, a kolejne {packSize} dokupisz za {countLabel(packCredits, 'kredyt', 'kredyty', 'kredytów')}.
           </p>
         </div>
         {description && (

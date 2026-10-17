@@ -10,8 +10,9 @@ import { describeRejection } from '../utils/dropzone'
 import BulkDescriptionsModal, { BulkPhoto } from '../components/BulkDescriptionsModal'
 import { useZipDownload } from '../hooks/useZipDownload'
 import { groupStartsOpen, groupStyles } from '../utils/styles'
-import { countLabel } from '../utils/plural'
+import { countLabel, plural } from '../utils/plural'
 import PaywallModal from '../components/PaywallModal'
+import FormAlert from '../components/FormAlert'
 import {
   ArrowUpTrayIcon,
   PhotoIcon,
@@ -37,16 +38,14 @@ interface FileItem {
   preview: string
   status: FileStatus
   error?: string
+  /** Informational status (e.g. waiting for a free slot) – not an error. */
+  note?: string
   imageId?: string
   /** Styles chosen for this file in the per-file mode. */
   styles: string[]
 }
 
-function creditsWord(n: number) {
-  if (n === 1) return 'kredyt'
-  if (n >= 2 && n <= 4) return 'kredyty'
-  return 'kredytów'
-}
+const creditsWord = (n: number) => plural(n, 'kredyt', 'kredyty', 'kredytów')
 
 export default function BulkUpload() {
   usePageTitle('Masowe przesyłanie')
@@ -61,17 +60,26 @@ export default function BulkUpload() {
   const [lastRunMode, setLastRunMode] = useState<Mode | null>(null)
   const [bulkPhotos, setBulkPhotos] = useState<BulkPhoto[] | null>(null)
   const zip = useZipDownload()
+  /** Without the catalogue the shared/per-file modes are a dead end – show the error with a retry. */
+  const [stylesFailed, setStylesFailed] = useState(false)
 
-  useEffect(() => {
+  const loadStyles = useCallback(() => {
+    setStylesFailed(false)
     generationApi
       .getStyles()
       .then(({ data }) => {
         setStyles(data.styles)
         setDefaultStyleIds(data.defaultStyleIds)
         setSharedStyles(data.defaultStyleIds)
+        // Files dropped before the catalogue arrived get the starter set too.
+        setFiles((prev) => prev.map((f) => (f.status === 'queued' && f.styles.length === 0 ? { ...f, styles: data.defaultStyleIds } : f)))
       })
-      .catch(() => toast.error('Nie udało się pobrać listy stylów'))
+      .catch(() => setStylesFailed(true))
   }, [])
+
+  useEffect(() => {
+    loadStyles()
+  }, [loadStyles])
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -108,7 +116,7 @@ export default function BulkUpload() {
 
   const queued = files.filter((f) => f.status === 'queued')
   const totalCredits = useMemo(() => queued.reduce((sum, f) => sum + stylesFor(f).length, 0), [queued, mode, sharedStyles]) // eslint-disable-line react-hooks/exhaustive-deps
-  const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 10) - (user?.freeCreditsUsed ?? 0))
+  const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 5) - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
   const unlimited = Boolean(user?.unlimitedCredits)
   const canAfford = unlimited || totalCredits <= freeLeft + paidCredits
@@ -127,6 +135,8 @@ export default function BulkUpload() {
     const snapshotMode = mode
 
     const startedIds: string[] = []
+    let failures = 0
+    let succeeded = 0
     for (const item of queued) {
       const chosen = orderedStyles(stylesFor(item))
       updateFile(item.id, { status: 'uploading' })
@@ -135,10 +145,12 @@ export default function BulkUpload() {
         const { data } = await imagesApi.upload(item.file)
         imageId = data.id
       } catch (err: any) {
+        failures++
         updateFile(item.id, { status: 'error', error: err.response?.data?.message || 'Błąd przesyłania' })
         continue
       }
       if (!chosen.length) {
+        succeeded++
         updateFile(item.id, { status: 'done', imageId, error: undefined })
         continue
       }
@@ -149,14 +161,17 @@ export default function BulkUpload() {
         try {
           await generationApi.startGeneration(imageId, { styles: chosen })
           startedIds.push(imageId)
+          succeeded++
           updateFile(item.id, { status: 'done', imageId, error: undefined })
           break
         } catch (err: any) {
           if (err.response?.status === 429 && attempt < MAX_START_RETRIES - 1) {
-            updateFile(item.id, { status: 'generating', error: `Czekam na wolne miejsce w kolejce (${attempt + 1}/${MAX_START_RETRIES - 1})…` })
+            updateFile(item.id, { status: 'generating', error: undefined, note: `Czekam na wolne miejsce w kolejce (${attempt + 1}/${MAX_START_RETRIES - 1})…` })
             await new Promise((r) => setTimeout(r, RETRY_DELAY_MS))
             continue
           }
+          failures++
+          // The photo is stored – it can still be generated from its own page.
           updateFile(item.id, { status: 'error', error: err.response?.data?.message || 'Błąd generowania' })
           break
         }
@@ -177,7 +192,13 @@ export default function BulkUpload() {
     }
     track('upload', { source: 'bulk', files: queued.length, mode: snapshotMode })
     refreshUser().catch(() => undefined)
-    toast.success(snapshotMode === 'upload' ? 'Zdjęcia przesłane. Style wybierzesz z galerii dla każdego produktu.' : 'Wszystkie pliki zostały przetworzone!')
+    if (failures === 0) {
+      toast.success(snapshotMode === 'upload' ? 'Zdjęcia przesłane. Style wybierzesz z galerii dla każdego produktu.' : 'Wszystkie pliki zostały przetworzone.')
+    } else if (succeeded === 0) {
+      toast.error('Żaden plik nie został przetworzony – sprawdź komunikaty na liście.')
+    } else {
+      toast(`Gotowe: ${succeeded}, z błędem: ${failures} – sprawdź komunikaty na liście.`, { duration: 8000 })
+    }
   }
 
   const queuedCount = queued.length
@@ -233,6 +254,15 @@ export default function BulkUpload() {
         </div>
       </fieldset>
 
+      {stylesFailed && mode !== 'upload' && (
+        <FormAlert className="mb-6">
+          Nie udało się pobrać listy stylów.{' '}
+          <button type="button" onClick={loadStyles} className="underline font-medium">
+            Spróbuj ponownie
+          </button>{' '}
+          albo wybierz „Tylko prześlij”.
+        </FormAlert>
+      )}
       {mode === 'shared' && styles.length > 0 && (
         <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm font-medium text-gray-700 mb-2">Style dla całej partii</p>
@@ -286,7 +316,7 @@ export default function BulkUpload() {
         <input {...getInputProps()} aria-label="Wybierz zdjęcia z dysku" />
         <ArrowUpTrayIcon className={`h-12 w-12 mx-auto mb-3 ${isDragActive ? 'text-blue-500' : 'text-gray-300'}`} />
         <p className="text-base font-medium text-gray-700">{isDragActive ? 'Upuść zdjęcia tutaj' : 'Przeciągnij wiele zdjęć lub kliknij'}</p>
-        <p className="text-sm text-gray-500 mt-1">JPG, PNG, WebP • Max 10 MB każde • Do 50 plików</p>
+        <p className="text-sm text-gray-500 mt-1">JPG, PNG, WebP • maks. 10 MB na plik • do 50 plików</p>
       </div>
 
       {files.length > 0 && (
@@ -300,7 +330,7 @@ export default function BulkUpload() {
                     • {doneCount} {mode === 'upload' ? 'przesłane' : 'gotowe'}
                   </span>
                 )}
-                {errorCount > 0 && <span className="text-red-600 ml-2">• {errorCount} błędów</span>}
+                {errorCount > 0 && <span className="text-red-600 ml-2">• {countLabel(errorCount, 'błąd', 'błędy', 'błędów')}</span>}
                 {activeCount > 0 && <span className="text-blue-600 ml-2">• {activeCount} w toku</span>}
               </span>
               {!isRunning && (
@@ -319,7 +349,8 @@ export default function BulkUpload() {
                       <p className="text-sm font-medium text-gray-800 truncate">{item.file.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {statusLabel(item.status)}
-                        {item.error && <span className="text-xs text-red-500">— {item.error}</span>}
+                        {item.error && <span className="text-xs text-red-600">— {item.error}</span>}
+                        {item.note && item.status === 'generating' && <span className="text-xs text-gray-600">— {item.note}</span>}
                         {item.status === 'queued' && mode !== 'upload' && (
                           <span className="text-xs text-gray-500">
                             {stylesFor(item).length} {creditsWord(stylesFor(item).length)}
@@ -328,8 +359,8 @@ export default function BulkUpload() {
                       </div>
                     </div>
                     {statusIcon(item.status)}
-                    {item.status === 'done' && item.imageId && (
-                      <Link to={`/generate/${item.imageId}`} className="text-blue-600 hover:text-blue-700 shrink-0" title="Otwórz generator">
+                    {(item.status === 'done' || item.status === 'error') && item.imageId && (
+                      <Link to={`/generate/${item.imageId}`} className="text-blue-600 hover:text-blue-700 shrink-0" title="Otwórz generator" aria-label={`Otwórz generator: ${item.file.name}`}>
                         <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                       </Link>
                     )}
@@ -398,7 +429,10 @@ export default function BulkUpload() {
                       {totalCredits} {creditsWord(totalCredits)}
                     </span>
                     {canAfford ? (
-                      <span className="text-gray-500"> {unlimited ? '· konto administratora – bez limitu' : `· masz ${freeLeft} darmowych + ${paidCredits} zakupionych`}</span>
+                      <span className="text-gray-500">
+                        {' '}
+                        {unlimited ? '· konto administratora – bez limitu' : `· masz do dyspozycji ${countLabel(freeLeft + paidCredits, 'kredyt', 'kredyty', 'kredytów')}`}
+                      </span>
                     ) : (
                       <span className="text-red-600">
                         {' '}
@@ -417,7 +451,10 @@ export default function BulkUpload() {
           {!isRunning && doneCount > 0 && (
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
               <p className="text-sm font-medium text-green-800 mb-2">
-                ✅ {countLabel(doneCount, 'produkt', 'produkty', 'produktów')} {mode === 'upload' ? 'przesłano – wybierz style dla każdego z nich' : 'gotowe — generowanie grafik trwa w tle'}
+                <span aria-hidden="true">✅ </span>
+                {mode === 'upload'
+                  ? `Przesłano: ${countLabel(doneCount, 'zdjęcie', 'zdjęcia', 'zdjęć')} – wybierz style dla każdego z nich`
+                  : `Przesłano: ${countLabel(doneCount, 'zdjęcie', 'zdjęcia', 'zdjęć')} – generowanie grafik trwa w tle`}
               </p>
               <div className="flex flex-wrap gap-2">
                 {files

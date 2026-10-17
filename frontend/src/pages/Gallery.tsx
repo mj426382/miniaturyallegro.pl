@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
@@ -31,8 +31,14 @@ export default function Gallery() {
 
   const remove = useMutation({
     mutationFn: (id: string) => imagesApi.delete(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       toast.success('Zdjęcie usunięte')
+      setSelected((prev) => {
+        if (!prev.has(id)) return prev
+        const next = new Map(prev)
+        next.delete(id)
+        return next
+      })
       queryClient.invalidateQueries({ queryKey: ['images'] })
     },
     onError: () => toast.error('Nie udało się usunąć zdjęcia'),
@@ -45,8 +51,13 @@ export default function Gallery() {
       confirmLabel: 'Usuń zdjęcie',
       danger: true,
     })
-    if (ok) remove.mutate(image.id)
+    if (ok && !remove.isPending) remove.mutate(image.id)
   }
+
+  // Deleting the last photo of the last page must not leave an empty page while other pages exist.
+  useEffect(() => {
+    if (images.data && images.data.images.length === 0 && page > 1) setPage((p) => Math.max(1, p - 1))
+  }, [images.data, page])
 
   const total = images.data?.pagination.total ?? 0
   const pages = images.data?.pagination.pages ?? 1

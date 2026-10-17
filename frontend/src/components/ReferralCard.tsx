@@ -31,7 +31,7 @@ export default function ReferralCard() {
     try {
       await navigator.share({
         title: 'AllGrafika – zdjęcia produktowe z AI',
-        text: `Robię zdjęcia produktów na OLX, Vinted, eBay i Amazon w AllGrafika. Zarejestruj się z mojego linku, a dostaniesz ${data.bonus} grafiki gratis na start:`,
+        text: `Robię zdjęcia produktów do sklepu i na OLX, Vinted, eBay czy Amazon w AllGrafika. Zarejestruj się z mojego linku, a dostaniesz ${countLabel(data.bonus, 'grafikę', 'grafiki', 'grafik')} gratis na start:`,
         url: data.link,
       })
       track('referral_share')
@@ -58,8 +58,7 @@ export default function ReferralCard() {
       ) : (
         <>
           <p className="text-sm text-gray-600 mt-1">
-            Za każdą osobę, która założy konto z Twojego linku i potwierdzi e-mail, Ty i ona dostajecie po {countLabel(data.bonus, 'grafikę', 'grafiki', 'grafik')} gratis (do {data.maxRewards}{' '}
-            poleceń).
+            Za każdą osobę, która założy konto z Twojego linku i potwierdzi e-mail, oboje dostajecie po {countLabel(data.bonus, 'grafikę', 'grafiki', 'grafik')} gratis (do {data.maxRewards} poleceń).
           </p>
           <div className="mt-3 flex flex-col sm:flex-row gap-2">
             <label htmlFor="referral-link" className="sr-only">

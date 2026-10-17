@@ -4,11 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Panel AllGrafika.pl – generowanie grafik produktowych i opisów ofert na OLX, Vinted, eBay i Amazon." />
+    <meta name="description" content="Panel AllGrafika.pl – zdjęcia produktowe z AI i opisy ofert do sklepu internetowego oraz na OLX, Vinted, eBay i Amazon." />
+    <!-- Spec 11, AC-UI-009: the app never competes with allgrafika.pl in search; vercel.json sends X-Robots-Tag too. -->
     <meta name="robots" content="noindex, nofollow" />
+    <!-- Shared links (e.g. referral /register?ref=…) get a preview. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AllGrafika.pl" />
+    <meta property="og:title" content="AllGrafika – zdjęcia produktowe z AI dla sprzedawców" />
+    <meta property="og:description" content="Ze zdjęcia z telefonu profesjonalne grafiki produktu i opis oferty – do sklepu internetowego, na OLX, Vinted, eBay i Amazon. Darmowe grafiki na start." />
+    <meta property="og:image" content="https://allgrafika.pl/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#2563eb" />
     <link rel="apple-touch-icon" href="/logo.png" />
-    <title>AllGrafika.pl – Generator grafik produktowych AI</title>
+    <title>AllGrafika.pl – zdjęcia produktowe z AI</title>
   </head>
   <body>
     <div id="root"></div>

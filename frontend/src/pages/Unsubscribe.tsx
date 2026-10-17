@@ -12,20 +12,23 @@ export default function Unsubscribe() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const { user, refreshUser } = useAuth()
-  const [state, setState] = useState<'loading' | 'done' | 'error'>(token ? 'loading' : 'error')
-  const started = useRef(false)
+  const [state, setState] = useState<'loading' | 'done' | 'error' | 'failed'>(token ? 'loading' : 'error')
+  const [attempt, setAttempt] = useState(0)
+  const started = useRef(-1)
 
   useEffect(() => {
-    if (!token || started.current) return
-    started.current = true
+    if (!token || started.current === attempt) return
+    started.current = attempt
+    setState('loading')
     notificationsApi
       .unsubscribe(token)
       .then(() => {
         setState('done')
         if (user) refreshUser().catch(() => undefined)
       })
-      .catch(() => setState('error'))
-  }, [token, user, refreshUser])
+      // 400 = bad or tampered link; anything else (offline, 5xx) can simply be retried.
+      .catch((err) => setState(err?.response?.status === 400 ? 'error' : 'failed'))
+  }, [token, user, refreshUser, attempt])
 
   return (
     <AuthLayout title="Wypisanie z wiadomości">
@@ -38,12 +41,20 @@ export default function Unsubscribe() {
       {state === 'done' && (
         <div className="space-y-4 text-center">
           <FormAlert kind="success" className="text-left">
-            Gotowe – nie będziesz już dostawać wskazówek ani przypomnień. Powiadomienia o Twoich paczkach i maile dotyczące konta przychodzą dalej.
+            Gotowe – nie będziesz już dostawać wskazówek ani przypomnień. Powiadomienia o masowym przesyłaniu i maile dotyczące konta przychodzą dalej.
           </FormAlert>
           <p className="text-sm text-gray-600">Zgodę możesz włączyć ponownie w ustawieniach konta.</p>
           <Link to={user ? '/account' : '/login'} className="btn-primary inline-block">
             {user ? 'Ustawienia konta' : 'Zaloguj się'}
           </Link>
+        </div>
+      )}
+      {state === 'failed' && (
+        <div className="space-y-4 text-center">
+          <FormAlert className="text-left">Nie udało się połączyć z serwerem – nic nie zostało zmienione.</FormAlert>
+          <button type="button" onClick={() => setAttempt((a) => a + 1)} className="btn-primary">
+            Spróbuj ponownie
+          </button>
         </div>
       )}
       {state === 'error' && (

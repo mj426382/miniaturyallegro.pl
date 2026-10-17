@@ -18,18 +18,25 @@ export default function PasswordInput({ id, label, help, error, className = '', 
         {label}
       </label>
       <div className="relative">
-        <input id={id} type={visible ? 'text' : 'password'} className={`input-field pr-10 ${error ? 'border-red-400 focus:ring-red-400' : ''} ${className}`} {...rest} />
+        <input
+          id={id}
+          type={visible ? 'text' : 'password'}
+          aria-describedby={help ? `${id}-help` : undefined}
+          aria-invalid={error || undefined}
+          className={`input-field pr-10 ${error ? 'border-red-400 focus:ring-red-400' : ''} ${className}`}
+          {...rest}
+        />
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? 'Ukryj hasło' : 'Pokaż hasło'}
+          aria-pressed={visible}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-          tabIndex={-1}
         >
           {visible ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
         </button>
       </div>
-      <p className="mt-1 text-xs min-h-[18px]" aria-live="polite">
+      <p id={`${id}-help`} className="mt-1 text-xs min-h-[18px]" aria-live="polite">
         {help}
       </p>
     </div>

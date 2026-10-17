@@ -272,6 +272,22 @@ export default function Generate() {
     )
   }
 
+  if (!image && gens.loadError === 'failed') {
+    return (
+      <div className="p-8 text-center" role="alert">
+        <p className="text-gray-700 mb-4">Nie udało się wczytać zdjęcia. Sprawdź połączenie i spróbuj ponownie.</p>
+        <div className="flex justify-center gap-2">
+          <button type="button" onClick={gens.reload} className="btn-primary">
+            Spróbuj ponownie
+          </button>
+          <Link to="/gallery" className="btn-secondary">
+            Galeria
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (!image) {
     return (
       <div className="p-8 text-center">

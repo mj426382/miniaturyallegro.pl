@@ -139,7 +139,7 @@ test.describe('admin without a credit limit (spec 16)', () => {
     await mockApp(page, { isAdmin: true, noCredits: true })
     await page.goto(`/generate/${IMAGE.id}`)
     await expect(page.getByRole('heading', { name: 'Generator grafik produktowych' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Kredyty: bez limitu' }).first()).toBeAttached()
+    await expect(page.getByRole('link', { name: 'Kredyty: bez limitu', includeHidden: true }).first()).toBeAttached()
     // The photo already has graphics, so the style picker starts collapsed.
     await page.getByRole('button', { name: 'Pokaż style' }).click()
     await expect(page.getByText('Konto administratora – bez limitu kredytów')).toBeVisible()

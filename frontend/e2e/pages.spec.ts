@@ -36,6 +36,17 @@ test.describe('login', () => {
     expect(requests.at(-1)!.body).toEqual({ email: 'test@allgrafika.pl', password: PASSWORD })
   })
 
+  test('[AC-AUTH-027] after login the visitor lands on the private page they asked for', async ({ page }) => {
+    await mockApp(page, { loggedIn: false })
+    await page.goto('/credits?from=mail')
+    await expect(page).toHaveURL(/\/login$/)
+    await page.getByLabel('Email').fill('test@allgrafika.pl')
+    await page.getByLabel('Hasło', { exact: true }).fill(PASSWORD)
+    await page.getByRole('button', { name: 'Zaloguj się', exact: true }).click()
+    await expect(page).toHaveURL(/\/credits\?from=mail$/)
+    await expect(page.getByRole('heading', { name: 'Kredyty', exact: true })).toBeVisible()
+  })
+
   test('[AC-AUTH-016] a logged-in visitor is not stuck on the login page after signing in again', async ({ page }) => {
     await mockApp(page, { loggedIn: false })
     await page.goto('/gallery')

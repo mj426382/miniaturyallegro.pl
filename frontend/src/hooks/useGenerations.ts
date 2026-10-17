@@ -47,6 +47,9 @@ export function useGenerations(imageId: string | undefined, options: Options = {
   const [styles, setStyles] = useState<GenerationStyleInfo[]>([])
   const [selectedStyles, setSelectedStyles] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  /** Spec 11 rule 4: a failed load is not "not found" – the generator offers a retry instead. */
+  const [loadError, setLoadError] = useState<'not-found' | 'failed' | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
   const [pollTimedOut, setPollTimedOut] = useState(false)
   /** True when the photo already had results when the page opened (picker starts collapsed). */
   const [openedWithResults, setOpenedWithResults] = useState(false)
@@ -84,6 +87,8 @@ export function useGenerations(imageId: string | undefined, options: Options = {
   useEffect(() => {
     let cancelled = false
     const load = async () => {
+      setIsLoading(true)
+      setLoadError(null)
       try {
         const [imageRes, stylesRes] = await Promise.all([imagesApi.getById(imageId!), generationApi.getStyles()])
         if (cancelled) return
@@ -96,8 +101,10 @@ export function useGenerations(imageId: string | undefined, options: Options = {
         const already = new Set(existing.filter((g) => g.status !== 'FAILED').map((g) => g.style))
         setSelectedStyles(existing.length ? missingUniversalStyleIds(stylesRes.data.styles, already) : stylesRes.data.defaultStyleIds)
         setOpenedWithResults(existing.length > 0)
-      } catch {
-        toast.error('Nie udało się załadować zdjęcia')
+      } catch (err: any) {
+        if (cancelled) return
+        const status = err?.response?.status
+        setLoadError(status === 404 || status === 403 ? 'not-found' : 'failed')
       } finally {
         if (!cancelled) setIsLoading(false)
       }
@@ -106,7 +113,9 @@ export function useGenerations(imageId: string | undefined, options: Options = {
     return () => {
       cancelled = true
     }
-  }, [imageId])
+  }, [imageId, reloadKey])
+
+  const reload = useCallback(() => setReloadKey((k) => k + 1), [])
 
   useEffect(() => {
     for (const g of generations) if (isActiveGeneration(g)) batchIdsRef.current.add(g.id)
@@ -163,6 +172,8 @@ export function useGenerations(imageId: string | undefined, options: Options = {
     toggleStyle,
     restartPolling,
     isLoading,
+    loadError,
+    reload,
     pollTimedOut,
     hasActive,
     completedCount,

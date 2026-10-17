@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { CheckCircleIcon, CreditCardIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import type { GenerationStyleInfo } from '../../services/api'
 import { groupStartsOpen, groupStyles } from '../../utils/styles'
-import { countLabel } from '../../utils/plural'
+import { countLabel, plural } from '../../utils/plural'
 
 interface Props {
   styles: GenerationStyleInfo[]
@@ -24,11 +24,7 @@ interface Props {
   paidCredits: number
 }
 
-function creditsWord(n: number) {
-  if (n === 1) return 'kredyt'
-  if (n >= 2 && n <= 4) return 'kredyty'
-  return 'kredytów'
-}
+const creditsWord = (n: number) => plural(n, 'kredyt', 'kredyty', 'kredytów')
 
 /** Automatic styles tab: pick styles, add a hint, see the cost, start the batch. */
 export default function StylePicker({
@@ -57,7 +53,7 @@ export default function StylePicker({
         : freeLeft >= selectedCount
           ? `${selectedCount} ${creditsWord(selectedCount)} z darmowej puli (zostanie ${freeLeft - selectedCount})`
           : freeLeft > 0
-            ? `${freeLeft} z darmowej puli + ${selectedCount - freeLeft} płatne`
+            ? `${freeLeft} z darmowej puli + ${countLabel(selectedCount - freeLeft, 'kupiony kredyt', 'kupione kredyty', 'kupionych kredytów')}`
             : `${selectedCount} ${creditsWord(selectedCount)} (masz ${paidCredits})`
   const canAfford = selectedCount > 0 && (unlimited || freeLeft + paidCredits >= selectedCount)
 
