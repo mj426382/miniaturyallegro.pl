@@ -8,7 +8,14 @@ function jsonLdTypes(blocks: string[]) {
 }
 
 test('[AC-SEO-007] every landing page has its own SEO head, one keyword H1 and structured data', async ({ page, request }) => {
-  expect(seoPages.map((p) => p.path)).toEqual(['/zdjecia-ai-allegro', '/biale-tlo-zdjecie-produktu'])
+  expect(seoPages.map((p) => p.path)).toEqual([
+    '/zdjecia-ai-do-ofert',
+    '/biale-tlo-zdjecie-produktu',
+    '/zdjecia-produktowe-olx',
+    '/zdjecia-produktowe-vinted',
+    '/zdjecia-produktowe-ebay',
+    '/zdjecia-produktowe-amazon',
+  ])
   const sitemap = await (await request.get('/sitemap.xml')).text()
   const titles = new Set<string>()
 
@@ -46,6 +53,6 @@ test('[AC-SEO-008] the home title and H1 carry the head terms', async ({ page })
   await page.goto('/')
   const title = await page.title()
   expect(title.length).toBeLessThanOrEqual(60)
-  for (const term of ['Grafiki', 'miniatury', 'zdjęcia Allegro']) expect(title).toContain(term)
-  await expect(page.locator('h1')).toContainText('Grafiki i miniaturki Allegro')
+  for (const term of ['Zdjęcia produktowe', 'AI', 'OLX', 'Vinted']) expect(title).toContain(term)
+  await expect(page.locator('h1')).toContainText('Zdjęcia produktowe z AI')
 })

@@ -68,12 +68,12 @@ test.describe('daily blog generator', () => {
     expect(guard).toContain('No duplicate blog posts')
 
     // A "new" article that reuses an existing one with a reworded title and slug.
-    const source = readFileSync(resolve(landing, 'src/data/blogPosts/jak-napisac-skuteczny-tytul-aukcji-allegro.ts'), 'utf-8')
+    const source = readFileSync(resolve(landing, 'src/data/blogPosts/jak-napisac-tytul-ogloszenia-olx-vinted-ebay.ts'), 'utf-8')
     const content = source.match(/content:\s*`([\s\S]*?)`\s*,?\s*\n/)![1]
     const fixture = resolve(landing, 'test-results/duplicate-article.json')
     writeFileSync(
       fixture,
-      JSON.stringify({ slug: 'skuteczny-tytul-oferty-allegro-poradnik', title: 'Skuteczny tytuł oferty Allegro – jak go napisać', excerpt: 'x', category: 'Poradniki', readTime: 5, content }),
+      JSON.stringify({ slug: 'skuteczny-tytul-ogloszenia-poradnik', title: 'Skuteczny tytuł ogłoszenia na OLX, Vinted i eBay – jak go napisać', excerpt: 'x', category: 'Poradniki', readTime: 5, content }),
       'utf-8',
     )
     const sitemapBefore = readFileSync(sitemap, 'utf-8')
@@ -86,7 +86,7 @@ test.describe('daily blog generator', () => {
       writeFileSync(sitemap, sitemapBefore, 'utf-8')
       unlinkSync(fixture)
     }
-    expect(output).toMatch(/zbyt podobn\w+ do (istniejącego )?wpisu 'jak-napisac-skuteczny-tytul-aukcji-allegro'/)
-    expect(existsSync(resolve(landing, 'src/data/blogPosts/skuteczny-tytul-oferty-allegro-poradnik.ts'))).toBe(false)
+    expect(output).toMatch(/zbyt podobn\w+ do (istniejącego )?wpisu 'jak-napisac-tytul-ogloszenia-olx-vinted-ebay'/)
+    expect(existsSync(resolve(landing, 'src/data/blogPosts/skuteczny-tytul-ogloszenia-poradnik.ts'))).toBe(false)
   })
 })
