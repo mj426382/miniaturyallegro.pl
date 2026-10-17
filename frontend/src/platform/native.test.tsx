@@ -127,6 +127,37 @@ describe('session transport', () => {
     expect(authHeader(requests.find((r) => r.url === '/auth/logout')!)).toBe('Bearer stored-jwt')
   })
 
+  it('[AC-MOB-001] after a password change the app keeps the new token, so the next request stays logged in', async () => {
+    fake.native = true
+    fake.prefs.set('allgrafika.session', 'old-jwt')
+    handler = (config) => {
+      const bearer = authHeader(config)
+      if (config.url === '/auth/change-password') return { status: 201, data: { changed: true, token: 'jwt-after-change' } }
+      // The API revokes the old session when the password changes.
+      if (bearer === 'Bearer old-jwt' && config.url !== '/users/me') return { status: 401, data: {} }
+      return { status: 200, data: USER }
+    }
+    const { result } = renderHook(() => useAuthProvider())
+    await waitFor(() => expect(result.current.user?.id).toBe('u1'))
+
+    await act(() => result.current.changePassword('Stare!Haslo1', 'Nowe!Haslo22'))
+    expect(fake.prefs.get('allgrafika.session')).toBe('jwt-after-change')
+    expect(getSessionToken()).toBe('jwt-after-change')
+    await api.get('/images')
+    expect(authHeader(last())).toBe('Bearer jwt-after-change')
+    expect(result.current.user?.id).toBe('u1')
+  })
+
+  it('[AC-MOB-002] a password change on the web stores no token (the API re-sets the cookie)', async () => {
+    handler = (config) => (config.url === '/auth/change-password' ? { status: 201, data: { changed: true, token: 'jwt-after-change' } } : { status: 200, data: USER })
+    const { result } = renderHook(() => useAuthProvider())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    await act(() => result.current.changePassword('Stare!Haslo1', 'Nowe!Haslo22'))
+    expect(fake.prefs.size).toBe(0)
+    await api.get('/images')
+    expect(authHeader(last())).toBeUndefined()
+  })
+
   it('[AC-MOB-002] the web never sends an Authorization header and keeps the cookie session', async () => {
     await setSessionToken('should-be-ignored')
     expect(fake.prefs.size).toBe(0)
