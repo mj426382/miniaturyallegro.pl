@@ -97,7 +97,8 @@ test.describe('export in marketplace formats', () => {
     await openExport(page)
     const dialog = page.getByRole('dialog', { name: 'Eksportuj grafikę' })
     await expect(dialog).toBeVisible()
-    await dialog.getByLabel('Allegro – galeria 4:3').check()
+    await expect(dialog.getByLabel('Sklep internetowy / ogólne')).toBeChecked()
+    await dialog.getByLabel('4:3').check()
     // Non-square formats default to framing; this test covers the "whole graphic on white" path.
     await dialog.getByLabel('Cała grafika').check()
     await dialog.getByRole('button', { name: 'Dalej' }).click()
@@ -107,15 +108,15 @@ test.describe('export in marketplace formats', () => {
       await dialog.getByRole('button', { name: 'Pobierz', exact: true }).click()
       await expect.poll(() => page.evaluate(() => (window as any).__shared.length)).toBe(1)
       const shared = await page.evaluate(() => (window as any).__shared[0])
-      expect(shared.files[0].name).toBe('grafika-white-bg-4x3.jpg')
+      expect(shared.files[0].name).toBe('grafika-white-bg-generic-4x3.jpg')
     } else {
       const downloadPromise = page.waitForEvent('download')
       await dialog.getByRole('button', { name: 'Pobierz', exact: true }).click()
-      expect((await downloadPromise).suggestedFilename()).toBe('grafika-white-bg-4x3.jpg')
+      expect((await downloadPromise).suggestedFilename()).toBe('grafika-white-bg-generic-4x3.jpg')
     }
 
     const exportReq = requests.find((r) => r.url === '/generation/export/gen-1')!
-    expect(exportReq.body).toMatchObject({ ratio: '4:3', size: 1600, format: 'jpeg', badgeText: '-20%', badgeColor: 'red', badgePosition: 'top-left' })
+    expect(exportReq.body).toMatchObject({ platform: 'generic', ratio: '4:3', size: 1600, format: 'jpeg', badgeText: '-20%', badgeColor: 'red', badgePosition: 'top-left' })
     expect(exportReq.body.crop).toBeUndefined()
   })
 
@@ -159,7 +160,7 @@ test.describe('export in marketplace formats', () => {
 
     await openExport(page)
     const dialog = page.getByRole('dialog', { name: 'Eksportuj grafikę' })
-    await dialog.getByLabel('Social / stories 3:4').check()
+    await dialog.getByLabel('3:4').check()
     await expect(dialog.getByLabel('Kadruj')).toBeChecked()
     const editor = dialog.getByTestId('crop-editor')
     await expect(editor).toBeVisible()
@@ -183,11 +184,11 @@ test.describe('export in marketplace formats', () => {
     } else {
       const downloadPromise = page.waitForEvent('download')
       await download.click()
-      expect((await downloadPromise).suggestedFilename()).toBe('grafika-white-bg-3x4.jpg')
+      expect((await downloadPromise).suggestedFilename()).toBe('grafika-white-bg-generic-3x4.jpg')
     }
 
     const exportReq = requests.find((r) => r.url === '/generation/export/gen-1')!
-    expect(exportReq.body).toMatchObject({ ratio: '3:4', size: 1800, format: 'jpeg' })
+    expect(exportReq.body).toMatchObject({ platform: 'generic', ratio: '3:4', size: 1600, format: 'jpeg' })
     const crop = exportReq.body.crop
     // A square graphic framed 3:4: full height, three quarters of the width, never outside the image.
     expect(crop.height).toBeCloseTo(1, 1)
@@ -197,5 +198,72 @@ test.describe('export in marketplace formats', () => {
     expect(crop.left + crop.width).toBeLessThanOrEqual(1.001)
     if (!mobile) expect(crop.left).toBeLessThan(0.125)
     else expect(crop.left).toBeCloseTo(0.125, 1)
+  })
+})
+
+test.describe('export presets for sales platforms (spec 08)', () => {
+  async function downloadFrom(page: Page, dialog: ReturnType<Page['getByRole']>) {
+    const button = dialog.getByRole('button', { name: 'Pobierz', exact: true })
+    if (isMobile()) {
+      await button.click()
+      await expect.poll(() => page.evaluate(() => (window as any).__shared.length)).toBe(1)
+      return (await page.evaluate(() => (window as any).__shared[0])).files[0].name as string
+    }
+    const downloadPromise = page.waitForEvent('download')
+    await button.click()
+    return (await downloadPromise).suggestedFilename()
+  }
+
+  test('[AC-PLT-006] OLX: shows its ratio and rules (official vs recommended) and exports 4:3 at 1500 px', async ({ page }) => {
+    if (isMobile()) await installShareSpy(page)
+    const { requests } = await mockApp(page)
+    await openGenerator(page)
+    await openExport(page)
+    const dialog = page.getByRole('dialog', { name: 'Eksportuj grafikę' })
+
+    await dialog.getByLabel('OLX').check()
+    await expect(dialog.getByLabel('4:3')).toBeChecked()
+    await expect(dialog.getByText('poziome – galeria · 1500×1125 px')).toBeVisible()
+    const rules = dialog.getByTestId('platform-rules')
+    await expect(rules.locator('li', { hasText: 'Proporcje 4:3' })).toContainText('wymóg platformy')
+    await expect(rules.locator('li', { hasText: 'Tytuł do 70 znaków' })).toContainText('zalecane')
+    await expect(rules.getByRole('link', { name: 'pomoc OLX' })).toHaveAttribute('href', /pomoc\.olx\.pl/)
+    await expect(dialog).not.toContainText(/allegro/i)
+
+    await dialog.getByLabel('Cała grafika').check()
+    await dialog.getByRole('button', { name: 'Dalej' }).click()
+    expect(await downloadFrom(page, dialog)).toBe('grafika-white-bg-olx-4x3.jpg')
+    const exportReq = requests.find((r) => r.url === '/generation/export/gen-1')!
+    expect(exportReq.body).toMatchObject({ platform: 'olx', ratio: '4:3', size: 1500, format: 'jpeg' })
+  })
+
+  test('[AC-PLT-007] eBay and Amazon: the promo badge is disabled with an explanation and never sent', async ({ page }) => {
+    if (isMobile()) await installShareSpy(page)
+    const { requests } = await mockApp(page)
+    await openGenerator(page)
+    await openExport(page)
+    const dialog = page.getByRole('dialog', { name: 'Eksportuj grafikę' })
+
+    // A badge typed for a shop must not leak into an Amazon export.
+    await dialog.getByRole('button', { name: 'Dalej' }).click()
+    await dialog.getByPlaceholder('np. -20%, NOWOŚĆ, DARMOWA DOSTAWA').fill('-20%')
+    await dialog.getByRole('button', { name: 'Wstecz' }).click()
+
+    await dialog.getByLabel('Amazon').check()
+    await expect(dialog.getByTestId('platform-rules')).toContainText('czysto białe tło')
+    await expect(dialog.getByText(/Produkt wypełni ok\. 85 %/)).toBeVisible()
+    await dialog.getByRole('button', { name: 'Dalej' }).click()
+    await expect(dialog.getByPlaceholder('np. -20%, NOWOŚĆ, DARMOWA DOSTAWA')).toBeDisabled()
+    await expect(dialog.getByText('Amazon nie dopuszcza napisów ani plakietek na zdjęciu (wymóg platformy).')).toBeVisible()
+
+    expect(await downloadFrom(page, dialog)).toBe('grafika-white-bg-amazon-1x1.jpg')
+    const exportReq = requests.find((r) => r.url === '/generation/export/gen-1')!
+    expect(exportReq.body).toMatchObject({ platform: 'amazon', ratio: '1:1', size: 2000, format: 'jpeg' })
+    expect(exportReq.body.badgeText).toBeUndefined()
+
+    await dialog.getByRole('button', { name: 'Wstecz' }).click()
+    await dialog.getByLabel('eBay').check()
+    await dialog.getByRole('button', { name: 'Dalej' }).click()
+    await expect(dialog.getByText('eBay nie dopuszcza napisów ani plakietek na zdjęciu (wymóg platformy).')).toBeVisible()
   })
 })

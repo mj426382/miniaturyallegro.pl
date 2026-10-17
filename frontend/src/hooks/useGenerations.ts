@@ -15,7 +15,6 @@ export interface ImageDetails {
   id: string
   filename: string
   originalUrl: string
-  allegroOfferId: string | null
   createdAt?: string
   generations: Generation[]
 }

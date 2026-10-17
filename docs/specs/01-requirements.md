@@ -19,9 +19,9 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | FR-AUTH-003 | Potwierdzenie adresu e-mail warunkiem generowania i płatności; maile z domeny allgrafika.pl | 13 |
 | FR-UPL-001 | Przesyłanie zdjęć pojedynczo i masowo z walidacją typu, rozmiaru i zawartości | 04 |
 | FR-GEN-001 | Generowanie grafik w 19 stylach (uniwersalne, sezonowe, branżowe), własny styl, przeróbka, ponowienie, ocena | 05 |
-| FR-EXP-001 | Eksport w formatach Allegro z kadrem, obrotem, korektą i plakietką; pobieranie na telefonach | 06 |
-| FR-DESC-001 | Opis oferty pod SEO z poprawkami AI i edycją ręczną | 07 |
-| FR-ALG-001 | Połączenie konta Allegro, import zdjęć z ofert, publikacja grafik i opisów (tytuł + opis) | 08 |
+| FR-EXP-001 | Eksport w formatach platform sprzedażowych z kadrem, obrotem, korektą i plakietką; pobieranie na telefonach | 06 |
+| FR-DESC-001 | Opis oferty pod wybraną platformę z poprawkami AI i edycją ręczną | 07 |
+| FR-PLT-001 | Presety platform (OLX, Vinted, eBay, Amazon, sklep internetowy) dla eksportu i opisu, bez integracji; integracja z Allegro usunięta 2026-10-17 | 08 |
 | FR-PAY-001 | Pakiety kredytów i abonamenty przez Stripe, zgodnie z prawem konsumenckim; faktury z NIP-em | 09 |
 | FR-INF-001 | Darmowe infografiki (cechy z ikonami, wymiary) z ukończonej grafiki | 14 |
 | FR-BAT-001 | Paczka ZIP z grafikami i opisami wielu zdjęć | 15 |
@@ -45,7 +45,7 @@ wymagania przekrojowe (NFR). Sposób weryfikacji: **T** = test automatyczny z AC
 | NFR-SEC-003 | Każdy zasób sprawdzany pod kątem właściciela (403 dla cudzych zdjęć, grafik, opisów) | T: AC-SEC-002, AC-UPL-004, AC-DESC-005 |
 | NFR-SEC-004 | Walidacja wejścia: whitelist DTO, magic bytes obrazów, limity rozmiaru, sanitizacja HTML opisów | T: AC-API-002, AC-UPL-002, AC-DESC-006 |
 | NFR-SEC-005 | Konfiguracja produkcyjna walidowana przy starcie (sekrety ≥ 32 znaki, https, klucze AI, SMTP) | T: AC-SEC-004..007 |
-| NFR-SEC-006 | Tokeny Allegro szyfrowane AES-256-GCM; hasła bcrypt | T: AC-ALG-005/006, AC-SEC-003 |
+| NFR-SEC-006 | Hasła bcrypt; tokeny resetu i weryfikacji przechowywane jako skrót SHA-256 | T: AC-SEC-003 |
 | NFR-SEC-007 | Helmet/CSP w produkcji, Swagger wyłączony w produkcji, brak sekretów w repo | R |
 
 ### Prywatność i prawo (NFR-LAW)

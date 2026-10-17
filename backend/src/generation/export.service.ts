@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import sharp from 'sharp';
+import { PLATFORM_PRESETS, PlatformId, PlatformPreset, isPlatformId } from './platform-presets';
 
 /**
  * Deterministic post-processing of generated graphics (no AI involved):
@@ -53,13 +54,15 @@ export const ADJUST_LIMITS = {
 } as const;
 
 export interface ExportOptions {
+  /** Sales platform preset (spec 08): limits ratios/formats, sets default and minimum size, badge rule. */
+  platform?: PlatformId;
   ratio?: ExportRatio;
   /** Clockwise rotation applied before framing. */
   rotate?: ExportRotation;
   adjust?: ImageAdjustments;
   /** When set, this part of the graphic fills the canvas (user-chosen framing) instead of padding with white. */
   crop?: CropRect;
-  /** Long edge in pixels (default 1600, Allegro recommends ≥ 1000). */
+  /** Long edge in pixels (default 1600, or the platform preset's target size). */
   size?: number;
   format?: ExportFormat;
   badgeText?: string;
@@ -85,12 +88,24 @@ export class ExportService {
   async exportImage(
     input: Buffer,
     options: ExportOptions,
-  ): Promise<{ buffer: Buffer; contentType: string; extension: string }> {
-    const ratio = options.ratio ?? '1:1';
+  ): Promise<{ buffer: Buffer; contentType: string; extension: string; ratio: ExportRatio }> {
+    const preset = this.resolvePreset(options.platform);
+    const ratio = options.ratio ?? preset?.ratios[0] ?? '1:1';
     if (!(ratio in EXPORT_RATIOS)) throw new BadRequestException('Nieobsługiwane proporcje');
-    const size = Math.min(MAX_EXPORT_SIZE, Math.max(MIN_EXPORT_SIZE, Math.round(options.size ?? 1600)));
-    const format: ExportFormat = options.format ?? 'jpeg';
+    if (preset && !preset.ratios.includes(ratio)) {
+      throw new BadRequestException(`${preset.label}: dostępne proporcje to ${preset.ratios.join(', ')}`);
+    }
+    const minSize = Math.max(MIN_EXPORT_SIZE, preset?.minSize ?? MIN_EXPORT_SIZE);
+    const requested = options.size ?? preset?.targetSize ?? 1600;
+    const size = Math.min(MAX_EXPORT_SIZE, Math.max(minSize, Math.round(requested)));
+    const format: ExportFormat = options.format ?? preset?.formats[0] ?? 'jpeg';
     if (!EXPORT_FORMATS.includes(format)) throw new BadRequestException('Nieobsługiwany format');
+    if (preset && !preset.formats.includes(format)) {
+      throw new BadRequestException(`${preset.label}: dostępne formaty to ${preset.formats.join(', ').toUpperCase()}`);
+    }
+    if (preset?.badge === 'forbidden' && options.badgeText?.trim()) {
+      throw new BadRequestException(`${preset.label} nie dopuszcza napisów ani plakietek na zdjęciu`);
+    }
 
     const [rw, rh] = EXPORT_RATIOS[ratio];
     const width = rw >= rh ? size : Math.round((size * rw) / rh);
@@ -100,21 +115,28 @@ export class ExportService {
     if (!EXPORT_ROTATIONS.includes(rotate)) throw new BadRequestException('Nieobsługiwany obrót');
     const adjust = this.validateAdjustments(options.adjust);
 
-    let pipeline = sharp(input, { limitInputPixels: 40_000_000 });
-    // sharp applies a 90°-multiple rotation before a subsequent extract(), so crop fractions
-    // refer to the rotated image – exactly what the crop editor reports.
-    if (rotate) pipeline = pipeline.rotate(rotate);
-    if (options.crop) {
-      // The user picked the framing: cut that region out and scale it to the canvas.
-      pipeline = pipeline
-        .extract(await this.resolveCrop(input, options.crop, rotate))
-        .resize(width, height, { fit: 'cover' });
-    } else {
-      // Default: fit the whole (square) graphic into the canvas on a white background – never lose the product.
-      pipeline = pipeline.resize(width, height, {
-        fit: 'contain',
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      });
+    const filled =
+      preset?.productFill && !options.crop
+        ? await this.fillWithProduct(input, rotate, preset.productFill, width, height)
+        : null;
+    let pipeline = sharp(filled ?? input, { limitInputPixels: 40_000_000 });
+    // `filled` is already rotated, trimmed and centred on pure white at the final size.
+    if (!filled) {
+      // sharp applies a 90°-multiple rotation before a subsequent extract(), so crop fractions
+      // refer to the rotated image – exactly what the crop editor reports.
+      if (rotate) pipeline = pipeline.rotate(rotate);
+      if (options.crop) {
+        // The user picked the framing: cut that region out and scale it to the canvas.
+        pipeline = pipeline
+          .extract(await this.resolveCrop(input, options.crop, rotate))
+          .resize(width, height, { fit: 'cover' });
+      } else {
+        // Default: fit the whole (square) graphic into the canvas on a white background – never lose the product.
+        pipeline = pipeline.resize(width, height, {
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        });
+      }
     }
 
     if (adjust) {
@@ -146,7 +168,62 @@ export class ExportService {
       buffer,
       contentType: `image/${format}`,
       extension: format === 'jpeg' ? 'jpg' : format,
+      ratio,
     };
+  }
+
+  private resolvePreset(platform: unknown): PlatformPreset | null {
+    if (platform === undefined || platform === null) return null;
+    if (!isPlatformId(platform)) throw new BadRequestException('Nieznana platforma');
+    return PLATFORM_PRESETS[platform];
+  }
+
+  /**
+   * Main-image rule of e.g. Amazon: the product fills `fill` of the canvas on pure white. A graphic on a
+   * near-white background is trimmed to the product first; any other graphic is just fitted (null = not
+   * applicable, the caller falls back to the plain white-canvas fit).
+   */
+  private async fillWithProduct(
+    input: Buffer,
+    rotate: ExportRotation,
+    fill: number,
+    width: number,
+    height: number,
+  ): Promise<Buffer | null> {
+    const white = { r: 255, g: 255, b: 255, alpha: 1 };
+    let base = sharp(input, { limitInputPixels: 40_000_000 });
+    if (rotate) base = base.rotate(rotate);
+    const rotated = await base.flatten({ background: '#ffffff' }).png().toBuffer();
+    const corner = await sharp(rotated).extract({ left: 0, top: 0, width: 1, height: 1 }).raw().toBuffer();
+    if (Math.min(corner[0], corner[1], corner[2]) < 240) return null;
+    let product: Buffer;
+    try {
+      const meta = await sharp(rotated).metadata();
+      const trimmed = await sharp(rotated).trim({ threshold: 18 }).png().toBuffer({ resolveWithObject: true });
+      // A sliver means the trim found noise, not a product – keep the whole graphic.
+      const tooSmall = trimmed.info.width < (meta.width ?? 0) * 0.05 || trimmed.info.height < (meta.height ?? 0) * 0.05;
+      product = tooSmall ? rotated : trimmed.data;
+    } catch {
+      return null; // sharp throws when the whole image is one colour
+    }
+    const innerW = Math.max(1, Math.round(width * fill));
+    const innerH = Math.max(1, Math.round(height * fill));
+    const inner = await sharp(product)
+      .resize(innerW, innerH, { fit: 'inside' })
+      .png()
+      .toBuffer({ resolveWithObject: true });
+    const left = Math.floor((width - inner.info.width) / 2);
+    const top = Math.floor((height - inner.info.height) / 2);
+    return sharp(inner.data)
+      .extend({
+        left,
+        top,
+        right: width - inner.info.width - left,
+        bottom: height - inner.info.height - top,
+        background: white,
+      })
+      .png()
+      .toBuffer();
   }
 
   private validateAdjustments(adjust?: ImageAdjustments): Required<ImageAdjustments> | null {

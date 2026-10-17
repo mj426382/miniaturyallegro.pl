@@ -16,13 +16,13 @@ trzeba otwierać osobno. Cel: jedno kliknięcie pobiera wszystko jako ZIP, drugi
 
 - W zakresie: zaznaczanie zdjęć w galerii, ZIP z grafikami i opisami, hurtowe pisanie opisów z postępem,
   te same akcje w podsumowaniu masowego przesyłania.
-- Poza zakresem (świadomie): hurtowe poprawki opisów promptem, hurtowa publikacja na Allegro.
+- Poza zakresem (świadomie): hurtowe poprawki opisów promptem, hurtowa publikacja na marketplace'ach (brak integracji, spec 08).
 
 ## 3. Decyzje produktowe
 
 - **ZIP** jest bezpłatny. Zawiera folder na każde zdjęcie (`01-<id>/`, kolejność jak w zaznaczeniu) z
   ukończonymi grafikami (`<nr>-<styl>.<rozszerzenie>`) oraz, gdy jest opis, `opis.html` (gotowy do wklejenia
-  w Allegro) i `opis.txt` (tytuł, frazy, tekst). Maks. 50 zdjęć i 300 plików w jednej paczce.
+  w edytorze opisu sklepu lub eBay) i `opis.txt` (tytuł, frazy, tekst). Maks. 50 zdjęć i 300 plików w jednej paczce.
   Plik, którego nie udało się pobrać z magazynu, jest pomijany, a jego nazwa trafia do `BLEDY.txt`.
 - **Opisy hurtowo** korzystają z tych samych zasad co pojedynczy opis (07): pierwszy opis każdego zdjęcia
   jest gratis, wymaga ukończonej grafiki. Zdjęcia z opisem są pomijane („ma już opis”). Gdy grafiki zdjęcia

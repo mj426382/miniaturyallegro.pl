@@ -143,4 +143,66 @@ describe('ExportService', () => {
     await expect(service.exportImage(await square(), { ratio: '2:1' as any })).rejects.toThrow(BadRequestException);
     await expect(service.exportImage(await square(), { badgeText: 'x'.repeat(40) })).rejects.toThrow(/plakietki/);
   });
+
+  describe('platform presets (spec 08)', () => {
+    it('[AC-PLT-002] uses the preset target size and never goes below its minimum', async () => {
+      const olx = await service.exportImage(await square(), { platform: 'olx' });
+      expect(olx.ratio).toBe('4:3');
+      const om = await sharp(olx.buffer).metadata();
+      expect([om.width, om.height]).toEqual([1500, 1125]);
+      expect(om.format).toBe('jpeg');
+
+      const amazon = await service.exportImage(await square(), { platform: 'amazon', size: 600 });
+      const am = await sharp(amazon.buffer).metadata();
+      expect([am.width, am.height]).toEqual([1000, 1000]);
+    });
+
+    it('[AC-PLT-003] rejects ratios, formats and badges outside the preset', async () => {
+      await expect(service.exportImage(await square(), { platform: 'amazon', ratio: '4:3' })).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.exportImage(await square(), { platform: 'vinted', format: 'webp' })).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.exportImage(await square(), { platform: 'amazon', badgeText: 'NOWOŚĆ' })).rejects.toThrow(
+        /Amazon/,
+      );
+      await expect(service.exportImage(await square(), { platform: 'nope' as any })).rejects.toThrow(
+        BadRequestException,
+      );
+      // Vinted only discourages badges – the export still works.
+      await expect(
+        service.exportImage(await square(), { platform: 'vinted', badgeText: '-20%' }),
+      ).resolves.toBeTruthy();
+    });
+
+    it('[AC-PLT-004] Amazon: trims white margins so the product fills ~85 % of a pure white canvas', async () => {
+      // 1000 px white graphic with a 300 px red product in the middle.
+      const product = await sharp({
+        create: { width: 300, height: 300, channels: 3, background: { r: 200, g: 30, b: 30 } },
+      })
+        .png()
+        .toBuffer();
+      const graphic = await sharp({
+        create: { width: 1000, height: 1000, channels: 3, background: { r: 255, g: 255, b: 255 } },
+      })
+        .composite([{ input: product, left: 350, top: 350 }])
+        .png()
+        .toBuffer();
+      const { buffer } = await service.exportImage(graphic, { platform: 'amazon', size: 1000, format: 'png' });
+      const { data, info } = await sharp(buffer).raw().toBuffer({ resolveWithObject: true });
+      expect([info.width, info.height]).toEqual([1000, 1000]);
+      const at = (x: number, y: number) => {
+        const i = (y * info.width + x) * info.channels;
+        return [data[i], data[i + 1], data[i + 2]];
+      };
+      expect(at(2, 2)).toEqual([255, 255, 255]);
+      expect(at(997, 997)).toEqual([255, 255, 255]);
+      // Product spans 850 px: from x≈75 to x≈925 on the middle row.
+      expect(at(90, 500)[1]).toBeLessThan(100);
+      expect(at(910, 500)[1]).toBeLessThan(100);
+      expect(at(60, 500)).toEqual([255, 255, 255]);
+      expect(at(940, 500)).toEqual([255, 255, 255]);
+    });
+  });
 });

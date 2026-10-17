@@ -10,7 +10,8 @@
 | **Kredyt** | Jednostka rozliczeniowa: 1 Grafika albo 1 pakiet Poprawek opisu. Nowe konto ma 10 darmowych (`FREE_CREDITS_LIMIT`). |
 | **Pakiet** | Jednorazowy zakup Kredytów (5/15/40). |
 | **Abonament** | Miesięczny plan Stripe Billing (Start 40, Pro 150 Kredytów co okres). |
-| **Opis oferty (OfferDescription)** | Tytuł (≤75 znaków), treść HTML w podzbiorze Allegro i frazy kluczowe, przypięte do Zdjęcia. Pierwszy jest gratis. |
+| **Opis oferty (OfferDescription)** | Tytuł (limit platformy, domyślnie ≤75 znaków), treść w prostym HTML (`h2/p/ul/ol/li/b`) i frazy kluczowe pod wybraną platformę, przypięte do Zdjęcia. Pierwszy jest gratis. |
+| **Platforma / preset platformy** | OLX, Vinted, eBay, Amazon albo „Sklep internetowy / ogólne”: proporcje, rozmiary, reguły tła i limit tytułu dla eksportu i opisu, z oznaczeniem wymóg platformy / zalecane (08). Bez integracji. |
 | **Poprawka (prompt edit)** | Jedno wywołanie AI zmieniające Opis (polecenie albo „napisz od nowa”). 5 gratis na Zdjęcie, dalej pakiety po 15 za 1 Kredyt. |
 | **Eksport** | Deterministyczne przetworzenie Grafiki do formatu (proporcje, kadr, obrót, korekta, plakietka) bez AI. |
 | **Kadr (crop)** | Prostokąt Grafiki (ułamki 0–1 obróconego obrazu), który wypełnia płótno eksportu. |

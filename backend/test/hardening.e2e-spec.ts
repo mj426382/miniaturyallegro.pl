@@ -8,7 +8,6 @@ import {
   uploadImage,
   waitForGenerations,
 } from './test-app';
-import { encrypt, deriveKey } from '../src/common/crypto';
 
 describe('Hardening (integration)', () => {
   let ctx: TestContext;
@@ -131,68 +130,6 @@ describe('Hardening (integration)', () => {
       expect(user.credits).toBe(1000 - 30);
       await waitForGenerations(ctx, image.id, 120_000);
       ctx.gemini.delayMs = 0;
-    });
-  });
-
-  describe('Allegro token lifecycle', () => {
-    it('refreshes an expired access token once for parallel calls and drops undecryptable rows', async () => {
-      const { AllegroService } = await import('../src/allegro/allegro.service');
-      const allegro = ctx.app.get(AllegroService) as any;
-      allegro.clientId = 'client';
-      allegro.clientSecret = 'secret';
-      let refreshes = 0;
-      allegro.setHttpClient({
-        post: async (url: string) => {
-          if (url.includes('/auth/oauth/token')) {
-            refreshes++;
-            await new Promise((r) => setTimeout(r, 50));
-            return { data: { access_token: `acc-${refreshes}`, refresh_token: `ref-${refreshes}`, expires_in: 3600 } };
-          }
-          throw new Error('unexpected ' + url);
-        },
-        get: async (url: string, cfg: any) => {
-          if (url.includes('/sale/offers'))
-            return { data: { offers: [], totalCount: 0, token: cfg.headers.Authorization } };
-          throw new Error('unexpected ' + url);
-        },
-        patch: async () => ({ data: {} }),
-      });
-
-      const { token, userId } = await registerUser(ctx);
-      const key = allegro.key;
-      await ctx.prisma.allegroConnection.create({
-        data: {
-          userId,
-          accessTokenEncrypted: encrypt('old-access', key),
-          refreshTokenEncrypted: encrypt('old-refresh', key),
-          expiresAt: new Date(Date.now() - 1000),
-        },
-      });
-
-      const results = await Promise.all([
-        ctx.http().get('/api/allegro/offers').set('Authorization', `Bearer ${token}`),
-        ctx.http().get('/api/allegro/offers').set('Authorization', `Bearer ${token}`),
-        ctx.http().get('/api/allegro/offers').set('Authorization', `Bearer ${token}`),
-      ]);
-      results.forEach((r) => expect(r.status).toBe(200));
-      expect(refreshes).toBe(1);
-      const conn = await ctx.prisma.allegroConnection.findUniqueOrThrow({ where: { userId } });
-      expect(conn.expiresAt.getTime()).toBeGreaterThan(Date.now());
-
-      // tokens encrypted with another key (rotation / corruption) → connection removed, 404 with reconnect hint
-      await ctx.prisma.allegroConnection.update({
-        where: { userId },
-        data: {
-          accessTokenEncrypted: encrypt('x', deriveKey('other-key')),
-          expiresAt: new Date(Date.now() + 3600_000),
-        },
-      });
-      const broken = await ctx.http().get('/api/allegro/offers').set('Authorization', `Bearer ${token}`).expect(404);
-      expect(broken.body.message).toMatch(/Połącz konto ponownie/);
-      expect(await ctx.prisma.allegroConnection.count({ where: { userId } })).toBe(0);
-
-      allegro.clientId = undefined;
-      allegro.clientSecret = undefined;
     });
   });
 

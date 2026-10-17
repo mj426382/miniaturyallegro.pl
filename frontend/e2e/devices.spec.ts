@@ -13,7 +13,6 @@ const SCREENS = [
   { path: '/gallery', heading: 'Galeria' },
   { path: '/credits', heading: /Kredyty|Cennik/ },
   { path: '/account', heading: /Konto|Ustawienia/ },
-  { path: '/allegro', heading: /Allegro/ },
   { path: '/admin', heading: /Panel administratora|Admin/ },
 ]
 

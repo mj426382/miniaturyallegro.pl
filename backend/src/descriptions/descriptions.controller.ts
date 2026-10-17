@@ -30,7 +30,7 @@ export class DescriptionsController {
   }
 
   @Patch(':imageId')
-  @ApiOperation({ summary: 'Manual edit of the offer copy (unlimited, sanitized to Allegro HTML)' })
+  @ApiOperation({ summary: 'Manual edit of the offer copy (unlimited, sanitized to the offer HTML subset)' })
   update(@Param('imageId') imageId: string, @Body() dto: UpdateDescriptionDto, @CurrentUser() user: SessionUser) {
     return this.descriptions.update(imageId, user.userId, dto);
   }

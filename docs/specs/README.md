@@ -15,8 +15,8 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [04-upload-and-bulk.md](04-upload-and-bulk.md) | Pojedyncze i masowe przesyłanie zdjęć, walidacja plików |
 | [05-generation.md](05-generation.md) | Style, kredyty za generację, kolejka, reconciler, własny styl, przeróbka, feedback |
 | [06-export.md](06-export.md) | Formaty, kadrowanie, obrót, korekta, plakietka, pobieranie na telefonach |
-| [07-descriptions.md](07-descriptions.md) | Opis oferty pod SEO: generowanie, poprawki, pakiety, sanitizacja HTML |
-| [08-allegro.md](08-allegro.md) | Integracja OAuth, import i publikacja zdjęć |
+| [07-descriptions.md](07-descriptions.md) | Opis oferty pod platformę: generowanie, poprawki, pakiety, sanitizacja HTML |
+| [08-platform-presets.md](08-platform-presets.md) | Presety OLX, Vinted, eBay, Amazon, sklep – eksport i opis; usunięcie integracji z Allegro |
 | [09-payments.md](09-payments.md) | Stripe: pakiety, abonamenty, webhooki, prawo konsumenckie |
 | [10-landing-seo.md](10-landing-seo.md) | Landing page: SSG, blog, przekierowania, budżety Lighthouse |
 | [11-ui-design-system.md](11-ui-design-system.md) | Język UI: komponenty, klasy, wzorce, dostępność, ton komunikatów |

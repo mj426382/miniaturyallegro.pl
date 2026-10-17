@@ -22,7 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req: Request, payload: any) {
-    // Purpose-bound tokens (e.g. the Allegro OAuth `state`) are signed with the same secret
+    // Purpose-bound tokens (e.g. the e-mail unsubscribe link) are signed with the same secret
     // but must never authenticate API requests.
     if (!payload?.sub || payload.purpose) {
       throw new UnauthorizedException();

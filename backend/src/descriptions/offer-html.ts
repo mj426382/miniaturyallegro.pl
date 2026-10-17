@@ -1,21 +1,26 @@
-/**
- * Allegro accepts only a handful of HTML tags in offer descriptions (p, h1, h2, ul, ol, li, b)
- * and no attributes. Everything we store or return is reduced to that subset, which also
- * removes any script/style/event-handler content the model or a user could sneak in.
- */
-export const ALLEGRO_ALLOWED_TAGS = ['h2', 'p', 'ul', 'ol', 'li', 'b'] as const;
-const ALLOWED = new Set<string>(ALLEGRO_ALLOWED_TAGS);
-const ALLOWED_PATTERN = ALLEGRO_ALLOWED_TAGS.join('|');
+import { DEFAULT_PLATFORM, getPlatformPreset, MAX_PLATFORM_TITLE_LENGTH } from '../generation/platform-presets';
 
-/** Tags the model may use that Allegro does not – mapped to the closest allowed one. */
+/**
+ * Offer descriptions use a small, safe HTML subset (h2, p, ul, ol, li, b) without attributes – it pastes
+ * cleanly into shop and eBay editors and converts to plain text for OLX/Vinted. Everything we store or
+ * return is reduced to that subset, which also removes any script/style/event-handler content.
+ */
+export const OFFER_ALLOWED_TAGS = ['h2', 'p', 'ul', 'ol', 'li', 'b'] as const;
+const ALLOWED = new Set<string>(OFFER_ALLOWED_TAGS);
+const ALLOWED_PATTERN = OFFER_ALLOWED_TAGS.join('|');
+
+/** Tags the model may use outside the subset – mapped to the closest allowed one. */
 const ALIASES: Record<string, string> = { strong: 'b', h1: 'h2', h3: 'h2', h4: 'h2', h5: 'h2', h6: 'h2' };
 
-export const MAX_TITLE_LENGTH = 75;
+/** Default (generic) title limit; each platform has its own (spec 08). */
+export const MAX_TITLE_LENGTH = getPlatformPreset(DEFAULT_PLATFORM).titleMaxLength;
+/** The longest title any platform accepts (DTO limit). */
+export const MAX_ANY_TITLE_LENGTH = MAX_PLATFORM_TITLE_LENGTH;
 export const MAX_BODY_LENGTH = 20000;
 export const MAX_KEYWORDS = 20;
 export const MAX_KEYWORD_LENGTH = 60;
 
-export function sanitizeAllegroHtml(input: string): string {
+export function sanitizeOfferHtml(input: string): string {
   let html = String(input ?? '');
   html = html.replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '');
   html = html.replace(/<!--[\s\S]*?-->/g, '');
@@ -33,8 +38,8 @@ export function sanitizeAllegroHtml(input: string): string {
 }
 
 /** Readable text version (for the clipboard / plain-text fallback). */
-export function allegroHtmlToText(html: string): string {
-  return sanitizeAllegroHtml(html)
+export function offerHtmlToText(html: string): string {
+  return sanitizeOfferHtml(html)
     .replace(/<\/(h2|p|li)>/g, '\n')
     .replace(/<li>/g, '• ')
     .replace(/<[^>]+>/g, '')
@@ -46,16 +51,16 @@ export function allegroHtmlToText(html: string): string {
     .trim();
 }
 
-/** Allegro's title limit, cut at a word boundary. */
-export function clampTitle(title: string): string {
+/** Fits the title into `max` characters (the platform limit), cut at a word boundary. */
+export function clampTitle(title: string, max: number = MAX_TITLE_LENGTH): string {
   const clean = String(title ?? '')
     .replace(/<[^>]+>/g, '')
     .replace(/\s+/g, ' ')
     .trim();
-  if (clean.length <= MAX_TITLE_LENGTH) return clean;
-  const cut = clean.slice(0, MAX_TITLE_LENGTH);
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
   const lastSpace = cut.lastIndexOf(' ');
-  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).trim();
+  return (lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut).trim();
 }
 
 export function normalizeKeywords(keywords: unknown): string[] {

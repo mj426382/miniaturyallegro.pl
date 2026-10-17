@@ -4,6 +4,7 @@ import { GoogleGenerativeAI, Part } from '@google/generative-ai';
 import axios from 'axios';
 import { GenerationStyle } from './styles';
 import { Semaphore } from '../common/semaphore';
+import { getPlatformPreset, PlatformId } from './platform-presets';
 
 export { GENERATION_STYLES, GenerationStyle } from './styles';
 
@@ -43,8 +44,8 @@ export const REFERENCE_IMAGE_INSTRUCTION =
   'The product from the FIRST image must remain geometrically and visually untouched.';
 
 const PROMPT_ENGINEER_SYSTEM =
-  'You are a world-class prompt engineer specialised in photorealistic e-commerce product imagery for the Polish ' +
-  'marketplace Allegro. You write prompts in ENGLISH for an image-to-image model that receives the original product ' +
+  'You are a world-class prompt engineer specialised in photorealistic e-commerce product imagery for online ' +
+  'marketplaces and web shops. You write prompts in ENGLISH for an image-to-image model that receives the original product ' +
   'photo and must keep the product pixel-faithful while changing only the scene. Prompts are concrete and visual ' +
   '(surfaces, light direction, colour palette, camera angle, depth of field), 60-120 words, no bullet points, ' +
   'no meta commentary. Never request text, watermarks, logos, frames or extra products. Never describe the product ' +
@@ -62,25 +63,35 @@ export interface OfferCopyInput {
   sellerNotes?: string | null;
   current?: OfferCopy | null;
   instruction?: string | null;
+  /** Sales platform preset (spec 08) – drives the title limit and the platform hints. Default: generic. */
+  platform?: PlatformId | null;
 }
 
-const OFFER_COPY_SYSTEM_PROMPT =
-  'Jesteś copywriterem e-commerce specjalizującym się w ofertach na Allegro. Piszesz po polsku, poprawnie, konkretnie, ' +
-  'bez lania wody i bez przesady. Odpowiadasz WYŁĄCZNIE obiektem JSON: {"title": string, "body": string, "keywords": string[]}.\n\n' +
-  'TYTUŁ (title): maksymalnie 75 znaków (limit Allegro). Zaczyna się od typu/nazwy produktu, potem najważniejsze cechy ' +
-  '(marka, model, rozmiar/pojemność, kolor, przeznaczenie). Bez wykrzykników, bez CAPS LOCKA, bez emoji, bez słów ' +
-  '"promocja", "hit", "okazja", "najtaniej", "super", "mega".\n\n' +
-  'OPIS (body): HTML złożony WYŁĄCZNIE z tagów <h2>, <p>, <ul>, <ol>, <li>, <b> – innych tagów i atrybutów Allegro nie ' +
-  'dopuszcza. Bez linków, adresów www, e-maili, numerów telefonu, odwołań do innych sklepów i konkurencji, bez obietnic ' +
-  'bez pokrycia ("najlepszy na rynku", "100% skuteczności"). Struktura: krótki akapit otwierający z realną korzyścią dla ' +
-  'kupującego; <h2>Najważniejsze cechy</h2> z listą <ul>; <h2>Specyfikacja</h2> z listą parametrów – TYLKO dane podane przez ' +
-  'sprzedawcę lub jednoznacznie widoczne na zdjęciu; <h2>Zastosowanie</h2> (dla kogo, do czego); <h2>Zawartość zestawu</h2> ' +
-  'tylko jeśli wiadomo, co jest w zestawie. Celuj w 1200–2500 znaków, ale przy skąpych informacjach pisz krócej zamiast ' +
-  'dopowiadać. Wpleć naturalnie frazy, którymi kupujący szukają ' +
-  'takiego produktu na Allegro (nazwa produktu + cecha, potoczne synonimy), bez upychania słów kluczowych.\n\n' +
-  'NIGDY nie wymyślaj parametrów (wymiarów, materiału, pojemności, mocy, gwarancji, certyfikatów), których nie podał ' +
-  'sprzedawca i których nie widać na zdjęciu – jeśli czegoś brakuje, po prostu to pomiń.\n\n' +
-  'FRAZY (keywords): 8–15 fraz po polsku, małymi literami, od najważniejszej, takich jak wpisują kupujący w wyszukiwarkę Allegro.';
+/** System prompt for the offer copy, tailored to the chosen sales platform (spec 07/08). */
+export function buildOfferCopyPrompt(platform?: PlatformId | null): string {
+  const preset = getPlatformPreset(platform);
+  const where = preset.id === 'generic' ? 'w sklepie internetowym lub na marketplace' : `na ${preset.label}`;
+  const searchBox = preset.id === 'generic' ? 'sklepu lub Google' : preset.label;
+  return (
+    `Jesteś copywriterem e-commerce specjalizującym się w ofertach ${where}. Piszesz po polsku, poprawnie, konkretnie, ` +
+    'bez lania wody i bez przesady. Odpowiadasz WYŁĄCZNIE obiektem JSON: {"title": string, "body": string, "keywords": string[]}.\n\n' +
+    `${preset.promptHint}\n\n` +
+    `TYTUŁ (title): maksymalnie ${preset.titleMaxLength} znaków (limit ${preset.label}). Zaczyna się od typu/nazwy produktu, potem najważniejsze cechy ` +
+    '(marka, model, rozmiar/pojemność, kolor, przeznaczenie). Bez wykrzykników, bez CAPS LOCKA, bez emoji, bez słów ' +
+    '"promocja", "hit", "okazja", "najtaniej", "super", "mega".\n\n' +
+    'OPIS (body): HTML złożony WYŁĄCZNIE z tagów <h2>, <p>, <ul>, <ol>, <li>, <b> – bez innych tagów i bez atrybutów. ' +
+    'Bez linków, adresów www, e-maili, numerów telefonu, odwołań do innych sklepów i konkurencji, bez obietnic ' +
+    'bez pokrycia ("najlepszy na rynku", "100% skuteczności"). Struktura: krótki akapit otwierający z realną korzyścią dla ' +
+    'kupującego; <h2>Najważniejsze cechy</h2> z listą <ul>; <h2>Specyfikacja</h2> z listą parametrów – TYLKO dane podane przez ' +
+    'sprzedawcę lub jednoznacznie widoczne na zdjęciu; <h2>Zastosowanie</h2> (dla kogo, do czego); <h2>Zawartość zestawu</h2> ' +
+    'tylko jeśli wiadomo, co jest w zestawie. Celuj w 1200–2500 znaków, ale przy skąpych informacjach pisz krócej zamiast ' +
+    'dopowiadać. Wpleć naturalnie frazy, którymi kupujący szukają ' +
+    `takiego produktu ${where} (nazwa produktu + cecha, potoczne synonimy), bez upychania słów kluczowych.\n\n` +
+    'NIGDY nie wymyślaj parametrów (wymiarów, materiału, pojemności, mocy, gwarancji, certyfikatów), których nie podał ' +
+    'sprzedawca i których nie widać na zdjęciu – jeśli czegoś brakuje, po prostu to pomiń.\n\n' +
+    `FRAZY (keywords): 8–15 fraz po polsku, małymi literami, od najważniejszej, takich jak wpisują kupujący w wyszukiwarkę ${searchBox}.`
+  );
+}
 
 @Injectable()
 export class GeminiService {
@@ -211,8 +222,8 @@ export class GeminiService {
   // ─── Public API: text tasks → OpenAI ──────────────────────────────
 
   /**
-   * Allegro offer copy in Polish: title (≤ 75 chars), description limited to the HTML tags
-   * Allegro accepts, and search phrases. With `current` + `instruction` it rewrites an
+   * Offer copy in Polish for the chosen sales platform: title within the platform limit, description
+   * in a small safe HTML subset, and search phrases. With `current` + `instruction` it rewrites an
    * existing copy instead of starting over.
    */
   async generateOfferCopy(input: OfferCopyInput): Promise<OfferCopy> {
@@ -232,7 +243,12 @@ export class GeminiService {
           `(ten sam ton, te same fakty). Nie dodawaj faktów spoza informacji od sprzedawcy i analizy zdjęcia.`
         : 'Napisz tytuł, opis i frazy dla tego produktu.';
 
-    const raw = await this.textCompletion('generateOfferCopy', OFFER_COPY_SYSTEM_PROMPT, `${facts}\n\n${task}`, true);
+    const raw = await this.textCompletion(
+      'generateOfferCopy',
+      buildOfferCopyPrompt(input.platform),
+      `${facts}\n\n${task}`,
+      true,
+    );
     let parsed: any;
     try {
       parsed = JSON.parse(raw);

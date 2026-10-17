@@ -39,7 +39,6 @@ produkcyjna i buduje SEO, dlatego żadna zmiana nie może pogorszyć działania 
 - **Wymagające konfiguracji właściciela** (poza kodem):
   - Logowanie Google w aplikacji wymaga identyfikatorów OAuth dla Androida i iOS. Do tego czasu
     przycisk Google jest ukryty w aplikacji, a logowanie e-mailem działa.
-  - Połączenie z Allegro otwiera stronę w przeglądarce, bo callback OAuth wraca na domenę webową.
   - Link weryfikacyjny z e-maila otwiera się w przeglądarce. Aplikacja odświeża status po powrocie.
   - Konta Apple Developer i Google Play, podpisywanie i wysyłka do sklepów.
 - **Bez wpływu na web**:
@@ -59,6 +58,6 @@ produkcyjna i buduje SEO, dlatego żadna zmiana nie może pogorszyć działania 
 - **AC-MOB-003** – Given aplikacja natywna w trybie `web-link`, When użytkownik kliknie zakup pakietu lub abonamentu, Then otwiera się `https://app.allgrafika.pl/credits` w przeglądarce systemowej, a aplikacja nie tworzy sesji Stripe. W trybie `hidden` przyciski zakupu są niewidoczne, a stan kredytów widoczny.
 - **AC-MOB-004** – Given aplikacja natywna, When użytkownik pobierze grafikę, Then plik trafia do natywnego arkusza udostępniania z nazwą i typem obrazu.
 - **AC-MOB-005** – Given aplikacja natywna, When wraca na pierwszy plan, Then dane konta (kredyty, potwierdzenie e-maila) są odświeżane.
-- **AC-MOB-006** – Given aplikacja natywna, When otwarty jest ekran logowania lub połączenia z Allegro, Then przycisk Google jest ukryty, a połączenie z Allegro otwiera stronę w przeglądarce.
+- **AC-MOB-006** – Given aplikacja natywna, When otwarty jest ekran logowania, Then przycisk Google (i jego separator) jest ukryty; w przeglądarce zostaje.
 - **AC-MOB-007** – Given API, When żądanie przychodzi z originu aplikacji (`https://native.allgrafika.pl` na Androidzie, `capacitor://native.allgrafika.pl` na iOS – host w naszej domenie, którego nie serwuje żadna strona), Then CORS je przepuszcza, a obce originy (także `https://localhost`) dalej są odrzucane.
 - **AC-MOB-008** – Given strona główna landingu, When otwarta, Then widać sekcję „Aplikacja mobilna w drodze” (Android i iOS), a tytuł, canonical i JSON-LD strony głównej są takie jak wcześniej.

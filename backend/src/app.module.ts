@@ -8,7 +8,6 @@ import { ImagesModule } from './images/images.module';
 import { GenerationModule } from './generation/generation.module';
 import { PaymentsModule } from './payments/payments.module';
 import { DemoModule } from './demo/demo.module';
-import { AllegroModule } from './allegro/allegro.module';
 import { AdminModule } from './admin/admin.module';
 import { DescriptionsModule } from './descriptions/descriptions.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -49,7 +48,6 @@ import { loggingModule } from './common/logging';
     GenerationModule,
     PaymentsModule,
     DemoModule,
-    AllegroModule,
     AdminModule,
     NotificationsModule,
     DescriptionsModule,

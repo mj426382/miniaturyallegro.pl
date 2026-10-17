@@ -26,7 +26,7 @@ export function nativePurchaseMode(): NativePurchaseMode {
   return import.meta.env.VITE_NATIVE_PURCHASES === 'hidden' ? 'hidden' : 'web-link'
 }
 
-/** Opens a page outside the app (Stripe checkout on the web, Allegro OAuth, e-mail links). */
+/** Opens a page outside the app (Stripe checkout on the web, e-mail links). */
 export async function openInSystemBrowser(url: string): Promise<void> {
   const { Browser } = await import('@capacitor/browser')
   await Browser.open({ url })

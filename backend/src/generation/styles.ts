@@ -27,7 +27,7 @@ export interface GenerationStyle {
   season?: SeasonWindow;
 }
 
-/** Seasonal and industry scenes must never invent copy – Allegro and model quality both demand it. */
+/** Seasonal and industry scenes must never invent copy – marketplace rules and model quality both demand it. */
 const NO_COPY = ' Do not add any text, letters, numbers, logos, price tags or watermarks to the scene.';
 
 export const GENERATION_STYLES: GenerationStyle[] = [
@@ -35,7 +35,7 @@ export const GENERATION_STYLES: GenerationStyle[] = [
   {
     id: 'white-bg',
     name: 'Białe tło',
-    description: 'Czyste białe tło – zgodne z wymaganiami zdjęcia głównego Allegro.',
+    description: 'Czyste białe tło – na zdjęcie główne oferty (wymóg m.in. Amazon).',
     category: 'universal',
     starter: true,
     prompt:

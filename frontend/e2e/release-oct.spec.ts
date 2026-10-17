@@ -194,35 +194,25 @@ test.describe('batch actions (spec 15)', () => {
   })
 })
 
-test.describe('Allegro description publishing (spec 08)', () => {
-  test('[AC-ALG-010] publishes the saved copy to the chosen offer with the chosen options', async ({ page }) => {
-    const { requests } = await mockApp(page, { allegroConnected: true, withDescription: true })
+test.describe('platform-aware offer copy (spec 07/08)', () => {
+  test('[AC-DESC-015] Vinted: 50-character title limit, platform sent with the request', async ({ page }) => {
+    const { requests } = await mockApp(page)
     await page.goto(`/generate/${IMAGE.id}`)
-    await expect(page.getByLabel('Tytuł oferty')).toHaveValue(DESCRIPTION.title)
-    await page.getByRole('button', { name: 'Opublikuj na Allegro' }).click()
+    const panel = page.getByRole('region', { name: 'Opis oferty' })
+    await panel.getByLabel('Platforma').selectOption('vinted')
+    await expect(panel.getByText('Limit tytułu: 50 znaków (zalecane).')).toBeVisible()
+    await panel.getByRole('button', { name: 'Wygeneruj opis (gratis)' }).click()
+    expect(requests.find((r) => r.url === `/descriptions/${IMAGE.id}` && r.method === 'POST')!.body).toEqual({ platform: 'vinted' })
 
-    const dialog = page.getByRole('dialog', { name: 'Opublikuj opis w Allegro' })
-    await dialog.getByLabel('Kubek ceramiczny – oferta').check()
-    await dialog.getByLabel(/Zastąp opis/).check()
-    await dialog.getByLabel('Zmień też tytuł oferty').check()
-    await dialog.getByRole('button', { name: 'Opublikuj opis' }).click()
-    await expect(page.getByText('Tytuł i opis zaktualizowane w ofercie Allegro.')).toBeVisible()
-    expect(requests.find((r) => r.url === '/allegro/offers/off-1/description')?.body).toEqual({ imageId: IMAGE.id, mode: 'replace', updateTitle: true })
-  })
-
-  test('[AC-ALG-010] preselects the source offer and hides the button without a connection', async ({ page }) => {
-    await mockApp(page, { allegroConnected: true, withDescription: true, imageOfferId: 'off-1' })
-    await page.goto(`/generate/${IMAGE.id}`)
-    await page.getByRole('button', { name: 'Opublikuj na Allegro' }).click()
-    const dialog = page.getByRole('dialog', { name: 'Opublikuj opis w Allegro' })
-    await expect(dialog.getByLabel('Kubek ceramiczny – oferta')).toBeChecked()
-    await expect(dialog.getByLabel(/Dodaj na początku/)).toBeChecked()
-
-    const other = await page.context().newPage()
-    await mockApp(other, { withDescription: true })
-    await other.goto(`/generate/${IMAGE.id}`)
-    await expect(other.getByLabel('Tytuł oferty')).toHaveValue(DESCRIPTION.title)
-    await expect(other.getByRole('button', { name: 'Opublikuj na Allegro' })).toHaveCount(0)
+    const title = panel.getByLabel('Tytuł oferty')
+    await expect(title).toHaveValue(DESCRIPTION.title)
+    await title.fill('x'.repeat(60))
+    await expect(panel.getByText('60/50')).toBeVisible()
+    await expect(panel.getByRole('button', { name: 'Zapisz zmiany' })).toBeDisabled()
+    await title.fill('Sukienka letnia midi w kwiaty')
+    await panel.getByRole('button', { name: 'Zapisz zmiany' }).click()
+    expect(requests.find((r) => r.url === `/descriptions/${IMAGE.id}` && r.method === 'PATCH')!.body).toMatchObject({ title: 'Sukienka letnia midi w kwiaty', platform: 'vinted' })
+    await expect(panel).not.toContainText(/allegro/i)
   })
 })
 

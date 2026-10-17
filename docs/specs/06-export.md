@@ -4,25 +4,27 @@
 |---|---|
 | Status | Accepted |
 | Właściciel | Mateusz Janduła |
-| Data | 2026-10-03 |
-| Powiązane | FR-EXP-001, NFR-UX-001, 02 (AC-PRC-005), ADR-0003 |
+| Data | 2026-10-03 (presety platform: 2026-10-17) |
+| Powiązane | FR-EXP-001, NFR-UX-001, 02 (AC-PRC-005), 08 (presety platform), ADR-0003 |
 
 ## 1. Decyzje
 
-- Formaty: 1:1 (zdjęcie główne, PNG HQ), 4:3 (galeria), 16:9 (Ads), 3:4 (social). Rozmiar 500–2560 px.
+- Najpierw **platforma** (spec 08): Sklep internetowy / ogólne, OLX, Vinted, eBay, Amazon. Preset podaje
+  dozwolone proporcje (1:1, 4:3, 3:4, 16:9), rozmiar docelowy i minimalny, formaty pliku i reguły tła.
+  Rozmiar 500–2560 px.
 - Formaty inne niż 1:1 domyślnie **kadrują** (interaktywny kadr: przeciąganie, zoom, pinch, strzałki);
   opcja „Cała grafika” dopełnia bielą. Kadr to ułamki 0–1 **obróconego** obrazu, min. 10 % boku.
 - Obrót 0/90/180/270°, korekta jasności/kontrastu (0,5–1,5) i nasycenia (0–2), wyostrzenie; podgląd
   CSS odpowiada operacjom sharp.
-- Plakietka promocyjna (≤ 24 znaki, 5 kolorów, 4 rogi) z ostrzeżeniem, że Allegro nie dopuszcza
-  napisów na zdjęciu głównym.
+- Plakietka promocyjna (≤ 24 znaki, 5 kolorów, 4 rogi) z ostrzeżeniem, że marketplace'y zwykle nie
+  dopuszczają napisów na zdjęciu głównym; przy presetach, które jej zabraniają (eBay, Amazon), pole jest wyłączone.
 - Eksport jest bezpłatny i deterministyczny (bez AI). Modal ma dwa kroki: format i kadr → korekta i plakietka.
 - Pobieranie: desktop zapisuje plik; iPhone/Android dostają arkusz udostępniania z plikiem; bez wsparcia
   plików – nowa karta lub link; odrzucony arkusz – przycisk „Zapisz w Zdjęciach” do ponownego dotknięcia.
 
 ## 2. API
 
-`POST /generation/export/:id { ratio, size, format, crop?, rotate?, adjust?, badgeText?, badgeColor?, badgePosition? }`
+`POST /generation/export/:id { platform?, ratio, size, format, crop?, rotate?, adjust?, badgeText?, badgeColor?, badgePosition? }`
 → obraz (`image/jpeg|png|webp`, `Content-Disposition`). Walidacja: proporcje z listy, kadr w obrazie,
 obrót z listy, korekty w zakresach, tekst plakietki ≤ 24.
 
@@ -39,7 +41,7 @@ obrót z listy, korekty w zakresach, tekst plakietki ≤ 24.
 - **AC-EXP-009** – Given desktop, When „Pobierz”, Then plik zapisuje się pod nazwą ze stylem.
 - **AC-EXP-010** – Given telefon z Web Share dla plików, When „Pobierz”, Then otwiera się arkusz udostępniania z plikiem obrazu.
 - **AC-EXP-011** – Given telefon bez udostępniania plików, When „Pobierz”, Then obraz trafia do pobrania lub nowej karty.
-- **AC-EXP-012** – Given modal eksportu, When 4:3, „Cała grafika”, plakietka, Then żądanie zawiera właściwe opcje bez kadru, a plik ma nazwę `…-4x3.jpg`.
+- **AC-EXP-012** – Given modal eksportu z presetem „Sklep internetowy / ogólne”, When 4:3, „Cała grafika”, plakietka, Then żądanie zawiera właściwe opcje bez kadru, a plik ma nazwę `…-generic-4x3.jpg`.
 - **AC-EXP-013** – Given modal eksportu, When obrót o 90° i korekty, Then żądanie zawiera `rotate` i `adjust`.
 - **AC-EXP-014** – Given modal eksportu 3:4, When użytkownik przesunie kadr, Then żądanie zawiera kadr pełnej wysokości i 3/4 szerokości wewnątrz obrazu.
 - **AC-EXP-015** – Given iPhone z `canShare`, When pobieranie, Then użyty jest arkusz udostępniania.

@@ -15,7 +15,7 @@
   Styl sezonowy ma okno dat (`MM-DD`–`MM-DD`, także przez Nowy Rok); w swoim sezonie API zwraca
   `inSeason=true`, a UI pokazuje go na początku grupy z etykietą „Teraz”. Wszystkie style są dostępne
   cały rok. Grupa sezonowa ma podpowiedź: „Na zdjęcia dodatkowe i kampanie – zdjęcie główne zostaw
-  na białym tle”. Style sezonowe i branżowe nie dodają tekstu ani cyfr (zasady Allegro i jakość modelu).
+  na białym tle”. Style sezonowe i branżowe nie dodają tekstu ani cyfr (zasady marketplace'ów i jakość modelu).
   Masowe przesyłanie pokazuje te same grupy. Użytkownik wybiera
   dowolny podzbiór; po zakończeniu partii zaznaczone są jeszcze niewygenerowane style uniwersalne (sezonowe i
   branżowe wybiera się świadomie, żeby domyślna partia nie była droga), a panel wyboru
@@ -55,7 +55,7 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 - **AC-GEN-014** – Given wywołanie Gemini, When budowane, Then zawiera oryginalne zdjęcie, prompt z regułami i podpowiedź proporcji 1:1.
 - **AC-GEN-015** – Given API odrzuca `imageConfig`, When pierwsza próba, Then ponawia bez niego i zapamiętuje.
 - **AC-GEN-016** – Given model nie zwraca obrazu (np. blokada), When generacja, Then błąd ma czytelny opis.
-- **AC-GEN-017** – Given prompt stylu, When budowany, Then zawiera angielskie reguły integralności produktu i wymagania Allegro.
+- **AC-GEN-017** – Given prompt stylu, When budowany, Then zawiera angielskie reguły integralności produktu i wymagania zdjęcia oferty na marketplace (bez napisów i znaków wodnych), bez nazwy konkretnego serwisu.
 - **AC-GEN-018** – Given błąd 503, When wywołanie, Then retry; przy błędzie limitu – brak retry.
 - **AC-GEN-019** – Given semafor współbieżności, When zadanie rzuci wyjątek, Then slot jest zwalniany.
 - **AC-GEN-020** – (opt-in, prawdziwe API) Given klucze, When pełny pipeline, Then powstaje dekodowalny kwadratowy obraz.

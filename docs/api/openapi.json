@@ -905,6 +905,26 @@
         ]
       }
     },
+    "/api/generation/platform-presets": {
+      "get": {
+        "operationId": "GenerationController_getPlatformPresets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sales platform presets (OLX, Vinted, eBay, Amazon, generic) for export and offer copy",
+        "tags": [
+          "generation"
+        ]
+      }
+    },
     "/api/generation/export/{id}": {
       "post": {
         "operationId": "GenerationController_exportGeneration",
@@ -938,7 +958,7 @@
             "bearer": []
           }
         ],
-        "summary": "Export a finished graphic in a marketplace format (ratio, size, promo badge)",
+        "summary": "Export a finished graphic for a sales platform (preset, ratio, size, promo badge)",
         "tags": [
           "generation"
         ]
@@ -1137,223 +1157,6 @@
         "summary": "Poll the status/result of a demo generation",
         "tags": [
           "demo"
-        ]
-      }
-    },
-    "/api/allegro/status": {
-      "get": {
-        "operationId": "AllegroController_status",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Is the integration configured / is this user connected",
-        "tags": [
-          "allegro"
-        ]
-      }
-    },
-    "/api/allegro/auth-url": {
-      "get": {
-        "operationId": "AllegroController_authUrl",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Allegro OAuth authorization URL (redirect the browser there)",
-        "tags": [
-          "allegro"
-        ]
-      }
-    },
-    "/api/allegro/callback": {
-      "post": {
-        "operationId": "AllegroController_callback",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CallbackDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Exchange the OAuth code for tokens",
-        "tags": [
-          "allegro"
-        ]
-      }
-    },
-    "/api/allegro/connection": {
-      "delete": {
-        "operationId": "AllegroController_disconnect",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Disconnect the Allegro account (deletes stored tokens)",
-        "tags": [
-          "allegro"
-        ]
-      }
-    },
-    "/api/allegro/offers": {
-      "get": {
-        "operationId": "AllegroController_offers",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List the seller's active offers",
-        "tags": [
-          "allegro"
-        ]
-      }
-    },
-    "/api/allegro/offers/{offerId}/import": {
-      "post": {
-        "operationId": "AllegroController_importOffer",
-        "parameters": [
-          {
-            "name": "offerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Import the offer's main photo as a new product image",
-        "tags": [
-          "allegro"
-        ]
-      }
-    },
-    "/api/allegro/offers/{offerId}/publish": {
-      "post": {
-        "operationId": "AllegroController_publish",
-        "parameters": [
-          {
-            "name": "offerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublishDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Publish a generated graphic to the offer (as main photo or appended to the gallery)",
-        "tags": [
-          "allegro"
-        ]
-      }
-    },
-    "/api/allegro/offers/{offerId}/description": {
-      "post": {
-        "operationId": "AllegroController_publishDescription",
-        "parameters": [
-          {
-            "name": "offerId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublishDescriptionDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Send the photo's offer title/description to the Allegro offer (replace or prepend)",
-        "tags": [
-          "allegro"
         ]
       }
     },
@@ -1753,7 +1556,7 @@
             "bearer": []
           }
         ],
-        "summary": "Manual edit of the offer copy (unlimited, sanitized to Allegro HTML)",
+        "summary": "Manual edit of the offer copy (unlimited, sanitized to the offer HTML subset)",
         "tags": [
           "descriptions"
         ]
@@ -2145,6 +1948,17 @@
       "ExportDto": {
         "type": "object",
         "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "generic",
+              "olx",
+              "vinted",
+              "ebay",
+              "amazon"
+            ],
+            "description": "Preset platformy (spec 08): ogranicza proporcje i formaty, ustala rozmiar domyślny i minimalny"
+          },
           "ratio": {
             "type": "string",
             "enum": [
@@ -2153,7 +1967,8 @@
               "3:4",
               "16:9"
             ],
-            "default": "1:1"
+            "default": "1:1",
+            "description": "Bez podania: 1:1 albo pierwsze proporcje presetu"
           },
           "rotate": {
             "type": "number",
@@ -2385,18 +2200,6 @@
           "style"
         ]
       },
-      "CallbackDto": {
-        "type": "object",
-        "properties": {}
-      },
-      "PublishDto": {
-        "type": "object",
-        "properties": {}
-      },
-      "PublishDescriptionDto": {
-        "type": "object",
-        "properties": {}
-      },
       "AdminEmailDto": {
         "type": "object",
         "properties": {}
@@ -2415,6 +2218,18 @@
           "notes": {
             "type": "string",
             "description": "Informacje od sprzedawcy: cechy, wymiary, materiał, zawartość zestawu, przewagi"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "generic",
+              "olx",
+              "vinted",
+              "ebay",
+              "amazon"
+            ],
+            "default": "generic",
+            "description": "Platforma sprzedażowa (spec 08)"
           }
         }
       },
@@ -2423,8 +2238,8 @@
         "properties": {
           "title": {
             "type": "string",
-            "maxLength": 75,
-            "description": "Tytuł oferty (limit Allegro: 75 znaków)"
+            "maxLength": 80,
+            "description": "Tytuł oferty – limit zależy od platformy opisu (ogólne 75, OLX 70, Vinted 50, eBay 80, Amazon 75)"
           },
           "body": {
             "type": "string",
@@ -2436,6 +2251,17 @@
             "items": {
               "type": "string"
             }
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "generic",
+              "olx",
+              "vinted",
+              "ebay",
+              "amazon"
+            ],
+            "description": "Zmiana platformy opisu (limit tytułu)"
           }
         },
         "required": [

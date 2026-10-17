@@ -75,13 +75,15 @@ describe('Offer descriptions (integration)', () => {
       .send({ notes: '  kubek 350 ml  ' })
       .expect(201);
     expect(created.body.description.title).toBe('Kubek ceramiczny 350 ml – kubek 350 ml');
-    // Only Allegro's tags survive; script/attributes are gone, h1/strong are mapped.
+    // Only the offer HTML subset survives; script/attributes are gone, h1/strong are mapped.
     expect(created.body.description.body).toBe(
       '<h2>Kubek ceramiczny</h2><p>Solidny kubek <b>350 ml</b> do codziennego użytku, zmywarka OK.</p>' +
         '<h2>Najważniejsze cechy</h2><ul><li>pojemność 350 ml</li><li>szkliwo</li></ul>',
     );
     expect(created.body.description.keywords).toEqual(['kubek ceramiczny', 'kubek 350 ml']);
     expect(created.body.description.sellerNotes).toBe('kubek 350 ml');
+    // No platform chosen – the generic preset (75-char titles).
+    expect(created.body.description).toMatchObject({ platform: 'generic', titleMaxLength: 75 });
     expect(created.body).toMatchObject({ canCreate: true, promptEditsLeft: 5 });
     // The first description is a bonus – only the graphic was charged.
     expect((await getCredits(ctx, userId)).freeCreditsUsed).toBe(1);
@@ -178,7 +180,7 @@ describe('Offer descriptions (integration)', () => {
     await ctx.http().post(`/api/descriptions/${image.id}/edit-packs`).set(auth(token)).expect(402);
   });
 
-  it('[AC-DESC-004] accepts manual edits, sanitizes them and validates the Allegro title limit', async () => {
+  it('[AC-DESC-004] accepts manual edits, sanitizes them and validates the platform title limit', async () => {
     const { token } = await registerUser(ctx);
     const image = await imageWithGraphic(token);
     await ctx.http().post(`/api/descriptions/${image.id}`).set(auth(token)).send({}).expect(201);
@@ -247,5 +249,52 @@ describe('Offer descriptions (integration)', () => {
 
     await ctx.http().delete(`/api/images/${image.id}`).set(auth(owner.token)).expect(200);
     expect(await ctx.prisma.offerDescription.findUnique({ where: { imageId: image.id } })).toBeNull();
+  });
+
+  it('[AC-DESC-014] writes the copy for the chosen platform and validates its title limit', async () => {
+    const { token } = await registerUser(ctx);
+    const image = await imageWithGraphic(token);
+
+    const created = await ctx
+      .http()
+      .post(`/api/descriptions/${image.id}`)
+      .set(auth(token))
+      .send({ notes: 'sukienka letnia midi w kwiaty rozmiar M wiskoza', platform: 'vinted' })
+      .expect(201);
+    expect(ctx.gemini.lastOfferCopyInput?.platform).toBe('vinted');
+    expect(created.body.description).toMatchObject({ platform: 'vinted', titleMaxLength: 50 });
+    expect(created.body.description.title.length).toBeLessThanOrEqual(50);
+
+    const tooLong = await ctx
+      .http()
+      .patch(`/api/descriptions/${image.id}`)
+      .set(auth(token))
+      .send({ title: 'x'.repeat(60), body: '<p>Wystarczająco długi opis do testu.</p>' })
+      .expect(400);
+    expect(JSON.stringify(tooLong.body.message)).toContain('50');
+
+    // Switching the platform on a manual edit switches the limit (eBay: 80).
+    const ebay = await ctx
+      .http()
+      .patch(`/api/descriptions/${image.id}`)
+      .set(auth(token))
+      .send({ title: 'x'.repeat(78), body: '<p>Wystarczająco długi opis do testu.</p>', platform: 'ebay' })
+      .expect(200);
+    expect(ebay.body.description).toMatchObject({ platform: 'ebay', titleMaxLength: 80 });
+
+    await ctx
+      .http()
+      .post(`/api/descriptions/${image.id}/refine`)
+      .set(auth(token))
+      .send({ instruction: 'skróć opis' })
+      .expect(201);
+    expect(ctx.gemini.lastOfferCopyInput?.platform).toBe('ebay');
+
+    await ctx
+      .http()
+      .patch(`/api/descriptions/${image.id}`)
+      .set(auth(token))
+      .send({ title: 'Kubek', body: '<p>Wystarczająco długi opis do testu.</p>', platform: 'allegro' })
+      .expect(400);
   });
 });
