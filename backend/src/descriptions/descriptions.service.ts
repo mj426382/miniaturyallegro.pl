@@ -12,7 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreditsService } from '../generation/credits.service';
 import { GeminiService, OfferCopy } from '../generation/gemini.service';
-import { clampTitle, normalizeKeywords, sanitizeAllegroHtml } from './allegro-html';
+import { clampTitle, normalizeKeywords, sanitizeOfferHtml } from './offer-html';
+import { getPlatformPreset, PlatformId } from '../generation/platform-presets';
 import { CreateDescriptionDto, RefineDescriptionDto, UpdateDescriptionDto } from './descriptions.dto';
 
 /**
@@ -30,6 +31,10 @@ export interface DescriptionView {
     body: string;
     keywords: string[];
     sellerNotes: string | null;
+    /** Sales platform the copy is written for (spec 08). */
+    platform: PlatformId;
+    /** Title limit of that platform. */
+    titleMaxLength: number;
     promptEditsUsed: number;
     updatedAt: Date;
   } | null;
@@ -74,23 +79,25 @@ export class DescriptionsService {
     const notes = dto.notes?.trim() || null;
     const existing = await this.prisma.offerDescription.findUnique({ where: { imageId: image.id } });
 
+    const platform = getPlatformPreset(dto.platform ?? existing?.platform).id;
+
     // Writing again from scratch is an AI call like any other rewrite – it spends one prompt edit.
     if (existing) await this.reserveEdit(image.id);
 
     let copy: OfferCopy;
     try {
-      copy = await this.gemini.generateOfferCopy({ productAnalysis: image.description, sellerNotes: notes });
+      copy = await this.gemini.generateOfferCopy({ productAnalysis: image.description, sellerNotes: notes, platform });
     } catch (error) {
       this.logger.error(`Offer copy generation failed for image ${image.id}`, error);
       if (existing) await this.releaseEdit(image.id);
       throw new ServiceUnavailableException('Nie udało się wygenerować opisu. Spróbuj ponownie za chwilę.');
     }
 
-    const data = this.clean(copy);
+    const data = this.clean(copy, platform);
     await this.prisma.offerDescription.upsert({
       where: { imageId: image.id },
-      create: { imageId: image.id, ...data, sellerNotes: notes },
-      update: { ...data, sellerNotes: notes },
+      create: { imageId: image.id, ...data, sellerNotes: notes, platform },
+      update: { ...data, sellerNotes: notes, platform },
     });
     return this.view(image.id, true);
   }
@@ -100,14 +107,23 @@ export class DescriptionsService {
     const existing = await this.prisma.offerDescription.findUnique({ where: { imageId: image.id } });
     if (!existing) throw new NotFoundException('Ten obrazek nie ma jeszcze opisu');
 
-    const body = sanitizeAllegroHtml(dto.body);
+    const preset = getPlatformPreset(dto.platform ?? existing.platform);
+    const title = clampTitle(dto.title, Number.MAX_SAFE_INTEGER);
+    if (title.length > preset.titleMaxLength) {
+      throw new HttpException(
+        `Tytuł może mieć maksymalnie ${preset.titleMaxLength} znaków (${preset.label})`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const body = sanitizeOfferHtml(dto.body);
     if (body.replace(/<[^>]+>/g, '').trim().length < 20) {
       throw new HttpException('Opis jest za krótki', HttpStatus.BAD_REQUEST);
     }
     await this.prisma.offerDescription.update({
       where: { imageId: image.id },
       data: {
-        title: clampTitle(dto.title),
+        title,
+        platform: preset.id,
         body,
         ...(dto.keywords ? { keywords: normalizeKeywords(dto.keywords) } : {}),
       },
@@ -129,6 +145,7 @@ export class DescriptionsService {
         sellerNotes: existing.sellerNotes,
         current: { title: existing.title, body: existing.body, keywords: existing.keywords },
         instruction: dto.instruction,
+        platform: getPlatformPreset(existing.platform).id,
       });
     } catch (error) {
       this.logger.error(`Offer copy refinement failed for image ${image.id}`, error);
@@ -138,7 +155,10 @@ export class DescriptionsService {
       );
     }
 
-    await this.prisma.offerDescription.update({ where: { imageId: image.id }, data: this.clean(copy) });
+    await this.prisma.offerDescription.update({
+      where: { imageId: image.id },
+      data: this.clean(copy, existing.platform),
+    });
     return this.view(image.id, true);
   }
 
@@ -186,9 +206,9 @@ export class DescriptionsService {
     });
   }
 
-  private clean(copy: OfferCopy) {
-    const body = sanitizeAllegroHtml(copy.body);
-    const title = clampTitle(copy.title);
+  private clean(copy: OfferCopy, platform: string | null) {
+    const body = sanitizeOfferHtml(copy.body);
+    const title = clampTitle(copy.title, getPlatformPreset(platform).titleMaxLength);
     if (!title || body.replace(/<[^>]+>/g, '').trim().length < 20) {
       throw new Error('Model returned an empty or malformed offer copy');
     }
@@ -206,6 +226,8 @@ export class DescriptionsService {
             body: row.body,
             keywords: row.keywords,
             sellerNotes: row.sellerNotes,
+            platform: getPlatformPreset(row.platform).id,
+            titleMaxLength: getPlatformPreset(row.platform).titleMaxLength,
             promptEditsUsed: used,
             updatedAt: row.updatedAt,
           }

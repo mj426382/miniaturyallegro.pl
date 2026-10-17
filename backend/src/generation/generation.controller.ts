@@ -10,6 +10,7 @@ import { GenerationService } from './generation.service';
 import { CustomGenerationDto, StartGenerationDto } from './generation.dto';
 import { ExportDto, FeedbackDto, InfographicDto, ZipDto } from './feedback.dto';
 import { INFOGRAPHIC_ICONS } from './infographic.service';
+import { listPlatformPresets } from './platform-presets';
 import { ZipService } from './zip.service';
 import { imageMimeFilter, MAX_UPLOAD_BYTES, validateImageBuffer } from '../images/image-validation';
 import { UploadedImageFile } from '../types/uploaded-file';
@@ -100,24 +101,36 @@ export class GenerationController {
     return this.generationService.submitFeedback(id, user.userId, dto.rating, dto.reason, dto.comment);
   }
 
+  @Get('platform-presets')
+  @ApiOperation({ summary: 'Sales platform presets (OLX, Vinted, eBay, Amazon, generic) for export and offer copy' })
+  getPlatformPresets() {
+    return listPlatformPresets();
+  }
+
   @Post('export/:id')
   @Throttle({ default: { limit: 30, ttl: 60000 } })
-  @ApiOperation({ summary: 'Export a finished graphic in a marketplace format (ratio, size, promo badge)' })
+  @ApiOperation({ summary: 'Export a finished graphic for a sales platform (preset, ratio, size, promo badge)' })
   async exportGeneration(
     @Param('id') id: string,
     @Body() dto: ExportDto,
     @CurrentUser() user: SessionUser,
     @Res() res: ExpressResponse,
   ) {
-    const { buffer, contentType, extension, style } = await this.generationService.exportGeneration(
-      id,
-      user.userId,
-      dto,
-    );
+    const {
+      buffer,
+      contentType,
+      extension,
+      ratio: ratioUsed,
+      style,
+    } = await this.generationService.exportGeneration(id, user.userId, dto);
     const safeStyle = style.replace(/[^a-z0-9-]/gi, '');
-    const ratio = (dto.ratio ?? '1:1').replace(':', 'x');
+    const ratio = ratioUsed.replace(':', 'x');
+    const platform = dto.platform ? `${dto.platform}-` : '';
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="grafika-${safeStyle}-${ratio}.${extension}"`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="grafika-${safeStyle}-${platform}${ratio}.${extension}"`,
+    );
     res.send(buffer);
   }
 

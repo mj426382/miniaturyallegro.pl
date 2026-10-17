@@ -4,7 +4,7 @@ import type { Writable } from 'stream';
 import { ZipFile } from 'yazl';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
-import { allegroHtmlToText } from '../descriptions/allegro-html';
+import { offerHtmlToText } from '../descriptions/offer-html';
 
 /** Spec 15: one package per request. */
 export const MAX_ZIP_IMAGES = 50;
@@ -75,7 +75,7 @@ export class ZipService {
             `Tytuł: ${description.title}`,
             `Frazy: ${description.keywords.join(', ')}`,
             '',
-            allegroHtmlToText(description.body),
+            offerHtmlToText(description.body),
             '',
           ].join('\n'),
         });

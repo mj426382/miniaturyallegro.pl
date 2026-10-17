@@ -53,9 +53,6 @@ describe('validateEnv', () => {
         STRIPE_WEBHOOK_SECRET: 'whsec_real',
       }),
     ).not.toThrow();
-    expect(() =>
-      validateEnv({ ...base, NODE_ENV: 'production', ALLEGRO_CLIENT_ID: 'id', ALLEGRO_TOKEN_KEY: 'short' }),
-    ).toThrow(/ALLEGRO_TOKEN_KEY/);
     // development stays permissive
     expect(() => validateEnv({ ...base, NODE_ENV: 'development', B2_BUCKET_NAME: '', SMTP_HOST: '' })).not.toThrow();
   });

@@ -226,8 +226,8 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         heading: `Masz jeszcze ${left} ${left === 1 ? 'darmową grafikę' : left < 5 ? 'darmowe grafiki' : 'darmowych grafik'}`,
         paragraphs: [
           `Cześć${user.name ? ` ${user.name}` : ''},`,
-          `na Twoim koncie AllGrafika czeka ${left} z ${user.freeCreditsLimit} darmowych grafik. Wgraj zdjęcie produktu, a w kilka minut dostaniesz miniatury zgodne z wymaganiami Allegro – na białym tle, w aranżacji albo w stylu sezonowym.`,
-          'Do każdego zdjęcia z grafiką napiszemy też gratis opis oferty pod SEO Allegro.',
+          `na Twoim koncie AllGrafika czeka ${left} z ${user.freeCreditsLimit} darmowych grafik. Wgraj zdjęcie produktu, a w kilka minut dostaniesz miniatury na OLX, Vinted, eBay, Amazon albo do własnego sklepu – na białym tle, w aranżacji albo w stylu sezonowym.`,
+          'Do każdego zdjęcia z grafiką napiszemy też gratis opis oferty pod wybraną platformę.',
         ],
         cta: { label: 'Wygeneruj grafiki', url: `${this.frontendUrl}/upload` },
         footer: this.marketingFooter(user.id),
@@ -270,7 +270,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
           paragraphs: [
             `Cześć${user.name ? ` ${user.name}` : ''},`,
             `zaczyna się sezon „${style.name}” – dobry moment, żeby odświeżyć zdjęcia ofert. W AllGrafika czeka na Ciebie styl sezonowy: ${style.description}`,
-            'Grafika sezonowa świetnie sprawdza się jako kolejne zdjęcie oferty i w kampaniach – zdjęcie główne zostaw na białym tle, zgodnie z zasadami Allegro.',
+            'Grafika sezonowa świetnie sprawdza się jako kolejne zdjęcie oferty i w kampaniach – zdjęcie główne zostaw na białym tle, zgodnie z zasadami marketplace’ów.',
           ],
           cta: { label: 'Wygeneruj grafikę sezonową', url: `${this.frontendUrl}/gallery` },
           footer: this.marketingFooter(user.id),

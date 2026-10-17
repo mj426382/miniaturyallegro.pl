@@ -38,7 +38,6 @@ export class AdminContentService {
           id: true,
           originalUrl: true,
           createdAt: true,
-          allegroOfferId: true,
           offerDescription: { select: { title: true } },
           generations: {
             orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { GeminiService, buildImagePrompt, PRODUCT_INTEGRITY_CONSTRAINTS } from './gemini.service';
+import { GeminiService, buildImagePrompt, buildOfferCopyPrompt, PRODUCT_INTEGRITY_CONSTRAINTS } from './gemini.service';
 import { GENERATION_STYLES } from './styles';
 
 jest.mock('axios');
@@ -29,13 +29,29 @@ describe('GeminiService', () => {
     service = new GeminiService(configWith({ OPENAI_API_KEY: 'k', GEMINI_API_KEY: 'g' }));
   });
 
+  describe('buildOfferCopyPrompt', () => {
+    it('[AC-DESC-014] names the chosen platform and its title limit; generic by default', () => {
+      const ebay = buildOfferCopyPrompt('ebay');
+      expect(ebay).toContain('eBay');
+      expect(ebay).toContain('maksymalnie 80 znaków');
+      expect(buildOfferCopyPrompt('vinted')).toContain('maksymalnie 50 znaków');
+      const generic = buildOfferCopyPrompt();
+      expect(generic).toContain('sklepie internetowym');
+      expect(generic).toContain('maksymalnie 75 znaków');
+      for (const id of ['generic', 'olx', 'vinted', 'ebay', 'amazon'] as const) {
+        expect(buildOfferCopyPrompt(id)).not.toMatch(/allegro/i);
+      }
+    });
+  });
+
   describe('buildImagePrompt', () => {
-    it('[AC-GEN-017] appends the English product-integrity and Allegro output constraints', () => {
+    it('[AC-GEN-017] appends the English product-integrity and marketplace output constraints', () => {
       const prompt = buildImagePrompt('  A product on a wooden table  ');
       expect(prompt.startsWith('A product on a wooden table')).toBe(true);
       expect(prompt).toContain(PRODUCT_INTEGRITY_CONSTRAINTS);
       expect(prompt).toMatch(/do NOT add any text/);
       expect(prompt).toMatch(/square 1:1/);
+      expect(prompt).not.toMatch(/allegro/i);
     });
   });
 

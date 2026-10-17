@@ -45,6 +45,7 @@ import {
   WeightUnit,
 } from './infographic.service';
 import { MAX_ZIP_IMAGES } from './zip.service';
+import { PLATFORM_IDS, PlatformId } from './platform-presets';
 
 /** Reasons offered in the UI when a user rejects a graphic – used to tune prompts. */
 export const FEEDBACK_REASONS = [
@@ -147,7 +148,21 @@ export class AdjustDto {
 }
 
 export class ExportDto {
-  @ApiProperty({ required: false, enum: Object.keys(EXPORT_RATIOS), default: '1:1' })
+  @ApiProperty({
+    required: false,
+    enum: PLATFORM_IDS,
+    description: 'Preset platformy (spec 08): ogranicza proporcje i formaty, ustala rozmiar domyślny i minimalny',
+  })
+  @IsOptional()
+  @IsIn(PLATFORM_IDS as unknown as string[], { message: 'Nieznana platforma' })
+  platform?: PlatformId;
+
+  @ApiProperty({
+    required: false,
+    enum: Object.keys(EXPORT_RATIOS),
+    default: '1:1',
+    description: 'Bez podania: 1:1 albo pierwsze proporcje presetu',
+  })
   @IsOptional()
   @IsIn(Object.keys(EXPORT_RATIOS))
   ratio?: keyof typeof EXPORT_RATIOS;

@@ -62,9 +62,6 @@ export function validateEnv(config: Record<string, unknown>): Record<string, unk
     if (stripeKey && !isPlaceholder(stripeKey) && isPlaceholder(config.STRIPE_WEBHOOK_SECRET as string)) {
       errors.push('STRIPE_WEBHOOK_SECRET is required when STRIPE_SECRET_KEY is set (credits are granted by webhook)');
     }
-    if (config.ALLEGRO_CLIENT_ID && String(config.ALLEGRO_TOKEN_KEY || '').length < 32) {
-      errors.push('ALLEGRO_TOKEN_KEY (32+ random chars) is required when the Allegro integration is enabled');
-    }
   }
 
   const freeLimit = Number(config.FREE_CREDITS_LIMIT ?? 10);

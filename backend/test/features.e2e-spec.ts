@@ -14,7 +14,7 @@ import { makePng } from './fakes';
 const Stripe = require('stripe');
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!;
 
-describe('Feedback, export, demo, subscriptions & Allegro (integration)', () => {
+describe('Feedback, export, demo, subscriptions & platform presets (integration)', () => {
   let ctx: TestContext;
   let stripe: any;
 
@@ -560,153 +560,71 @@ describe('Feedback, export, demo, subscriptions & Allegro (integration)', () => 
     });
   });
 
-  describe('Allegro integration', () => {
-    it('[AC-ALG-001] reports not configured without client credentials', async () => {
+  describe('platform presets (spec 08)', () => {
+    it('[AC-PLT-001] lists the five platform presets with sources and official/recommended rules', async () => {
       const { token } = await registerUser(ctx);
-      const status = await ctx.http().get('/api/allegro/status').set('Authorization', `Bearer ${token}`).expect(200);
-      expect(status.body).toMatchObject({ configured: false, connected: false });
-      await ctx.http().get('/api/allegro/auth-url').set('Authorization', `Bearer ${token}`).expect(503);
-    });
-
-    it('[AC-ALG-002] connects, lists offers, imports a photo and publishes a graphic (mocked Allegro API)', async () => {
-      const { AllegroService } = await import('../src/allegro/allegro.service');
-      const allegro = ctx.app.get(AllegroService);
-      (allegro as any).clientId = 'client';
-      (allegro as any).clientSecret = 'secret';
-
-      const calls: Array<{ method: string; url: string; body?: any }> = [];
-      const offerPng = await makePng({ r: 9, g: 9, b: 9 }, 128);
-      const http: any = {
-        post: async (url: string, body: any) => {
-          calls.push({ method: 'post', url, body });
-          if (url.includes('/auth/oauth/token'))
-            return { data: { access_token: 'acc', refresh_token: 'ref', expires_in: 3600 } };
-          if (url.includes('/sale/images'))
-            return { data: { location: 'https://a.allegroimg.com/original/new-image' } };
-          throw new Error('unexpected post ' + url);
-        },
-        get: async (url: string) => {
-          calls.push({ method: 'get', url });
-          if (url.endsWith('/me')) return { data: { login: 'seller-1' } };
-          if (url.includes('/sale/offers'))
-            return {
-              data: {
-                offers: [
-                  {
-                    id: '123',
-                    name: 'Kubek',
-                    primaryImage: { url: 'https://a.allegroimg.com/original/1.png' },
-                    publication: { status: 'ACTIVE' },
-                    sellingMode: { price: { amount: '29.99', currency: 'PLN' } },
-                  },
-                ],
-                totalCount: 1,
-              },
-            };
-          if (url.includes('/sale/product-offers/123'))
-            return { data: { id: '123', name: 'Kubek', images: ['https://a.allegroimg.com/original/1.png'] } };
-          if (url === 'https://a.allegroimg.com/original/1.png') return { data: offerPng };
-          throw new Error('unexpected get ' + url);
-        },
-        patch: async (url: string, body: any) => {
-          calls.push({ method: 'patch', url, body });
-          return { data: {} };
-        },
-      };
-      allegro.setHttpClient(http);
-
-      const { token, userId } = await registerUser(ctx);
-      const authUrl = (
-        await ctx.http().get('/api/allegro/auth-url').set('Authorization', `Bearer ${token}`).expect(200)
-      ).body.url;
-      expect(authUrl).toContain('https://allegro.pl/auth/oauth/authorize?');
-      const state = new URL(authUrl).searchParams.get('state')!;
-
-      // the state token is a JWT signed with our secret – it must NOT be usable as an API bearer token
-      await ctx.http().get('/api/users/me').set('Authorization', `Bearer ${state}`).expect(401);
-      await ctx
+      const res = await ctx
         .http()
-        .post('/api/allegro/callback')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ code: 'c', state: 'bogus' })
-        .expect(401);
-      const cb = await ctx
-        .http()
-        .post('/api/allegro/callback')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ code: 'c', state })
-        .expect(201);
-      expect(cb.body).toEqual({ connected: true, sellerLogin: 'seller-1' });
-      const conn = await ctx.prisma.allegroConnection.findUniqueOrThrow({ where: { userId } });
-      expect(conn.accessTokenEncrypted).not.toContain('acc');
-
-      const offers = await ctx
-        .http()
-        .get('/api/allegro/offers?limit=5')
+        .get('/api/generation/platform-presets')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
-      expect(offers.body).toEqual({
-        offers: [
-          {
-            id: '123',
-            name: 'Kubek',
-            primaryImage: 'https://a.allegroimg.com/original/1.png',
-            status: 'ACTIVE',
-            price: '29.99 PLN',
-          },
-        ],
-        total: 1,
-      });
-
-      const imported = await ctx
-        .http()
-        .post('/api/allegro/offers/123/import')
-        .set('Authorization', `Bearer ${token}`)
-        .expect(201);
-      const image = await ctx.prisma.image.findUniqueOrThrow({ where: { id: imported.body.id } });
-      expect(image.allegroOfferId).toBe('123');
-
-      await ctx
-        .http()
-        .post(`/api/generation/${image.id}/start`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({ styles: ['white-bg'] })
-        .expect(201);
-      const [gen] = await waitForGenerations(ctx, image.id);
-
-      // Local storage URLs are not public -> publishing must refuse cleanly.
-      await ctx
-        .http()
-        .post('/api/allegro/offers/123/publish')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ generationId: gen.id })
-        .expect(400);
-
-      // Simulate public storage by stubbing the signed URL.
-      const storage = (allegro as any).storage;
-      const original = storage.getSignedUrl.bind(storage);
-      storage.getSignedUrl = (key: string) => `https://files.example.com/${key}`;
-      try {
-        const pub = await ctx
-          .http()
-          .post('/api/allegro/offers/123/publish')
-          .set('Authorization', `Bearer ${token}`)
-          .send({ generationId: gen.id, position: 'first' })
-          .expect(201);
-        expect(pub.body).toEqual({ offerId: '123', imagesCount: 2, position: 'first' });
-        const patch = calls.find((c) => c.method === 'patch')!;
-        expect(patch.body.images).toEqual([
-          'https://a.allegroimg.com/original/new-image',
-          'https://a.allegroimg.com/original/1.png',
-        ]);
-      } finally {
-        storage.getSignedUrl = original;
+      const presets = res.body as any[];
+      expect(presets.map((p) => p.id)).toEqual(['generic', 'olx', 'vinted', 'ebay', 'amazon']);
+      for (const p of presets) {
+        expect(p.ratios.length).toBeGreaterThan(0);
+        expect(p.defaultRatio).toBe(p.ratios[0]);
+        expect(p.minSize).toBeLessThanOrEqual(p.targetSize);
+        expect(p.formats.length).toBeGreaterThan(0);
+        expect(p.titleMaxLength).toBeGreaterThan(0);
+        expect(p.source).toBeTruthy();
+        expect(p.rules.every((r: any) => typeof r.text === 'string' && typeof r.official === 'boolean')).toBe(true);
+        expect(p.promptHint).toBeUndefined();
       }
+      const amazon = presets.find((p) => p.id === 'amazon');
+      expect(amazon).toMatchObject({ productFill: 0.85, badge: 'forbidden', minSize: 1000, minSizeOfficial: true });
+      expect(amazon.rules.some((r: any) => r.official && /RGB 255/.test(r.text))).toBe(true);
+      expect(presets.find((p) => p.id === 'ebay')).toMatchObject({
+        minSize: 500,
+        titleMaxLength: 80,
+        badge: 'forbidden',
+      });
+      expect(JSON.stringify(presets)).not.toMatch(/allegro/i);
+    });
 
-      await ctx.http().delete('/api/allegro/connection').set('Authorization', `Bearer ${token}`).expect(200);
-      expect(await ctx.prisma.allegroConnection.count()).toBe(0);
-      (allegro as any).clientId = undefined;
-      (allegro as any).clientSecret = undefined;
+    it('[AC-PLT-002, AC-PLT-005] exports with the preset size and names the file after the platform', async () => {
+      const { token } = await registerUser(ctx);
+      const { gen } = await completedGeneration(token);
+
+      const olx = await ctx
+        .http()
+        .post(`/api/generation/export/${gen.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ platform: 'olx' })
+        .expect(201);
+      expect(olx.headers['content-type']).toContain('image/jpeg');
+      expect(olx.headers['content-disposition']).toContain('grafika-white-bg-olx-4x3.jpg');
+      const meta = await sharp(olx.body).metadata();
+      expect([meta.width, meta.height]).toEqual([1500, 1125]);
+
+      await ctx
+        .http()
+        .post(`/api/generation/export/${gen.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ platform: 'allegro' })
+        .expect(400);
+    });
+
+    it('[AC-PLT-003] rejects ratios, formats and badges the preset does not allow', async () => {
+      const { token } = await registerUser(ctx);
+      const { gen } = await completedGeneration(token);
+      const send = (body: object) =>
+        ctx.http().post(`/api/generation/export/${gen.id}`).set('Authorization', `Bearer ${token}`).send(body);
+
+      await send({ platform: 'amazon', ratio: '16:9' }).expect(400);
+      await send({ platform: 'olx', format: 'webp' }).expect(400);
+      const badge = await send({ platform: 'ebay', badgeText: '-20%' }).expect(400);
+      expect(String(badge.body.message)).toContain('eBay');
+      await send({ platform: 'olx', badgeText: '-20%' }).expect(201);
     });
   });
 });
