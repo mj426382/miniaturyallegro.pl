@@ -121,17 +121,57 @@ zapytania (wtedy połączyć z 301).
 
 | Strona | Przed: perf / SEO / a11y / BP | Przed: FCP · LCP · TBT · CLS | Po: perf / SEO / a11y / BP | Po: FCP · LCP · TBT · CLS |
 |---|---|---|---|---|
-| `/` | 84 / 100 / 96 / 100 | 2,9 s · 3,7 s · 110 ms · 0,004 | _uzupełniane po wdrożeniu zmian_ | |
-| `/biale-tlo-zdjecie-produktu` | 84 / 100 / 96 / 100 | 2,9 s · 3,7 s · 70 ms · 0,009 | | |
-| `/blog` | 90 / 100 / 96 / 100 | 2,9 s · 2,9 s · 0 ms · 0,001 | | |
-| `/blog/jaki-rozmiar-zdjecia-do-sklepu-internetowego` | 89 / 100 / 92 / 100 | 2,9 s · 3,0 s · 0 ms · 0,048 | | |
+| `/` | 84 / 100 / 96 / 100 | 2,9 s · 3,7 s · 110 ms · 0,004 | 88–97 (mediana 4 przebiegów ≈ 92) / 100 / 100 / 100 | 1,4–1,8 s · 2,6–2,9 s · 40–260 ms · 0 |
+| `/biale-tlo-zdjecie-produktu` | 84 / 100 / 96 / 100 | 2,9 s · 3,7 s · 70 ms · 0,009 | 97 / 100 / 100 / 100 | 1,6 s · 2,0 s · 160 ms · 0 |
+| `/blog` | 90 / 100 / 96 / 100 | 2,9 s · 2,9 s · 0 ms · 0,001 | 99 / 100 / 100 / 100 | 1,4 s · 1,6 s · 50 ms · 0 |
+| `/blog/jaki-rozmiar-zdjecia-do-sklepu-internetowego` | 89 / 100 / 92 / 100 | 2,9 s · 3,0 s · 0 ms · 0,048 | 98 / 100 / 100 / 100 | 1,5 s · 1,8 s · 150 ms · 0 |
 
 Uwaga: `vite preview` nie kompresuje odpowiedzi (Vercel tak), więc wartości lokalne są zawyżone względem produkcji.
+Główne źródła poprawy: brak pobierania fontu Inter (FCP −1,4 s w symulacji), CSS inline, kontrast. Na stronie głównej
+LCP to akapit w hero; pozostały koszt to hydratacja wspólnego bundla (≈ 90 KB gzip) – kolejny krok to podział kodu
+strony głównej (osobny chunk dla cennika/FAQ) albo mniej JS w hero.
 
-## 6. Wdrożone zmiany
+## 6. Wdrożone zmiany (gałąź `feat/seo-ecommerce-site`)
 
-_Sekcja uzupełniana w trakcie wdrożenia – patrz §8._
+Kryteria akceptacji: spec 10, AC-SEO-007/008 (zmienione) i AC-SEO-014…021 (nowe), testy w `landing-page/e2e/seo-landing.spec.ts`
+i `landing-page/e2e/seo-structure.spec.ts`.
+
+| Znalezisko | Zmiana |
+|---|---|
+| T1 | Strona główna: tytuł „Zdjęcia produktowe AI dla sklepów i ogłoszeń”, H1 „Zdjęcia produktowe AI dla sklepów internetowych i marketplace’ów”, nowy opis, sekcja „Gdzie wykorzystasz zdjęcia produktowe” z linkami do 9 stron docelowych, FAQ o zdjęciach produktowych AI i platformach sklepowych, uczciwe źródło ceny studia zamiast niepodpartego „200–500 zł”. |
+| T2 | Nowe strony: `/fotografia-produktowa-ai`, `/packshot-online`, `/zdjecia-produktowe-do-sklepu-internetowego`; `/zdjecia-ai-do-ofert` przeprofilowana na „Generator zdjęć produktowych AI”; pozostałe 5 stron rozbudowane (≥ 450 słów, tabele, kroki, źródła, data aktualizacji, linki do innych stron). Strony platform sklepowych: sekcja z danymi z oficjalnej dokumentacji zamiast osobnych cienkich stron. |
+| T3 | Spacja przed łamaniem linii w H1 (strona główna i strony docelowe) – test sprawdza dokładny tekst H1. |
+| T4 | `src/data/topicClusters.ts`: 7 klastrów (48 wpisów), huby na `/blog` z linkiem do strony filarowej, ramka „Temat” i „Więcej w temacie” w każdym wpisie, 13 kontekstowych linków z treści wpisów do stron filarowych. |
+| T5, T7 | Nowy parser treści wpisów (`src/utils/postMarkdown.ts`): listy `<ul>/<ol>`, check-listy, tabele, cytaty; linki do allgrafika.pl jako względne w tej samej karcie. |
+| T6 | CTA wpisu: „5 grafik gratis po potwierdzeniu e-maila, bez karty” (z `src/data/pricing.ts`). |
+| T8 | Jeden generator sitemapy; `lastmod` strony głównej = nowsza z dat `HOME_UPDATED` i najnowszego wpisu; usunięty duplikat w `vite.config.ts`. |
+| T9 | Graf JSON-LD z `@id`; `AggregateOffer` (0–149 zł) z cen zgodnych z backendem (test czyta `backend/src/payments/plans.ts`); `/blog`: `Blog` + `BreadcrumbList`; wpisy: `BlogPosting` (+ `FAQPage` dla 13 wpisów z sekcją „Najczęstsze pytania”); strony docelowe: `WebPage` z `citation`, `BreadcrumbList`, `FAQPage`. Bez ocen i opinii. |
+| T10 | Obrazy OG: nowy `og-image.png`, `og/blog.png` i 9 obrazów stron docelowych (`npm run og-image -- --og`), z wymiarami i `alt`. |
+| T11 | Kontrast ≥ 4,5:1 (szare teksty, stopka, przyciski w hero). |
+| T12 | CSS inline w prerenderze; rezygnacja z pobierania Inter z Google Fonts na rzecz fontów systemowych (w symulacji mobilnej font opóźniał FCP o ok. 1,5 s: 3,0 s → 1,5 s na stronie docelowej z zablokowanym fontem). |
+| T13 | Treść stron docelowych w osobnych chunkach (`src/data/seoContent/*.ts`, ładowane przed hydratacją jak wpisy); wspólny bundle 90 KB gzip (budżet 110 KB). |
+| T14 | Opisowe `alt` przykładów przed/po, wymiary `width/height`. |
+| T15 | 14 tytułów i opisów wpisów z frazą na początku (slugi bez zmian, bez przekierowań), np. „Ile kosztują zdjęcia produktowe? Studio, DIY i AI”, „Jak robić zdjęcia produktów telefonem – poradnik”, „Zdjęcia produktowe na czarnym tle – styl dark luxury”, „Tło do zdjęć produktowych a postrzegana wartość”; wpis o kosztach dostał źródłowane ceny packshotu (KB.pl). |
+| T16 | Stopka i CTA bez nagłówków; test pilnuje kolejności nagłówków na każdej indeksowalnej stronie. |
 
 ## 7. Rekomendacje wymagające właściciela
 
-_Patrz §8._
+1. **Google Search Console** (po wdrożeniu): przesłać ponownie sitemapę; poprosić o indeksację 3 nowych stron
+   (`/fotografia-produktowa-ai`, `/packshot-online`, `/zdjecia-produktowe-do-sklepu-internetowego`) i strony głównej;
+   po 4–8 tygodniach sprawdzić w raporcie „Skuteczność” zapytania z klastrów §3 i ewentualną kanibalizację w klastrze
+   „psychologia zdjęć”. Dopiero dane z GSC dadzą prawdziwe wolumeny – warto wtedy zaktualizować tabelę §3.
+2. **Metadane AI w eksporcie (T18, aplikacja):** Google Merchant Center wymaga zachowania metadanych grafik AI
+   (IPTC `DigitalSourceType` = `trainedAlgorithmicMedia`). Dodanie ich w `export.service.ts` (sharp `withMetadata`/
+   `withIptc` lub exiftool) pozwoli reklamować grafiki AllGrafika w Zakupach Google; po wdrożeniu zaktualizować
+   sekcję „Grafiki AI w feedzie produktowym” na stronie o sklepie internetowym.
+3. **Link building:** wpisy gościnne lub wzmianki na blogach e-commerce (Shoper Learn, grupy sprzedawców), katalogi
+   narzędzi AI z wersją polską, profil firmy w Google; partnerstwa z agencjami wdrażającymi WooCommerce/Shoper. Bez
+   linków zewnętrznych strony z §3 będą konkurować tylko treścią z domenami o dużo większym autorytecie (marszalstudio.pl).
+4. **Treści od właściciela:** więcej prawdziwych par przed/po (6–8 kategorii: biżuteria, kosmetyki, elektronika,
+   dom; `public/samples/README.md`), krótkie studium przypadku jednego klienta (za zgodą, z prawdziwymi liczbami),
+   dane kontaktowe/„O nas” (E-E-A-T), ewentualnie profile społecznościowe do `sameAs` w JSON-LD.
+5. **Decyzje produktowe:** czy opis produktu ma być dostępny bez grafiki (wtedy osobna strona „generator opisów
+   produktów AI” – fraza ma podpowiedzi „ai”, „darmowy”); czy wprowadzić stronę „infografiki produktowe” (funkcja jest,
+   popyt potwierdzony w autouzupełnianiu).
+6. **Treść zgody marketingowej w demo** nadal mówi o „poradach o miniaturkach” – zmiana treści zgody wymaga decyzji
+   właściciela (wpływa na ewidencję zgód), dlatego jej nie zmieniałem.

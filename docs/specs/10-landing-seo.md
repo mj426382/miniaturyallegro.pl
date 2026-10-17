@@ -43,7 +43,8 @@
   publikujemy ocen, opinii ani statystyk, których nie mamy.
 - Sitemapa ma jedno źródło (`scripts/generate-sitemap.js`); `lastmod` to data zmiany treści (strona główna – stała
   w kodzie aktualizowana przy zmianie treści, nie data buildu).
-- CSS strony jest wstawiany inline w prerenderowanym HTML (brak blokującego arkusza).
+- CSS strony jest wstawiany inline w prerenderowanym HTML (brak blokującego arkusza), a strona używa fontów systemowych
+  zamiast pobierać Inter z Google Fonts (w symulacji Lighthouse mobile font opóźniał FCP o ok. 1,5 s).
 - Demo bez konta: e-mail + zdjęcie, 1 grafika; limity 1/e-mail, 2/IP/dzień, honeypot; wynik e-mailem;
   dane usuwane po 30 dniach.
 - Komunikacja pain-first, przykłady przed/po, cennik z „1 kredyt = 1 grafika, opis gratis”.
@@ -73,4 +74,4 @@
 - **AC-SEO-018** – Given sitemapa i prerenderowane trasy, When porównane, Then każda indeksowalna trasa (strona główna, `/blog`, strony docelowe, wpisy) występuje w sitemapie dokładnie raz, sitemapa nie zawiera adresów z przekierowaniem ani `noindex`, `lastmod` strony głównej jest datą zmiany treści (nie datą buildu), `lastmod` wpisu równa się jego dacie modyfikacji, a `robots.txt` wskazuje sitemapę; nieznany adres zwraca 404 z `noindex`.
 - **AC-SEO-019** – Given dowolna indeksowalna trasa (strona główna, `/blog`, strona docelowa, wpis), When pobrany HTML, Then `og:image` i `twitter:image` to bezwzględne adresy istniejących plików PNG 1200×630 z `og:image:width`, `og:image:height` i `og:image:alt`; strony docelowe i `/blog` mają własne obrazy OG; strona ma dokładnie jedno `<h1>`, poziomy nagłówków w treści nie przeskakują (np. H2 → H4), a każdy obraz ma niepusty `alt`.
 - **AC-SEO-020** – Given wszystkie wpisy, When pobrany indeks bloga, Then tytuły wpisów są unikalne i mają ≤ 60 znaków, meta description ma 70–158 znaków i jest unikalny w obrębie serwisu, a żaden tytuł nie używa słowa „miniaturka”/„miniaturki” (dawne słownictwo Allegro).
-- **AC-SEO-021** – Given prerenderowana trasa, When pobrany HTML, Then arkusz stylów strony jest wstawiony inline (`<style>`) zamiast blokującego `<link rel="stylesheet">` do własnego pliku CSS, a treść strony docelowej jest w osobnym chunku JS, który nie trafia do wspólnego bundla strony głównej.
+- **AC-SEO-021** – Given prerenderowana trasa, When pobrany HTML, Then arkusz stylów strony jest wstawiony inline (`<style>`) zamiast blokującego `<link rel="stylesheet">` do własnego pliku CSS, strona nie pobiera fontów z zewnętrznych serwerów (np. Google Fonts), a treść strony docelowej jest w osobnym chunku JS, który nie trafia do wspólnego bundla strony głównej.

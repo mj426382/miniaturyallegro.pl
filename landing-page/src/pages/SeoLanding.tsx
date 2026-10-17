@@ -112,7 +112,7 @@ export default function SeoLanding({ page }: { page: SeoPage }) {
                   track('seo_register_click', { page: page.path })
                   trackCta('seo_hero', 'register')
                 }}
-                className="bg-blue-900/40 text-white font-medium px-8 py-4 rounded-xl text-lg hover:bg-blue-900/60 transition-colors border border-white/30"
+                className="bg-blue-800 text-white font-medium px-8 py-4 rounded-xl text-lg hover:bg-blue-900 transition-colors border border-white/30"
               >
                 Załóż konto – 5 grafik gratis
               </a>

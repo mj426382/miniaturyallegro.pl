@@ -247,6 +247,7 @@ test('[AC-SEO-021] CSS is inlined and landing page copy stays out of the shared 
     const html = await (await request.get(route)).text()
     expect(html, route).toContain('<style>')
     expect(html, route).not.toMatch(/<link[^>]*rel="stylesheet"[^>]*href="\/assets\//)
+    expect(html, route).not.toMatch(/fonts\.(googleapis|gstatic)\.com/)
   }
   for (const marker of ['Rodzaje ujęć packshotowych', 'Rozmiary zdjęć w Shopify, WooCommerce, Shoper i PrestaShop', 'Studio, zdjęcia DIY czy AI – porównanie']) {
     expect(bundle.includes(marker), `"${marker}" in ${main}`).toBe(false)
