@@ -84,6 +84,17 @@ describe('welcome pack – one per account under concurrency (spec 19)', () => {
     const refused = await checkout(token).expect(400);
     expect(refused.body.message).toContain('już opłacony');
 
+    // A session Stripe no longer knows (404) cannot be paid: it is closed and a new one starts.
+    const forgotten = await registerUser(ctx);
+    await checkout(forgotten.token).expect(201);
+    stripe.sessions.splice(stripe.sessions.length - 1, 1);
+    await checkout(forgotten.token).expect(201);
+    expect(
+      (await ctx.prisma.paymentTransaction.findMany({ where: { userId: forgotten.userId } }))
+        .map((r) => r.status)
+        .sort(),
+    ).toEqual(['expired', 'pending']);
+
     // A crash between the reservation and the Stripe call leaves a placeholder row behind.
     const other = await registerUser(ctx);
     await ctx.prisma.paymentTransaction.create({

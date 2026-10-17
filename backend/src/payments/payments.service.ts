@@ -393,7 +393,11 @@ export class PaymentsService {
       return null;
     }
 
-    const session = await this.stripe.checkout.sessions.retrieve(previous.stripeSessionId);
+    const session = await this.stripe.checkout.sessions.retrieve(previous.stripeSessionId).catch((err: any) => {
+      // A session Stripe does not know any more cannot be paid – start again; other errors bubble up.
+      if (err?.statusCode === 404) return null;
+      throw err;
+    });
     if (session?.status === 'open' && session.url) return { url: session.url };
     if (session?.status === 'complete') {
       throw new BadRequestException('Pakiet powitalny jest już opłacony – kredyty pojawią się za chwilę.');
