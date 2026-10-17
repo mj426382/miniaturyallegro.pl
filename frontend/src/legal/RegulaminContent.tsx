@@ -201,8 +201,8 @@ export default function RegulaminContent() {
               Usługodawca zobowiązuje się do świadczenia usługi z należytą starannością, nie gwarantuje jednak konkretnego efektu artystycznego.
             </li>
             <li>
-              Użytkownik jest zobowiązany sprawdzić każdą Grafikę przed jej użyciem, w szczególności pod kątem zgodności z rzeczywistym wyglądem produktu oraz regulaminami platform sprzedażowych
-              i sklepów internetowych, w których Grafika zostanie opublikowana. Użycie Grafiki, która wprowadza kupujących w błąd co do cech produktu, jest zabronione.
+              Użytkownik jest zobowiązany sprawdzić każdą Grafikę przed jej użyciem, w szczególności pod kątem zgodności z rzeczywistym wyglądem produktu oraz regulaminami platform sprzedażowych i
+              sklepów internetowych, w których Grafika zostanie opublikowana. Użycie Grafiki, która wprowadza kupujących w błąd co do cech produktu, jest zabronione.
             </li>
             <li>
               Generacje zakończone błędem technicznym są oznaczane jako nieudane, a Kredyt wraca na Konto automatycznie. W przypadku Grafiki wadliwej (np. nieczytelnej, z artefaktami, niezgodnej z

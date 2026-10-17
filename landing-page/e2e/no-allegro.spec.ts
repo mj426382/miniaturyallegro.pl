@@ -90,6 +90,8 @@ test('[AC-SEO-013] the legal texts drop the marketplace integration and match th
     expect(html).not.toMatch(UNSUPPORTED)
     expect(html).not.toMatch(/OAuth|tokeny dostępu|połącz(yć|enie) Konto/i)
   }
-  expect(terms).toContain('Zmiana z 17 października 2026 r.')
-  expect(privacy).toContain('ostatnia zmiana: 17 października 2026 r.')
+  // React separates text and interpolations with <!-- --> in the prerendered HTML.
+  const text = (html: string) => html.replace(/<!-- -->/g, '')
+  expect(text(terms)).toContain('Zmiana z 17 października 2026 r.')
+  expect(text(privacy)).toContain('ostatnia zmiana: 17 października 2026 r.')
 })

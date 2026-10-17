@@ -8,6 +8,7 @@ function jsonLdTypes(blocks: string[]) {
 }
 
 test('[AC-SEO-007] every landing page has its own SEO head, one keyword H1 and structured data', async ({ page, request }) => {
+  test.setTimeout(120_000) // six pages, each loaded and hydrated
   expect(seoPages.map((p) => p.path)).toEqual([
     '/zdjecia-ai-do-ofert',
     '/biale-tlo-zdjecie-produktu',

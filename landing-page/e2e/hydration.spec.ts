@@ -84,8 +84,8 @@ test('[AC-PERF-002] client-side navigation loads the legal document chunk', asyn
 
 test('[AC-SEO-002] prerendered HTML carries the per-route SEO head', async ({ page }) => {
   await page.goto('/blog/jak-zrobic-profesjonalne-zdjecia-produktow')
-  // 56-character title: with the brand suffix it would exceed 60, so it stays bare (AC-SEO-009).
-  await expect(page).toHaveTitle('Jak zrobić profesjonalne zdjęcia produktów do sprzedaży?')
+  // 55-character title: with the brand suffix it would exceed 60, so it stays bare (AC-SEO-009).
+  await expect(page).toHaveTitle('Jak zrobić profesjonalne zdjęcia produktów – cały proces')
   const canonical = await page.locator('link[rel="canonical"]').getAttribute('href')
   expect(canonical).toBe('https://allgrafika.pl/blog/jak-zrobic-profesjonalne-zdjecia-produktow')
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent()
