@@ -2,11 +2,15 @@ import {
   Injectable,
   Logger,
   BadRequestException,
+  ConflictException,
   ServiceUnavailableException,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
+import { parseAdminEmails } from '../admin/admin-emails';
 import { CREDIT_PACKAGES, SUBSCRIPTION_PLANS, WELCOME_PACKAGE, findPackage, findPlan, SubscriptionPlan } from './plans';
 import { emailNotVerifiedException, isVerificationRequired } from '../auth/email-verification';
 
@@ -19,9 +23,33 @@ export const TRANSACTION_STATUS = {
   completed: 'completed',
   failed: 'failed',
   expired: 'expired',
+  /** Spec 09: the whole payment was refunded in Stripe. */
+  refunded: 'refunded',
+  partiallyRefunded: 'partially_refunded',
+  /** An open or lost chargeback. */
+  disputed: 'disputed',
 } as const;
 
+/** Statuses of a payment that was (or may still be) fulfilled – they all count as "paid" for the welcome pack. */
+const PAID_STATUSES: string[] = [
+  TRANSACTION_STATUS.completed,
+  TRANSACTION_STATUS.refunded,
+  TRANSACTION_STATUS.partiallyRefunded,
+  TRANSACTION_STATUS.disputed,
+];
+
 const ACTIVE_SUBSCRIPTION_STATUSES = ['active', 'trialing', 'past_due'];
+
+/** Spec 09, AC-PAY-023: verdicts of the plan price guard are cached; failures are retried sooner. */
+const PRICE_CHECK_TTL_MS = 5 * 60 * 1000;
+const PRICE_CHECK_ERROR_TTL_MS = 60 * 1000;
+
+/** Spec 09, AC-PAY-022: a payment of our own Stripe customer that matches no row is retried this long. */
+const UNMATCHED_RETRY_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+/** A reserved (not yet sent to Stripe) checkout row older than this is treated as abandoned. */
+const RESERVATION_STALE_MS = 2 * 60 * 1000;
+const RESERVATION_PREFIX = 'reserved:';
 
 /**
  * Spec 09: every payment gets a Stripe invoice. Checkout lets the buyer tick "purchasing as a business"
@@ -34,15 +62,105 @@ const INVOICE_DETAILS_COLLECTION = {
   customer_update: { name: 'auto', address: 'auto' },
 } as const;
 
+/** The columns of payment_transactions the refund / dispute accounting works with (locked row). */
+interface LockedTransaction {
+  id: string;
+  userId: string;
+  status: string;
+  amountPln: number;
+  creditsAdded: number;
+  packageId: string | null;
+  completedAt: Date | null;
+  amountRefunded: number;
+  disputeAmount: number;
+  disputeStatus: string | null;
+  creditsReversed: number;
+  creditsShortfall: number;
+}
+
+type DisputeState = 'open' | 'won' | 'lost';
+
+interface ReversalChange {
+  /** Cumulative amount refunded on the charge (charge.amount_refunded). */
+  amountRefunded?: number;
+  dispute?: { status: DisputeState; amount: number };
+}
+
+interface ReversalOutcome {
+  transactionId: string;
+  userId: string;
+  kind: 'refund' | 'dispute';
+  status: string;
+  amountPln: number;
+  amountRefunded: number;
+  disputeStatus: string | null;
+  creditsAdded: number;
+  creditsReversed: number;
+  creditsShortfall: number;
+  /** Credits removed from (negative: given back to) the balance by this event. */
+  balanceChange: number;
+  balanceAfter: number | null;
+}
+
+/** Stripe sends ids either as strings or as expanded objects. */
+function idOf(value: unknown): string | undefined {
+  if (typeof value === 'string' && value) return value;
+  if (value && typeof value === 'object' && typeof (value as { id?: unknown }).id === 'string') {
+    return (value as { id: string }).id;
+  }
+  return undefined;
+}
+
+/** PaymentIntent of a paid invoice – API 2025-03+ (`payments[]`) and the older `payment_intent` field. */
+function invoicePaymentIntentId(invoice: any): string | undefined {
+  const legacy = idOf(invoice?.payment_intent);
+  if (legacy) return legacy;
+  for (const payment of invoice?.payments?.data ?? []) {
+    const id = idOf(payment?.payment?.payment_intent);
+    if (id) return id;
+  }
+  return undefined;
+}
+
+/**
+ * Credits taken back for a payment: proportional to the money that left us (refunds + an open or lost
+ * dispute), rounded, never more than the credits the payment added (spec 09, AC-PAY-017).
+ */
+export function creditsToReverse(row: {
+  amountPln: number;
+  creditsAdded: number;
+  amountRefunded: number;
+  disputeAmount: number;
+}): number {
+  if (row.amountPln <= 0) return 0;
+  const held = Math.min(row.amountPln, Math.max(0, row.amountRefunded) + Math.max(0, row.disputeAmount));
+  return Math.min(row.creditsAdded, Math.round((row.creditsAdded * held) / row.amountPln));
+}
+
+function reversalStatus(row: LockedTransaction): string {
+  if (row.disputeStatus === 'open' || row.disputeStatus === 'lost') return TRANSACTION_STATUS.disputed;
+  if (row.amountPln > 0 && row.amountRefunded >= row.amountPln) return TRANSACTION_STATUS.refunded;
+  if (row.amountRefunded > 0) return TRANSACTION_STATUS.partiallyRefunded;
+  if (row.completedAt) return TRANSACTION_STATUS.completed;
+  return PAID_STATUSES.includes(row.status) ? TRANSACTION_STATUS.pending : row.status;
+}
+
+function zl(grosze: number): string {
+  return `${(grosze / 100).toFixed(2).replace('.', ',')} zł`;
+}
+
 @Injectable()
 export class PaymentsService {
   private stripe: any = null;
   private readonly logger = new Logger(PaymentsService.name);
   private readonly verificationRequired: boolean;
+  /** Plan price guard verdicts per Stripe Price id (AC-PAY-023). */
+  private readonly priceChecks = new Map<string, { ok: boolean; expiresAt: number }>();
 
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
+    private mail: MailService,
   ) {
     this.verificationRequired = isVerificationRequired(this.configService.get<string>('EMAIL_VERIFICATION_REQUIRED'));
     const key = this.configService.get<string>('STRIPE_SECRET_KEY');
@@ -56,6 +174,7 @@ export class PaymentsService {
   /** Allows tests to inject a Stripe mock without touching the network. */
   setStripeClient(client: any) {
     this.stripe = client;
+    this.priceChecks.clear();
   }
 
   private requireStripe() {
@@ -89,23 +208,26 @@ export class PaymentsService {
     return { available, package: available ? WELCOME_PACKAGE : null };
   }
 
+  /** No fulfilled payment yet – a later refund or chargeback does not make the account eligible again. */
   private async isWelcomeEligible(userId: string): Promise<boolean> {
     const paid = await this.prisma.paymentTransaction.count({
-      where: { userId, status: TRANSACTION_STATUS.completed },
+      where: { userId, OR: [{ completedAt: { not: null } }, { status: { in: PAID_STATUSES } }] },
     });
     return paid === 0;
   }
 
-  getPlans() {
-    return SUBSCRIPTION_PLANS.map((plan) => ({
-      id: plan.id,
-      name: plan.name,
-      credits: plan.credits,
-      priceGrosze: plan.priceGrosze,
-      priceLabel: plan.priceLabel,
-      description: plan.description,
-      available: Boolean(this.stripe && this.stripePriceId(plan)),
-    }));
+  async getPlans() {
+    return Promise.all(
+      SUBSCRIPTION_PLANS.map(async (plan) => ({
+        id: plan.id,
+        name: plan.name,
+        credits: plan.credits,
+        priceGrosze: plan.priceGrosze,
+        priceLabel: plan.priceLabel,
+        description: plan.description,
+        available: await this.isPlanAvailable(plan),
+      })),
+    );
   }
 
   private stripePriceId(plan: SubscriptionPlan): string | undefined {
@@ -118,68 +240,173 @@ export class PaymentsService {
     return SUBSCRIPTION_PLANS.find((p) => this.stripePriceId(p) === priceId);
   }
 
+  /**
+   * Spec 09, AC-PAY-023 – price guard: a plan is offered only when its configured Stripe Price exists, is
+   * active, recurring every 1 month, in PLN and its unit_amount equals `priceGrosze`, so the site can never
+   * show one price while Stripe charges another. Fails closed (logged warning) on any problem or Stripe error.
+   */
+  private async isPlanAvailable(plan: SubscriptionPlan): Promise<boolean> {
+    const priceId = this.stripePriceId(plan);
+    if (!this.stripe || !priceId) return false;
+
+    const now = Date.now();
+    const cached = this.priceChecks.get(priceId);
+    if (cached && cached.expiresAt > now) return cached.ok;
+
+    let ok = false;
+    let ttl = PRICE_CHECK_TTL_MS;
+    try {
+      const price = await this.stripe.prices.retrieve(priceId);
+      const problems: string[] = [];
+      if (!price || price.deleted) problems.push('price not found');
+      else {
+        if (price.active === false) problems.push('price is archived');
+        if (String(price.currency).toLowerCase() !== 'pln') problems.push(`currency ${price.currency}`);
+        if (price.type !== 'recurring' || price.recurring?.interval !== 'month') {
+          problems.push(`not a monthly recurring price (${price.type}/${price.recurring?.interval})`);
+        } else if ((price.recurring?.interval_count ?? 1) !== 1) {
+          problems.push(`billed every ${price.recurring.interval_count} months`);
+        }
+        if (price.unit_amount !== plan.priceGrosze) {
+          problems.push(`unit_amount ${price.unit_amount} != ${plan.priceGrosze}`);
+        }
+      }
+      ok = problems.length === 0;
+      if (!ok) this.logger.warn(`Plan ${plan.id} hidden – Stripe price ${priceId}: ${problems.join(', ')}`);
+    } catch (err: any) {
+      ttl = PRICE_CHECK_ERROR_TTL_MS;
+      this.logger.warn(`Plan ${plan.id} hidden – could not verify Stripe price ${priceId}: ${err?.message}`);
+    }
+    this.priceChecks.set(priceId, { ok, expiresAt: now + ttl });
+    return ok;
+  }
+
   // ─── One-time packs ───────────────────────────────────────────────
 
+  /**
+   * The transaction row is reserved BEFORE the Stripe session exists (its id travels in the session
+   * metadata), so a session can never be paid without a row – and for the welcome pack the partial
+   * unique index makes the reservation the atomic "once per account" gate (spec 19, AC-MON-008).
+   */
   async createCheckoutSession(userId: string, packageId: string) {
     const stripe = this.requireStripe();
     const pkg = findPackage(packageId);
     if (!pkg) throw new BadRequestException('Nieprawidłowy pakiet');
 
     await this.assertCanPurchase(userId);
-    if (pkg.welcome && !(await this.isWelcomeEligible(userId))) {
-      throw new BadRequestException('Pakiet powitalny jest dostępny tylko przy pierwszym zakupie');
+    if (pkg.welcome) {
+      if (!(await this.isWelcomeEligible(userId))) {
+        throw new BadRequestException('Pakiet powitalny jest dostępny tylko przy pierwszym zakupie');
+      }
+      const reused = await this.reusableWelcomeCheckout(userId);
+      if (reused) return reused;
     }
-    const customerId = await this.ensureCustomer(userId);
 
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      // Payment methods (card, BLIK, Przelewy24...) are managed in the Stripe dashboard.
-      customer: customerId,
-      payment_intent_data: { statement_descriptor_suffix: this.statementDescriptorSuffix() },
-      ...INVOICE_DETAILS_COLLECTION,
-      invoice_creation: {
-        enabled: true,
-        invoice_data: {
-          description: `${pkg.label} – AllGrafika (${pkg.credits} kredytów)`,
-          metadata: { userId, packageId },
+    let reservation: { id: string };
+    try {
+      reservation = await this.prisma.paymentTransaction.create({
+        data: {
+          userId,
+          stripeSessionId: `${RESERVATION_PREFIX}${randomUUID()}`,
+          amountPln: pkg.priceGrosze,
+          creditsAdded: pkg.credits,
+          status: TRANSACTION_STATUS.pending,
+          kind: 'package',
+          packageId: pkg.id,
         },
-      },
-      line_items: [
-        {
-          price_data: {
-            currency: 'pln',
-            unit_amount: pkg.priceGrosze,
-            product_data: {
-              name: pkg.label + ' - AllGrafika',
-              description: 'Doładowanie ' + pkg.credits + ' kredytów do generowania grafik produktowych',
-            },
+        select: { id: true },
+      });
+    } catch (err: any) {
+      if (pkg.welcome && err?.code === 'P2002') {
+        throw new ConflictException('Płatność za pakiet powitalny jest już przygotowywana. Odśwież stronę.');
+      }
+      throw err;
+    }
+
+    try {
+      const customerId = await this.ensureCustomer(userId);
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        // Payment methods (card, BLIK, Przelewy24...) are managed in the Stripe dashboard.
+        customer: customerId,
+        client_reference_id: reservation.id,
+        payment_intent_data: { statement_descriptor_suffix: this.statementDescriptorSuffix() },
+        ...INVOICE_DETAILS_COLLECTION,
+        invoice_creation: {
+          enabled: true,
+          invoice_data: {
+            description: `${pkg.label} – AllGrafika (${pkg.credits} kredytów)`,
+            metadata: { userId, packageId },
           },
-          quantity: 1,
         },
-      ],
-      metadata: {
-        userId,
-        packageId,
-        credits: String(pkg.credits),
-        // Consumer-law consent (art. 38 pkt 13) collected in our UI before this call.
-        withdrawalWaiverAcceptedAt: new Date().toISOString(),
-      },
-      success_url: this.frontendUrl() + '/credits?success=1',
-      cancel_url: this.frontendUrl() + '/credits?canceled=1',
-    });
+        line_items: [
+          {
+            price_data: {
+              currency: 'pln',
+              unit_amount: pkg.priceGrosze,
+              product_data: {
+                name: pkg.label + ' - AllGrafika',
+                description: 'Doładowanie ' + pkg.credits + ' kredytów do generowania grafik produktowych',
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        metadata: {
+          userId,
+          packageId,
+          transactionId: reservation.id,
+          credits: String(pkg.credits),
+          // Consumer-law consent (art. 38 pkt 13) collected in our UI before this call.
+          withdrawalWaiverAcceptedAt: new Date().toISOString(),
+        },
+        success_url: this.frontendUrl() + '/credits?success=1',
+        cancel_url: this.frontendUrl() + '/credits?canceled=1',
+      });
+      await this.prisma.paymentTransaction.update({
+        where: { id: reservation.id },
+        data: { stripeSessionId: session.id },
+      });
+      return { url: session.url };
+    } catch (err) {
+      await this.prisma.paymentTransaction.delete({ where: { id: reservation.id } }).catch(() => undefined);
+      throw err;
+    }
+  }
 
-    await this.prisma.paymentTransaction.create({
-      data: {
-        userId,
-        stripeSessionId: session.id,
-        amountPln: pkg.priceGrosze,
-        creditsAdded: pkg.credits,
-        status: TRANSACTION_STATUS.pending,
-        kind: 'package',
-      },
+  /**
+   * An unfinished welcome checkout of this account: an open Stripe session is handed out again (no second
+   * session), a paid one refuses, an expired or abandoned one is closed so a new attempt can start.
+   */
+  private async reusableWelcomeCheckout(userId: string): Promise<{ url: string } | null> {
+    const previous = await this.prisma.paymentTransaction.findFirst({
+      where: { userId, packageId: WELCOME_PACKAGE.id, status: TRANSACTION_STATUS.pending },
     });
+    if (!previous) return null;
 
-    return { url: session.url };
+    if (previous.stripeSessionId.startsWith(RESERVATION_PREFIX)) {
+      if (Date.now() - previous.createdAt.getTime() < RESERVATION_STALE_MS) {
+        throw new ConflictException('Płatność za pakiet powitalny jest już przygotowywana. Odśwież stronę.');
+      }
+      this.logger.warn(`Abandoned welcome reservation ${previous.id} closed`);
+      await this.markTransactionById(previous.id, TRANSACTION_STATUS.expired);
+      return null;
+    }
+
+    const session = await this.stripe.checkout.sessions.retrieve(previous.stripeSessionId);
+    if (session?.status === 'open' && session.url) return { url: session.url };
+    if (session?.status === 'complete') {
+      throw new BadRequestException('Pakiet powitalny jest już opłacony – kredyty pojawią się za chwilę.');
+    }
+    await this.markTransactionById(previous.id, TRANSACTION_STATUS.expired);
+    return null;
+  }
+
+  private async markTransactionById(id: string, status: 'expired' | 'failed') {
+    await this.prisma.paymentTransaction.updateMany({
+      where: { id, status: TRANSACTION_STATUS.pending, completedAt: null },
+      data: { status },
+    });
   }
 
   // ─── Subscriptions ────────────────────────────────────────────────
@@ -191,7 +418,10 @@ export class PaymentsService {
     if (this.verificationRequired && !user.emailVerifiedAt) throw emailNotVerifiedException();
   }
 
-  /** The Stripe customer carries the invoice details (name, address, tax id) between purchases. */
+  /**
+   * The Stripe customer carries the invoice details (name, address, tax id) between purchases. Two
+   * parallel first purchases keep one customer: only the first write wins, the loser's is deleted.
+   */
   private async ensureCustomer(userId: string): Promise<string> {
     const stripe = this.requireStripe();
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -203,15 +433,25 @@ export class PaymentsService {
       name: user.name || undefined,
       metadata: { userId },
     });
-    await this.prisma.user.update({ where: { id: userId }, data: { stripeCustomerId: customer.id } });
-    return customer.id;
+    const { count } = await this.prisma.user.updateMany({
+      where: { id: userId, stripeCustomerId: null },
+      data: { stripeCustomerId: customer.id },
+    });
+    if (count === 1) return customer.id;
+
+    const winner = await this.prisma.user.findUnique({ where: { id: userId }, select: { stripeCustomerId: true } });
+    await Promise.resolve(stripe.customers.del?.(customer.id)).catch(() => undefined);
+    return winner?.stripeCustomerId ?? customer.id;
   }
 
   async createSubscriptionSession(userId: string, planId: string) {
     const stripe = this.requireStripe();
     const plan = findPlan(planId);
     const priceId = plan && this.stripePriceId(plan);
-    if (!plan || !priceId) throw new BadRequestException('Ten plan nie jest obecnie dostępny');
+    // AC-PAY-023: never start a subscription whose Stripe price differs from the advertised one.
+    if (!plan || !priceId || !(await this.isPlanAvailable(plan))) {
+      throw new BadRequestException('Ten plan nie jest obecnie dostępny');
+    }
 
     const existing = await this.prisma.subscription.findUnique({ where: { userId } });
     if (existing && ACTIVE_SUBSCRIPTION_STATUSES.includes(existing.status)) {
@@ -338,6 +578,13 @@ export class PaymentsService {
       case 'customer.subscription.deleted':
         await this.syncSubscription(object);
         break;
+      case 'charge.refunded':
+        await this.handleChargeRefunded(event, object);
+        break;
+      case 'charge.dispute.created':
+      case 'charge.dispute.closed':
+        await this.handleDispute(event, object);
+        break;
       default:
         break;
     }
@@ -346,8 +593,9 @@ export class PaymentsService {
   }
 
   /**
-   * Idempotent: Stripe may deliver the same event several times. Only the
-   * request that flips the row from `pending` to `completed` adds credits.
+   * Idempotent: Stripe may deliver the same event several times (also in parallel). The row is locked and
+   * only the delivery that finds it unfulfilled (`completedAt` null) adds credits – minus whatever a refund
+   * that arrived earlier already took back (AC-PAY-021). The PaymentIntent is stored for refunds (AC-PAY-016).
    */
   private async handleCheckoutCompleted(session: any) {
     if (!session?.id) return;
@@ -356,35 +604,83 @@ export class PaymentsService {
       return;
     }
 
-    const transaction = await this.prisma.paymentTransaction.findUnique({ where: { stripeSessionId: session.id } });
+    let transaction = await this.prisma.paymentTransaction.findUnique({ where: { stripeSessionId: session.id } });
+    const reservedId = session.metadata?.transactionId || session.client_reference_id;
+    if (!transaction && reservedId) {
+      // The session was created but its id never reached the row (crash between the two writes).
+      const reserved = await this.prisma.paymentTransaction.findUnique({ where: { id: String(reservedId) } });
+      if (reserved?.stripeSessionId.startsWith(RESERVATION_PREFIX)) {
+        transaction = await this.prisma.paymentTransaction.update({
+          where: { id: reserved.id },
+          data: { stripeSessionId: session.id },
+        });
+      }
+    }
     if (!transaction) {
       this.logger.warn(`Webhook for unknown session ${session.id}`);
       return;
     }
 
-    const added = await this.prisma.$transaction(async (tx) => {
-      const { count } = await tx.paymentTransaction.updateMany({
-        where: { id: transaction.id, status: TRANSACTION_STATUS.pending },
-        data: { status: TRANSACTION_STATUS.completed },
+    const paymentIntentId = idOf(session.payment_intent);
+    const outcome = await this.prisma.$transaction(async (tx) => {
+      const [row] = await tx.$queryRaw<LockedTransaction[]>`
+        SELECT "id", "userId", "status", "amountPln", "creditsAdded", "packageId", "completedAt", "amountRefunded",
+               "disputeAmount", "disputeStatus", "creditsReversed", "creditsShortfall"
+        FROM "payment_transactions" WHERE "id" = ${transaction.id} FOR UPDATE`;
+      if (!row || row.completedAt) return { kind: 'duplicate' as const };
+      if (row.status === TRANSACTION_STATUS.failed || row.status === TRANSACTION_STATUS.expired) {
+        return { kind: 'closed' as const, status: row.status };
+      }
+      if (row.packageId === WELCOME_PACKAGE.id) {
+        // Belt and braces next to the unique index: the welcome pack is never fulfilled twice.
+        const earlier = await tx.paymentTransaction.count({
+          where: { userId: row.userId, packageId: WELCOME_PACKAGE.id, completedAt: { not: null }, id: { not: row.id } },
+        });
+        if (earlier > 0) return { kind: 'welcome-twice' as const };
+      }
+
+      const net = Math.max(0, row.creditsAdded - row.creditsReversed);
+      const piFree =
+        paymentIntentId &&
+        !(await tx.paymentTransaction.findUnique({ where: { stripePaymentIntentId: paymentIntentId } }));
+      await tx.paymentTransaction.update({
+        where: { id: row.id },
+        data: {
+          completedAt: new Date(),
+          status: row.status === TRANSACTION_STATUS.pending ? TRANSACTION_STATUS.completed : row.status,
+          ...(piFree ? { stripePaymentIntentId: paymentIntentId } : {}),
+        },
       });
-      if (count !== 1) return false;
-      await tx.user.update({
-        where: { id: transaction.userId },
-        data: { credits: { increment: transaction.creditsAdded } },
-      });
-      return true;
+      if (net > 0) await tx.user.update({ where: { id: row.userId }, data: { credits: { increment: net } } });
+      return { kind: 'added' as const, net, userId: row.userId };
     });
 
-    if (added) this.logger.log(`Added ${transaction.creditsAdded} credits to user ${transaction.userId}`);
-    else this.logger.warn(`Duplicate webhook for session ${session.id} ignored`);
+    if (outcome.kind === 'added') this.logger.log(`Added ${outcome.net} credits to user ${outcome.userId}`);
+    else if (outcome.kind === 'duplicate') this.logger.warn(`Duplicate webhook for session ${session.id} ignored`);
+    else if (outcome.kind === 'closed') {
+      this.logger.error(`Session ${session.id} paid but its transaction is ${outcome.status} – no credits added`);
+      await this.notifyAdmins('Płatność opłacona, kredyty nie dodane', [
+        `Sesja Stripe ${session.id} została opłacona, ale transakcja ${transaction.id} ma status ${outcome.status}.`,
+        `Konto: ${transaction.userId}. Sprawdź płatność w Stripe i zwróć ją albo dodaj kredyty ręcznie.`,
+      ]);
+    } else {
+      this.logger.error(`Welcome pack of user ${transaction.userId} paid twice (session ${session.id}) – not granted`);
+      await this.notifyAdmins('Drugi pakiet powitalny – kredyty nie dodane', [
+        `Konto ${transaction.userId} opłaciło pakiet powitalny drugi raz (sesja ${session.id}, transakcja ${transaction.id}).`,
+        'Kredyty nie zostały dodane. Zwróć płatność w Stripe.',
+      ]);
+    }
 
-    const invoiceId = typeof session.invoice === 'string' ? session.invoice : session.invoice?.id;
+    // Payment details may arrive with any delivery – store them where still missing.
+    const invoiceId = idOf(session.invoice);
     if (invoiceId) {
       await this.prisma.paymentTransaction.updateMany({
         where: { id: transaction.id, stripeInvoiceId: null },
         data: { stripeInvoiceId: invoiceId },
       });
     }
+    if (paymentIntentId && outcome.kind === 'duplicate')
+      await this.rememberPaymentIntent(transaction.id, paymentIntentId);
   }
 
   private async handleSubscriptionCheckout(session: any) {
@@ -452,8 +748,12 @@ export class PaymentsService {
       return;
     }
 
+    const paymentIntentId = invoicePaymentIntentId(invoice);
     try {
       await this.prisma.$transaction(async (tx) => {
+        const piFree =
+          paymentIntentId &&
+          !(await tx.paymentTransaction.findUnique({ where: { stripePaymentIntentId: paymentIntentId } }));
         await tx.paymentTransaction.create({
           data: {
             userId,
@@ -463,6 +763,8 @@ export class PaymentsService {
             status: TRANSACTION_STATUS.completed,
             kind: 'subscription',
             stripeInvoiceId: invoice.id,
+            completedAt: new Date(),
+            ...(piFree ? { stripePaymentIntentId: paymentIntentId } : {}),
           },
         });
         await tx.user.update({ where: { id: userId }, data: { credits: { increment: plan.credits } } });
@@ -517,14 +819,301 @@ export class PaymentsService {
   private async markTransaction(sessionId: string | undefined, status: 'expired' | 'failed') {
     if (!sessionId) return;
     await this.prisma.paymentTransaction.updateMany({
-      where: { stripeSessionId: sessionId, status: TRANSACTION_STATUS.pending },
+      where: { stripeSessionId: sessionId, status: TRANSACTION_STATUS.pending, completedAt: null },
       data: { status },
     });
   }
 
+  // ─── Refunds and disputes (spec 09, AC-PAY-017..022) ──────────────
+
+  private async handleChargeRefunded(event: any, charge: any) {
+    if (!charge) return;
+    const transactionId = await this.matchPayment(event, {
+      paymentIntentId: idOf(charge.payment_intent),
+      invoiceId: idOf(charge.invoice),
+      customerId: idOf(charge.customer),
+      chargeId: idOf(charge.id),
+    });
+    if (!transactionId) return;
+    await this.applyReversal(event, transactionId, 'refund', { amountRefunded: Number(charge.amount_refunded ?? 0) });
+  }
+
+  private async handleDispute(event: any, dispute: any) {
+    if (!dispute) return;
+    let state: DisputeState;
+    if (event.type === 'charge.dispute.created') state = 'open';
+    else if (dispute.status === 'lost') state = 'lost';
+    else if (dispute.status === 'won' || dispute.status === 'warning_closed') state = 'won';
+    else {
+      this.logger.warn(`Dispute ${dispute.id} closed with unknown status ${dispute.status} – ignored`);
+      return;
+    }
+
+    let paymentIntentId = idOf(dispute.payment_intent);
+    let customerId: string | undefined;
+    const charge = dispute.charge;
+    if (charge && typeof charge === 'object') {
+      paymentIntentId ||= idOf(charge.payment_intent);
+      customerId = idOf(charge.customer);
+    } else if (!paymentIntentId && typeof charge === 'string' && this.stripe?.charges?.retrieve) {
+      const loaded = await this.stripe.charges.retrieve(charge);
+      paymentIntentId = idOf(loaded?.payment_intent);
+      customerId = idOf(loaded?.customer);
+    }
+
+    const transactionId = await this.matchPayment(event, { paymentIntentId, customerId, chargeId: idOf(charge) });
+    if (!transactionId) return;
+    await this.applyReversal(event, transactionId, 'dispute', {
+      dispute: { status: state, amount: Number(dispute.amount ?? 0) },
+    });
+  }
+
+  /**
+   * Finds our transaction for a Stripe payment: by the stored PaymentIntent, by a legacy invoice id, and
+   * for rows stored before PaymentIntents were kept, through Stripe (the Checkout session or the invoice
+   * of that PaymentIntent). The Stripe account is shared with the JAN-MAT shop: foreign payments return
+   * null without noise. A payment of our own customer that matches nothing is retried by Stripe (503)
+   * for a few hours – e.g. invoice.paid is still on its way – and then reported to the admins.
+   */
+  private async matchPayment(
+    event: any,
+    ref: { paymentIntentId?: string; invoiceId?: string; customerId?: string; chargeId?: string },
+  ): Promise<string | null> {
+    const { paymentIntentId, invoiceId } = ref;
+    if (paymentIntentId) {
+      const row = await this.prisma.paymentTransaction.findUnique({
+        where: { stripePaymentIntentId: paymentIntentId },
+        select: { id: true },
+      });
+      if (row) return row.id;
+    }
+    if (invoiceId) {
+      const row = await this.prisma.paymentTransaction.findFirst({
+        where: { OR: [{ stripeInvoiceId: invoiceId }, { stripeSessionId: invoiceId }] },
+        select: { id: true },
+      });
+      if (row) return this.rememberPaymentIntent(row.id, paymentIntentId);
+    }
+
+    if (paymentIntentId && this.stripe) {
+      const sessions = await this.stripe.checkout?.sessions?.list?.({ payment_intent: paymentIntentId, limit: 3 });
+      for (const session of sessions?.data ?? []) {
+        const row = await this.prisma.paymentTransaction.findUnique({
+          where: { stripeSessionId: session.id },
+          select: { id: true },
+        });
+        if (row) return this.rememberPaymentIntent(row.id, paymentIntentId);
+      }
+      const payments = await this.stripe.invoicePayments?.list?.({
+        payment: { type: 'payment_intent', payment_intent: paymentIntentId },
+        limit: 3,
+      });
+      for (const payment of payments?.data ?? []) {
+        const invoice = idOf(payment?.invoice);
+        if (!invoice) continue;
+        const row = await this.prisma.paymentTransaction.findFirst({
+          where: { OR: [{ stripeInvoiceId: invoice }, { stripeSessionId: invoice }] },
+          select: { id: true },
+        });
+        if (row) return this.rememberPaymentIntent(row.id, paymentIntentId);
+      }
+    }
+
+    const ours = ref.customerId
+      ? await this.prisma.user.findUnique({ where: { stripeCustomerId: ref.customerId }, select: { id: true } })
+      : null;
+    if (!ours) {
+      this.logger.log(`${event.type} ${event.id}: payment ${paymentIntentId ?? ref.chargeId} is not ours – ignored`);
+      return null;
+    }
+
+    const ageMs = typeof event.created === 'number' ? Date.now() - event.created * 1000 : Infinity;
+    if (ageMs < UNMATCHED_RETRY_WINDOW_MS) {
+      this.logger.warn(
+        `${event.type} ${event.id}: payment of user ${ours.id} not matched yet – asking Stripe to retry`,
+      );
+      throw new ServiceUnavailableException('Płatność nie jest jeszcze zarejestrowana – spróbuj ponownie później');
+    }
+    if (await this.recordEvent(event)) {
+      this.logger.error(`${event.type} ${event.id}: payment of user ${ours.id} matches no transaction`);
+      await this.notifyAdmins('Nie dopasowano zwrotu lub sporu', [
+        `Zdarzenie ${event.type} (${event.id}) dotyczy płatności klienta AllGrafiki (konto ${ours.id}),`,
+        `ale nie znaleziono transakcji (PaymentIntent ${paymentIntentId ?? '-'}, charge ${ref.chargeId ?? '-'}).`,
+        'Kredyty nie zostały zmienione – sprawdź płatność w Stripe i popraw saldo ręcznie.',
+      ]);
+    }
+    return null;
+  }
+
+  /** Stores a PaymentIntent found later on a row that has none yet (best effort). */
+  private async rememberPaymentIntent(transactionId: string, paymentIntentId: string | undefined) {
+    if (paymentIntentId) {
+      await this.prisma.paymentTransaction
+        .updateMany({
+          where: { id: transactionId, stripePaymentIntentId: null },
+          data: { stripePaymentIntentId: paymentIntentId },
+        })
+        .catch((err) => this.logger.warn(`Could not store PaymentIntent on ${transactionId}: ${err?.message}`));
+    }
+    return transactionId;
+  }
+
+  /** Records a processed Stripe event outside any other work; false when it was already recorded. */
+  private async recordEvent(event: any): Promise<boolean> {
+    const inserted = await this.prisma.$executeRaw`
+      INSERT INTO "stripe_events" ("id", "type") VALUES (${String(event.id)}, ${String(event.type)})
+      ON CONFLICT ("id") DO NOTHING`;
+    return inserted === 1;
+  }
+
+  /**
+   * Applies a refund / dispute to the payment, once per Stripe event id (recorded in the same database
+   * transaction). The target number of reversed credits is recomputed from the cumulative amounts, so the
+   * order of events does not matter: only an increase is taken from the balance (never below 0 – the rest
+   * is the shortfall) and a decrease (dispute won) is given back, the shortfall first. Before fulfilment
+   * nothing is moved – the completion adds only what is left (AC-PAY-021).
+   */
+  private async applyReversal(event: any, transactionId: string, kind: 'refund' | 'dispute', change: ReversalChange) {
+    const outcome = await this.prisma.$transaction(async (tx): Promise<ReversalOutcome | null> => {
+      const inserted = await tx.$executeRaw`
+        INSERT INTO "stripe_events" ("id", "type") VALUES (${String(event.id)}, ${String(event.type)})
+        ON CONFLICT ("id") DO NOTHING`;
+      if (inserted !== 1) return null;
+
+      const [row] = await tx.$queryRaw<LockedTransaction[]>`
+        SELECT "id", "userId", "status", "amountPln", "creditsAdded", "packageId", "completedAt", "amountRefunded",
+               "disputeAmount", "disputeStatus", "creditsReversed", "creditsShortfall"
+        FROM "payment_transactions" WHERE "id" = ${transactionId} FOR UPDATE`;
+      if (!row) return null;
+
+      const next: LockedTransaction = { ...row };
+      if (change.amountRefunded !== undefined) {
+        // Stripe reports the running total – an older (smaller) total never gives credits back.
+        next.amountRefunded = Math.max(row.amountRefunded, Math.min(row.amountPln, change.amountRefunded));
+      }
+      if (change.dispute) {
+        const closed = row.disputeStatus === 'won' || row.disputeStatus === 'lost';
+        if (!(closed && change.dispute.status === 'open')) {
+          next.disputeStatus = change.dispute.status;
+          next.disputeAmount = change.dispute.status === 'won' ? 0 : Math.max(0, change.dispute.amount);
+        }
+      }
+
+      const target = creditsToReverse(next);
+      let balanceChange = 0;
+      let balanceAfter: number | null = null;
+      if (row.completedAt) {
+        const [user] = await tx.$queryRaw<{ credits: number }[]>`
+          SELECT "credits" FROM "users" WHERE "id" = ${row.userId} FOR UPDATE`;
+        let credits = user?.credits ?? 0;
+        if (target > row.creditsReversed) {
+          const wanted = target - row.creditsReversed;
+          const removed = Math.min(wanted, Math.max(0, credits));
+          next.creditsShortfall = row.creditsShortfall + (wanted - removed);
+          credits -= removed;
+          balanceChange = removed;
+        } else if (target < row.creditsReversed) {
+          const back = row.creditsReversed - target;
+          const cleared = Math.min(row.creditsShortfall, back);
+          next.creditsShortfall = row.creditsShortfall - cleared;
+          credits += back - cleared;
+          balanceChange = -(back - cleared);
+        }
+        if (balanceChange !== 0 && user) {
+          await tx.user.update({ where: { id: row.userId }, data: { credits: { decrement: balanceChange } } });
+        }
+        balanceAfter = user ? credits : null;
+      }
+      next.creditsReversed = target;
+      next.status = reversalStatus(next);
+
+      await tx.paymentTransaction.update({
+        where: { id: row.id },
+        data: {
+          amountRefunded: next.amountRefunded,
+          disputeAmount: next.disputeAmount,
+          disputeStatus: next.disputeStatus,
+          creditsReversed: next.creditsReversed,
+          creditsShortfall: next.creditsShortfall,
+          status: next.status,
+        },
+      });
+
+      return {
+        transactionId: row.id,
+        userId: row.userId,
+        kind,
+        status: next.status,
+        amountPln: row.amountPln,
+        amountRefunded: next.amountRefunded,
+        disputeStatus: next.disputeStatus,
+        creditsAdded: row.creditsAdded,
+        creditsReversed: next.creditsReversed,
+        creditsShortfall: next.creditsShortfall,
+        balanceChange,
+        balanceAfter,
+      };
+    });
+
+    if (!outcome) {
+      this.logger.warn(`Duplicate ${event.type} ${event.id} ignored`);
+      return;
+    }
+    this.logger.warn(
+      `${event.type} ${event.id}: transaction ${outcome.transactionId} → ${outcome.status}, ` +
+        `credits ${outcome.balanceChange >= 0 ? '-' : '+'}${Math.abs(outcome.balanceChange)} ` +
+        `(reversed ${outcome.creditsReversed}/${outcome.creditsAdded}, shortfall ${outcome.creditsShortfall})`,
+    );
+    await this.notifyReversal(event, outcome);
+  }
+
+  private async notifyReversal(event: any, o: ReversalOutcome) {
+    const user = await this.prisma.user.findUnique({ where: { id: o.userId }, select: { email: true } });
+    const what =
+      o.kind === 'refund'
+        ? 'Zwrot płatności'
+        : o.disputeStatus === 'open'
+          ? 'Spór (chargeback) otwarty'
+          : `Spór zamknięty: ${o.disputeStatus === 'won' ? 'wygrany' : 'przegrany'}`;
+    await this.notifyAdmins(`${what} – ${user?.email ?? o.userId}`, [
+      `${what} (${event.type}, ${event.id}).`,
+      `Konto: ${user?.email ?? '(usunięte)'} (${o.userId})`,
+      `Transakcja: ${o.transactionId}, status: ${o.status}`,
+      `Zapłacono: ${zl(o.amountPln)}, zwrócono łącznie: ${zl(o.amountRefunded)}, spór: ${o.disputeStatus ?? 'brak'}`,
+      `Kredyty z płatności: ${o.creditsAdded}, odebrane łącznie: ${o.creditsReversed}, niedobór (już wydane): ${o.creditsShortfall}`,
+      o.balanceChange >= 0
+        ? `Teraz odebrano z salda: ${o.balanceChange}`
+        : `Teraz oddano na saldo: ${-o.balanceChange}`,
+      `Saldo kupionych kredytów po zmianie: ${o.balanceAfter ?? 'płatność jeszcze nie zrealizowana'}`,
+      '',
+      `Panel: ${this.frontendUrl()}/admin`,
+    ]);
+  }
+
+  /**
+   * Operator alert (spec 16 – ADMIN_EMAILS + MailService). Best effort: the accounting is already
+   * committed, a mail failure only gets logged.
+   */
+  private async notifyAdmins(subject: string, lines: string[]) {
+    const admins = [...parseAdminEmails(this.configService.get<string>('ADMIN_EMAILS'))];
+    if (!admins.length) {
+      this.logger.warn(`ADMIN_EMAILS not set – alert not e-mailed: ${subject}`);
+      return;
+    }
+    for (const to of admins) {
+      try {
+        await this.mail.send({ to, subject: `[AllGrafika] ${subject}`, text: lines.join('\n') });
+      } catch (err: any) {
+        this.logger.error(`Could not e-mail payment alert to an administrator: ${err?.message}`);
+      }
+    }
+  }
+
+  // ─── History and invoices ─────────────────────────────────────────
+
   async getTransactionHistory(userId: string) {
     const rows = await this.prisma.paymentTransaction.findMany({
-      where: { userId },
+      where: { userId, NOT: { stripeSessionId: { startsWith: RESERVATION_PREFIX } } },
       orderBy: { createdAt: 'desc' },
       take: 20,
       select: {
@@ -535,6 +1124,8 @@ export class PaymentsService {
         kind: true,
         createdAt: true,
         stripeInvoiceId: true,
+        amountRefunded: true,
+        creditsReversed: true,
       },
     });
     // The Stripe id stays on the server; the UI only needs to know an invoice exists.

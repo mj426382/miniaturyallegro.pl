@@ -100,7 +100,7 @@ export class UsersService {
   async deleteAccount(id: string, confirmEmail: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { images: { include: { generations: { select: { url: true } } } } },
+      include: { images: { include: { generations: { select: { url: true, referenceKey: true } } } } },
     });
     if (!user) throw new NotFoundException('User not found');
     if (user.email.toLowerCase() !== confirmEmail.toLowerCase()) {
@@ -110,7 +110,11 @@ export class UsersService {
     const keys: string[] = [];
     for (const image of user.images) {
       keys.push(image.filename);
-      for (const g of image.generations) if (g.url) keys.push(g.url);
+      for (const g of image.generations) {
+        if (g.url) keys.push(g.url);
+        // Spec 05, AC-GEN-028: stored reference images of custom styles / reworks.
+        if (g.referenceKey) keys.push(g.referenceKey);
+      }
     }
 
     // Spec 03, AC-AUTH-026: landing demo requests of the same mailbox (e-mail + photo) go too.

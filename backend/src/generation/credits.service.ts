@@ -5,6 +5,20 @@ import { Prisma } from '@prisma/client';
 import { emailNotVerifiedException, isVerificationRequired } from '../auth/email-verification';
 import { parseAdminEmails } from '../admin/admin-emails';
 
+/**
+ * Pool a single credit was charged from (spec 05, AC-GEN-027): `free` = the account's free pool,
+ * `paid` = purchased credits, `none` = nothing charged (unlimited admin account).
+ */
+export type CreditPool = 'free' | 'paid' | 'none';
+
+/** What one deduction took: free credits are always used first. */
+export interface CreditCharge {
+  free: number;
+  paid: number;
+  /** Unlimited (admin) account – nothing was charged. */
+  unlimited: boolean;
+}
+
 export interface CreditDeduction<T = void> {
   free: number;
   paid: number;
@@ -14,9 +28,26 @@ export interface CreditDeduction<T = void> {
 export interface DeductOptions<T> {
   /** Reject when the user already has this many generations in flight (counted under the row lock). */
   maxActive?: number;
-  /** Extra work (e.g. creating generation rows) executed in the SAME transaction – all or nothing. */
-  within?: (tx: Prisma.TransactionClient) => Promise<T>;
+  /**
+   * Extra work (e.g. creating generation rows) executed in the SAME transaction – all or nothing.
+   * Receives the split, so every generation row can record the pool of its credit (`poolsOf`).
+   */
+  within?: (tx: Prisma.TransactionClient, charge: CreditCharge) => Promise<T>;
 }
+
+/**
+ * The pool of each charged credit in charging order – free first, then paid; `count` × `none` for an
+ * unlimited account.
+ */
+export function poolsOf(charge: CreditCharge, count: number): CreditPool[] {
+  if (charge.unlimited) return Array.from({ length: count }, () => 'none' as const);
+  return [
+    ...Array.from({ length: charge.free }, () => 'free' as const),
+    ...Array.from({ length: charge.paid }, () => 'paid' as const),
+  ];
+}
+
+type LockedUser = { email: string; credits: number; freeCreditsUsed: number; emailVerifiedAt: Date | null };
 
 /**
  * Credit accounting.
@@ -26,6 +57,10 @@ export interface DeductOptions<T> {
  * credit = one generated graphic. Deductions run inside a transaction with a
  * row lock so concurrent requests (e.g. bulk upload, double clicks) can never
  * drive the balance negative or over-spend the free pool.
+ *
+ * Every generation records the pool its credit came from, and a failure refunds to exactly that pool
+ * (spec 05, AC-GEN-027) – a purchased credit never turns into a free one, which would skew the
+ * withdrawal quote (spec 19).
  *
  * Spec 16 (AC-ADM-010/011): accounts listed in ADMIN_EMAILS have no credit limit – nothing is
  * charged and nothing is refunded. Verification and the in-flight cap still apply to them.
@@ -103,7 +138,9 @@ export class CreditsService {
       }
 
       if (this.hasUnlimitedCredits(user.email, user.emailVerifiedAt)) {
-        const result = options.within ? await options.within(tx) : (undefined as T);
+        const result = options.within
+          ? await options.within(tx, { free: 0, paid: 0, unlimited: true })
+          : (undefined as T);
         return { free: 0, paid: 0, result };
       }
 
@@ -133,42 +170,73 @@ export class CreditsService {
         },
       });
 
-      const result = options.within ? await options.within(tx) : (undefined as T);
+      const result = options.within ? await options.within(tx, { free, paid, unlimited: false }) : (undefined as T);
       return { free, paid, result };
     });
   }
 
   /**
-   * Returns credits after a failed generation. Free credits are restored first –
-   * the user always ends up with the same total value as before the attempt.
+   * Marks an in-flight generation FAILED and returns its credit to the pool it was charged from – in ONE
+   * transaction, so a crash can never leave a failed graphic without its refund, and a second caller
+   * (processing error + reconciler) can never refund twice. Lock order is the same as in `deduct`
+   * (user row first, then the generation row), so a retry and a failure cannot deadlock.
+   * Returns true when this call failed (and refunded) the generation. Rows charged before 2026-10-18
+   * (creditPool NULL) are refunded the old way: free pool first.
    */
-  async refund(userId: string, count: number): Promise<void> {
-    if (count <= 0) return;
+  async failGeneration(userId: string, generationId: string): Promise<boolean> {
     try {
-      await this.prisma.$transaction(async (tx) => {
-        const rows = await tx.$queryRaw<{ email: string; freeCreditsUsed: number; emailVerifiedAt: Date | null }[]>`
-          SELECT "email", "freeCreditsUsed", "emailVerifiedAt" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
-        const user = rows[0];
-        if (!user) return;
-        // Nothing was charged for an unlimited account, so nothing is given back.
-        if (this.hasUnlimitedCredits(user.email, user.emailVerifiedAt)) return;
-
-        const freeToRefund = Math.min(count, user.freeCreditsUsed);
-        const paidToRefund = count - freeToRefund;
-
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            freeCreditsUsed: { decrement: freeToRefund },
-            credits: { increment: paidToRefund },
-          },
+      return await this.prisma.$transaction(async (tx) => {
+        const user = await this.lockUser(tx, userId);
+        const { count } = await tx.generation.updateMany({
+          where: { id: generationId, status: { in: ['PENDING', 'PROCESSING'] } },
+          data: { status: 'FAILED' },
         });
-        this.logger.log(`Refunded ${count} credit(s) to user ${userId} (free: ${freeToRefund}, paid: ${paidToRefund})`);
+        if (count !== 1) return false;
+        const row = await tx.generation.findUnique({ where: { id: generationId }, select: { creditPool: true } });
+        if (user) await this.refundOne(tx, userId, user, toPool(row?.creditPool));
+        return true;
       });
     } catch (err) {
-      this.logger.error(`Failed to refund credits for user ${userId}`, err);
+      // Nothing changed – the row stays in flight and the reconciler fails + refunds it later.
+      this.logger.error(`Could not fail generation ${generationId} of user ${userId}`, err);
+      return false;
     }
   }
+
+  private async lockUser(tx: Prisma.TransactionClient, userId: string): Promise<LockedUser | undefined> {
+    const rows = await tx.$queryRaw<LockedUser[]>`
+      SELECT "email", "credits", "freeCreditsUsed", "emailVerifiedAt" FROM "users" WHERE "id" = ${userId} FOR UPDATE`;
+    return rows[0];
+  }
+
+  /**
+   * Gives one credit back to `pool` and keeps the locked snapshot `user` in step. `none` (unlimited admin)
+   * gives nothing; `null` (charged before 2026-10-18) uses the old rule: free pool first, nothing for an
+   * unlimited account.
+   */
+  private async refundOne(tx: Prisma.TransactionClient, userId: string, user: LockedUser, pool: CreditPool | null) {
+    let target: 'free' | 'paid' | null;
+    if (pool === 'none') target = null;
+    else if (pool === 'paid') target = 'paid';
+    else if (pool === 'free') target = user.freeCreditsUsed > 0 ? 'free' : null;
+    else if (this.hasUnlimitedCredits(user.email, user.emailVerifiedAt)) target = null;
+    else target = user.freeCreditsUsed > 0 ? 'free' : 'paid';
+
+    if (target === 'free') {
+      await tx.user.update({ where: { id: userId }, data: { freeCreditsUsed: { decrement: 1 } } });
+      user.freeCreditsUsed -= 1;
+    } else if (target === 'paid') {
+      await tx.user.update({ where: { id: userId }, data: { credits: { increment: 1 } } });
+      user.credits += 1;
+    }
+
+    if (target) this.logger.log(`Refunded 1 ${target} credit to user ${userId}`);
+    else if (pool === 'free') this.logger.error(`Free-pool refund for user ${userId} skipped – nothing was used`);
+  }
+}
+
+function toPool(value: string | null | undefined): CreditPool | null {
+  return value === 'free' || value === 'paid' || value === 'none' ? value : null;
 }
 
 /** FREE_CREDITS_LIMIT as an integer 0–100 (validated at start-up); default 5 since spec 19. */
