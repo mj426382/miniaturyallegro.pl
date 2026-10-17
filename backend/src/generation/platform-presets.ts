@@ -107,6 +107,8 @@ export const PLATFORM_PRESETS: Record<PlatformId, PlatformPreset> = {
     rules: [
       { text: 'Pierwsze zdjęcie pokazuje cały przedmiot, bez kolaży', official: true },
       { text: 'Własne zdjęcia, bez znaków wodnych', official: true },
+      // Same rule as the landing pages: Vinted's catalogue rules require the seller's own, unedited photos.
+      { text: 'Bez scen i tła z AI – wgraj oryginalne zdjęcie, użyj tylko kadru i formatu', official: true },
       { text: 'Zdjęcia pionowe 3:4 lub kwadratowe, min. 800 px', official: false },
       { text: 'Bez napisów i plakietek na zdjęciach', official: false },
       { text: 'Tytuł do 50 znaków (dłuższe są ucinane na liście)', official: false },

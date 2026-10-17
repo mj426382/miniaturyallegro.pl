@@ -1,6 +1,6 @@
 # AllGrafika.pl
 
-SaaS do generowania miniaturek i grafik produktowych na Allegro z jednego zdjęcia produktu
+SaaS do generowania zdjęć produktowych do ofert na OLX, Vinted, eBay, Amazon i do sklepów internetowych z jednego zdjęcia produktu
 (Google Gemini – obraz, OpenAI – analiza produktu i prompt engineering).
 
 ## Struktura
@@ -40,14 +40,14 @@ nieudane generacje (błąd modelu, awaria serwera) są automatycznie zwracane, t
   (idempotentnie po id faktury), portal klienta do anulowania/zmiany planu.
 - **Eksport** (`POST /api/generation/export/:id`) – formaty 1:1 / 4:3 / 3:4 / 16:9, rozmiar,
   JPEG/PNG/WebP, plakietka promocyjna (sharp, bez AI).
-- **Integracja Allegro** (`/api/allegro/*`) – OAuth sprzedawcy, lista ofert, import zdjęcia głównego,
-  publikacja grafiki jako zdjęcie główne / do galerii. Tokeny szyfrowane AES-256-GCM.
-  Wymaga rejestracji aplikacji na apps.developer.allegro.pl i testu na sandboxie (`ALLEGRO_SANDBOX=true`).
+- **Presety platform** (`GET /api/generation/platform-presets`, spec 08) – OLX, Vinted, eBay, Amazon i sklep
+  internetowy: proporcje, rozmiary, tło i limit tytułu dla eksportu i opisu. Bez integracji z kontami platform
+  (integracja z Allegro usunięta 2026-10-17).
 - **Ocena jakości** (`POST /api/generation/feedback/:id`) – kciuk w górę/dół + powód; agregat
   `GenerationService.getFeedbackStats()` lub SQL: `SELECT style, rating, count(*) FROM generations WHERE rating IS NOT NULL GROUP BY 1,2`.
 - **Analityka** – Plausible/Umami bez cookies; włączana zmiennymi `VITE_ANALYTICS_DOMAIN`
   (+ opcjonalnie `VITE_ANALYTICS_SRC`, `VITE_ANALYTICS_WEBSITE_ID`) w obu frontendach.
-  Zdarzenia lejka: `demo_start`, `demo_done`, `register`, `upload`, `generation_start`, `export`, `feedback`, `purchase`, `allegro_*`.
+  Zdarzenia lejka: `demo_start`, `demo_done`, `register`, `upload`, `generation_start`, `export`, `feedback`, `purchase`.
 
 ## Szybki start
 
@@ -86,17 +86,17 @@ wysypywała. Testy hydratacji i Lighthouse uruchamiaj właśnie przeciw `preview
 
 ### Eksport z edycją i opisy ofert
 
-- **Eksport** (`POST /api/generation/export/:id`): formaty Allegro (1:1, 4:3, 16:9, 3:4), kadrowanie wybrane przez
+- **Eksport** (`POST /api/generation/export/:id`): formaty 1:1, 4:3, 16:9, 3:4 lub preset wybranej platformy (`platform`), kadrowanie wybrane przez
   użytkownika (`crop` jako ułamki 0–1 obróconego obrazu, interaktywny kadrownik `react-easy-crop` w modalu),
   obrót o 90/180/270° (`rotate`), korekta jasności/kontrastu/nasycenia i wyostrzenie (`adjust`, podgląd CSS
   odpowiada operacjom sharp), plakietka promocyjna. Bez `crop` grafika jest dopasowana w całości na białym tle.
 - **Opis oferty pod SEO** (`/api/descriptions/:imageId`): dostępny dopiero, gdy zdjęcie ma gotową grafikę;
-  `POST` pisze tytuł (≤ 75 znaków), opis w HTML dozwolonym przez Allegro (h2/p/ul/ol/li/b) i frazy kluczowe
+  `POST` pisze tytuł (≤ 75 znaków), opis w prostym HTML (h2/p/ul/ol/li/b) dopasowany do wybranej platformy (limit tytułu z presetu) i frazy kluczowe
   z notatek sprzedawcy + analizy zdjęcia (gpt-4o-mini). Pierwszy opis jest darmowym bonusem do grafik; każde
   kolejne wywołanie AI (`POST …/refine` – poprawka promptem, ponowny `POST` – od nowa) zużywa jedną poprawkę:
   `DESCRIPTION_PROMPT_EDITS` (domyślnie 5) gratis na zdjęcie, potem `POST …/edit-packs` dokupuje 15 poprawek za
   1 kredyt (w transakcji kredytowej). Licznik rezerwowany atomowo, nieudane wywołania nie liczą się. `PATCH` to
-  edycja ręczna bez limitu. Każdy zapis przechodzi przez sanitizer (`allegro-html.ts`).
+  edycja ręczna bez limitu. Każdy zapis przechodzi przez sanitizer (`offer-html.ts`).
 - **Masowe przesyłanie** (`/bulk-upload`): trzy tryby – tylko wgranie (style wybierzesz później z galerii),
   wspólne style dla całej partii albo osobne style dla każdego pliku; podsumowanie kosztu przed startem.
 - **Standard produkcyjny UI**: `ErrorBoundary` (błąd renderu → ekran z odświeżeniem zamiast pustej strony),
@@ -240,11 +240,11 @@ Frontend: `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`, opcjonalnie `VITE_SENTRY_DSN`
 | POST | `/api/generation/retry/:id` | Ponowienie nieudanej generacji |
 | GET | `/api/generation/:imageId/results` | Wyniki (polling) |
 | POST | `/api/generation/feedback/:id` | Ocena grafiki (1 / -1 + powód) |
-| POST | `/api/generation/export/:id` | Eksport w formacie Allegro / z plakietką |
+| POST | `/api/generation/export/:id` | Eksport w formacie / presecie platformy, z plakietką |
 | POST | `/api/demo` · GET `/api/demo/:id` | Darmowa próba bez konta (publiczne) |
 | POST | `/api/payments/checkout` | Stripe Checkout (wymaga `acceptedWithdrawalWaiver: true`) |
 | POST | `/api/payments/subscribe`, `/api/payments/portal` | Abonament (Stripe Billing) i portal klienta |
-| GET/POST | `/api/allegro/*` | Status, OAuth, oferty, import, publikacja |
+| GET | `/api/generation/platform-presets` | Presety platform (OLX, Vinted, eBay, Amazon, sklep) |
 | POST | `/api/payments/webhook` | Webhook Stripe (idempotentny) |
 | GET | `/api/health` | Healthcheck |
 
