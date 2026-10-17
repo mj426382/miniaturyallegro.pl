@@ -14,7 +14,7 @@ test('[AC-REF-005] a referral link announces the gift and the code survives a de
   await page.goto('/register')
   await expect(page.getByText('Masz zaproszenie od znajomego')).toBeVisible()
 
-  await page.getByLabel('Email').fill('polecony@example.com')
+  await page.getByLabel('E-mail', { exact: true }).fill('polecony@example.com')
   await page.getByLabel('Hasło', { exact: true }).fill(PASSWORD)
   await page.getByLabel('Potwierdź hasło').fill(PASSWORD)
   await page.locator('#acceptTerms').check()
@@ -29,7 +29,7 @@ test('[AC-REF-005] a sign-up without a referral sends no code and shows no gift 
   const { requests } = await mockApp(page, { loggedIn: false })
   await page.goto('/register')
   await expect(page.getByText('Masz zaproszenie od znajomego')).toHaveCount(0)
-  await page.getByLabel('Email').fill('ktos@example.com')
+  await page.getByLabel('E-mail', { exact: true }).fill('ktos@example.com')
   await page.getByLabel('Hasło', { exact: true }).fill(PASSWORD)
   await page.getByLabel('Potwierdź hasło').fill(PASSWORD)
   await page.locator('#acceptTerms').check()

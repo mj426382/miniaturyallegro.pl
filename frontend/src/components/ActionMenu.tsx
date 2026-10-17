@@ -14,16 +14,24 @@ interface Props {
   items: ActionMenuItem[]
 }
 
-/** Overflow menu for secondary actions: keyboard-reachable, closes on Escape, outside click and selection. */
+/**
+ * Overflow menu for secondary actions: keyboard-reachable, closes on Escape, outside click and selection;
+ * Escape and a selection return focus to the menu button.
+ */
 export default function ActionMenu({ label = 'Więcej akcji', items }: Props) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const firstItemRef = useRef<HTMLButtonElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
     firstItemRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setOpen(false)
+      triggerRef.current?.focus()
+    }
     const onClick = (e: MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
     }
@@ -38,6 +46,7 @@ export default function ActionMenu({ label = 'Więcej akcji', items }: Props) {
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={label}
@@ -58,6 +67,8 @@ export default function ActionMenu({ label = 'Więcej akcji', items }: Props) {
               disabled={item.disabled}
               onClick={() => {
                 setOpen(false)
+                // Focus goes back to the menu button, so a dialog opened by the item returns focus there (spec 11).
+                triggerRef.current?.focus()
                 item.onSelect()
               }}
               className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-gray-50 disabled:opacity-50 ${item.danger ? 'text-red-600' : 'text-gray-700'}`}

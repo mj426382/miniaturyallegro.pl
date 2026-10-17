@@ -57,7 +57,7 @@ produkcyjna i buduje SEO, dlatego żadna zmiana nie może pogorszyć działania 
 
 ## 3. Kryteria akceptacji
 
-- **AC-MOB-001** – Given aplikacja uruchomiona jako natywna, When użytkownik się zaloguje lub zarejestruje, Then token z odpowiedzi jest zapisany i dołączany jako `Authorization: Bearer` do kolejnych żądań, a po wylogowaniu lub 401 znika.
+- **AC-MOB-001** – Given aplikacja uruchomiona jako natywna, When użytkownik się zaloguje, zarejestruje albo zmieni hasło (API unieważnia wtedy stare sesje i zwraca nowy token), Then token z odpowiedzi jest zapisany i dołączany jako `Authorization: Bearer` do kolejnych żądań, a po wylogowaniu lub 401 znika.
 - **AC-MOB-002** – Given przeglądarka (web), When działa aplikacja, Then żądania nie zawierają nagłówka `Authorization`, a sesja dalej opiera się na ciasteczku (bez zmian względem webu).
 - **AC-MOB-003** – Given aplikacja natywna w trybie `web-link`, When użytkownik kliknie zakup pakietu lub abonamentu, Then otwiera się `https://app.allgrafika.pl/credits` w przeglądarce systemowej, a aplikacja nie tworzy sesji Stripe. W trybie `hidden` przyciski zakupu są niewidoczne, a stan kredytów widoczny.
 - **AC-MOB-004** – Given aplikacja natywna, When użytkownik pobierze grafikę, Then plik trafia do natywnego arkusza udostępniania z nazwą i typem obrazu.

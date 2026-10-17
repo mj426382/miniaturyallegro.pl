@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { adminApi, AdminUserRow, generationApi } from '../services/api'
 import { usePageTitle } from '../hooks/usePageTitle'
-import AdminUserModal from '../components/AdminUserModal'
+import { AdminUserModal } from '../components/lazyModals'
+import ModalFallback from '../components/ModalFallback'
+import { usePreloadOnInteraction } from '../hooks/usePreloadOnInteraction'
 import AdminGenerationsFeed from '../components/admin/AdminGenerationsFeed'
 import { formatDateTime as dateTime, formatZl as zl } from '../utils/format'
 import { countLabel } from '../utils/plural'
@@ -15,6 +17,7 @@ const PROVIDER: Record<AdminUserRow['provider'], string> = { password: 'e-mail',
 /** Spec 16: operator panel – accounts, usage, plans and an individual message to a user. */
 export default function Admin() {
   usePageTitle('Panel administratora')
+  usePreloadOnInteraction(AdminUserModal.preload)
   const [search, setSearch] = useState('')
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -226,7 +229,11 @@ export default function Admin() {
         </>
       )}
 
-      {openUserId && <AdminUserModal userId={openUserId} styleNames={styleNames} onClose={() => setOpenUserId(null)} />}
+      {openUserId && (
+        <Suspense fallback={<ModalFallback />}>
+          <AdminUserModal userId={openUserId} styleNames={styleNames} onClose={() => setOpenUserId(null)} />
+        </Suspense>
+      )}
     </div>
   )
 }

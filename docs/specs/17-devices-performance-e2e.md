@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Właściciel | Mateusz Janduła |
-| Data | 2026-10-05 |
+| Data | 2026-10-05 (zmiana 2026-10-18: okna modalne ładowane leniwie) |
 | Powiązane | NFR-PERF-001, NFR-PERF-006, NFR-UX-001, NFR-UX-004, NFR-DEV-003, NFR-DEV-007, spec 10, spec 11 |
 
 ## 1. Kontekst
@@ -49,6 +49,12 @@ Aplikacja i landing działają na produkcji, a landing buduje pozycje w Google. 
 - **Treść prawna ładowana leniwie**, ale prerenderowana w pełni. HTML regulaminu i polityki zawiera cały
   tekst, ważny dla SEO i dowodu treści. Klient doczytuje chunk przed hydratacją, tak samo jak wpisy bloga.
 - **Trasy aplikacji dzielone** przez `React.lazy`. Ekrany logowania i rejestracji pozostają lekkie.
+- **Okna modalne ładowane leniwie** (2026-10-18). Eksport (z kadrowaniem), infografika, oferta przy braku kredytów,
+  opisy dla zaznaczonych i szczegóły użytkownika w panelu admina są osobnymi chunkami, których ekran nie importuje
+  statycznie. Ekran pobiera je przy pierwszej interakcji użytkownika (ruch wskaźnika, dotyk, klawisz) – nie przy
+  wejściu na stronę – więc okno otwiera się potem natychmiast, także bez sieci. Do tego czasu (albo gdy chunk jeszcze
+  się ładuje) zamiast okna jest nakładka „Ładowanie…”. Nieudany import po wdrożeniu nowej wersji przeładowuje stronę
+  raz (jak przy trasach).
 - **Test full-stack** uruchamia prawdziwy backend Nest z bazą testową (osobna baza, nigdy produkcyjna).
   Podmienione są tylko dostawcy zewnętrzni:
   - AI zastępuje deterministyczna atrapa,
@@ -70,6 +76,8 @@ Aplikacja i landing działają na produkcji, a landing buduje pozycje w Google. 
 - **AC-PERF-002** – Given prerenderowane `/regulamin` i `/polityka-prywatnosci`, When pobrany HTML, Then zawiera pełną treść dokumentu (np. ostatni paragraf), a w przeglądarce hydratacja przebiega bez błędów mimo leniwego chunku treści.
 - **AC-PERF-003** – Given build produkcyjny aplikacji, When zmierzone są pakiety, Then wejściowy JS ≤ 150 KB gzip, każdy chunk ≤ 120 KB gzip, a ekrany za logowaniem są w osobnych chunkach.
 - **AC-PERF-004** – Given pliki statyczne landingu i aplikacji, When zmierzone, Then `favicon.ico` ≤ 16 KB, `logo.webp` ≤ 12 KB, a `logo.png` i `og-image.png` istnieją.
+- **AC-PERF-006** – Given build produkcyjny aplikacji, When przeanalizowany jest chunk generatora i wszystko, co importuje statycznie, Then nie zawiera on kodu okien eksportu (z kadrowaniem), infografiki ani oferty przy braku kredytów (są osobnymi chunkami), a przeglądarka po wejściu na generator nie pobiera tych chunków przed pierwszą interakcją użytkownika; to samo dotyczy okna opisów dla zaznaczonych (galeria, masowe przesyłanie) i szczegółów użytkownika (panel admina).
+- **AC-PERF-007** – Given generator po pierwszej interakcji użytkownika, When sieć zostanie wyłączona, Then okna eksportu, eksportu oryginału, infografiki i oferty otwierają się bez sieci w mniej niż 1 s każde.
 - **AC-PERF-005** – Given demo na stronie głównej, When użytkownik wyśle poprawny formularz, Then żądanie `POST /api/demo` ma `multipart/form-data` z polami e-mail, zgodą i plikiem, a wynik demo wyświetla grafikę (bez axios).
 - **AC-E2E-001** – Given prawdziwy backend z bazą testową i atrapą AI, When nowy użytkownik zarejestruje się w przeglądarce, kliknie link z e-maila, prześle zdjęcie i wygeneruje grafiki, Then widzi gotowe grafiki w galerii, a saldo kredytów spada o ich liczbę.
 - **AC-E2E-002** – Given skrypt serwera testowego, When uruchomiony z `NODE_ENV=production` albo z bazą bez „test” w nazwie, Then odmawia startu.

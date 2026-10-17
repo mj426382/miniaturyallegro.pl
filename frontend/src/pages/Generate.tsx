@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { Suspense, useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { imagesApi, generationApi } from '../services/api'
@@ -8,14 +8,14 @@ import { usePageTitle } from '../hooks/usePageTitle'
 import { useConfirm } from '../hooks/useConfirm'
 import { track } from '../services/analytics'
 import { downloadBlob, shareBlob } from '../utils/download'
-import ExportModal from '../components/ExportModal'
-import InfographicModal from '../components/InfographicModal'
 import OfferDescriptionPanel from '../components/OfferDescriptionPanel'
 import StylePicker from '../components/generate/StylePicker'
 import CustomStyleForm from '../components/generate/CustomStyleForm'
 import ResultCard from '../components/generate/ResultCard'
-import PaywallModal from '../components/PaywallModal'
 import ConsentPrompt from '../components/ConsentPrompt'
+import ModalFallback from '../components/ModalFallback'
+import { ExportModal, InfographicModal, PaywallModal } from '../components/lazyModals'
+import { usePreloadOnInteraction } from '../hooks/usePreloadOnInteraction'
 import { SparklesIcon, CreditCardIcon, Squares2X2Icon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
 
 type Tab = 'auto' | 'custom'
@@ -30,6 +30,8 @@ export default function Generate() {
   const { user, refreshUser } = useAuth()
   const confirm = useConfirm()
   usePageTitle('Generator grafik')
+  // Spec 17, AC-PERF-006/007: the dialogs are separate chunks, fetched on the first interaction – not with the screen.
+  usePreloadOnInteraction(ExportModal.preload, InfographicModal.preload, PaywallModal.preload)
 
   const resultsRef = useRef<HTMLDivElement>(null)
   const descriptionRef = useRef<HTMLDivElement>(null)
@@ -301,7 +303,11 @@ export default function Generate() {
 
   return (
     <div className="px-4 py-6 sm:p-8 max-w-5xl mx-auto">
-      <PaywallModal open={paywall !== null} missing={paywall?.missing} onClose={() => setPaywall(null)} />
+      {paywall && (
+        <Suspense fallback={<ModalFallback />}>
+          <PaywallModal open missing={paywall.missing} onClose={() => setPaywall(null)} />
+        </Suspense>
+      )}
       {/* Header: product image + title */}
       <div className="flex items-center gap-4 mb-6">
         <img src={image.originalUrl} alt="Zdjęcie produktu" className="w-20 h-20 object-cover rounded-xl border border-gray-200 shrink-0" />
@@ -459,20 +465,22 @@ export default function Generate() {
         </div>
       )}
 
-      {exportTarget === 'original' && <ExportModal original={{ imageId: image.id, url: image.originalUrl }} initialPlatform="vinted" onClose={() => setExportTarget(null)} />}
-      {exportTarget && exportTarget !== 'original' && exportTarget.url && (
-        <ExportModal
-          generation={{
-            id: exportTarget.id,
-            style: exportTarget.style,
-            styleName: exportTarget.style === 'custom' ? 'Własny styl' : styleNames[exportTarget.style] || exportTarget.style,
-            url: exportTarget.url,
-          }}
-          original={{ imageId: image.id, url: image.originalUrl }}
-          onClose={() => setExportTarget(null)}
-        />
-      )}
-      {infographicTarget && <InfographicModal generationId={infographicTarget.id} imageId={imageId!} styleName={infographicTarget.style} onClose={() => setInfographicTarget(null)} />}
+      <Suspense fallback={<ModalFallback />}>
+        {exportTarget === 'original' && <ExportModal original={{ imageId: image.id, url: image.originalUrl }} initialPlatform="vinted" onClose={() => setExportTarget(null)} />}
+        {exportTarget && exportTarget !== 'original' && exportTarget.url && (
+          <ExportModal
+            generation={{
+              id: exportTarget.id,
+              style: exportTarget.style,
+              styleName: exportTarget.style === 'custom' ? 'Własny styl' : styleNames[exportTarget.style] || exportTarget.style,
+              url: exportTarget.url,
+            }}
+            original={{ imageId: image.id, url: image.originalUrl }}
+            onClose={() => setExportTarget(null)}
+          />
+        )}
+        {infographicTarget && <InfographicModal generationId={infographicTarget.id} imageId={imageId!} styleName={infographicTarget.style} onClose={() => setInfographicTarget(null)} />}
+      </Suspense>
 
       {!hasResults && (
         <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">

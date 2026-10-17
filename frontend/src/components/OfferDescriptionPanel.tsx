@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import PaywallModal from './PaywallModal'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { PaywallModal } from './lazyModals'
+import ModalFallback from './ModalFallback'
 import toast from 'react-hot-toast'
 import { ArrowUturnLeftIcon, ClipboardDocumentIcon, DocumentTextIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { descriptionsApi, DescriptionView, OfferDescription, PlatformId } from '../services/api'
@@ -215,7 +216,11 @@ export default function OfferDescriptionPanel({ imageId, hasCompletedGraphic, on
 
   return (
     <section className="mt-10 bg-white rounded-xl border border-gray-200 p-5 sm:p-6" aria-labelledby="offer-description-title">
-      <PaywallModal open={paywallOpen} missing={packCredits} onClose={() => setPaywallOpen(false)} />
+      {paywallOpen && (
+        <Suspense fallback={<ModalFallback />}>
+          <PaywallModal open missing={packCredits} onClose={() => setPaywallOpen(false)} />
+        </Suspense>
+      )}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h2 id="offer-description-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">

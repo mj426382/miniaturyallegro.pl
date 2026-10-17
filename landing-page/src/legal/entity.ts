@@ -22,6 +22,15 @@ export const LEGAL_DATES = {
   privacyUpdated: '12 października 2026 r.',
   /** Integracja z zewnętrzną platformą sprzedażową wycofana – usunięto ją z regulaminu (dawny § 4b) i z polityki prywatności. */
   integrationRemoved: '17 października 2026 r.',
+  /**
+   * 2026-10-18: niższe ceny abonamentów (obowiązują od publikacji), usuwanie EXIF i znacznik AI (od publikacji),
+   * limity przesyłania i skrót adresu e-mail po usunięciu konta – ograniczają Użytkowników, więc obowiązują
+   * 14 dni po publikacji (regulamin § 2 ust. 4).
+   */
+  changesPublished: '18 października 2026 r.',
+  changesPublishedIso: '2026-10-18',
+  limitsEffective: '1 listopada 2026 r.',
+  limitsEffectiveIso: '2026-11-01',
 }
 
 export const PRICING = {
@@ -39,6 +48,14 @@ export const PRICING = {
   allStyles: 19,
   descriptionPromptEdits: 5,
   descriptionEditPack: 15,
+  /** Abonamenty od 18 października 2026 r. (spec 02/10; backend/src/payments/plans.ts). */
+  subscriptionStart: { name: 'Start', credits: 40, price: '19 zł', previousPrice: '49 zł' },
+  subscriptionPro: { name: 'Pro', credits: 150, price: '59 zł', previousPrice: '149 zł' },
+  /** Limity przesyłania zdjęć (od 1 listopada 2026 r.). */
+  uploadLimitUnconfirmed: 5,
+  uploadLimitDaily: 200,
+  /** Ile miesięcy po usunięciu konta przechowujemy skrót HMAC adresu e-mail. */
+  deletedEmailHashMonths: 12,
 }
 
 export const PROCESSORS = [

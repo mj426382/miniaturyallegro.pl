@@ -38,6 +38,11 @@ interface AuthContextType {
   googleLogin: (googleToken: string, acceptedTerms?: boolean) => Promise<void>
   register: (email: string, password: string, name: string | undefined, acceptedTerms: boolean, marketingConsent?: boolean) => Promise<void>
   logout: () => void
+  /**
+   * Changes the password. The API ends the other sessions and returns a fresh token: the native app must keep it
+   * (spec 18, AC-MOB-001), otherwise its old Bearer token is rejected and the next request logs the user out.
+   */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   /** Re-fetches the profile (credits, counters) from the API. */
   refreshUser: () => Promise<void>
   isLoading: boolean
@@ -165,6 +170,12 @@ export function useAuthProvider() {
     refreshUser().catch(() => undefined)
   }
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    const { data } = await authApi.changePassword(currentPassword, newPassword)
+    // Web: the API re-sets the httpOnly cookie and setSessionToken is a no-op.
+    if (data?.token) await setSessionToken(data.token)
+  }
+
   const logout = () => {
     // The request still carries the native Bearer token; it is dropped once the API has answered.
     authApi
@@ -178,5 +189,5 @@ export function useAuthProvider() {
     setUser(null)
   }
 
-  return { user, token, login, googleLogin, register, logout, refreshUser, isLoading }
+  return { user, token, login, googleLogin, register, logout, changePassword, refreshUser, isLoading }
 }

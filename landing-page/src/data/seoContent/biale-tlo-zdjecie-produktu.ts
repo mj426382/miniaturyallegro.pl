@@ -68,7 +68,7 @@ const content: SeoContent = {
     },
     {
       q: 'Czy białe tło jest darmowe?',
-      a: 'Pierwsze 5 grafik po potwierdzeniu e-maila jest za darmo, a jedną grafikę możesz sprawdzić bez konta na tej stronie. Potem 1 grafika kosztuje od 0,50 zł do 2 zł zależnie od pakietu.',
+      a: 'Pierwsze 5 grafik po potwierdzeniu e-maila jest za darmo, a jedną grafikę możesz sprawdzić bez konta na tej stronie. Potem 1 grafika kosztuje od 0,50 zł do 2 zł zależnie od pakietu, a w abonamencie Pro 0,39 zł.',
     },
     {
       q: 'Czy produkt na zdjęciu się zmieni?',

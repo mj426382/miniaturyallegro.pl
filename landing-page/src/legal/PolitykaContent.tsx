@@ -1,4 +1,4 @@
-import { LEGAL_ENTITY, LEGAL_DATES, PROCESSORS } from './entity'
+import { LEGAL_ENTITY, LEGAL_DATES, PRICING, PROCESSORS } from './entity'
 import { CONSENT_CONFIGURED, openCookieSettings } from '../consent/googleTag'
 
 /**
@@ -10,7 +10,8 @@ export default function PolitykaContent() {
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Polityka prywatności</h1>
       <p className="text-sm text-gray-400 mb-10">
-        Obowiązuje od: {LEGAL_DATES.effective} · ostatnia zmiana: {LEGAL_DATES.integrationRemoved} (usunięcie integracji z zewnętrzną platformą sprzedażową)
+        Obowiązuje od: {LEGAL_DATES.effective} · ostatnia zmiana: {LEGAL_DATES.changesPublished} (usuwanie metadanych EXIF, oznaczenie grafik AI, limity przesyłania i skrót adresu e-mail po usunięciu
+        konta – sekcja 10) · poprzednia zmiana: {LEGAL_DATES.integrationRemoved} (usunięcie integracji z zewnętrzną platformą sprzedażową)
       </p>
 
       <div className="space-y-8 text-gray-700 leading-relaxed">
@@ -30,7 +31,14 @@ export default function PolitykaContent() {
               regulaminu.
             </li>
             <li>
-              <strong>Pliki graficzne:</strong> zdjęcia produktów, które przesyłasz, grafiki wygenerowane przez AI oraz automatyczny tekstowy opis produktu tworzony na potrzeby generowania.
+              <strong>Pliki graficzne:</strong> zdjęcia produktów, które przesyłasz, grafiki wygenerowane przez AI oraz automatyczny tekstowy opis produktu tworzony na potrzeby generowania. Z
+              przesłanych zdjęć usuwamy metadane (EXIF, w tym lokalizację GPS). Szczegóły w sekcji 5.
+            </li>
+            <li>
+              <strong>Liczba i czas przesłania zdjęć</strong> – do pilnowania limitów przesyłania (sekcja 3).
+            </li>
+            <li>
+              <strong>Po usunięciu konta:</strong> wyłącznie skrót (HMAC) adresu e-mail z datą usunięcia, przez {PRICING.deletedEmailHashMonths} miesięcy (sekcja 4).
             </li>
             <li>
               <strong>Dane rozliczeniowe:</strong> historia zakupów kredytów (pakiet, kwota, status, identyfikator sesji płatności). Dane kart płatniczych przetwarza wyłącznie Stripe.
@@ -115,7 +123,7 @@ export default function PolitykaContent() {
                   <td className="border border-gray-200 px-3 py-2">do cofnięcia zgody lub usunięcia konta; historia wysłanych wiadomości – do usunięcia konta</td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-200 px-3 py-2">Powiadomienie o zakończeniu generowania paczki zdjęć oraz indywidualne wiadomości obsługi klienta</td>
+                  <td className="border border-gray-200 px-3 py-2">Powiadomienie o zakończeniu generowania grafik z masowego przesyłania zdjęć oraz indywidualne wiadomości obsługi klienta</td>
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. b – wykonanie umowy (powiadomienie można wyłączyć w ustawieniach konta)</td>
                   <td className="border border-gray-200 px-3 py-2">czas posiadania konta</td>
                 </tr>
@@ -139,6 +147,26 @@ export default function PolitykaContent() {
                   <td className="border border-gray-200 px-3 py-2">do wycofania zgody; dane w Google Analytics przechowujemy 14 miesięcy, pliki _ga wygasają po maks. 13 miesiącach</td>
                 </tr>
                 <tr>
+                  <td className="border border-gray-200 px-3 py-2">
+                    Limity przesyłania zdjęć: do {PRICING.uploadLimitUnconfirmed} zdjęć łącznie przed potwierdzeniem adresu e-mail i do {PRICING.uploadLimitDaily} zdjęć w ciągu 24 godzin po jego
+                    potwierdzeniu (od {LEGAL_DATES.limitsEffective}) – liczymy przesłane zdjęcia i czas ich przesłania
+                  </td>
+                  <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. b i f – wykonanie umowy oraz prawnie uzasadniony interes (ochrona Serwisu przed nadużyciami i przeciążeniem)</td>
+                  <td className="border border-gray-200 px-3 py-2">czas przesłania zapisujemy przy zdjęciu – do jego usunięcia albo usunięcia konta</td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-200 px-3 py-2">
+                    Zapobieganie ponownemu wykorzystaniu darmowej puli kredytów i nagród za polecenia po usunięciu konta – przechowujemy wyłącznie skrót (HMAC) adresu e-mail z datą usunięcia, bez
+                    samego adresu (sekcja 4)
+                  </td>
+                  <td className="border border-gray-200 px-3 py-2">
+                    art. 6 ust. 1 lit. f RODO – prawnie uzasadniony interes Administratora (ochrona darmowej oferty i programu poleceń przed nadużyciami)
+                  </td>
+                  <td className="border border-gray-200 px-3 py-2">
+                    {PRICING.deletedEmailHashMonths} miesięcy od usunięcia konta (dotyczy kont usuniętych od {LEGAL_DATES.limitsEffective}), potem skrót jest automatycznie usuwany
+                  </td>
+                </tr>
+                <tr>
                   <td className="border border-gray-200 px-3 py-2">Statystyki użycia (Plausible/Umami – bez cookies, bez identyfikacji osób)</td>
                   <td className="border border-gray-200 px-3 py-2">art. 6 ust. 1 lit. f – prawnie uzasadniony interes</td>
                   <td className="border border-gray-200 px-3 py-2">dane zagregowane</td>
@@ -150,7 +178,40 @@ export default function PolitykaContent() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Odbiorcy danych i transfer poza EOG</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Usunięcie konta – skrót adresu e-mail</h2>
+          <p>
+            Gdy usuniesz konto, usuwamy je razem z przesłanymi zdjęciami, grafikami i opisami (dane, które musimy przechowywać na podstawie przepisów, np. dotyczące płatności, zostają na okres
+            wskazany w sekcji 3).
+          </p>
+          <p className="mt-3">
+            Po usunięciu konta przechowujemy wyłącznie skrót kryptograficzny (HMAC) adresu e-mail tego konta wraz z datą usunięcia – bez samego adresu – w celu zapobiegania nadużyciom darmowej puli
+            grafik i programu poleceń (ponowna rejestracja tego samego adresu nie otrzymuje ponownie darmowych grafik ani nagród za polecenie); podstawą prawną jest nasz prawnie uzasadniony interes
+            (art. 6 ust. 1 lit. f RODO), a skrót usuwamy po 12 miesiącach od usunięcia konta.
+          </p>
+          <p className="mt-3">
+            Dotyczy kont usuniętych od {LEGAL_DATES.limitsEffective}. Skrót obliczamy funkcją HMAC z tajnym kluczem, który zna tylko Administrator – nie da się z niego odczytać adresu; możemy jedynie
+            sprawdzić, czy nowe konto używa tego samego adresu. Nie zachowujemy imienia, plików, historii korzystania ani innych danych konta. Konto założone w tym czasie na ten sam adres działa
+            normalnie, ale bez ponownej darmowej puli i nagrody za polecenie. Wobec tego przetwarzania możesz wnieść sprzeciw (sekcja 8).
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Metadane zdjęć i oznaczenie grafik AI</h2>
+          <ul className="list-disc list-inside space-y-2">
+            <li>
+              <strong>Bez EXIF i GPS:</strong> Z przesłanych zdjęć usuwamy metadane (EXIF, w tym lokalizację GPS). Robimy to automatycznie przy przesłaniu, więc zapisane zdjęcie i pliki tworzone na
+              jego podstawie nie zdradzają np. miejsca wykonania zdjęcia.
+            </li>
+            <li>
+              <strong>Oznaczenie grafik AI:</strong> grafiki wygenerowane przez AI, które eksportujesz z Serwisu, zawierają w metadanych IPTC/XMP informację, że powstały z użyciem sztucznej
+              inteligencji (pole DigitalSourceType). To standard przejrzystości odczytywany przez platformy sprzedażowe i serwisy internetowe. Znacznik nie zawiera Twoich danych osobowych ani
+              identyfikatora konta.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Odbiorcy danych i transfer poza EOG</h2>
           <p className="mb-3">Aby świadczyć usługę, korzystamy z następujących podmiotów przetwarzających:</p>
           <ul className="list-disc list-inside space-y-2">
             {PROCESSORS.map((p) => (
@@ -172,7 +233,7 @@ export default function PolitykaContent() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Pliki cookies i pamięć przeglądarki</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Pliki cookies i pamięć przeglądarki</h2>
           <ul className="list-disc list-inside space-y-2">
             <li>
               <strong>Niezbędne:</strong> token sesji zalogowanego użytkownika zapisany w pamięci lokalnej przeglądarki (localStorage) – usuwany przy wylogowaniu.
@@ -217,7 +278,7 @@ export default function PolitykaContent() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Twoje prawa</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Twoje prawa</h2>
           <p className="mb-3">Na podstawie RODO przysługują Ci prawa do:</p>
           <ul className="list-disc list-inside space-y-2">
             <li>
@@ -227,7 +288,8 @@ export default function PolitykaContent() {
               <strong>sprostowania</strong> danych (imię i nazwisko zmienisz w ustawieniach konta),
             </li>
             <li>
-              <strong>usunięcia</strong> danych – konto wraz ze wszystkimi plikami usuniesz samodzielnie w ustawieniach konta („Usuń konto”),
+              <strong>usunięcia</strong> danych – konto wraz ze wszystkimi plikami usuniesz samodzielnie w ustawieniach konta („Usuń konto”); po usunięciu zostaje tylko skrót adresu e-mail opisany w
+              sekcji 4,
             </li>
             <li>
               <strong>ograniczenia przetwarzania</strong> i <strong>przenoszenia</strong> danych,
@@ -245,7 +307,7 @@ export default function PolitykaContent() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">7. Bezpieczeństwo</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Bezpieczeństwo</h2>
           <ul className="list-disc list-inside space-y-2">
             <li>Hasła są przechowywane wyłącznie jako skróty bcrypt; reset hasła odbywa się przez jednorazowy link ważny 1 godzinę.</li>
             <li>Komunikacja z Serwisem odbywa się przez HTTPS; pliki w chmurze są dostępne tylko przez podpisane, czasowe adresy URL.</li>
@@ -255,9 +317,14 @@ export default function PolitykaContent() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Zmiany polityki prywatności</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-3">10. Zmiany polityki prywatności</h2>
           <p>
             O istotnych zmianach poinformujemy Cię e-mailem lub w Serwisie z co najmniej 14-dniowym wyprzedzeniem. Aktualna wersja jest zawsze dostępna pod adresem allgrafika.pl/polityka-prywatnosci.
+          </p>
+          <p className="mt-3">
+            Zmiana z {LEGAL_DATES.changesPublished} (data publikacji): dodaliśmy informacje o usuwaniu metadanych EXIF (w tym GPS) z przesyłanych zdjęć i o oznaczaniu eksportowanych grafik AI (sekcja
+            5) – obowiązują od dnia publikacji, bo nie rozszerzają przetwarzania Twoich danych; o limitach przesyłania zdjęć (sekcja 3) i o przechowywaniu skrótu adresu e-mail po usunięciu konta
+            (sekcja 4) – te zmiany obowiązują od {LEGAL_DATES.limitsEffective}, czyli 14 dni po publikacji. Funkcję przesyłania wielu zdjęć naraz nazywamy jak w Serwisie: „masowe przesyłanie”.
           </p>
         </section>
       </div>

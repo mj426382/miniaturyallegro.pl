@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { imagesApi, ImageSummary } from '../services/api'
 import ImageCard from '../components/ImageCard'
-import BulkDescriptionsModal, { BulkPhoto } from '../components/BulkDescriptionsModal'
+import type { BulkPhoto } from '../components/BulkDescriptionsModal'
+import { BulkDescriptionsModal } from '../components/lazyModals'
+import ModalFallback from '../components/ModalFallback'
+import { usePreloadOnInteraction } from '../hooks/usePreloadOnInteraction'
 import { useZipDownload } from '../hooks/useZipDownload'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useConfirm } from '../hooks/useConfirm'
@@ -15,6 +18,7 @@ const PAGE_SIZE = 12
 
 export default function Gallery() {
   usePageTitle('Galeria')
+  usePreloadOnInteraction(BulkDescriptionsModal.preload)
   const confirm = useConfirm()
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
@@ -192,7 +196,11 @@ export default function Gallery() {
         </div>
       )}
 
-      {bulkPhotos && <BulkDescriptionsModal photos={bulkPhotos} onClose={() => setBulkPhotos(null)} onFinished={() => queryClient.invalidateQueries({ queryKey: ['images'] })} />}
+      {bulkPhotos && (
+        <Suspense fallback={<ModalFallback />}>
+          <BulkDescriptionsModal photos={bulkPhotos} onClose={() => setBulkPhotos(null)} onFinished={() => queryClient.invalidateQueries({ queryKey: ['images'] })} />
+        </Suspense>
+      )}
     </div>
   )
 }

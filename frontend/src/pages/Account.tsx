@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { authApi, usersApi } from '../services/api'
+import { usersApi } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useConfirm } from '../hooks/useConfirm'
@@ -12,7 +12,7 @@ import ReferralCard from '../components/ReferralCard'
 
 export default function Account() {
   usePageTitle('Ustawienia konta')
-  const { user, refreshUser, logout } = useAuth()
+  const { user, refreshUser, logout, changePassword: changeAccountPassword } = useAuth()
   const navigate = useNavigate()
   const confirm = useConfirm()
   const [name, setName] = useState(user?.name || '')
@@ -65,7 +65,7 @@ export default function Account() {
     if (!passwordFormValid) return
     setIsChangingPassword(true)
     try {
-      await authApi.changePassword(currentPassword, newPassword)
+      await changeAccountPassword(currentPassword, newPassword)
       setCurrentPassword('')
       setNewPassword('')
       setRepeatPassword('')

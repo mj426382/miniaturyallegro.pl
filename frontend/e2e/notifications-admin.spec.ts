@@ -10,7 +10,7 @@ test.describe('e-mail notifications (spec 16)', () => {
     const consent = page.getByLabel(/Chcę dostawać e-mailem zniżki na kredyty/)
     await expect(consent).not.toBeChecked()
 
-    await page.getByLabel('Email').fill('nowy@example.com')
+    await page.getByLabel('E-mail', { exact: true }).fill('nowy@example.com')
     await page.getByLabel('Hasło', { exact: true }).fill(PASSWORD)
     await page.getByLabel('Potwierdź hasło').fill(PASSWORD)
     await page.locator('#acceptTerms').check()
