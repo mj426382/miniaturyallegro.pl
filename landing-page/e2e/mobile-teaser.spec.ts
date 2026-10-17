@@ -15,7 +15,7 @@ test('[AC-MOB-008] the home page shows the mobile app section and keeps its SEO 
   await expect(section.getByRole('heading', { level: 2, name: /Aplikacja mobilna na Androida i iOS/ })).toBeVisible()
   await expect(section.getByRole('link', { name: 'Używaj już teraz w przeglądarce' })).toHaveAttribute('href', 'https://app.allgrafika.pl/register')
 
-  await expect(page).toHaveTitle('Zdjęcia produktowe AI na OLX, Vinted i eBay | AllGrafika.pl')
+  await expect(page).toHaveTitle('Zdjęcia produktowe AI dla sklepów i ogłoszeń | AllGrafika.pl')
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://allgrafika.pl/')
   await expect(page.locator('h1')).toHaveCount(1)
   const types = (await page.locator('script[type="application/ld+json"]').allTextContents()).flatMap((t) => [...t.matchAll(/"@type":"([A-Za-z]+)"/g)].map((m) => m[1]))

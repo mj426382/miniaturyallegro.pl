@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '35',
   slug: 'oswietlenie-diy-do-zdjec-produktowych',
-  title: 'Oświetlenie DIY do zdjęć produktowych – tani zestaw',
-  excerpt: 'Jak zbudować tanie oświetlenie do zdjęć produktów: okno, dyfuzor z papieru, blenda, lampy LED i namiot z kartonu. Trzy układy światła krok po kroku.',
+  title: 'Oświetlenie do zdjęć produktowych – tani zestaw DIY',
+  excerpt: 'Oświetlenie do zdjęć produktowych za niewielkie pieniądze: okno, dyfuzor z papieru, blenda, lampy LED i namiot z kartonu. Trzy układy światła krok po kroku.',
   content: `
 ## Światło robi większą różnicę niż aparat
 

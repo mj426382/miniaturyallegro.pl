@@ -93,6 +93,8 @@ Jeśli zastanawiasz się, czy w ogóle iść w biel, czy w zdjęcia w aranżacji
 
 Zrób jedno zdjęcie produktu telefonem przy oknie i przygotuj z niego dwie wersje: własną, obrobioną w programie graficznym, i wygenerowaną w [AllGrafika.pl](https://app.allgrafika.pl/register). Porównaj czas pracy i efekt – to najszybszy sposób, żeby wybrać metodę dla swojego katalogu. Więcej o samej bieli znajdziesz na stronie [zdjęcie produktu na białym tle](https://allgrafika.pl/biale-tlo-zdjecie-produktu).
 
+Jak wygląda dobry packshot i z jakich ujęć się składa, pokazujemy na stronie [packshot online](https://allgrafika.pl/packshot-online).
+
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-29',

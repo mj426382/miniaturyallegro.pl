@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '18',
   slug: 'biale-tlo-vs-lifestyle-jaki-styl-zdjecia-produktu',
-  title: 'Białe tło vs lifestyle: jaki styl zdjęcia produktu wybrać?',
-  excerpt: 'Białe tło czy scena lifestyle? Zobacz, kiedy wygrywa packshot, kiedy aranżacja, jak ułożyć oba w galerii i co narzucają zasady eBay, Amazon i Vinted.',
+  title: 'Zdjęcie lifestyle czy packshot na białym tle?',
+  excerpt: 'Zdjęcie lifestyle czy packshot na białym tle? Kiedy wygrywa który styl, jak ułożyć oba w galerii produktu i co narzucają zasady eBay, Amazon i Vinted.',
   content: `
 ## Dwa style, dwa różne zadania
 
@@ -67,6 +67,8 @@ Taki układ sprawdza się we własnym sklepie, na Amazonie i na eBay. Na OLX te�
 W [AllGrafika.pl](https://app.allgrafika.pl/register) z jednego zdjęcia z telefonu przygotujesz zarówno packshot na białym tle, jak i aranżację wnętrza – a jeśli gotowy styl nie pasuje, opiszesz własną scenę po polsku. AI zmienia tło, scenę i światło, a kształt, kolory i logo produktu zostają bez zmian. Przy eksporcie wybierzesz ustawienia pod OLX, Vinted, eBay, Amazon lub własny sklep (kadrowanie, obrót, ton). Pierwsze 5 grafik jest bezpłatnych po potwierdzeniu adresu e-mail.
 
 Jeśli chcesz porównać więcej stylów niż te dwa, zajrzyj do przeglądu [najlepsze style zdjęć produktowych](https://allgrafika.pl/blog/najlepsze-style-zdjec-produktowych).
+
+Standard dobrego packshotu i rodzaje ujęć packshotowych zebraliśmy na stronie [packshot online](https://allgrafika.pl/packshot-online).
 
 [← Przejdź do strony głównej](https://allgrafika.pl/)
   `,

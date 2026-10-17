@@ -78,6 +78,8 @@ Tak. Gotową grafikę przytniesz i obrócisz w ustawieniach eksportu dla wybrane
 
 Nie musisz być fotografem. Wystarczy kilka minut na dobre zdjęcie wejściowe, a resztę zrobi generator. Wypróbuj to na jednym produkcie – pierwsze 5 grafik w [AllGrafika.pl](https://app.allgrafika.pl/register) dostajesz za darmo po potwierdzeniu adresu e-mail.
 
+Co dzieje się ze zdjęciem po wgraniu i jakie style dostaniesz, zobaczysz na stronie [generator zdjęć produktowych AI](https://allgrafika.pl/zdjecia-ai-do-ofert).
+
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-10-09',

@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '20',
   slug: 'batch-processing-zdjecia-produktowe-szybko-i-latwo',
-  title: 'Batch processing zdjęć produktowych – szybko i łatwo',
-  excerpt: 'Jak przygotować grafiki dla wielu produktów naraz: zdjęcia wejściowe, nazwy plików, jeden styl, eksport pod platformę i kontrola jakości partii.',
+  title: 'Masowa obróbka zdjęć produktowych – krok po kroku',
+  excerpt: 'Masowa obróbka zdjęć produktowych: zdjęcia wejściowe, nazwy plików, jeden styl, eksport pod platformę i kontrola jakości całej partii produktów.',
   content: `
 ## Czym jest batch processing zdjęć produktowych
 

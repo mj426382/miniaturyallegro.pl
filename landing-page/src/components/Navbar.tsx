@@ -19,6 +19,9 @@ export default function Navbar() {
             <Link to="/#demo" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
               Wypróbuj
             </Link>
+            <Link to="/#zastosowania" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              Zastosowania
+            </Link>
             <Link to="/#features" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
               Funkcje
             </Link>
@@ -45,6 +48,7 @@ export default function Navbar() {
             className="md:hidden flex flex-col items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-label="Menu"
+            aria-expanded={menuOpen}
           >
             <span className={`block w-5 h-0.5 bg-gray-700 rounded transition-all duration-200 ${menuOpen ? 'rotate-45 translate-y-[3px]' : ''}`} />
             <span className={`block w-5 h-0.5 bg-gray-700 rounded mt-1 transition-all duration-200 ${menuOpen ? 'opacity-0' : ''}`} />
@@ -57,6 +61,9 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-3">
+            <Link to="/#zastosowania" onClick={() => setMenuOpen(false)} className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2">
+              Zastosowania
+            </Link>
             <Link to="/#features" onClick={() => setMenuOpen(false)} className="text-gray-600 hover:text-gray-900 text-sm font-medium py-2">
               Funkcje
             </Link>

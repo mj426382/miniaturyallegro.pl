@@ -7,8 +7,23 @@ function Slider({ pair }: { pair: SamplePair }) {
   return (
     <figure className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       <div className="relative aspect-square select-none">
-        <img src={pair.after} alt={`${pair.title} – po`} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        <img src={pair.before} alt={`${pair.title} – przed`} className="absolute inset-0 w-full h-full object-cover" style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }} loading="lazy" />
+        <img
+          src={pair.after}
+          width={800}
+          height={800}
+          alt={`${pair.title}: zdjęcie produktowe AI${pair.style ? ` w stylu „${pair.style}”` : ''} wygenerowane w AllGrafika`}
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="lazy"
+        />
+        <img
+          src={pair.before}
+          width={800}
+          height={800}
+          alt={`${pair.title}: oryginalne zdjęcie z telefonu`}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+          loading="lazy"
+        />
         <div className="absolute inset-y-0 w-0.5 bg-white shadow pointer-events-none" style={{ left: `${position}%` }} />
         <span className="absolute top-3 left-3 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">przed</span>
         <span className="absolute top-3 right-3 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">po</span>
@@ -39,7 +54,7 @@ export default function BeforeAfter({ pairs }: { pairs: SamplePair[] }) {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
             Zdjęcie z telefonu <span className="text-blue-600">→ zdjęcie produktowe</span>
           </h2>
-          <p className="text-gray-500 mt-4 text-lg">Prawdziwe przykłady wygenerowane w AllGrafika. Przesuń suwak, aby porównać.</p>
+          <p className="text-gray-600 mt-4 text-lg">Prawdziwe przykłady wygenerowane w AllGrafika. Przesuń suwak, aby porównać.</p>
         </div>
         {/* 4 or 8 pairs fill four columns; otherwise three, so no card is left alone in a row. */}
         <div className={`grid grid-cols-1 sm:grid-cols-2 ${pairs.length % 4 === 0 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>

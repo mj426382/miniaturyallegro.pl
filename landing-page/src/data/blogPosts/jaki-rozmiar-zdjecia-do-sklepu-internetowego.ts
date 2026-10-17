@@ -104,6 +104,8 @@ Opisowo i bez polskich znaków, np. kubek-porcelanowy-bialy-350ml.jpg. Więcej w
 ### Jak szybko przygotować zdjęcia dla kilkudziesięciu produktów?
 Pomaga praca seriami – opisujemy ją w artykule [Batch processing zdjęć produktowych](https://allgrafika.pl/blog/batch-processing-zdjecia-produktowe-szybko-i-latwo). W [AllGrafika.pl](https://app.allgrafika.pl/register) wgrasz do 50 zdjęć naraz, a gotowe grafiki pobierzesz jako ZIP z presetem eksportu „sklep internetowy”.
 
+Zestaw zdjęć karty produktu i to, co o zdjęciach mówią Shopify, WooCommerce, Shoper i PrestaShop, zebraliśmy na stronie [zdjęcia produktowe do sklepu internetowego](https://allgrafika.pl/zdjecia-produktowe-do-sklepu-internetowego).
+
 ## Podsumowanie
 
 We własnym sklepie nie ma jednego obowiązkowego rozmiaru. Sprawdź, co wyświetla Twój motyw, wgrywaj pliki większe od tego (np. kwadrat około 2000 px), trzymaj jedną proporcję w całym katalogu, kompresuj z głową i pamiętaj o zasadach Merchant Center, jeśli reklamujesz produkty w Google.

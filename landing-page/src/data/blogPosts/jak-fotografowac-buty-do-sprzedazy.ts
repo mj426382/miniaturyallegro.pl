@@ -3,8 +3,8 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '110',
   slug: 'jak-fotografowac-buty-do-sprzedazy',
-  title: 'Jak fotografować buty do sprzedaży',
-  excerpt: 'Jak fotografować buty do sprzedaży? Kluczowe ujęcia, światło i tło oraz zasady zdjęć butów nowych i używanych na Vinted, OLX, eBay i w sklepie.',
+  title: 'Jak fotografować buty na sprzedaż – Vinted, OLX, sklep',
+  excerpt: 'Jak fotografować buty na sprzedaż: kluczowe ujęcia, światło i tło oraz zasady zdjęć butów nowych i używanych na Vinted, OLX, eBay i w sklepie.',
   content: `
 ## Sytuacja sprzedawcy: pierwsze zdjęcia butów
 

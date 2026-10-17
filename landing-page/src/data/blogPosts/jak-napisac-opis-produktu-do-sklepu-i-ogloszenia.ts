@@ -4,7 +4,7 @@ const post: BlogPostData = {
   id: '109',
   slug: 'jak-napisac-opis-produktu-do-sklepu-i-ogloszenia',
   title: 'Jak napisać opis produktu do sklepu i ogłoszenia',
-  excerpt: 'Opis produktu w sklepie, na OLX, Vinted, eBay i Amazon: struktura, frazy kupujących, limity znaków i hipotetyczny przykład przed i po.',
+  excerpt: 'Jak napisać opis produktu do sklepu internetowego i ogłoszenia: struktura, frazy kupujących, limity znaków na OLX, Vinted, eBay i Amazon oraz przykład.',
   content: `
 ## Jeden produkt, trzy różne opisy
 

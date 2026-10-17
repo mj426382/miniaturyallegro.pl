@@ -3,7 +3,7 @@ import type { BlogPostData } from '../blogPosts'
 const post: BlogPostData = {
   id: '13',
   slug: 'jak-zwiekszyc-ctr-ab-testowanie-miniaturek',
-  title: 'Jak zwiększyć CTR: testy A/B zdjęć produktowych',
+  title: 'Testy A/B zdjęć produktowych – jak zwiększyć CTR',
   excerpt: 'Testy A/B zdjęć produktowych we własnym sklepie i porównania przed/po na marketplace: co zmieniać, jak długo testować i jak czytać wynik.',
   content: `
 ## Dlaczego warto testować zdjęcia, a nie zgadywać?

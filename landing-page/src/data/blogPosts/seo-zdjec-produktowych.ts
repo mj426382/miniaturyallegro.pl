@@ -113,6 +113,8 @@ Google wymaga w Merchant Center zachowania metadanych AI, ale nie wymaga rezygna
 
 Zacznij od dobrego zdjęcia, bo żadna nazwa pliku nie uratuje nieostrego obrazu. Potem nazwa pliku, alt i kompresja we własnym sklepie, a na marketplace – zgodność z zasadami i czytelność w miniaturze. Gotowe grafiki z jednego zdjęcia z telefonu przygotujesz w [AllGrafika.pl](https://app.allgrafika.pl/register) – pierwsze 5 grafik jest darmowe po potwierdzeniu adresu e-mail.
 
+Jakie zdjęcia przygotować dla każdej karty produktu, opisujemy na stronie [zdjęcia produktowe do sklepu internetowego](https://allgrafika.pl/zdjecia-produktowe-do-sklepu-internetowego).
+
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-04-22',

@@ -80,6 +80,8 @@ Zacznij od packshotu, dołóż jeden styl kontekstowy i obserwuj, co dzieje się
 
 Pierwsze 5 grafik w [AllGrafika.pl](https://app.allgrafika.pl/register) dostajesz za darmo po potwierdzeniu adresu e-mail. Gotowe pliki pobierasz i sam dodajesz do ogłoszenia lub sklepu – AllGrafika nie łączy się z kontami na platformach.
 
+Czym dokładnie jest packshot i jakie ujęcia obejmuje, opisujemy na stronie [packshot online – co to jest i jak go zrobić](https://allgrafika.pl/packshot-online).
+
 [← Przejdź do AllGrafika.pl](https://allgrafika.pl/)
   `,
   publishedAt: '2026-01-22',
