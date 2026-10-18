@@ -127,9 +127,14 @@ export default function BlogPostPage() {
   const cluster = clusterOfPost(post.slug)
   const pillars = (cluster?.pillars ?? []).map((p) => findSeoPage(p)).filter((p) => p !== undefined)
 
-  // Related posts (AC-SEO-017): the same topic cluster first, then the same category, newest first.
+  // Related posts (AC-SEO-017, AC-SEO-025): the post's neighbours in its cluster first – next, the one after and
+  // previous, rotating – so every post of a cluster gets links (a fixed "first 3" would starve the rest),
+  // then the same category, newest first.
   const others = blogIndex.filter((p) => p.slug !== post.slug)
-  const sameCluster = cluster ? cluster.posts.map((s) => others.find((p) => p.slug === s)).filter((p) => p !== undefined) : []
+  const clusterPosts = cluster?.posts ?? []
+  const at = clusterPosts.indexOf(post.slug)
+  const neighbourSlugs = at < 0 ? [] : [1, 2, -1, 3, -2].map((d) => clusterPosts[(at + d + clusterPosts.length * 3) % clusterPosts.length])
+  const sameCluster = neighbourSlugs.map((s) => others.find((p) => p.slug === s)).filter((p) => p !== undefined)
   const related = [...sameCluster, ...others.filter((p) => p.category === post.category && !sameCluster.includes(p)), ...others].filter((p, i, all) => all.indexOf(p) === i).slice(0, 3)
 
   const structuredData: object[] = [
@@ -248,7 +253,7 @@ export default function BlogPostPage() {
         </article>
 
         {related.length > 0 && (
-          <section className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
+          <section data-related-posts className="max-w-3xl mx-auto px-4 sm:px-6 pb-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">{cluster ? `Więcej w temacie: ${cluster.name}` : 'Przeczytaj również'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map((p) => (

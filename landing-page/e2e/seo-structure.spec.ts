@@ -116,6 +116,28 @@ test('[AC-SEO-016] prices on the page and in JSON-LD match the backend catalogue
   expect(html).toContain(`Pierwsze ${FREE_GRAPHICS} grafik za darmo`)
 })
 
+test('[AC-SEO-025] related posts rotate inside the cluster – every post is linked from at least 3 others', async ({ request }) => {
+  const inbound = new Map<string, Set<string>>(blogIndex.map((p) => [p.slug, new Set<string>()]))
+  for (const post of blogIndex) {
+    const html = await (await request.get(`/blog/${post.slug}`)).text()
+    const section = html.match(/<section[^>]*data-related-posts[^>]*>[\s\S]*?<\/section>/)?.[0] ?? ''
+    expect(section, `/blog/${post.slug} has a related-posts section`).not.toBe('')
+    const targets = [...section.matchAll(/href="\/blog\/([a-z0-9-]+)"/g)].map((m) => m[1])
+    expect(new Set(targets).size, `/blog/${post.slug} shows 3 different related posts`).toBe(3)
+    expect(targets, `/blog/${post.slug} does not link itself`).not.toContain(post.slug)
+    for (const t of targets) inbound.get(t)?.add(post.slug)
+
+    // Neighbours in the cluster come first: the next post of the cluster list is always among them.
+    const cluster = topicClusters.find((c) => c.posts.includes(post.slug))
+    if (cluster && cluster.posts.length > 1) {
+      const i = cluster.posts.indexOf(post.slug)
+      expect(targets, `/blog/${post.slug} links its next cluster neighbour`).toContain(cluster.posts[(i + 1) % cluster.posts.length])
+    }
+  }
+  const weak = [...inbound].filter(([, from]) => from.size < 3).map(([slug, from]) => `${slug} (${from.size})`)
+  expect(weak, 'posts linked from fewer than 3 related sections').toEqual([])
+})
+
 test('[AC-SEO-017] /blog hubs, cluster links and same-tab internal links in posts', async ({ page, request }) => {
   const slugs = new Set(blogIndex.map((p) => p.slug))
   const membership = new Map<string, string>()
