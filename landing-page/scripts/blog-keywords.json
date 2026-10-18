@@ -841,6 +841,39 @@
       "angle": "Żywność w sklepie internetowym: czytelne opakowanie i etykieta, apetyczna scena bez wprowadzania w błąd (porcja, zawartość), świeżość, zdjęcia zestawów; informacje obowiązkowe w opisie, nie tylko na zdjęciu.",
       "links": ["/blog/zdjecie-produktu-w-folii-i-opakowaniu", "/blog/zdjecia-produktowe-dla-kategorii-poradnik", "/blog/biale-tlo-vs-lifestyle-jaki-styl-zdjecia-produktu"],
       "evidence": "Podpowiedzi Google (pl, 2026-10-17): «zdjęcia produktów spożywczych»"
+    },
+    {
+      "keyword": "woocommerce wielkość zdjęć",
+      "cluster": "kanaly-sprzedazy",
+      "intent": "poradnikowa",
+      "type": "howto",
+      "priority": 1,
+      "angle": "Zdjęcia produktów w sklepie na WooCommerce krok po kroku: rozmiary obrazów WooCommerce (miniatura, pojedynczy produkt, galeria – wg dokumentacji WooCommerce, ustawienia w Wyglądzie/Dostosuj i zależność od motywu), proporcje 1:1 i przycinanie, regeneracja miniatur po zmianie rozmiarów, galeria produktu i zoom, format i waga pliku (WebP, kompresja), tekst alternatywny i nazwy plików; jak przygotować jeden zestaw zdjęć i wyeksportować go w gotowych wymiarach.",
+      "links": ["/zdjecia-produktowe-do-sklepu-internetowego", "/blog/jaki-rozmiar-zdjecia-do-sklepu-internetowego", "/blog/jpg-vs-webp-vs-png-format-zdjec-produktowych", "/blog/porownanie-platform-e-commerce-wymagania-graficzne"],
+      "evidence": "Podpowiedzi Google (pl, 2026-10-18): «woocommerce wielkość zdjęć», «woocommerce galeria produktu», «woocommerce image zoom»",
+      "sources": ["woocommerce-image-sizes", "woocommerce-home", "google-images-seo"]
+    },
+    {
+      "keyword": "prestashop dodawanie zdjęć",
+      "cluster": "kanaly-sprzedazy",
+      "intent": "poradnikowa",
+      "type": "howto",
+      "priority": 1,
+      "angle": "Zdjęcia produktów w PrestaShop: dodawanie zdjęć do produktu i ustawianie okładki, kolejność i opis (legenda) zdjęć, typy obrazów i ich rozmiary oraz regeneracja miniatur (wg dokumentacji PrestaShop), zdjęcie kategorii, galeria produktu, format i waga pliku; jak przygotować spójny zestaw zdjęć dla całego katalogu i wyeksportować go w wymiarach pasujących do motywu.",
+      "links": ["/zdjecia-produktowe-do-sklepu-internetowego", "/blog/jaki-rozmiar-zdjecia-do-sklepu-internetowego", "/blog/porownanie-platform-e-commerce-wymagania-graficzne", "/blog/jpg-vs-webp-vs-png-format-zdjec-produktowych"],
+      "evidence": "Podpowiedzi Google (pl, 2026-10-18): «prestashop zdjęcia», «prestashop dodawanie zdjęć», «prestashop galeria zdjęć», «prestashop zdjęcie kategorii»",
+      "sources": ["prestashop-docs", "prestashop-pl", "google-images-seo"]
+    },
+    {
+      "keyword": "shopify dodawanie produktów",
+      "cluster": "kanaly-sprzedazy",
+      "intent": "poradnikowa",
+      "type": "howto",
+      "priority": 1,
+      "angle": "Dodawanie produktów w Shopify z naciskiem na zdjęcia: pola produktu (tytuł, opis, cena, warianty), media produktu – obsługiwane typy i limity plików, kolejność i zdjęcie główne, zdjęcia wariantów, tekst alternatywny (wg Shopify Help Center), obrazy w motywie i proporcje, format i waga; jak przygotować zdjęcia wszystkich wariantów w jednym stylu przed importem.",
+      "links": ["/zdjecia-produktowe-do-sklepu-internetowego", "/blog/jaki-rozmiar-zdjecia-do-sklepu-internetowego", "/blog/porownanie-platform-e-commerce-wymagania-graficzne", "/blog/jpg-vs-webp-vs-png-format-zdjec-produktowych"],
+      "evidence": "Podpowiedzi Google (pl, 2026-10-18): «shopify dodawanie produktów», «shopify jak dodac produkt», «shopify jak dodac kategorie»",
+      "sources": ["shopify-product-media", "shopify-theme-images", "shopify-file-uploads", "shopify-pl"]
     }
   ]
 }
