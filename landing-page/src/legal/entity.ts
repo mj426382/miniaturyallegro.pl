@@ -28,6 +28,8 @@ export const LEGAL_DATES = {
    * 14 dni po publikacji (regulamin § 2 ust. 4).
    */
   changesPublished: '18 października 2026 r.',
+  /** Spec 09/10 (AC-SEO-026): kody rabatowe do pakietów – dodatkowa korzyść, więc obowiązują od publikacji. */
+  discountCodesPublished: '18 października 2026 r.',
   changesPublishedIso: '2026-10-18',
   limitsEffective: '1 listopada 2026 r.',
   limitsEffectiveIso: '2026-11-01',

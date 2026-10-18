@@ -151,6 +151,12 @@ export default function RegulaminContent() {
               ramach abonamentu nie wygasają. Usługodawca informuje o zmianie ceny abonamentu z co najmniej 30-dniowym wyprzedzeniem; zmiana nie obowiązuje Użytkownika, który w tym czasie anuluje
               plan.
             </li>
+            <li>
+              <strong>Kody rabatowe.</strong> Usługodawca może udostępniać kody rabatowe (także we współpracy z partnerami). Kod wpisuje się na stronie płatności Stripe; obniża on cenę jednego
+              zamówienia pakietu Kredytów, a kod jednorazowy może obniżyć również pierwszą płatność abonamentu. Kod można wykorzystać raz w danym zamówieniu, nie łączy się z pakietem powitalnym ani z
+              innym kodem i nie podlega wymianie na gotówkę ani na Kredyty; wysokość rabatu, termin ważności i limit użyć kodu podaje się przy jego udostępnieniu. Za zamówienie z kodem Użytkownik
+              otrzymuje pełną liczbę Kredytów z pakietu, a w razie odstąpienia od umowy lub zwrotu płatności podstawą rozliczenia jest cena faktycznie zapłacona.
+            </li>
           </ol>
         </section>
 
@@ -309,6 +315,10 @@ export default function RegulaminContent() {
               – zgodnie z § 2 ust. 4 postanowienia te obowiązują od {LEGAL_DATES.limitsEffective}, czyli 14 dni po publikacji; Użytkownik, który ich nie akceptuje, może do tego dnia usunąć Konto; (c)
               powiadomienie e-mail po masowym przesyłaniu zdjęć nazwano zgodnie z nazwą funkcji w Serwisie (§ 3 ust. 4); (d) poprawiono odesłanie w § 4b ust. 3 (na § 4 ust. 9 i 11). Pozostałe
               postanowienia nie uległy zmianie.
+            </li>
+            <li>
+              Uzupełnienie z {LEGAL_DATES.discountCodesPublished}: dodano § 4 ust. 12 o kodach rabatowych. Kody są dodatkową, dobrowolną korzyścią dla Użytkowników, dlatego postanowienie obowiązuje od
+              dnia publikacji. Pozostałe postanowienia nie uległy zmianie.
             </li>
             <li>Spory z Użytkownikami niebędącymi Konsumentami rozstrzyga sąd właściwy dla siedziby Usługodawcy. Spory z Konsumentami rozstrzyga sąd właściwy według przepisów ogólnych.</li>
             <li>Nieważność poszczególnych postanowień nie wpływa na ważność pozostałych. W miejsce postanowień nieważnych stosuje się przepisy prawa.</li>

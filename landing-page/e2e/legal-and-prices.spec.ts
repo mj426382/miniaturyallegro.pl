@@ -113,6 +113,18 @@ test('[AC-SEO-023] the terms state the upload limits with their effective date, 
   expect(text).toContain('Zasady odstąpienia od umowy zakupu Kredytów i abonamentu określa § 4 ust. 9 i 11.')
 })
 
+test('[AC-SEO-026] the terms describe discount codes and note the addition', async ({ request }) => {
+  const text = await pageText(request, '/regulamin')
+  expect(text).toContain('Kody rabatowe. Usługodawca może udostępniać kody rabatowe (także we współpracy z partnerami). Kod wpisuje się na stronie płatności Stripe')
+  expect(text).toContain('nie łączy się z pakietem powitalnym ani z innym kodem i nie podlega wymianie na gotówkę ani na Kredyty')
+  expect(text).toContain('Za zamówienie z kodem Użytkownik otrzymuje pełną liczbę Kredytów z pakietu')
+  expect(text).toContain('podstawą rozliczenia jest cena faktycznie zapłacona')
+  expect(text).toContain('Uzupełnienie z 18 października 2026 r.: dodano § 4 ust. 12 o kodach rabatowych')
+  // The § 4 list must keep the abonament at ust. 11 – odesłania in § 4b and § 11 point there.
+  const paragraph4 = text.slice(text.indexOf('§ 4. Kredyty, ceny i płatności'), text.indexOf('§ 4a.'))
+  expect(paragraph4.indexOf('Abonament.')).toBeLessThan(paragraph4.indexOf('Kody rabatowe.'))
+})
+
 test('[AC-SEO-023] bulk uploads are called „masowe przesyłanie” and both legal copies are identical in the app', async ({ request }) => {
   for (const route of ['/regulamin', '/polityka-prywatnosci']) {
     const text = await pageText(request, route)
