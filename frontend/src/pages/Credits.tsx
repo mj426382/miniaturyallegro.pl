@@ -438,7 +438,7 @@ export default function Credits() {
               </button>
             </div>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
             {packages.map((pkg) => {
               const highlighted = pkg.id === HIGHLIGHTED_PACKAGE
               return (
@@ -475,6 +475,10 @@ export default function Credits() {
               )
             })}
           </div>
+          {/* Spec 09, AC-PAY-031: partner codes are typed on the Stripe page (regular packs only, not the welcome pack). */}
+          <p data-testid="discount-code-hint" className="text-sm text-gray-500 mb-10">
+            Masz kod rabatowy? Wpiszesz go na stronie płatności Stripe.
+          </p>
         </>
       )}
 

@@ -7,6 +7,7 @@ import { AdminUserModal } from '../components/lazyModals'
 import ModalFallback from '../components/ModalFallback'
 import { usePreloadOnInteraction } from '../hooks/usePreloadOnInteraction'
 import AdminGenerationsFeed from '../components/admin/AdminGenerationsFeed'
+import AdminDiscountCodes from '../components/admin/AdminDiscountCodes'
 import { formatDateTime as dateTime, formatZl as zl } from '../utils/format'
 import { countLabel } from '../utils/plural'
 
@@ -22,7 +23,7 @@ export default function Admin() {
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [openUserId, setOpenUserId] = useState<string | null>(null)
-  const [tab, setTab] = useState<'users' | 'graphics'>('users')
+  const [tab, setTab] = useState<'users' | 'graphics' | 'codes'>('users')
   const styles = useQuery({ queryKey: ['styles'], queryFn: () => generationApi.getStyles().then((r) => r.data), staleTime: 60 * 60 * 1000 })
   const styleNames = Object.fromEntries((styles.data?.styles ?? []).map((s) => [s.id, s.name]))
 
@@ -73,6 +74,7 @@ export default function Admin() {
           [
             ['users', 'Użytkownicy'],
             ['graphics', 'Grafiki'],
+            ['codes', 'Kody rabatowe'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -87,7 +89,9 @@ export default function Admin() {
         ))}
       </div>
 
-      {tab === 'graphics' ? (
+      {tab === 'codes' ? (
+        <AdminDiscountCodes />
+      ) : tab === 'graphics' ? (
         <AdminGenerationsFeed styleNames={styleNames} onOpenUser={setOpenUserId} />
       ) : (
         <>

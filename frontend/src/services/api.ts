@@ -365,7 +365,8 @@ export interface AdminEmailEntry {
 
 export interface AdminUserDetail extends AdminUserRow {
   subscription: { planId: string; planName: string; status: string; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean } | null
-  payments: Array<{ id: string; amountPln: number; creditsAdded: number; status: string; kind: string; createdAt: string; hasInvoice: boolean }>
+  /** amountPln is what was paid; a discount code (spec 16, AC-ADM-019) explains the difference to the list price. */
+  payments: Array<{ id: string; amountPln: number; creditsAdded: number; status: string; kind: string; createdAt: string; hasInvoice: boolean; amountDiscount?: number; promotionCode?: string | null }>
   emails: AdminEmailEntry[]
   /** Spec 19: credits given by an administrator. */
   creditGrants?: AdminCreditGrant[]
@@ -412,6 +413,36 @@ export interface AdminFeedGraphic extends AdminGraphic {
   user: { id: string; email: string }
 }
 
+/** Spec 16, AC-ADM-017/018: a partner discount code (Stripe coupon + promotion code). */
+export interface AdminDiscountCode {
+  id: string
+  code: string
+  type: 'percent' | 'amount'
+  percentOff: number | null
+  amountOffGrosze: number | null
+  maxRedemptions: number | null
+  expiresAt: string | null
+  note: string | null
+  status: 'active' | 'inactive' | 'expired' | 'exhausted'
+  /** Redemptions reported by Stripe; null when Stripe did not answer. */
+  timesRedeemed: number | null
+  /** Fulfilled AllGrafika orders with this code. */
+  orders: number
+  createdBy: string
+  createdAt: string
+  deactivatedAt: string | null
+}
+
+export interface CreateDiscountCodeInput {
+  code: string
+  type: 'percent' | 'amount'
+  percentOff?: number
+  amountOffPln?: number
+  maxRedemptions?: number
+  expiresAt?: string
+  note?: string
+}
+
 type Paged<K extends string, T> = { [key in K]: T[] } & { pagination: { page: number; limit: number; total: number; pages: number } }
 
 export const adminApi = {
@@ -423,4 +454,7 @@ export const adminApi = {
   user: (id: string) => api.get<AdminUserDetail>(`/admin/users/${id}`),
   sendEmail: (id: string, subject: string, message: string) => api.post<AdminEmailEntry>(`/admin/users/${id}/email`, { subject, message }),
   grantCredits: (id: string, amount: number, reason: string) => api.post<{ credits: number; grant: AdminCreditGrant }>(`/admin/users/${id}/credits`, { amount, reason }),
+  discountCodes: () => api.get<{ codes: AdminDiscountCode[] }>('/admin/discount-codes'),
+  createDiscountCode: (input: CreateDiscountCodeInput) => api.post<AdminDiscountCode>('/admin/discount-codes', input),
+  deactivateDiscountCode: (id: string) => api.post<AdminDiscountCode>(`/admin/discount-codes/${id}/deactivate`),
 }

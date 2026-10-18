@@ -143,6 +143,25 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
   let uploadCounter = 0
   const adminEmails: any[] = []
   const adminGrants: any[] = []
+  // Spec 16, AC-ADM-017/018: discount codes of the admin panel (newest first).
+  const discountCodes: any[] = [
+    {
+      id: 'dc-1',
+      code: 'KATALOG-10',
+      type: 'percent',
+      percentOff: 10,
+      amountOffGrosze: null,
+      maxRedemptions: 50,
+      expiresAt: '2026-12-31T22:59:59.000Z',
+      note: 'Katalog firm – czytelnicy',
+      status: 'active',
+      timesRedeemed: 3,
+      orders: 2,
+      createdBy: USER.email,
+      createdAt: '2026-10-10T10:00:00.000Z',
+      deactivatedAt: null,
+    },
+  ]
 
   // Session is an httpOnly cookie – the SPA simply asks /users/me, which we answer as logged in.
 
@@ -248,11 +267,55 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
         ? json({
             ...row,
             subscription: null,
-            payments: [{ id: 'tx-1', amountPln: 2800, creditsAdded: 15, status: 'completed', kind: 'package', createdAt: '2026-10-03T10:00:00.000Z', hasInvoice: true }],
+            payments: [
+              {
+                id: 'tx-2',
+                amountPln: 2520,
+                creditsAdded: 15,
+                status: 'completed',
+                kind: 'package',
+                createdAt: '2026-10-12T10:00:00.000Z',
+                hasInvoice: true,
+                amountDiscount: 280,
+                promotionCode: 'PARTNER-10',
+              },
+              { id: 'tx-1', amountPln: 2800, creditsAdded: 15, status: 'completed', kind: 'package', createdAt: '2026-10-03T10:00:00.000Z', hasInvoice: true, amountDiscount: 0, promotionCode: null },
+            ],
             emails: adminEmails,
             creditGrants: adminGrants,
           })
         : json({ message: 'Nie znaleziono' }, 404)
+    }
+    if (path === '/admin/discount-codes' && req.method() === 'GET') return json({ codes: discountCodes })
+    if (path === '/admin/discount-codes' && req.method() === 'POST') {
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: 'POST', body })
+      if (discountCodes.some((c) => c.code === body.code)) return json({ statusCode: 409, message: 'Taki kod już istnieje – wybierz inny' }, 409)
+      const created = {
+        id: `dc-${discountCodes.length + 1}`,
+        code: body.code,
+        type: body.type,
+        percentOff: body.percentOff ?? null,
+        amountOffGrosze: body.amountOffPln ? Math.round(body.amountOffPln * 100) : null,
+        maxRedemptions: body.maxRedemptions ?? null,
+        expiresAt: body.expiresAt ?? null,
+        note: body.note ?? null,
+        status: 'active',
+        timesRedeemed: 0,
+        orders: 0,
+        createdBy: USER.email,
+        createdAt: '2026-10-18T10:00:00.000Z',
+        deactivatedAt: null,
+      }
+      discountCodes.unshift(created)
+      return json(created, 201)
+    }
+    if (/^\/admin\/discount-codes\/[^/]+\/deactivate$/.test(path)) {
+      requests.push({ url: path, method: 'POST' })
+      const code = discountCodes.find((c) => path.includes(`/${c.id}/`))
+      if (!code) return json({ statusCode: 404, message: 'Nie znaleziono kodu rabatowego' }, 404)
+      Object.assign(code, { status: 'inactive', deactivatedAt: '2026-10-18T11:00:00.000Z' })
+      return json(code)
     }
     if (/^\/admin\/users\/[^/]+\/credits$/.test(path)) {
       const body = req.postDataJSON()

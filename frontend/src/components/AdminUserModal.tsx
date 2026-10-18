@@ -134,6 +134,13 @@ export default function AdminUserModal({ userId, styleNames = {}, onClose }: Pro
                   <span className="text-gray-600">{formatDateTime(p.createdAt)}</span>
                   <span className="text-gray-900">
                     {formatZl(p.amountPln)} · +{p.creditsAdded} kr. · {p.kind === 'subscription' ? 'abonament' : 'pakiet'}
+                    {/* Spec 16, AC-ADM-019: the paid amount is after the discount code. */}
+                    {p.promotionCode || p.amountDiscount ? (
+                      <span data-testid="payment-discount" className="block text-xs text-green-700">
+                        kod {p.promotionCode ?? 'nieznany'}
+                        {p.amountDiscount ? ` · rabat ${formatZl(p.amountDiscount)}` : ''}
+                      </span>
+                    ) : null}
                   </span>
                   <span className="text-gray-500">
                     {p.status}
