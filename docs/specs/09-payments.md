@@ -57,17 +57,50 @@
   transakcji; w historii przy płatności jest link „Faktura” (PDF pobierany na żądanie świeżym linkiem
   ze Stripe). Faktury Stripe nie trafiają do KSeF – rozliczenie w KSeF prowadzi księgowość właściciela
   na podstawie raportu Stripe (ryzyko opisane w p. 4).
+- **Kody rabatowe** (2026-10-18, prośba właściciela: kody dla partnerów, np. katalogu firm, dla ich
+  czytelników):
+  - Kody to kody promocyjne Stripe (kupon `duration: once` + kod promocyjny), tworzone i wyłączane
+    w panelu administratora (spec 16). Rabat procentowy (1–100%) albo kwotowy w zł (PLN).
+  - Checkout zwykłego pakietu ma `allow_promotion_codes: true` – kupujący wpisuje kod na stronie płatności
+    Stripe. **Pakiet powitalny kodów nie przyjmuje** (już jest przeceniony, spec 19) – jego sesja nie ma
+    `allow_promotion_codes`.
+  - Abonament już wcześniej miał `allow_promotion_codes: true` i tego nie zmieniamy: kod z panelu
+    (`duration: once`) obniża także **pierwszą płatność abonamentu**; kolejne odnowienia są w pełnej cenie.
+    Kredyty abonamentu są jak dotąd przyznawane z `invoice.paid` (`amountPln` = `amount_paid`).
+  - Kredyty za pakiet z kodem: zawsze pełna liczba kredytów pakietu, niezależnie od rabatu.
+  - Przy realizacji zapisujemy to, co naprawdę zapłacono: `amountPln = amount_total` sesji,
+    `amountDiscount = total_details.amount_discount` (grosze) i `promotionCode` – czytelny kod (np.
+    `PARTNER-10`), ustalany z `discounts[].promotion_code` sesji (rozwinięty obiekt albo
+    `promotionCodes.retrieve`). Błąd Stripe przy ustalaniu kodu nie blokuje realizacji: kredyty są dodane,
+    kod zostaje pusty, w logu jest ostrzeżenie; kolejne dostarczenie zdarzenia uzupełnia brakujący kod.
+  - Kod 100% (`amount_total = 0`, `payment_status = no_payment_required`) jest realizowany jak opłacona
+    sesja (raz, idempotentnie). Inne statusy niż `paid` i `no_payment_required` dalej czekają.
+  - Zwroty i spory po zakupie z kodem liczą się od kwoty zapłaconej (`amountPln` po realizacji): pełny
+    zwrot zapłaconej kwoty odbiera wszystkie kredyty pakietu. Zwrot zarejestrowany przed realizacją jest
+    przeliczany po zapisaniu zapłaconej kwoty. Przychód w panelu (AC-ADM-015) też jest liczony od kwoty
+    zapłaconej, więc rabat go pomniejsza automatycznie.
+  - Strona Kredyty: pod pakietami krótka informacja „Masz kod rabatowy? Wpiszesz go na stronie płatności
+    Stripe.” (nie przy pakiecie powitalnym).
+  - Ograniczenie Stripe: najmniejsza płatność w PLN to 2 zł – kod kwotowy, po którym do zapłaty zostaje
+    mniej niż 2 zł (ale więcej niż 0), Stripe odrzuci na stronie płatności. Kod 100% działa (zamówienie
+    bez płatności).
 
 ## 2. API
 
 `GET /payments/packages|plans|history|subscription`, `POST /payments/checkout {packageId, acceptedWithdrawalWaiver}`,
 `POST /payments/subscribe {planId, acceptedEarlyStart}`, `POST /payments/portal`, `POST /payments/webhook` (raw body),
 `GET /payments/invoices/:transactionId` → `{url}` (JWT, tylko własne transakcje, 404 gdy brak faktury).
+Kody rabatowe: `GET|POST /admin/discount-codes`, `POST /admin/discount-codes/:id/deactivate` (spec 16).
+
+Dane: migracja `20261018150000_discount_codes` – `payment_transactions.amountDiscount INT NOT NULL DEFAULT 0`,
+`payment_transactions.promotionCode TEXT NULL` i tabela `discount_codes` (spec 16). Tylko dodawanie kolumn i tabeli.
 
 ## 3. Ryzyka
 
 - Od 2026 faktury B2B w Polsce muszą być wystawiane w KSeF. Faktury Stripe tam nie trafiają – właściciel
   świadomie wybrał to rozwiązanie; integracja z serwisem księgowym (np. Fakturownia) to osobna zmiana.
+- Regulamin nie opisuje jeszcze kodów rabatowych (rabat obniża tylko cenę, zasady kredytów się nie zmieniają) –
+  dopisanie zdania o kodach partnerów w § 4 to decyzja właściciela (obie kopie regulaminu, spec 02).
 - W panelu Stripe trzeba uzupełnić dane sprzedawcy (nazwa, NIP, adres) i włączyć wysyłkę faktur e-mailem.
 
 ## 4. Kryteria akceptacji
@@ -94,6 +127,12 @@
 - **AC-PAY-022** – Given zwrot płatności spoza AllGrafiki (wspólne konto Stripe), When webhook, Then 200, brak zmian i powiadomień; płatność naszego klienta bez dopasowania → 503 przez pierwsze 6 h, potem alert i 200; transakcja sprzed zmiany jest dopasowana przez sesję Checkout ze Stripe.
 - **AC-PAY-023** – Given plan z Price w Stripe, When lista planów albo subskrypcja, Then plan jest dostępny tylko przy aktywnej cenie miesięcznej w PLN równej `priceGrosze`; niezgodna kwota, waluta lub interwał, brak ceny albo błąd Stripe → `available: false`, ostrzeżenie i 400 przy subskrypcji; wynik jest cache'owany (jedno zapytanie do Stripe na wiele wywołań).
 - **AC-PAY-024** – Given to samo zdarzenie realizacji albo zwrotu dostarczone równolegle wiele razy, When przetworzone, Then kredyty są dodane (odebrane) dokładnie raz.
-- **AC-PAY-025** – Given losowa sekwencja operacji kilku kont (zakup, generowanie, błąd ze zwrotem, ponowienie, zwrot i spór w Stripe, zdublowane zdarzenia), When po każdym kroku, Then saldo darmowe i kupione każdego konta równa się księdze (zrealizowane transakcje minus odebrane plus niedobór, minus aktywne generacje z danej puli) i nigdy nie jest ujemne.
+- **AC-PAY-025** – Given losowa sekwencja operacji kilku kont (zakup – także z kodem rabatowym, w tym 100% – generowanie, błąd ze zwrotem, ponowienie, zwrot i spór w Stripe, zdublowane zdarzenia), When po każdym kroku, Then saldo darmowe i kupione każdego konta równa się księdze (zrealizowane transakcje minus odebrane plus niedobór, minus aktywne generacje z danej puli) i nigdy nie jest ujemne.
+- **AC-PAY-026** – Given checkout zwykłego pakietu, When sesja Stripe jest tworzona, Then ma `allow_promotion_codes: true`; sesja pakietu powitalnego nie ma `allow_promotion_codes` (kodu nie da się użyć), a sesja abonamentu dalej ma `allow_promotion_codes: true`.
+- **AC-PAY-027** – Given opłacona sesja pakietu z kodem procentowym albo kwotowym, When webhook (także zdublowany), Then kredyty są dodane raz i w pełnej liczbie pakietu, a transakcja ma `amountPln = amount_total`, `amountDiscount = total_details.amount_discount` i `promotionCode` z czytelnym kodem (z rozwiniętego obiektu albo przez `promotionCodes.retrieve`); historia płatności pokazuje kwotę zapłaconą; sesja bez rabatu ma `amountDiscount = 0` i pusty kod.
+- **AC-PAY-028** – Given sesja pakietu z kodem 100% (`amount_total = 0`, `payment_status = no_payment_required`), When webhook dwa razy, Then zamówienie jest zrealizowane dokładnie raz (pełne kredyty, `amountPln = 0`, rabat równy cenie pakietu); sesja z `payment_status = unpaid` niczego nie dodaje.
+- **AC-PAY-029** – Given opłacona sesja z rabatem, gdy Stripe nie pozwala ustalić kodu (błąd API), When webhook, Then kredyty są dodane, `amountPln` i `amountDiscount` zapisane, `promotionCode` pusty z ostrzeżeniem w logu; kolejne dostarczenie zdarzenia uzupełnia kod bez ponownego dodania kredytów.
+- **AC-PAY-030** – Given pakiet kupiony z kodem, When pełny zwrot zapłaconej kwoty, zwrot częściowy, spór albo zwrot zarejestrowany przed realizacją, Then kredyty są odbierane proporcjonalnie do kwoty zapłaconej (pełny zwrot zapłaconej kwoty odbiera wszystkie kredyty pakietu, status `refunded`), a saldo zgadza się z księgą.
+- **AC-PAY-031** – Given strona Kredyty z pakietami i ofertą powitalną, When się wyświetla, Then pod pakietami jest informacja „Masz kod rabatowy? Wpiszesz go na stronie płatności Stripe.”, a karta pakietu powitalnego jej nie zawiera.
 - **AC-PAY-011** – Given strona kredytów, When użytkownik kliknie „Kup” bez zgody, Then widzi wskazówkę; ze zgodą i podwójnym kliknięciem powstaje dokładnie jedna sesja.
 - **AC-PAY-015** – Given historia z płatnością z fakturą, When użytkownik kliknie „Faktura”, Then otwiera się link z API; przy płatności bez faktury przycisku nie ma, a pod pakietami jest informacja, że NIP podaje się w formularzu płatności.

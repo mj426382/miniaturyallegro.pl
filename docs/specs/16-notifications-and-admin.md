@@ -76,6 +76,29 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
   - Uprawnienie wynika wyłącznie z adresu w konfiguracji serwera, nie z danych konta, więc nie da się go nadać z aplikacji.
   - UI pokazuje „Bez limitu” zamiast salda.
 
+- **Kody rabatowe** (dodane 2026-10-18, prośba właściciela: kody dla partnerów, np. katalogu firm, dla
+  ich czytelników; zasady rozliczeń w spec 09):
+  - Zakładka „Kody rabatowe” w panelu. Administrator tworzy kod: tekst kodu (litery A–Z, cyfry i myślnik,
+    3–30 znaków, zapisywany wielkimi literami, unikalny – duplikat → 409), rodzaj: procent (liczba
+    całkowita 1–100) albo kwota w zł (> 0, maks. 2 miejsca po przecinku; do Stripe w groszach, waluta PLN),
+    opcjonalnie limit użyć (≥ 1), datę ważności (w przyszłości) i notatkę (do 200 znaków, np. nazwa
+    partnera). Komunikaty walidacji po polsku.
+  - Kod powstaje w Stripe: kupon `duration: once` (nazwa = kod, metadane `app: allgrafika`) i kod
+    promocyjny z limitem i datą ważności. Konto Stripe jest wspólne ze sklepem JAN-MAT, więc lista
+    kodów w panelu pochodzi z naszej tabeli `discount_codes`, a nie z całego Stripe. Kod istniejący już
+    w Stripe (np. sklepu) → 409; błąd Stripe → 503 i nic nie zostaje zapisane (kupon jest usuwany).
+  - Lista: kod, rabat, status (aktywny, wyłączony, wygasł, wyczerpany), użycia w Stripe / limit, liczba
+    zrealizowanych zamówień AllGrafiki z tym kodem, data ważności, notatka, kto i kiedy utworzył. Gdy
+    Stripe nie odpowiada, lista pokazuje dane z bazy bez liczby użyć.
+  - Wyłączenie kodu: `promotionCodes.update(active: false)` w Stripe i zapis w bazie; ponowne wyłączenie
+    nic nie zmienia; nieznany kod → 404. Wyłączonego kodu nie da się włączyć z panelu (tworzy się nowy).
+  - Kod działa w checkoutcie pakietów (nie pakietu powitalnego) i – ponieważ checkout abonamentu już
+    przyjmuje kody – także przy pierwszej płatności abonamentu (`duration: once`). To świadoma decyzja,
+    zachowania abonamentu nie zmieniamy.
+  - W szczegółach konta przy płatności z kodem panel pokazuje kod i kwotę rabatu.
+  - Wymaganie dla właściciela: jeśli backend używa ograniczonego klucza Stripe (restricted key), klucz
+    musi mieć uprawnienie zapisu do „Coupons” i „Promotion codes”.
+
 ## 4. Przepływ użytkownika (UX)
 
 - Rejestracja: pod akceptacją regulaminu opcjonalne pole „Chcę dostawać wskazówki i przypomnienia
@@ -119,6 +142,11 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - **AC-ADM-013** – Given dowolny mail aplikacji (weryfikacja, reset hasła, demo, przypomnienia, wiadomość administratora), When wysyłka przez SMTP, Then nadawca to `MAIL_FROM`, a `Reply-To` to `MAIL_REPLY_TO` (domyślnie `kontakt@allgrafika.pl`); jawny `replyTo` w wiadomości ma pierwszeństwo.
 - **AC-ADM-014** – Given konto z adresem z `ADMIN_EMAILS`, którego adres nie jest potwierdzony (np. ktoś założył konto na adres administratora przed nim), When wywołuje endpointy panelu albo pobiera `/users/me`, Then 403, `isAdmin=false` i `unlimitedCredits=false`; po potwierdzeniu adresu dostęp działa.
 - **AC-ADM-015** – Given płatności zakończone, częściowo i w całości zwrócone oraz objęte sporem (otwartym, przegranym i wygranym), When administrator otwiera przegląd i listę kont, Then przychód (`revenue.totalGrosze`, `last30dGrosze`, `paidTotalGrosze`) jest kwotą netto (kwota płatności minus zwroty i kwoty sporów otwartych/przegranych; spór wygrany nie pomniejsza), `revenue.refundedGrosze` pokazuje zwrócone i zatrzymane kwoty, `creditsSold` liczy kredyty po odjęciu cofniętych, a płatności nieopłacone i wygasłe nie są liczone.
+- **AC-ADM-016** – Given płatności pakietów z kodem rabatowym (procentowym, kwotowym i 100%), When administrator otwiera przegląd i listę kont, Then przychód i suma wpłat konta są liczone od kwoty zapłaconej (po rabacie, netto zwrotów), a `creditsSold` zawiera pełne kredyty pakietów.
+- **AC-ADM-017** – Given administrator, When tworzy kod rabatowy procentowy albo kwotowy (z limitem użyć, datą ważności i notatką albo bez), Then w Stripe powstaje kupon `duration: once` (`percent_off` albo `amount_off` w groszach, `currency: pln`) i kod promocyjny z tym kodem wielkimi literami, limitem i datą, a kod jest zapisany w bazie; zły format kodu, za krótki lub za długi kod, nieznany rodzaj, procent spoza 1–100 lub niecałkowity, kwota ≤ 0 lub z więcej niż 2 miejscami po przecinku, limit < 1, data w przeszłości albo nieprawidłowa, notatka > 200 znaków → 400 z polskim komunikatem i bez wywołania Stripe; kod już istniejący (w bazie albo w Stripe) → 409; błąd Stripe → 503, nic nie zostaje zapisane.
+- **AC-ADM-018** – Given kody rabatowe, When administrator pobiera listę i wyłącza kod, Then lista (od najnowszych) ma rabat, status, użycia/limit ze Stripe, liczbę zamówień z kodem, datę ważności i notatkę; wyłączenie ustawia `active: false` w Stripe i status „wyłączony”, powtórzone nic nie psuje, nieznany kod → 404; konto spoza `ADMIN_EMAILS` dostaje 403 na każdym endpoincie kodów; przy błędzie Stripe lista działa bez liczby użyć.
+- **AC-ADM-019** – Given płatność z kodem rabatowym, When administrator otwiera szczegóły konta, Then płatność ma kwotę zapłaconą, `promotionCode` i `amountDiscount`, a panel pokazuje kod i rabat przy tej płatności.
+- **AC-ADM-020** – Given panel administratora, When administrator otwiera „Kody rabatowe”, wypełnia formularz z błędami, a potem poprawnie i wyłącza kod, Then widzi polskie komunikaty walidacji przed wysłaniem, nowy kod na liście z rabatem, statusem, użyciami i datą ważności, a po wyłączeniu status „wyłączony”.
 - **AC-ADM-006** – Given administrator w aplikacji, When otwiera „Admin”, szuka konta, otwiera szczegóły i wysyła wiadomość, Then widzi dane konta i potwierdzenie wysyłki; zwykły użytkownik nie widzi pozycji „Admin”.
 
 ## 7. API
@@ -129,6 +157,9 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - `POST /auth/register` + opcjonalne `marketingConsent: boolean`.
 - `GET /admin/users?search&page&limit`, `GET /admin/users/:id`, `POST /admin/users/:id/email {subject, message}`,
   `GET /admin/users/:id/images?page&limit`, `GET /admin/generations?page&limit&status&rating=up|down|rated` (JWT + administrator).
+- `GET /admin/discount-codes` → `{codes: [...]}`, `POST /admin/discount-codes {code, type: percent|amount, percentOff?,
+  amountOffPln?, maxRedemptions?, expiresAt?, note?}` → 201 kod, `POST /admin/discount-codes/:id/deactivate` → kod
+  (JWT + administrator).
 
 ## 8. Dane i migracje
 
@@ -137,6 +168,11 @@ Migracja `20261005090000_notifications_admin`: `users.marketingConsentAt TIMESTA
 subject, body NULL, sentBy NULL, createdAt; UNIQUE(userId, key))` i `notification_batches (id, userId FK
 cascade, imageIds TEXT[], createdAt, closedAt NULL, notifiedAt NULL)`. Istniejące konta: brak zgody,
 powiadomienia o paczkach włączone.
+
+Migracja `20261018150000_discount_codes` (2026-10-18): tabela `discount_codes (id, code UNIQUE, type, percentOff NULL,
+amountOffGrosze NULL, maxRedemptions NULL, expiresAt NULL, note NULL, stripeCouponId, stripePromotionCodeId UNIQUE,
+active, createdBy, createdAt, deactivatedAt NULL)` oraz kolumny `payment_transactions.amountDiscount` i `promotionCode`
+(spec 09).
 
 ## 9. Wymagania niefunkcjonalne
 
