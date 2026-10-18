@@ -90,8 +90,14 @@ test.describe('admin discount codes (spec 16)', () => {
     await expect(page.getByRole('alert').filter({ hasText: 'Taki kod już istnieje – wybierz inny' })).toBeVisible()
 
     // deactivate after a confirmation
-    await page.getByRole('button', { name: 'Wyłącz kod KATALOG-10' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Wyłącz kod' }).click()
+    // (a toast sliding in on a phone can swallow the tap – tap again until the confirmation opens)
+    const confirmDialog = page.getByRole('alertdialog')
+    await expect(async () => {
+      if (!(await confirmDialog.isVisible())) await page.getByRole('button', { name: 'Wyłącz kod KATALOG-10' }).click()
+      await expect(confirmDialog).toBeVisible({ timeout: 2000 })
+    }).toPass()
+    await expect(confirmDialog).toContainText('Wyłączyć kod KATALOG-10?')
+    await confirmDialog.getByRole('button', { name: 'Wyłącz kod' }).click()
     await expect(page.getByText('Kod KATALOG-10 wyłączony')).toBeVisible()
     const katalog = list.getByTestId('discount-code-row').filter({ hasText: 'KATALOG-10' })
     await expect(katalog).toContainText('wyłączony')
