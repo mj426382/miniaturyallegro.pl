@@ -85,7 +85,7 @@ export async function register(page: Page, email: string) {
 
 export async function uploadProduct(page: Page) {
   await page.goto('/upload')
-  await page.getByLabel('Wybierz zdjęcia z dysku').setInputFiles({ name: 'kubek.png', mimeType: 'image/png', buffer: productPng() })
+  await page.getByLabel('Wybierz zdjęcie z dysku').setInputFiles({ name: 'kubek.png', mimeType: 'image/png', buffer: productPng() })
   await page.getByRole('button', { name: 'Prześlij i wybierz style' }).click()
   await expect(page).toHaveURL(/\/generate\/[a-z0-9-]+$/)
   await expect(page.getByRole('heading', { name: 'Generator grafik produktowych' })).toBeVisible()

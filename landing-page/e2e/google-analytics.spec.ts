@@ -105,8 +105,11 @@ test('[AC-GA-004] full consent loads gtag.js once with both GA4 and Ads configur
   expect(entries.filter((e) => e[0] === 'consent')[1]).toEqual(['consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' }])
   expect(entries).toContainEqual(GA_CONFIG)
   expect(entries).toContainEqual(['config', 'AW-TEST'])
-  // A GA4 page view goes only to GA4, so Google Ads does not count it twice.
-  expect(events(entries, 'page_view').map((e) => (e[2] as { send_to: string }).send_to)).toEqual(['G-TEST'])
+  // A GA4 page view goes only to GA4, so Google Ads does not count it twice (it is pushed once gtag.js has loaded).
+  const sentTo = async () => events(await layer(page), 'page_view').map((e) => (e[2] as { send_to: string }).send_to)
+  await expect.poll(sentTo).toEqual(['G-TEST'])
+  await page.waitForTimeout(300)
+  expect(await sentTo()).toEqual(['G-TEST'])
 })
 
 test('[AC-GA-005] a stored v1 "ads=1" keeps Google Ads running and asks again only about analytics', async ({ page }) => {
