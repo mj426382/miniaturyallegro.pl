@@ -38,3 +38,33 @@ test('[AC-PERF-004] icons and logos stay small on the landing page and in the ap
   }
   expect(existsSync(resolve(HERE, '../public/og-image.png'))).toBe(true)
 })
+
+test('[AC-PERF-008] before/after photos and the navbar logo are served at their display size', async () => {
+  const sharp = (await import('sharp')).default
+  const html = readFileSync(join(DIST, 'index.html'), 'utf-8')
+  const photos = [...html.matchAll(/<img[^>]+src="(\/samples\/[^"]+)"[^>]*>/g)]
+  expect(photos.length, 'before/after photos on the home page').toBeGreaterThan(0)
+  for (const [tag, src] of photos) {
+    const srcset = tag.match(/srcset="([^"]+)"/i)?.[1]
+    expect(srcset, `${src} srcset`).toBeDefined()
+    expect(tag, `${src} sizes`).toMatch(/sizes="\(min-width: 1024px\) \d+px, \(min-width: 640px\) calc\(50vw - 36px\), calc\(100vw - 32px\)"/)
+    const candidates = srcset!.split(',').map((c) => c.trim().split(' '))
+    expect(candidates.map(([, w]) => w)).toEqual(['400w', '700w', '800w'])
+    expect(candidates.at(-1)![0]).toBe(src)
+    const original = statSync(join(DIST, src)).size
+    for (const [url, w] of candidates) {
+      const file = join(DIST, url)
+      expect(existsSync(file), url).toBe(true)
+      const meta = await sharp(file).metadata()
+      expect(meta.format, url).toBe('webp')
+      expect(`${meta.width}w`, url).toBe(w)
+      if (url !== src) expect(statSync(file).size, `${url} is smaller than the original`).toBeLessThan(original)
+    }
+  }
+
+  const logo = html.match(/<img[^>]+alt="AllGrafika.pl"[^>]*>/)?.[0]
+  expect(logo).toContain('src="/logo-72.webp"')
+  expect(logo).toMatch(/srcset="\/logo-72\.webp 2x, \/logo\.webp 4x"/i)
+  expect(statSync(join(DIST, 'logo-72.webp')).size).toBeLessThanOrEqual(4 * KB)
+  expect((await sharp(join(DIST, 'logo-72.webp')).metadata()).width).toBe(72)
+})

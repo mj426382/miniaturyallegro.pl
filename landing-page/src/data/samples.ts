@@ -4,6 +4,8 @@ export interface SamplePair {
   id: string
   before: string
   after: string
+  beforeSrcSet: string
+  afterSrcSet: string
   title: string
   style: string | null
 }
@@ -13,6 +15,8 @@ export const samplePairs: SamplePair[] = [
     "id": "bluza-biala",
     "before": "/samples/bluza-biala-before.webp",
     "after": "/samples/bluza-biala-after.webp",
+    "beforeSrcSet": "/samples/w400/bluza-biala-before.webp 400w, /samples/w700/bluza-biala-before.webp 700w, /samples/bluza-biala-before.webp 800w",
+    "afterSrcSet": "/samples/w400/bluza-biala-after.webp 400w, /samples/w700/bluza-biala-after.webp 700w, /samples/bluza-biala-after.webp 800w",
     "title": "Bluza z kapturem – Odzież",
     "style": "Białe tło"
   },
@@ -20,6 +24,8 @@ export const samplePairs: SamplePair[] = [
     "id": "bluza-w-parku",
     "before": "/samples/bluza-w-parku-before.webp",
     "after": "/samples/bluza-w-parku-after.webp",
+    "beforeSrcSet": "/samples/w400/bluza-w-parku-before.webp 400w, /samples/w700/bluza-w-parku-before.webp 700w, /samples/bluza-w-parku-before.webp 800w",
+    "afterSrcSet": "/samples/w400/bluza-w-parku-after.webp 400w, /samples/w700/bluza-w-parku-after.webp 700w, /samples/bluza-w-parku-after.webp 800w",
     "title": "Bluza z kapturem – Odzież",
     "style": "Produkt w użyciu"
   },
@@ -27,6 +33,8 @@ export const samplePairs: SamplePair[] = [
     "id": "projektor",
     "before": "/samples/projektor-before.webp",
     "after": "/samples/projektor-after.webp",
+    "beforeSrcSet": "/samples/w400/projektor-before.webp 400w, /samples/w700/projektor-before.webp 700w, /samples/projektor-before.webp 800w",
+    "afterSrcSet": "/samples/w400/projektor-after.webp 400w, /samples/w700/projektor-after.webp 700w, /samples/projektor-after.webp 800w",
     "title": "Projektor – Elektronika",
     "style": "Białe tło"
   },
@@ -34,6 +42,8 @@ export const samplePairs: SamplePair[] = [
     "id": "rolki",
     "before": "/samples/rolki-before.webp",
     "after": "/samples/rolki-after.webp",
+    "beforeSrcSet": "/samples/w400/rolki-before.webp 400w, /samples/w700/rolki-before.webp 700w, /samples/rolki-before.webp 800w",
+    "afterSrcSet": "/samples/w400/rolki-after.webp 400w, /samples/w700/rolki-after.webp 700w, /samples/rolki-after.webp 800w",
     "title": "Rolki – Sport i turystyka",
     "style": "Białe tło"
   }

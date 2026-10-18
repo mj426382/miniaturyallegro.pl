@@ -157,6 +157,9 @@ async function main() {
     await writeFile(resolve(dir, 'logo.webp'), logoWebp)
   }
   console.log(`✅ favicon.ico (${ico.length} B) and logo.webp (${logoWebp.length} B) in landing-page/public and frontend/public`)
+  // AC-PERF-008: the landing navbar shows the logo at 36 CSS px – 72 px covers 2x screens, logo.webp the rest.
+  await sharp(logoPath).resize(72, 72, { fit: 'inside' }).webp({ quality: 85 }).toFile(resolve(publicDir, 'logo-72.webp'))
+  console.log('✅ public/logo-72.webp')
 }
 
 main().catch((err) => {
