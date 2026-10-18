@@ -1,5 +1,12 @@
 import { createTestApp, registerUser, resetDatabase, TestContext, uploadImage, waitFor } from './test-app';
-import { completedEvent, deliver, disputeEvent, FakeStripe, refundEvent } from './stripe-fake';
+import {
+  completedEvent,
+  deliver,
+  discountedCompletedEvent,
+  disputeEvent,
+  FakeStripe,
+  refundEvent,
+} from './stripe-fake';
 import { expectBalanceMatchesLedger } from './ledger';
 
 /** Small deterministic PRNG (mulberry32) – a failing seed can be replayed exactly. */
@@ -46,7 +53,8 @@ interface Account {
 
 /**
  * Spec 09, AC-PAY-025 – accounting invariant. A random but reproducible sequence of everything that moves
- * credits (purchases with duplicate and late deliveries, graphics that succeed or fail, retries, partial and
+ * credits (purchases – also with a discount code, 100% included – with duplicate and late deliveries, graphics
+ * that succeed or fail, retries, partial and
  * full Stripe refunds – also before fulfilment – disputes won and lost, replayed events) runs for three
  * accounts. After EVERY step each account's free and purchased balance must equal the ledger recomputed from
  * the rows (payments and charged generations) and never be negative.
@@ -110,10 +118,21 @@ describe('credit ledger invariant (property test)', () => {
           .send({ packageId, acceptedWithdrawalWaiver: true })
           .expect(201);
         const session = stripe.sessions.at(-1);
+        // Spec 09, AC-PAY-027/028: some purchases use a discount code – a percentage, a fixed amount or 100%.
+        const list = PACKS[packageId].amount;
+        const discount = rnd.chance(0.35) ? rnd.pick(['percent', 'amount', 'full'] as const) : null;
+        const paid =
+          discount === 'full'
+            ? 0
+            : discount === 'percent'
+              ? Math.round((list * (100 - rnd.int(5, 60))) / 100)
+              : discount === 'amount'
+                ? list - 500
+                : list;
         const purchase: Purchase = {
           sessionId: session.id,
           pi: `pi_${session.id}`,
-          amount: PACKS[packageId].amount,
+          amount: paid,
           refunded: 0,
           dispute: 'none',
           paid: false,
@@ -121,18 +140,26 @@ describe('credit ledger invariant (property test)', () => {
         stripe.sessionPaymentIntents.set(purchase.sessionId, purchase.pi);
         account.customer = session.customer;
         account.purchases.push(purchase);
-        if (rnd.chance(0.15)) {
+        if (purchase.amount > 0 && rnd.chance(0.15)) {
           // a refund overtakes the completion
           purchase.refunded = rnd.int(1, purchase.amount);
           await send(refundEvent(purchase.pi, purchase.amount, purchase.refunded, { customer: account.customer }));
           op += '+early-refund';
         }
         if (rnd.chance(0.85)) {
-          const completion = completedEvent(purchase.sessionId, purchase.pi);
+          const completion = discount
+            ? discountedCompletedEvent(
+                purchase.sessionId,
+                paid === 0 ? null : purchase.pi,
+                { list, paid },
+                { id: `promo_${discount}`, code: `LEDGER-${discount.toUpperCase()}` },
+              )
+            : completedEvent(purchase.sessionId, purchase.pi);
           await send(completion);
           if (rnd.chance(0.3)) await send(completion); // Stripe retry
           purchase.paid = true;
         }
+        if (discount) op += `+${discount}:${paid}/${list}`;
       } else if (roll < 0.45) {
         op = 'generate';
         const styles = rnd.chance(0.5)
@@ -161,6 +188,7 @@ describe('credit ledger invariant (property test)', () => {
         op = 'refund';
         const purchase = rnd.pick(account.purchases);
         if (purchase.refunded < purchase.amount) {
+          // (nothing to refund after a 100% code)
           purchase.refunded = rnd.chance(0.4) ? purchase.amount : rnd.int(purchase.refunded + 1, purchase.amount);
           await send(refundEvent(purchase.pi, purchase.amount, purchase.refunded, { customer: account.customer }));
           op += `:${purchase.refunded}/${purchase.amount}`;
@@ -168,7 +196,9 @@ describe('credit ledger invariant (property test)', () => {
       } else if (roll < 0.9) {
         op = 'dispute';
         const purchase = rnd.pick(account.purchases);
-        if (purchase.dispute === 'none') {
+        if (purchase.amount === 0) {
+          // a 100% code has no charge to dispute
+        } else if (purchase.dispute === 'none') {
           purchase.dispute = 'open';
           await send(disputeEvent('charge.dispute.created', purchase.pi, purchase.amount, 'needs_response'));
         } else if (purchase.dispute === 'open') {
@@ -198,6 +228,13 @@ describe('credit ledger invariant (property test)', () => {
         expect(t.creditsShortfall).toBeGreaterThanOrEqual(0);
       }
     }
+    // Fulfilled payments keep what was really paid (after a discount code, 0 for a 100% code).
+    for (const a of accounts) {
+      for (const p of a.purchases.filter((purchase) => purchase.paid)) {
+        const row = await ctx.prisma.paymentTransaction.findUniqueOrThrow({ where: { stripeSessionId: p.sessionId } });
+        expect(row.amountPln).toBe(p.amount);
+      }
+    }
     return log;
   }
 
@@ -205,6 +242,8 @@ describe('credit ledger invariant (property test)', () => {
     it(`[AC-PAY-025] balances equal the ledger after every step (seed ${seed})`, async () => {
       const log = await run(seed, 40);
       expect(log).toHaveLength(40);
+      // every seed exercises at least one purchase with a discount code
+      expect(log.some((entry) => /\+(percent|amount|full):/.test(entry))).toBe(true);
     }, 240_000);
   }
 });

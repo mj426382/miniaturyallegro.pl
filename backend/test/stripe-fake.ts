@@ -9,7 +9,8 @@ const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!;
  * In-memory Stripe for integration tests: the real SDK does the webhook signature maths, everything that
  * would touch the network is faked and recorded. Covers what PaymentsService uses – Checkout sessions
  * (create / retrieve / list by PaymentIntent), customers, prices (plan price guard), charges, invoice
- * payments (refund matching of subscription invoices) and invoices.
+ * payments (refund matching of subscription invoices), invoices and – for discount codes (specs 09 and 16) –
+ * coupons and promotion codes.
  */
 export class FakeStripe {
   readonly sdk = new Stripe('sk_test_fake_key_for_tests', { apiVersion: '2026-03-25.dahlia' });
@@ -26,6 +27,17 @@ export class FakeStripe {
   prices = new Map<string, any>();
   priceError: Error | null = null;
   calls = { sessionCreate: 0, sessionRetrieve: 0, sessionList: 0, invoicePaymentsList: 0, priceRetrieve: 0 };
+  /** Params of every `checkout.sessions.retrieve` call (e.g. `expand` for the promotion code). */
+  retrieveParams: any[] = [];
+  coupons: any[] = [];
+  deletedCoupons: string[] = [];
+  promotionCodes = new Map<string, any>();
+  promotionCalls = { create: 0, retrieve: 0, update: 0 };
+  /** Errors thrown by the coupon / promotion code API (null = works). */
+  couponCreateError: Error | null = null;
+  promotionCreateError: Error | null = null;
+  promotionRetrieveError: Error | null = null;
+  promotionUpdateError: Error | null = null;
   /** Widens race windows in concurrency tests. */
   createDelayMs = 0;
 
@@ -39,8 +51,9 @@ export class FakeStripe {
         this.sessions.push(session);
         return session;
       },
-      retrieve: async (id: string) => {
+      retrieve: async (id: string, params?: any) => {
         this.calls.sessionRetrieve++;
+        this.retrieveParams.push(params);
         const session = this.sessions.find((s) => s.id === id);
         if (!session) throw Object.assign(new Error(`No such checkout.session: ${id}`), { statusCode: 404 });
         return session;
@@ -93,6 +106,59 @@ export class FakeStripe {
     },
   };
 
+  readonly couponsApi = {
+    create: async (params: any) => {
+      if (this.couponCreateError) throw this.couponCreateError;
+      const coupon = { id: `co_fake_${this.coupons.length + 1}`, object: 'coupon', valid: true, ...params };
+      this.coupons.push(coupon);
+      return coupon;
+    },
+    del: async (id: string) => {
+      this.deletedCoupons.push(id);
+      return { id, deleted: true };
+    },
+  };
+
+  readonly promotionCodesApi = {
+    create: async (params: any) => {
+      this.promotionCalls.create++;
+      if (this.promotionCreateError) throw this.promotionCreateError;
+      const taken = [...this.promotionCodes.values()].some(
+        (p) => p.active && String(p.code).toUpperCase() === String(params.code).toUpperCase(),
+      );
+      if (taken) {
+        throw Object.assign(new Error(`An active promotion code with \`code: ${params.code}\` already exists.`), {
+          type: 'StripeInvalidRequestError',
+          statusCode: 400,
+        });
+      }
+      return this.addPromotionCode(params.code, { ...params });
+    },
+    retrieve: async (id: string) => {
+      this.promotionCalls.retrieve++;
+      if (this.promotionRetrieveError) throw this.promotionRetrieveError;
+      const promo = this.promotionCodes.get(id);
+      if (!promo) throw Object.assign(new Error(`No such promotion code: '${id}'`), { statusCode: 404 });
+      return promo;
+    },
+    update: async (id: string, params: any) => {
+      this.promotionCalls.update++;
+      if (this.promotionUpdateError) throw this.promotionUpdateError;
+      const promo = this.promotionCodes.get(id);
+      if (!promo) throw Object.assign(new Error(`No such promotion code: '${id}'`), { statusCode: 404 });
+      Object.assign(promo, params);
+      return promo;
+    },
+  };
+
+  /** A promotion code as Stripe stores it (also one created outside AllGrafika, e.g. by the shop). */
+  addPromotionCode(code: string, extra: Record<string, unknown> = {}) {
+    const id = `promo_fake_${this.promotionCodes.size + 1}`;
+    const promo = { id, object: 'promotion_code', code, active: true, times_redeemed: 0, ...extra };
+    this.promotionCodes.set(id, promo);
+    return promo;
+  }
+
   readonly invoicesApi = {
     retrieve: async (id: string) => ({ id, invoice_pdf: `https://pay.stripe.com/invoice/${id}/pdf` }),
   };
@@ -107,6 +173,8 @@ export class FakeStripe {
       prices: this.pricesApi,
       charges: this.chargesApi,
       invoices: this.invoicesApi,
+      coupons: this.couponsApi,
+      promotionCodes: this.promotionCodesApi,
       subscriptions: { retrieve: async () => Promise.reject(new Error('not faked')) },
       billingPortal: { sessions: { create: async () => ({ url: 'https://billing.stripe.com/p' }) } },
     };
@@ -137,6 +205,15 @@ export class FakeStripe {
     this.priceError = null;
     this.createDelayMs = 0;
     this.calls = { sessionCreate: 0, sessionRetrieve: 0, sessionList: 0, invoicePaymentsList: 0, priceRetrieve: 0 };
+    this.retrieveParams = [];
+    this.coupons = [];
+    this.deletedCoupons = [];
+    this.promotionCodes.clear();
+    this.promotionCalls = { create: 0, retrieve: 0, update: 0 };
+    this.couponCreateError = null;
+    this.promotionCreateError = null;
+    this.promotionRetrieveError = null;
+    this.promotionUpdateError = null;
   }
 
   signed(event: object) {
@@ -170,6 +247,30 @@ export function completedEvent(sessionId: string, paymentIntent: string, extra: 
     created: Math.floor(Date.now() / 1000),
     data: { object: { id: sessionId, payment_status: 'paid', payment_intent: paymentIntent, ...extra } },
   };
+}
+
+/**
+ * `checkout.session.completed` of a pack bought with a discount code (spec 09, AC-PAY-027/028): Stripe reports the
+ * paid `amount_total`, the discount in `total_details` and the code in `discounts` (an id unless expanded).
+ * `paid: 0` is an order fully covered by a 100% code – no PaymentIntent, `payment_status: no_payment_required`.
+ */
+export function discountedCompletedEvent(
+  sessionId: string,
+  paymentIntent: string | null,
+  amounts: { list: number; paid: number },
+  promotionCode: string | { id: string; code: string } | null,
+  extra: Record<string, unknown> = {},
+) {
+  return completedEvent(sessionId, paymentIntent as string, {
+    payment_status: amounts.paid === 0 ? 'no_payment_required' : 'paid',
+    ...(amounts.paid === 0 ? { payment_intent: null } : {}),
+    currency: 'pln',
+    amount_subtotal: amounts.list,
+    amount_total: amounts.paid,
+    total_details: { amount_discount: amounts.list - amounts.paid, amount_shipping: 0, amount_tax: 0 },
+    ...(promotionCode ? { discounts: [{ coupon: 'co_any', promotion_code: promotionCode }] } : {}),
+    ...extra,
+  });
 }
 
 export function refundEvent(

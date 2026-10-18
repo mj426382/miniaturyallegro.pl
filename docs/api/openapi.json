@@ -1381,6 +1381,83 @@
         ]
       }
     },
+    "/api/admin/discount-codes": {
+      "get": {
+        "operationId": "AdminController_listDiscountCodes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Discount codes created in the panel with status and redemptions (spec 16)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "AdminController_createDiscountCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDiscountCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a discount code: Stripe coupon (duration once) + promotion code",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/discount-codes/{id}/deactivate": {
+      "post": {
+        "operationId": "AdminController_deactivateDiscountCode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deactivate a discount code (Stripe promotion code active: false)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/admin/overview": {
       "get": {
         "operationId": "AdminController_overview",
@@ -2274,6 +2351,53 @@
       "GrantCreditsDto": {
         "type": "object",
         "properties": {}
+      },
+      "CreateDiscountCodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "PARTNER-10",
+            "description": "A–Z, 0–9 and a dash, 3–30 characters; stored upper-case"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "percent",
+              "amount"
+            ],
+            "example": "percent"
+          },
+          "percentOff": {
+            "type": "number",
+            "example": 10,
+            "description": "Required for type \"percent\": whole number 1–100"
+          },
+          "amountOffPln": {
+            "type": "number",
+            "example": 5,
+            "description": "Required for type \"amount\": złoty, > 0, at most 2 decimals"
+          },
+          "maxRedemptions": {
+            "type": "number",
+            "example": 100,
+            "description": "How many times the code can be used in total"
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2026-12-31T22:59:59.000Z",
+            "description": "ISO 8601, must be in the future"
+          },
+          "note": {
+            "type": "string",
+            "example": "Katalog firm – czytelnicy",
+            "description": "For the operator, up to 200 characters"
+          }
+        },
+        "required": [
+          "code",
+          "type"
+        ]
       },
       "RegisterBatchDto": {
         "type": "object",

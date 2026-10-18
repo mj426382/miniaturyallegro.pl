@@ -171,11 +171,41 @@ model PaymentTransaction {
   creditsReversed       Int       @default(0)
   /// Part of creditsReversed that could not be removed – the buyer had already spent it.
   creditsShortfall      Int       @default(0)
+  // ── Discount codes (spec 09 AC-PAY-027, migration 20261018150000) ──
+  /// Discount applied at checkout (grosze, total_details.amount_discount); amountPln is what was really paid.
+  amountDiscount        Int       @default(0)
+  /// Human-readable Stripe promotion code (e.g. PARTNER-10); null without a code or when Stripe could not tell.
+  promotionCode         String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@map("payment_transactions")
+}
+
+/// Spec 16, AC-ADM-017/018: discount codes created in the admin panel (Stripe coupon + promotion code).
+model DiscountCode {
+  id                    String    @id @default(cuid())
+  /// Upper-case code the buyer types on the Stripe checkout page.
+  code                  String    @unique
+  /// percent | amount
+  type                  String
+  percentOff            Int?
+  amountOffGrosze       Int?
+  maxRedemptions        Int?
+  expiresAt             DateTime?
+  /// Free text for the operator, e.g. the partner's name.
+  note                  String?
+  stripeCouponId        String
+  stripePromotionCodeId String    @unique
+  active                Boolean   @default(true)
+  /// Admin e-mail address that created the code.
+  createdBy             String
+  createdAt             DateTime  @default(now())
+  deactivatedAt         DateTime?
+
+  @@index([createdAt])
+  @@map("discount_codes")
 }
 
 /// Stripe events whose effect must happen once (refunds, disputes) – the event id is the idempotency key.

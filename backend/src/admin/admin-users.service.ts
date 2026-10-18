@@ -75,6 +75,9 @@ export class AdminUsersService {
           kind: true,
           createdAt: true,
           stripeInvoiceId: true,
+          // Spec 16, AC-ADM-019: amountPln is what was paid; the code and the discount explain the difference.
+          amountDiscount: true,
+          promotionCode: true,
         },
       }),
       this.prisma.emailLog.findMany({

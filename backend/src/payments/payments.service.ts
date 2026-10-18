@@ -137,6 +137,26 @@ export function creditsToReverse(row: {
   return Math.min(row.creditsAdded, Math.round((row.creditsAdded * held) / row.amountPln));
 }
 
+/** Spec 09, AC-PAY-028: `no_payment_required` is a Checkout order fully covered by a 100% discount code. */
+const FULFILLABLE_PAYMENT_STATUSES = ['paid', 'no_payment_required'];
+
+/**
+ * What the buyer really paid for a pack (spec 09, AC-PAY-027): the session's `amount_total` in grosze.
+ * Undefined when Stripe did not send it (older payloads) or it is not a PLN amount – the list price stays.
+ */
+function paidAmountOf(session: any): number | undefined {
+  const total = session?.amount_total;
+  if (typeof total !== 'number' || !Number.isInteger(total) || total < 0) return undefined;
+  if (session.currency && String(session.currency).toLowerCase() !== 'pln') return undefined;
+  return total;
+}
+
+/** Discount applied at checkout in grosze (`total_details.amount_discount`), 0 when there is none. */
+function discountOf(session: any): number {
+  const discount = Number(session?.total_details?.amount_discount ?? 0);
+  return Number.isInteger(discount) && discount > 0 ? discount : 0;
+}
+
 function reversalStatus(row: LockedTransaction): string {
   if (row.disputeStatus === 'open' || row.disputeStatus === 'lost') return TRANSACTION_STATUS.disputed;
   if (row.amountPln > 0 && row.amountRefunded >= row.amountPln) return TRANSACTION_STATUS.refunded;
@@ -175,6 +195,11 @@ export class PaymentsService {
   setStripeClient(client: any) {
     this.stripe = client;
     this.priceChecks.clear();
+  }
+
+  /** Spec 16: discount codes are created with the same Stripe client (503 when payments are not configured). */
+  stripeClient() {
+    return this.requireStripe();
   }
 
   private requireStripe() {
@@ -339,6 +364,8 @@ export class PaymentsService {
             metadata: { userId, packageId },
           },
         },
+        // Spec 09, AC-PAY-026: partner discount codes work on regular packs; the welcome pack is already discounted.
+        ...(pkg.welcome ? {} : { allow_promotion_codes: true }),
         line_items: [
           {
             price_data: {
@@ -603,10 +630,15 @@ export class PaymentsService {
    */
   private async handleCheckoutCompleted(session: any) {
     if (!session?.id) return;
-    if (session.payment_status && session.payment_status !== 'paid') {
+    // AC-PAY-028: a 100% discount code completes the order without a payment.
+    if (session.payment_status && !FULFILLABLE_PAYMENT_STATUSES.includes(session.payment_status)) {
       this.logger.log(`Session ${session.id} completed but payment_status=${session.payment_status} – waiting`);
       return;
     }
+    const paid = paidAmountOf(session);
+    const discount = paid === undefined ? 0 : discountOf(session);
+    // Resolved before the row is locked – a slow or failing Stripe call never blocks the credits (AC-PAY-029).
+    const promotionCode = discount > 0 ? await this.resolvePromotionCode(session) : null;
 
     let transaction = await this.prisma.paymentTransaction.findUnique({ where: { stripeSessionId: session.id } });
     const reservedId = session.metadata?.transactionId || session.client_reference_id;
@@ -643,15 +675,31 @@ export class PaymentsService {
         if (earlier > 0) return { kind: 'welcome-twice' as const };
       }
 
-      const net = Math.max(0, row.creditsAdded - row.creditsReversed);
+      // AC-PAY-027/030: the row keeps what was really paid; a refund or dispute that arrived before the
+      // completion (recorded against the list price) is recomputed against the paid amount.
+      const next: LockedTransaction = { ...row, completedAt: new Date() };
+      if (paid !== undefined) {
+        next.amountPln = paid;
+        next.amountRefunded = Math.min(row.amountRefunded, paid);
+        next.creditsReversed = creditsToReverse(next);
+      }
+      const net = Math.max(0, next.creditsAdded - next.creditsReversed);
       const piFree =
         paymentIntentId &&
         !(await tx.paymentTransaction.findUnique({ where: { stripePaymentIntentId: paymentIntentId } }));
       await tx.paymentTransaction.update({
         where: { id: row.id },
         data: {
-          completedAt: new Date(),
-          status: row.status === TRANSACTION_STATUS.pending ? TRANSACTION_STATUS.completed : row.status,
+          completedAt: next.completedAt,
+          status: reversalStatus(next),
+          ...(paid !== undefined
+            ? {
+                amountPln: next.amountPln,
+                amountDiscount: discount,
+                amountRefunded: next.amountRefunded,
+                creditsReversed: next.creditsReversed,
+              }
+            : {}),
           ...(piFree ? { stripePaymentIntentId: paymentIntentId } : {}),
         },
       });
@@ -685,6 +733,46 @@ export class PaymentsService {
     }
     if (paymentIntentId && outcome.kind === 'duplicate')
       await this.rememberPaymentIntent(transaction.id, paymentIntentId);
+    // AC-PAY-029: a code Stripe could not tell the first time is filled in by a later delivery.
+    if (promotionCode) {
+      await this.prisma.paymentTransaction.updateMany({
+        where: { id: transaction.id, promotionCode: null },
+        data: { promotionCode },
+      });
+    }
+  }
+
+  /**
+   * Human-readable promotion code of a discounted Checkout session (spec 09, AC-PAY-027): from the session's
+   * `discounts` (an expanded promotion code or its id), otherwise from the session retrieved with the codes
+   * expanded. Best effort – any Stripe failure is a warning and null, the order is fulfilled anyway (AC-PAY-029).
+   */
+  private async resolvePromotionCode(session: any): Promise<string | null> {
+    const pick = (discounts: unknown): { code?: string; id?: string } | null => {
+      for (const discount of Array.isArray(discounts) ? discounts : []) {
+        const promo = discount?.promotion_code;
+        if (promo && typeof promo === 'object' && typeof promo.code === 'string') return { code: promo.code };
+        const id = idOf(promo);
+        if (id) return { id };
+      }
+      return null;
+    };
+    try {
+      let found = pick(session.discounts);
+      if (!found) {
+        const full = await this.stripe.checkout.sessions.retrieve(session.id, {
+          expand: ['discounts.promotion_code'],
+        });
+        found = pick(full?.discounts);
+      }
+      let code = found?.code;
+      if (!code && found?.id) code = (await this.stripe.promotionCodes.retrieve(found.id))?.code;
+      if (typeof code === 'string' && code.trim()) return code.trim().toUpperCase().slice(0, 100);
+      this.logger.warn(`Session ${session.id}: discount without a promotion code – code not stored`);
+    } catch (err: any) {
+      this.logger.warn(`Session ${session.id}: could not resolve the promotion code: ${err?.message}`);
+    }
+    return null;
   }
 
   private async handleSubscriptionCheckout(session: any) {

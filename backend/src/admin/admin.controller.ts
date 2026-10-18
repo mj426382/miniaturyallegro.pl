@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Type, Transform } from 'class-transformer';
@@ -10,6 +10,8 @@ import { CurrentUser, SessionUser } from '../auth/current-user.decorator';
 import { AdminGuard } from './admin.guard';
 import { AdminService } from './admin.service';
 import { AdminUsersService } from './admin-users.service';
+import { DiscountCodesService } from './discount-codes.service';
+import { CreateDiscountCodeDto } from './discount-codes.dto';
 
 class ListUsersQuery {
   @IsOptional()
@@ -93,6 +95,7 @@ export class AdminController {
     private admin: AdminService,
     private users: AdminUsersService,
     private content: AdminContentService,
+    private discountCodes: DiscountCodesService,
   ) {}
 
   @Get('users/:id/images')
@@ -131,6 +134,27 @@ export class AdminController {
   @ApiOperation({ summary: 'Add credits to an account (gift or support) – recorded in credit_grants' })
   grantCredits(@CurrentUser() admin: SessionUser, @Param('id') id: string, @Body() dto: GrantCreditsDto) {
     return this.users.grantCredits(admin.email, id, dto.amount, dto.reason);
+  }
+
+  @Get('discount-codes')
+  @ApiOperation({ summary: 'Discount codes created in the panel with status and redemptions (spec 16)' })
+  listDiscountCodes() {
+    return this.discountCodes.list();
+  }
+
+  @Post('discount-codes')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Create a discount code: Stripe coupon (duration once) + promotion code' })
+  createDiscountCode(@CurrentUser() admin: SessionUser, @Body() dto: CreateDiscountCodeDto) {
+    return this.discountCodes.create(admin.email, dto);
+  }
+
+  @Post('discount-codes/:id/deactivate')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Deactivate a discount code (Stripe promotion code active: false)' })
+  deactivateDiscountCode(@Param('id') id: string) {
+    return this.discountCodes.deactivate(id);
   }
 
   @Get('overview')
