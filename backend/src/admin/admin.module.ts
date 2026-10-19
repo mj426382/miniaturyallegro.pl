@@ -8,10 +8,12 @@ import { ImagesModule } from '../images/images.module';
 import { AdminContentService } from './admin-content.service';
 import { DiscountCodesService } from './discount-codes.service';
 import { PaymentsModule } from '../payments/payments.module';
+import { PartnersController } from './partners.controller';
+import { PartnersService } from './partners.service';
 
 @Module({
   imports: [GenerationModule, ImagesModule, PaymentsModule],
-  controllers: [AdminController],
-  providers: [AdminService, AdminUsersService, AdminContentService, DiscountCodesService, AdminGuard],
+  controllers: [AdminController, PartnersController],
+  providers: [AdminService, AdminUsersService, AdminContentService, DiscountCodesService, PartnersService, AdminGuard],
 })
 export class AdminModule {}

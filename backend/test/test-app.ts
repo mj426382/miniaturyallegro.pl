@@ -59,7 +59,7 @@ export async function createTestApp(): Promise<TestContext> {
 /** Wipes all rows between tests (order matters because of FKs – cascade handles it). */
 export async function resetDatabase(prisma: PrismaService) {
   await prisma.$executeRawUnsafe(
-    'TRUNCATE TABLE "users", "demo_requests", "account_tombstones", "discount_codes" RESTART IDENTITY CASCADE',
+    'TRUNCATE TABLE "users", "demo_requests", "account_tombstones", "discount_codes", "partners" RESTART IDENTITY CASCADE',
   );
 }
 

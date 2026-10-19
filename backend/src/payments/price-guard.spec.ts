@@ -33,7 +33,7 @@ describe('subscription plan price guard', () => {
       if (!prices[id]) throw Object.assign(new Error(`No such price: '${id}'`), { statusCode: 404 });
       return { id, ...prices[id] };
     });
-    service = new PaymentsService(config, {} as any, { send: jest.fn() } as any);
+    service = new PaymentsService(config, {} as any, { send: jest.fn() } as any, {} as any);
     service.setStripeClient({ prices: { retrieve } });
   });
 

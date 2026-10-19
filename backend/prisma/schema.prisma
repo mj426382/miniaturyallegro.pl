@@ -37,6 +37,12 @@ model User {
   referredById       String?
   /// Spec 20: when the referral bonus was paid (after the e-mail was confirmed) – paid once.
   referralRewardedAt DateTime?
+  /// Spec 24: the partner whose code the customer first paid with (first attribution wins).
+  partnerId              String?
+  /// Spec 24: payment time of that first payment.
+  partnerAttributedAt    DateTime?
+  /// Spec 24: payments before this moment earn the partner commission (attribution + the partner's period).
+  partnerCommissionUntil DateTime?
   /// Timestamp of accepting the Terms of Service (regulamin) – required for audit (UŚUDE / RODO).
   termsAcceptedAt    DateTime?
   /// Stripe customer id – created lazily on first checkout / subscription.
@@ -57,8 +63,10 @@ model User {
   referrals               User[]                   @relation("Referrals")
   uploadLog               UploadLog[]
   subscription            Subscription?
+  partner                 Partner?                 @relation(fields: [partnerId], references: [id], onDelete: SetNull)
 
   @@index([referredById])
+  @@index([partnerId])
   @@map("users")
 }
 
@@ -176,10 +184,18 @@ model PaymentTransaction {
   amountDiscount        Int       @default(0)
   /// Human-readable Stripe promotion code (e.g. PARTNER-10); null without a code or when Stripe could not tell.
   promotionCode         String?
+  // ── Partner programme (spec 24, migration 20261019090000) ──
+  /// Partner this payment earns commission for (set once at fulfilment, within the customer's commission period).
+  partnerId                String?
+  /// Commission rate fixed at payment time – a later rate change applies to later payments only.
+  partnerCommissionPercent Int?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  partner            Partner?            @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  partnerCommissions PartnerCommission[]
 
   @@index([userId, createdAt])
+  @@index([partnerId])
   @@map("payment_transactions")
 }
 
@@ -203,9 +219,90 @@ model DiscountCode {
   createdBy             String
   createdAt             DateTime  @default(now())
   deactivatedAt         DateTime?
+  /// Spec 24: the partner the code belongs to (payments with it attribute the customer to the partner).
+  partnerId             String?
+
+  partner Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
+  @@index([partnerId])
   @@map("discount_codes")
+}
+
+/// Spec 24: a partner (affiliate) whose readers get a discount code and who earns commission on their payments.
+model Partner {
+  id                      String   @id @default(cuid())
+  name                    String
+  /// Business contact address – also the self-referral guard (an account with this mailbox is never attributed).
+  contactEmail            String
+  companyName             String?
+  /// 10 digits, no separators.
+  nip                     String?
+  customerDiscountPercent Int      @default(10)
+  commissionPercent       Int      @default(20)
+  commissionMonths        Int      @default(12)
+  active                  Boolean  @default(true)
+  note                    String?
+  /// Admin e-mail address that created the partner.
+  createdBy               String
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  codes        DiscountCode[]
+  customers    User[]
+  transactions PaymentTransaction[]
+  commissions  PartnerCommission[]
+  payouts      PartnerPayout[]
+
+  @@index([createdAt])
+  @@map("partners")
+}
+
+/// Spec 24: commission ledger – one "payment" entry per order, "adjustment" entries for refunds and disputes. The sum of
+/// a transaction's entries always equals round(rate × net paid). Survives the customer's account deletion.
+model PartnerCommission {
+  id                String   @id @default(cuid())
+  partnerId         String
+  transactionId     String?
+  /// "K-" + first 8 hex characters of SHA-256 of the account id – no personal data.
+  customerRef       String
+  /// payment | adjustment
+  kind              String
+  /// package | subscription
+  productKind       String
+  packageId         String?
+  /// Change of the net paid amount (grosze).
+  netPaidGrosze     Int
+  /// Change of the commission (grosze).
+  commissionGrosze  Int
+  commissionPercent Int
+  /// Booking time: the Stripe event time of the payment, refund or dispute.
+  occurredAt        DateTime
+  createdAt         DateTime @default(now())
+
+  partner     Partner             @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  transaction PaymentTransaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@index([partnerId, occurredAt])
+  @@index([transactionId])
+  @@map("partner_commissions")
+}
+
+/// Spec 24: a payout to a partner recorded by the administrator (reduces the unpaid balance).
+model PartnerPayout {
+  id           String   @id @default(cuid())
+  partnerId    String
+  amountGrosze Int
+  paidOn       DateTime @db.Date
+  /// Partner's invoice number or a note.
+  reference    String
+  createdBy    String
+  createdAt    DateTime @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+
+  @@index([partnerId, paidOn])
+  @@map("partner_payouts")
 }
 
 /// Stripe events whose effect must happen once (refunds, disputes) – the event id is the idempotency key.

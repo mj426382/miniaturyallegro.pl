@@ -13,6 +13,7 @@ import { MailService } from '../mail/mail.service';
 import { parseAdminEmails } from '../admin/admin-emails';
 import { CREDIT_PACKAGES, SUBSCRIPTION_PLANS, WELCOME_PACKAGE, findPackage, findPlan, SubscriptionPlan } from './plans';
 import { emailNotVerifiedException, isVerificationRequired } from '../auth/email-verification';
+import { PartnerLedgerService } from '../partners/partner-ledger.service';
 
 // Stripe v22 CJS – use require to avoid TS namespace issues
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -165,6 +166,11 @@ function reversalStatus(row: LockedTransaction): string {
   return PAID_STATUSES.includes(row.status) ? TRANSACTION_STATUS.pending : row.status;
 }
 
+/** When the payment, refund or dispute happened at Stripe – the booking time of partner commission (spec 24). */
+function eventTime(event: any): Date {
+  return typeof event?.created === 'number' ? new Date(event.created * 1000) : new Date();
+}
+
 function zl(grosze: number): string {
   return `${(grosze / 100).toFixed(2).replace('.', ',')} zł`;
 }
@@ -181,6 +187,7 @@ export class PaymentsService {
     private configService: ConfigService,
     private prisma: PrismaService,
     private mail: MailService,
+    private partners: PartnerLedgerService,
   ) {
     this.verificationRequired = isVerificationRequired(this.configService.get<string>('EMAIL_VERIFICATION_REQUIRED'));
     const key = this.configService.get<string>('STRIPE_SECRET_KEY');
@@ -595,14 +602,14 @@ export class PaymentsService {
       case 'checkout.session.completed':
       case 'checkout.session.async_payment_succeeded':
         if (object?.mode === 'subscription') await this.handleSubscriptionCheckout(object);
-        else await this.handleCheckoutCompleted(object);
+        else await this.handleCheckoutCompleted(object, event);
         break;
       case 'checkout.session.expired':
       case 'checkout.session.async_payment_failed':
         await this.markTransaction(object?.id, event.type.endsWith('expired') ? 'expired' : 'failed');
         break;
       case 'invoice.paid':
-        await this.handleInvoicePaid(object);
+        await this.handleInvoicePaid(object, event);
         break;
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
@@ -628,8 +635,9 @@ export class PaymentsService {
    * only the delivery that finds it unfulfilled (`completedAt` null) adds credits – minus whatever a refund
    * that arrived earlier already took back (AC-PAY-021). The PaymentIntent is stored for refunds (AC-PAY-016).
    */
-  private async handleCheckoutCompleted(session: any) {
+  private async handleCheckoutCompleted(session: any, event?: any) {
     if (!session?.id) return;
+    const paidAt = eventTime(event);
     // AC-PAY-028: a 100% discount code completes the order without a payment.
     if (session.payment_status && !FULFILLABLE_PAYMENT_STATUSES.includes(session.payment_status)) {
       this.logger.log(`Session ${session.id} completed but payment_status=${session.payment_status} – waiting`);
@@ -704,6 +712,8 @@ export class PaymentsService {
         },
       });
       if (net > 0) await tx.user.update({ where: { id: row.userId }, data: { credits: { increment: net } } });
+      // Spec 24, AC-PRT-005: a partner's code attributes the customer; commission is booked with the order.
+      await this.partners.attachPayment(tx, row.id, paidAt, promotionCode);
       return { kind: 'added' as const, net, userId: row.userId };
     });
 
@@ -738,6 +748,13 @@ export class PaymentsService {
       await this.prisma.paymentTransaction.updateMany({
         where: { id: transaction.id, promotionCode: null },
         data: { promotionCode },
+      });
+    }
+    // Spec 24, AC-PRT-007: a code learned only on a later delivery still attributes the customer (no credits again).
+    if (promotionCode && outcome.kind === 'duplicate') {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT "id" FROM "payment_transactions" WHERE "id" = ${transaction.id} FOR UPDATE`;
+        await this.partners.attachPayment(tx, transaction.id, paidAt, promotionCode);
       });
     }
   }
@@ -799,8 +816,9 @@ export class PaymentsService {
    * Proration / plan-change / manual invoices (`billing_reason` other than create/cycle) never grant
    * credits – otherwise an upgrade mid-cycle or a downgrade credit note would hand out a full month.
    */
-  private async handleInvoicePaid(invoice: any) {
+  private async handleInvoicePaid(invoice: any, event?: any) {
     if (!invoice?.id) return;
+    const paidAt = eventTime(event);
     // Stripe API 2025-03+ moved `subscription` under `parent.subscription_details`; support both shapes.
     const subscriptionId: string | undefined =
       (typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id) ||
@@ -846,7 +864,7 @@ export class PaymentsService {
         const piFree =
           paymentIntentId &&
           !(await tx.paymentTransaction.findUnique({ where: { stripePaymentIntentId: paymentIntentId } }));
-        await tx.paymentTransaction.create({
+        const created = await tx.paymentTransaction.create({
           data: {
             userId,
             stripeSessionId: invoice.id,
@@ -860,6 +878,8 @@ export class PaymentsService {
           },
         });
         await tx.user.update({ where: { id: userId }, data: { credits: { increment: plan.credits } } });
+        // Spec 24, AC-PRT-008: invoices of an attributed customer earn the partner commission within the period.
+        await this.partners.attachPayment(tx, created.id, paidAt);
         await tx.subscription.upsert({
           where: { userId },
           create: { userId, stripeSubscriptionId: subscriptionId, planId: plan.id, status: 'active' },
@@ -1130,6 +1150,8 @@ export class PaymentsService {
           status: next.status,
         },
       });
+      // Spec 24, AC-PRT-010: refunds and disputes correct the partner commission in the month they happen.
+      if (row.completedAt) await this.partners.book(tx, row.id, eventTime(event));
 
       return {
         transactionId: row.id,

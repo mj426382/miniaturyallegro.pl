@@ -1527,6 +1527,274 @@
         ]
       }
     },
+    "/api/admin/partners": {
+      "get": {
+        "operationId": "PartnersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Partners with codes, customers, current-month and all-time commission and balance",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "PartnersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartnerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a partner – optionally with its percent discount code (Stripe) in one step",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/partners/{id}": {
+      "get": {
+        "operationId": "PartnersController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A partner with the monthly statement (Europe/Warsaw, masked customers) and payouts",
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "operationId": "PartnersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePartnerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit a partner (rates and period apply to later payments and attributions)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/partners/{id}/codes": {
+      "post": {
+        "operationId": "PartnersController_createCode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartnerCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create another discount code for the partner (percent = the partner's discount)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/partners/{id}/codes/link": {
+      "post": {
+        "operationId": "PartnersController_linkCode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkPartnerCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Link an existing discount code to the partner",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/partners/{id}/codes/{codeId}/unlink": {
+      "post": {
+        "operationId": "PartnersController_unlinkCode",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "codeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unlink a discount code from the partner (later payments do not attribute)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/admin/partners/{id}/payouts": {
+      "post": {
+        "operationId": "PartnersController_recordPayout",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartnerPayoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record a payout to the partner (reduces the unpaid balance; warnings below 50 zł)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/notifications/batches": {
       "post": {
         "operationId": "NotificationsController_registerBatch",
@@ -2397,6 +2665,182 @@
         "required": [
           "code",
           "type"
+        ]
+      },
+      "CreatePartnerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Katalog Firm Przykład",
+            "description": "2–100 characters"
+          },
+          "contactEmail": {
+            "type": "string",
+            "example": "partner@example.com",
+            "description": "Business contact; also the self-referral guard"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Przykład sp. z o.o.",
+            "nullable": true
+          },
+          "nip": {
+            "type": "string",
+            "example": "526-000-12-46",
+            "description": "Stored as 10 digits",
+            "nullable": true
+          },
+          "customerDiscountPercent": {
+            "type": "number",
+            "example": 10,
+            "description": "Whole percent 1–100"
+          },
+          "commissionPercent": {
+            "type": "number",
+            "example": 20,
+            "description": "Whole percent 1–50"
+          },
+          "commissionMonths": {
+            "type": "number",
+            "example": 12,
+            "description": "Months 1–60 from attribution"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "note": {
+            "type": "string",
+            "example": "Umowa z 19.10.2026",
+            "nullable": true
+          },
+          "code": {
+            "type": "string",
+            "example": "KATALOG-10",
+            "description": "Creates the partner's percent code (A–Z, 0–9, dash)"
+          },
+          "codeMaxRedemptions": {
+            "type": "number",
+            "example": 500,
+            "description": "Usage limit of the new code"
+          },
+          "codeExpiresAt": {
+            "type": "string",
+            "example": "2027-10-31T22:59:59.000Z",
+            "description": "Expiry of the new code (future)"
+          }
+        },
+        "required": [
+          "name",
+          "contactEmail"
+        ]
+      },
+      "UpdatePartnerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Katalog Firm Przykład",
+            "description": "2–100 characters"
+          },
+          "contactEmail": {
+            "type": "string",
+            "example": "partner@example.com",
+            "description": "Business contact; also the self-referral guard"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Przykład sp. z o.o.",
+            "nullable": true
+          },
+          "nip": {
+            "type": "string",
+            "example": "526-000-12-46",
+            "description": "Stored as 10 digits",
+            "nullable": true
+          },
+          "customerDiscountPercent": {
+            "type": "number",
+            "example": 10,
+            "description": "Whole percent 1–100"
+          },
+          "commissionPercent": {
+            "type": "number",
+            "example": 20,
+            "description": "Whole percent 1–50"
+          },
+          "commissionMonths": {
+            "type": "number",
+            "example": 12,
+            "description": "Months 1–60 from attribution"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "note": {
+            "type": "string",
+            "example": "Umowa z 19.10.2026",
+            "nullable": true
+          }
+        }
+      },
+      "CreatePartnerCodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "KATALOG-2027"
+          },
+          "maxRedemptions": {
+            "type": "number",
+            "example": 500
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2027-10-31T22:59:59.000Z"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "LinkPartnerCodeDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "SMARTNET20"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "CreatePartnerPayoutDto": {
+        "type": "object",
+        "properties": {
+          "amountPln": {
+            "type": "number",
+            "example": 120.5,
+            "description": "Złoty, > 0, at most 2 decimals, up to 100 000 zł"
+          },
+          "paidOn": {
+            "type": "string",
+            "example": "2026-11-05",
+            "description": "YYYY-MM-DD, not in the future (Polish time)"
+          },
+          "reference": {
+            "type": "string",
+            "example": "FV 12/11/2026",
+            "description": "Partner's invoice number or a note, 1–200 characters"
+          }
+        },
+        "required": [
+          "amountPln",
+          "paidOn",
+          "reference"
         ]
       },
       "RegisterBatchDto": {

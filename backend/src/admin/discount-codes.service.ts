@@ -13,8 +13,13 @@ import { CreateDiscountCodeDto } from './discount-codes.dto';
 
 export type DiscountCodeStatus = 'active' | 'inactive' | 'expired' | 'exhausted';
 
+/** A code row with its partner (spec 24, AC-PRT-004). */
+type CodeWithPartner = DiscountCode & { partner?: { id: string; name: string } | null };
+
 const LIST_LIMIT = 100;
-const CONFLICT_MESSAGE = 'Taki kod już istnieje – wybierz inny';
+export const CONFLICT_MESSAGE = 'Taki kod już istnieje – wybierz inny';
+export const PAST_EXPIRY_MESSAGE = 'Data ważności musi być w przyszłości';
+const WITH_PARTNER = { partner: { select: { id: true, name: true } } } as const;
 
 /** Stripe refuses a second active promotion code with the same text (also one of the JAN-MAT shop). */
 function isDuplicateCodeError(err: any): boolean {
@@ -35,11 +40,12 @@ export class DiscountCodesService {
     private payments: PaymentsService,
   ) {}
 
-  async create(adminEmail: string, dto: CreateDiscountCodeDto) {
+  /** `options.partnerId` links the new code to a partner in the same write (spec 24, AC-PRT-001). */
+  async create(adminEmail: string, dto: CreateDiscountCodeDto, options: { partnerId?: string } = {}) {
     const code = dto.code.trim().toUpperCase();
     const expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
     if (expiresAt && expiresAt.getTime() <= Date.now()) {
-      throw new BadRequestException('Data ważności musi być w przyszłości');
+      throw new BadRequestException(PAST_EXPIRY_MESSAGE);
     }
     const amountOffGrosze = dto.type === 'amount' ? Math.round(Number(dto.amountOffPln) * 100) : null;
     const percentOff = dto.type === 'percent' ? Number(dto.percentOff) : null;
@@ -81,7 +87,9 @@ export class DiscountCodesService {
           stripeCouponId: coupon.id,
           stripePromotionCodeId: promotionCode.id,
           createdBy: adminEmail,
+          partnerId: options.partnerId ?? null,
         },
+        include: WITH_PARTNER,
       });
       this.logger.log(`Discount code ${code} created (${dto.type})`);
       return this.toRow(row, { timesRedeemed: 0, active: true }, 0);
@@ -99,12 +107,16 @@ export class DiscountCodesService {
 
   /** Newest first, with redemptions from Stripe (null when Stripe does not answer) and fulfilled orders. */
   async list() {
-    const rows = await this.prisma.discountCode.findMany({ orderBy: { createdAt: 'desc' }, take: LIST_LIMIT });
+    const rows = await this.prisma.discountCode.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: LIST_LIMIT,
+      include: WITH_PARTNER,
+    });
     return { codes: await this.describe(rows) };
   }
 
   async deactivate(id: string) {
-    const row = await this.prisma.discountCode.findUnique({ where: { id } });
+    const row = await this.prisma.discountCode.findUnique({ where: { id }, include: WITH_PARTNER });
     if (!row) throw new NotFoundException('Nie znaleziono kodu rabatowego');
     if (!row.active) return (await this.describe([row]))[0];
 
@@ -118,12 +130,13 @@ export class DiscountCodesService {
     const updated = await this.prisma.discountCode.update({
       where: { id },
       data: { active: false, deactivatedAt: new Date() },
+      include: WITH_PARTNER,
     });
     this.logger.log(`Discount code ${row.code} deactivated`);
     return (await this.describe([updated]))[0];
   }
 
-  private async describe(rows: DiscountCode[]) {
+  private async describe(rows: CodeWithPartner[]) {
     if (!rows.length) return [];
     const orders = await this.prisma.paymentTransaction.groupBy({
       by: ['promotionCode'],
@@ -153,7 +166,7 @@ export class DiscountCodesService {
     return rows.map((row, i) => this.toRow(row, live[i], ordersByCode.get(row.code) ?? 0));
   }
 
-  private toRow(row: DiscountCode, live: { timesRedeemed: number; active: boolean } | null, orders: number) {
+  private toRow(row: CodeWithPartner, live: { timesRedeemed: number; active: boolean } | null, orders: number) {
     const timesRedeemed = live ? live.timesRedeemed : null;
     let status: DiscountCodeStatus = 'active';
     if (!row.active || live?.active === false) status = 'inactive';
@@ -174,6 +187,7 @@ export class DiscountCodesService {
       createdBy: row.createdBy,
       createdAt: row.createdAt,
       deactivatedAt: row.deactivatedAt,
+      partner: row.partner ? { id: row.partner.id, name: row.partner.name } : null,
     };
   }
 }
