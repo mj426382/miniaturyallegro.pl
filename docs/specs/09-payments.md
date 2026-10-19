@@ -91,6 +91,9 @@
 `POST /payments/subscribe {planId, acceptedEarlyStart}`, `POST /payments/portal`, `POST /payments/webhook` (raw body),
 `GET /payments/invoices/:transactionId` → `{url}` (JWT, tylko własne transakcje, 404 gdy brak faktury).
 Kody rabatowe: `GET|POST /admin/discount-codes`, `POST /admin/discount-codes/:id/deactivate` (spec 16).
+Program partnerski (2026-10-19, spec 24): kod podłączony do partnera przypisuje konto klienta do partnera przy realizacji
+opłaconej sesji pakietu (AC-PAY-027), a realizacja, faktura abonamentu, zwrot i spór księgują prowizję partnera w tej samej
+transakcji bazy (AC-PRT-005..011). Dla klienta nic się nie zmienia.
 
 Dane: migracja `20261018150000_discount_codes` – `payment_transactions.amountDiscount INT NOT NULL DEFAULT 0`,
 `payment_transactions.promotionCode TEXT NULL` i tabela `discount_codes` (spec 16). Tylko dodawanie kolumn i tabeli.

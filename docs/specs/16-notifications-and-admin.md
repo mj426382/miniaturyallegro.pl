@@ -99,6 +99,10 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
   - Wymaganie dla właściciela: jeśli backend używa ograniczonego klucza Stripe (restricted key), klucz
     musi mieć uprawnienie zapisu do „Coupons” i „Promotion codes”.
 
+- **Partnerzy** (dodane 2026-10-19): zakładka „Partnerzy” z partnerami, ich kodami, prowizją, zestawieniem
+  miesięcznym i wypłatami – pełny opis i kryteria w spec 24 (AC-PRT-001..016). Lista kodów rabatowych pokazuje
+  partnera kodu (AC-PRT-004).
+
 ## 4. Przepływ użytkownika (UX)
 
 - Rejestracja: pod akceptacją regulaminu opcjonalne pole „Chcę dostawać wskazówki i przypomnienia
@@ -160,6 +164,7 @@ oraz panel, w którym właściciel widzi użytkowników i może wysłać im wiad
 - `GET /admin/discount-codes` → `{codes: [...]}`, `POST /admin/discount-codes {code, type: percent|amount, percentOff?,
   amountOffPln?, maxRedemptions?, expiresAt?, note?}` → 201 kod, `POST /admin/discount-codes/:id/deactivate` → kod
   (JWT + administrator).
+- `/admin/partners…` – program partnerski (spec 24, sekcja 7).
 
 ## 8. Dane i migracje
 

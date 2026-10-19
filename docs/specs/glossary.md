@@ -26,3 +26,6 @@
 | **Paczka ZIP** | Archiwum grafik i opisów zaznaczonych zdjęć (15). „Paczka” oznacza tylko ZIP – partię zdjęć nazywamy „masowym przesyłaniem” |
 | **Oryginał** | Zdjęcie przesłane przez Użytkownika eksportowane bez AI (kadr, obrót, format), np. na Vinted (08) |
 | **Pulpit** | Strona startowa aplikacji (`/`) z licznikami i ostatnimi zdjęciami |
+| **Partner** | Firma lub twórca polecający AllGrafikę swoim czytelnikom kodem rabatowym; dostaje prowizję od płatności przypisanych klientów (24) |
+| **Przypisanie (atrybucja)** | Powiązanie konta klienta z partnerem przy pierwszej płatności kodem partnera; pierwsze wygrywa, trwa przez okres prowizji (24) |
+| **Księga prowizji** | Wpisy zamówień i korekt partnera z datą księgowania; zestawienie miesięczne w strefie Europe/Warsaw (24) |
