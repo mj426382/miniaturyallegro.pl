@@ -8,6 +8,7 @@ import ModalFallback from '../components/ModalFallback'
 import { usePreloadOnInteraction } from '../hooks/usePreloadOnInteraction'
 import AdminGenerationsFeed from '../components/admin/AdminGenerationsFeed'
 import AdminDiscountCodes from '../components/admin/AdminDiscountCodes'
+import AdminPartners from '../components/admin/AdminPartners'
 import { formatDateTime as dateTime, formatZl as zl } from '../utils/format'
 import { countLabel } from '../utils/plural'
 
@@ -23,7 +24,7 @@ export default function Admin() {
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [openUserId, setOpenUserId] = useState<string | null>(null)
-  const [tab, setTab] = useState<'users' | 'graphics' | 'codes'>('users')
+  const [tab, setTab] = useState<'users' | 'graphics' | 'codes' | 'partners'>('users')
   const styles = useQuery({ queryKey: ['styles'], queryFn: () => generationApi.getStyles().then((r) => r.data), staleTime: 60 * 60 * 1000 })
   const styleNames = Object.fromEntries((styles.data?.styles ?? []).map((s) => [s.id, s.name]))
 
@@ -69,12 +70,13 @@ export default function Admin() {
             ))}
       </div>
 
-      <div className="flex border-b border-gray-200 mb-4" role="tablist" aria-label="Widok panelu">
+      <div className="flex flex-wrap border-b border-gray-200 mb-4" role="tablist" aria-label="Widok panelu">
         {(
           [
             ['users', 'Użytkownicy'],
             ['graphics', 'Grafiki'],
             ['codes', 'Kody rabatowe'],
+            ['partners', 'Partnerzy'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -82,14 +84,16 @@ export default function Admin() {
             role="tab"
             aria-selected={tab === id}
             onClick={() => setTab(id)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px ${tab === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
+            className={`px-3 sm:px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px ${tab === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
           >
             {label}
           </button>
         ))}
       </div>
 
-      {tab === 'codes' ? (
+      {tab === 'partners' ? (
+        <AdminPartners />
+      ) : tab === 'codes' ? (
         <AdminDiscountCodes />
       ) : tab === 'graphics' ? (
         <AdminGenerationsFeed styleNames={styleNames} onOpenUser={setOpenUserId} />

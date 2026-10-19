@@ -160,8 +160,115 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       createdBy: USER.email,
       createdAt: '2026-10-10T10:00:00.000Z',
       deactivatedAt: null,
+      partner: { id: 'p-1', name: 'Katalog Firm' },
+    },
+    // Spec 24: an older code without a partner (linked from the partner details)
+    {
+      id: 'dc-0',
+      code: 'SMARTNET20',
+      type: 'percent',
+      percentOff: 20,
+      amountOffGrosze: null,
+      maxRedemptions: null,
+      expiresAt: null,
+      note: null,
+      status: 'active',
+      timesRedeemed: 1,
+      orders: 1,
+      createdBy: USER.email,
+      createdAt: '2026-10-01T10:00:00.000Z',
+      deactivatedAt: null,
+      partner: null,
     },
   ]
+  // Spec 24, AC-PRT-013/015: partners, their monthly statements (masked customers) and payouts.
+  const partnerCode = (c: any) => ({
+    id: c.id,
+    code: c.code,
+    type: c.type,
+    percentOff: c.percentOff,
+    amountOffGrosze: c.amountOffGrosze,
+    expiresAt: c.expiresAt,
+    status: c.status === 'inactive' ? 'inactive' : 'active',
+  })
+  const partners: any[] = [
+    {
+      id: 'p-1',
+      name: 'Katalog Firm',
+      contactEmail: 'partner@example.com',
+      companyName: 'Katalog Firm sp. z o.o.',
+      nip: '5260001246',
+      customerDiscountPercent: 10,
+      commissionPercent: 20,
+      commissionMonths: 12,
+      active: true,
+      note: null,
+      createdBy: USER.email,
+      createdAt: '2026-09-01T10:00:00.000Z',
+      updatedAt: '2026-09-01T10:00:00.000Z',
+      codes: [partnerCode(discountCodes[0])],
+      customers: 3,
+      currentMonth: { orders: 2, netPaidGrosze: 3520, commissionGrosze: 704 },
+      allTime: { orders: 3, netPaidGrosze: 6040, commissionGrosze: 1208 },
+      paidOutGrosze: 500,
+      balanceGrosze: 708,
+    },
+  ]
+  const partnerMonths: Record<string, any[]> = {
+    'p-1': [
+      {
+        month: '2026-10',
+        orders: 2,
+        netPaidGrosze: 3520,
+        commissionGrosze: 704,
+        entries: [
+          {
+            id: 'e-4',
+            occurredAt: '2026-10-12T10:00:00.000Z',
+            kind: 'payment',
+            product: 'Pakiet 15 kredytów',
+            customer: 'K-1a2b3c4d',
+            netPaidGrosze: 2520,
+            commissionGrosze: 504,
+            commissionPercent: 20,
+          },
+          { id: 'e-3', occurredAt: '2026-10-03T10:00:00.000Z', kind: 'payment', product: 'Abonament', customer: 'K-9f8e7d6c', netPaidGrosze: 1000, commissionGrosze: 200, commissionPercent: 20 },
+        ],
+      },
+      {
+        month: '2026-09',
+        orders: 1,
+        netPaidGrosze: 2520,
+        commissionGrosze: 504,
+        entries: [
+          {
+            id: 'e-2',
+            occurredAt: '2026-09-20T10:00:00.000Z',
+            kind: 'adjustment',
+            product: 'Pakiet 15 kredytów',
+            customer: 'K-5e5e5e5e',
+            netPaidGrosze: -280,
+            commissionGrosze: -56,
+            commissionPercent: 20,
+          },
+          {
+            id: 'e-1',
+            occurredAt: '2026-09-02T10:00:00.000Z',
+            kind: 'payment',
+            product: 'Pakiet 15 kredytów',
+            customer: 'K-5e5e5e5e',
+            netPaidGrosze: 2800,
+            commissionGrosze: 560,
+            commissionPercent: 20,
+          },
+        ],
+      },
+    ],
+  }
+  const partnerPayouts: Record<string, any[]> = {
+    'p-1': [{ id: 'po-1', amountGrosze: 500, paidOn: '2026-10-05', reference: 'FV 1/10/2026', createdBy: USER.email, createdAt: '2026-10-05T10:00:00.000Z' }],
+  }
+  const partnerDetail = (p: any) => ({ ...p, month: '2026-10', minPayoutGrosze: 5000, months: partnerMonths[p.id] ?? [], payouts: partnerPayouts[p.id] ?? [] })
 
   // Session is an httpOnly cookie – the SPA simply asks /users/me, which we answer as logged in.
 
@@ -316,6 +423,97 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       if (!code) return json({ statusCode: 404, message: 'Nie znaleziono kodu rabatowego' }, 404)
       Object.assign(code, { status: 'inactive', deactivatedAt: '2026-10-18T11:00:00.000Z' })
       return json(code)
+    }
+    if (path === '/admin/partners' && req.method() === 'GET') return json({ month: '2026-10', minPayoutGrosze: 5000, partners })
+    if (path === '/admin/partners' && req.method() === 'POST') {
+      const body = req.postDataJSON()
+      requests.push({ url: path, method: 'POST', body })
+      if (body.code && discountCodes.some((c) => c.code === body.code)) return json({ statusCode: 409, message: 'Taki kod już istnieje – wybierz inny' }, 409)
+      const id = `p-${partners.length + 1}`
+      const codes: any[] = []
+      if (body.code) {
+        const code = {
+          ...discountCodes[1],
+          id: `dc-${discountCodes.length + 1}`,
+          code: body.code,
+          percentOff: body.customerDiscountPercent,
+          partner: { id, name: body.name },
+          orders: 0,
+          timesRedeemed: 0,
+        }
+        discountCodes.unshift(code)
+        codes.push(partnerCode(code))
+      }
+      const zero = { orders: 0, netPaidGrosze: 0, commissionGrosze: 0 }
+      const created = {
+        companyName: null,
+        nip: null,
+        note: null,
+        ...body,
+        id,
+        codes,
+        customers: 0,
+        currentMonth: zero,
+        allTime: zero,
+        paidOutGrosze: 0,
+        balanceGrosze: 0,
+        createdBy: USER.email,
+        createdAt: '2026-10-19T10:00:00.000Z',
+        updatedAt: '2026-10-19T10:00:00.000Z',
+      }
+      delete created.code
+      partners.unshift(created)
+      return json(created, 201)
+    }
+    const partnerPath = /^\/admin\/partners\/([^/]+)(?:\/(codes\/link|codes|payouts|codes\/([^/]+)\/unlink))?$/.exec(path)
+    if (partnerPath) {
+      const p = partners.find((x) => x.id === partnerPath[1])
+      if (!p) return json({ statusCode: 404, message: 'Nie znaleziono partnera' }, 404)
+      const action = partnerPath[2]
+      const body = req.method() === 'GET' ? undefined : req.postDataJSON()
+      if (req.method() !== 'GET') requests.push({ url: path, method: req.method(), body })
+      if (!action && req.method() === 'GET') return json(partnerDetail(p))
+      if (!action && req.method() === 'PATCH') {
+        Object.assign(p, body)
+        return json(p)
+      }
+      if (action === 'codes/link') {
+        const code = discountCodes.find((c) => c.code === body.code)
+        if (!code) return json({ statusCode: 404, message: 'Nie znaleziono kodu rabatowego – najpierw utwórz go w zakładce „Kody rabatowe”' }, 404)
+        if (code.partner && code.partner.id !== p.id) return json({ statusCode: 409, message: 'Ten kod jest już podłączony do innego partnera' }, 409)
+        code.partner = { id: p.id, name: p.name }
+        if (!p.codes.some((c: any) => c.id === code.id)) p.codes.unshift(partnerCode(code))
+        return json(p)
+      }
+      if (action === 'codes') {
+        if (discountCodes.some((c) => c.code === body.code)) return json({ statusCode: 409, message: 'Taki kod już istnieje – wybierz inny' }, 409)
+        const code = { ...discountCodes[0], id: `dc-${discountCodes.length + 1}`, code: body.code, percentOff: p.customerDiscountPercent, partner: { id: p.id, name: p.name } }
+        discountCodes.unshift(code)
+        p.codes.unshift(partnerCode(code))
+        return json(p, 201)
+      }
+      if (action?.endsWith('/unlink')) {
+        p.codes = p.codes.filter((c: any) => c.id !== partnerPath[3])
+        const code = discountCodes.find((c) => c.id === partnerPath[3])
+        if (code) code.partner = null
+        return json(p)
+      }
+      if (action === 'payouts') {
+        const amountGrosze = Math.round(body.amountPln * 100)
+        const warnings = [...(amountGrosze < 5000 ? ['Kwota jest poniżej progu wypłaty 50,00 zł.'] : []), ...(amountGrosze > p.balanceGrosze ? ['Wypłata jest wyższa niż saldo do wypłaty.'] : [])]
+        const payout = {
+          id: `po-${(partnerPayouts[p.id]?.length ?? 0) + 1}`,
+          amountGrosze,
+          paidOn: body.paidOn,
+          reference: body.reference,
+          createdBy: USER.email,
+          createdAt: '2026-10-19T10:00:00.000Z',
+        }
+        partnerPayouts[p.id] = [payout, ...(partnerPayouts[p.id] ?? [])]
+        p.paidOutGrosze += amountGrosze
+        p.balanceGrosze -= amountGrosze
+        return json({ payout, balanceGrosze: p.balanceGrosze, warnings }, 201)
+      }
     }
     if (/^\/admin\/users\/[^/]+\/credits$/.test(path)) {
       const body = req.postDataJSON()

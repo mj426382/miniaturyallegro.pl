@@ -235,6 +235,7 @@ export default function AdminDiscountCodes() {
                 <p className="text-xs text-gray-600 mt-1">
                   Użycia: {usageLabel(c)} · Zamówienia: {c.orders} · Ważny do: {c.expiresAt ? formatDateTime(c.expiresAt) : 'bez terminu'}
                 </p>
+                {c.partner && <p className="text-xs text-gray-700 mt-0.5 break-words">Partner: {c.partner.name}</p>}
                 {c.note && <p className="text-xs text-gray-500 mt-0.5 break-words">{c.note}</p>}
                 <p className="text-xs text-gray-500 mt-0.5">
                   Utworzony {formatDateTime(c.createdAt)} · {c.createdBy}

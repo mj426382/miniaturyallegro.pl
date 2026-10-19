@@ -431,6 +431,89 @@ export interface AdminDiscountCode {
   createdBy: string
   createdAt: string
   deactivatedAt: string | null
+  /** Spec 24, AC-PRT-004: the partner the code belongs to. */
+  partner?: { id: string; name: string } | null
+}
+
+/** Spec 24: orders, net paid and commission of a period (grosze). */
+export interface PartnerTotals {
+  orders: number
+  netPaidGrosze: number
+  commissionGrosze: number
+}
+
+/** Spec 24, AC-PRT-013: a partner in the admin list. */
+export interface AdminPartner {
+  id: string
+  name: string
+  contactEmail: string
+  companyName: string | null
+  nip: string | null
+  customerDiscountPercent: number
+  commissionPercent: number
+  commissionMonths: number
+  active: boolean
+  note: string | null
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+  codes: Array<{ id: string; code: string; type: 'percent' | 'amount'; percentOff: number | null; amountOffGrosze: number | null; expiresAt: string | null; status: 'active' | 'inactive' | 'expired' }>
+  /** Accounts attributed to the partner. */
+  customers: number
+  currentMonth: PartnerTotals
+  allTime: PartnerTotals
+  paidOutGrosze: number
+  balanceGrosze: number
+}
+
+/** One ledger entry of the monthly statement – the customer is a short hash, never an e-mail. */
+export interface PartnerStatementEntry {
+  id: string
+  occurredAt: string
+  kind: 'payment' | 'adjustment'
+  product: string
+  customer: string
+  netPaidGrosze: number
+  commissionGrosze: number
+  commissionPercent: number
+}
+
+export interface PartnerPayout {
+  id: string
+  amountGrosze: number
+  /** YYYY-MM-DD */
+  paidOn: string
+  reference: string
+  createdBy: string
+  createdAt: string
+}
+
+export interface AdminPartnerDetail extends AdminPartner {
+  month: string
+  minPayoutGrosze: number
+  months: Array<PartnerTotals & { month: string; entries: PartnerStatementEntry[] }>
+  payouts: PartnerPayout[]
+}
+
+export interface PartnerInput {
+  name: string
+  contactEmail: string
+  companyName?: string | null
+  nip?: string | null
+  customerDiscountPercent?: number
+  commissionPercent?: number
+  commissionMonths?: number
+  active?: boolean
+  note?: string | null
+  code?: string
+  codeMaxRedemptions?: number
+  codeExpiresAt?: string
+}
+
+export interface PayoutInput {
+  amountPln: number
+  paidOn: string
+  reference: string
 }
 
 export interface CreateDiscountCodeInput {
@@ -457,4 +540,13 @@ export const adminApi = {
   discountCodes: () => api.get<{ codes: AdminDiscountCode[] }>('/admin/discount-codes'),
   createDiscountCode: (input: CreateDiscountCodeInput) => api.post<AdminDiscountCode>('/admin/discount-codes', input),
   deactivateDiscountCode: (id: string) => api.post<AdminDiscountCode>(`/admin/discount-codes/${id}/deactivate`),
+  // Spec 24: partner programme
+  partners: () => api.get<{ month: string; minPayoutGrosze: number; partners: AdminPartner[] }>('/admin/partners'),
+  partner: (id: string) => api.get<AdminPartnerDetail>(`/admin/partners/${id}`),
+  createPartner: (input: PartnerInput) => api.post<AdminPartner>('/admin/partners', input),
+  updatePartner: (id: string, input: Partial<PartnerInput>) => api.patch<AdminPartner>(`/admin/partners/${id}`, input),
+  createPartnerCode: (id: string, input: { code: string; maxRedemptions?: number; expiresAt?: string }) => api.post<AdminPartner>(`/admin/partners/${id}/codes`, input),
+  linkPartnerCode: (id: string, code: string) => api.post<AdminPartner>(`/admin/partners/${id}/codes/link`, { code }),
+  unlinkPartnerCode: (id: string, codeId: string) => api.post<AdminPartner>(`/admin/partners/${id}/codes/${codeId}/unlink`),
+  recordPartnerPayout: (id: string, input: PayoutInput) => api.post<{ payout: PartnerPayout; balanceGrosze: number; warnings: string[] }>(`/admin/partners/${id}/payouts`, input),
 }
