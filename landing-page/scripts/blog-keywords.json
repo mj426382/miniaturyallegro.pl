@@ -72,6 +72,28 @@
     "empik-marketplace": { "url": "https://www.empik.com/marketplace", "publisher": "Empik Marketplace – strona dla sprzedawców", "platform": "empik" },
     "erli-home": { "url": "https://www.erli.pl/", "publisher": "ERLI.pl", "platform": "erli" },
     "google-merchant-image": { "url": "https://support.google.com/merchants/answer/6324350?hl=en", "publisher": "Google Merchant Center – atrybut image_link (wymagania zdjęć)", "platform": "google" },
+    "google-merchant-image-pl": {
+      "url": "https://support.google.com/merchants/answer/6324350?hl=pl",
+      "publisher": "Pomoc Google Merchant Center – zdjęcie produktu (image_link), wersja polska",
+      "platform": "google"
+    },
+    "vinted-help-photos": { "url": "https://www.vinted.co.uk/help/48", "publisher": "Vinted – pomoc: jak robić dobre zdjęcia", "platform": "vinted" },
+    "shoper-image-formats": {
+      "url": "https://www.shoper.pl/help/artykul/formaty-zdjec-produktow/",
+      "publisher": "Shoper – pomoc: formaty zdjęć produktów (sugerowane 1000 px dłuższego boku)",
+      "platform": "shoper"
+    },
+    "shoper-add-photo": { "url": "https://www.shoper.pl/learn/artykul/jak-dodac-zdjecie-do-produktu", "publisher": "Shoper Learn – jak dodać zdjęcie do produktu", "platform": "shoper" },
+    "prestashop-webservice-images": {
+      "url": "https://devdocs.prestashop-project.org/9/webservice/resources/images",
+      "publisher": "PrestaShop 9 – dokumentacja webservice: images (formaty przesyłanych zdjęć)",
+      "platform": "prestashop"
+    },
+    "prestashop-image-settings": {
+      "url": "https://docs.prestashop-project.org/v.9-documentation/user-guide/improving-shop/customizing-store-design/image-settings",
+      "publisher": "PrestaShop 9 – dokumentacja: ustawienia obrazów",
+      "platform": "prestashop"
+    },
     "google-images-seo": { "url": "https://developers.google.com/search/docs/appearance/google-images", "publisher": "Google Search Central – SEO obrazów", "platform": "google" },
     "google-ecommerce-seo": { "url": "https://developers.google.com/search/docs/specialty/ecommerce", "publisher": "Google Search Central – SEO dla e-commerce", "platform": "google" },
     "google-product-structured-data": {
