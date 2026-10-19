@@ -7,6 +7,7 @@ import { FREE_GRAPHICS, packages, plans } from '../src/data/pricing'
 import { seoOgImage, seoPages } from '../src/data/seoPages'
 import { HOME_UPDATED } from '../src/data/site'
 import { topicClusters } from '../src/data/topicClusters'
+import { PARTNER_OG_IMAGE, PARTNER_PAGE_PATH } from '../src/data/partnerProgram'
 
 /**
  * Spec 10 (audit docs/seo/2026-10-ecommerce-seo-audit.md): structured data, prices, topic clusters and internal links,
@@ -23,7 +24,8 @@ test.beforeEach(() => {
 
 const landingPaths = seoPages.map((p) => p.path)
 const postPaths = blogIndex.map((p) => `/blog/${p.slug}`)
-const INDEXABLE = ['/', '/blog', ...landingPaths, ...postPaths]
+// Spec 24 / AC-SEO-027: the partner programme page is indexable too.
+const INDEXABLE = ['/', '/blog', ...landingPaths, PARTNER_PAGE_PATH, ...postPaths]
 const KNOWN_ROUTES = new Set([...INDEXABLE, '/regulamin', '/polityka-prywatnosci'])
 
 function jsonLd(html: string): Array<Record<string, any>> {
@@ -87,6 +89,9 @@ test('[AC-SEO-015] every indexable page has valid JSON-LD of the right types and
           route,
         ).toEqual(questions)
       else expect(faq, route).toBeUndefined()
+    } else if (route === PARTNER_PAGE_PATH) {
+      // AC-SEO-027: a programme description – WebPage and BreadcrumbList, no FAQ
+      expect(types).toEqual(expect.arrayContaining(['WebPage', 'BreadcrumbList']))
     } else {
       expect(types).toEqual(expect.arrayContaining(['WebPage', 'BreadcrumbList', 'FAQPage']))
     }
@@ -229,6 +234,7 @@ test('[AC-SEO-019] Open Graph images, one H1, heading order and alt texts', asyn
     const landing = seoPages.find((p) => p.path === route)
     if (landing) expect(og).toBe(`${SITE}${seoOgImage(landing)}`)
     if (route === '/blog') expect(og).toBe(`${SITE}/og/blog.png`)
+    if (route === PARTNER_PAGE_PATH) expect(og).toBe(`${SITE}${PARTNER_OG_IMAGE}`)
 
     const result = await inDom<{ h1: number; skips: string[]; noAlt: number }>(
       page,

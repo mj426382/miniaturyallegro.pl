@@ -82,7 +82,11 @@ async function main() {
   const seoPaths = [...readFileSync(resolve(__dirname, '../src/data/seoPages.ts'), 'utf-8').matchAll(/^\s*path: '(\/[a-z0-9-]+)',$/gm)].map((m) => m[1])
   if (seoPaths.length === 0) throw new Error('No SEO landing pages found in src/data/seoPages.ts')
 
-  const routes = ['/', '/blog', '/regulamin', '/polityka-prywatnosci', ...seoPaths, ...slugs.map((s) => `/blog/${s}`)]
+  // Spec 24 / AC-SEO-027: the partner programme page.
+  const partnerPath = readFileSync(resolve(__dirname, '../src/data/partnerProgram.ts'), 'utf-8').match(/PARTNER_PAGE_PATH = '(\/[a-z0-9-]+)'/)?.[1]
+  if (!partnerPath) throw new Error('PARTNER_PAGE_PATH not found in src/data/partnerProgram.ts')
+
+  const routes = ['/', '/blog', '/regulamin', '/polityka-prywatnosci', partnerPath, ...seoPaths, ...slugs.map((s) => `/blog/${s}`)]
   console.log(`\n🔄 Prerendering ${routes.length} routes…`)
 
   for (const route of routes) {

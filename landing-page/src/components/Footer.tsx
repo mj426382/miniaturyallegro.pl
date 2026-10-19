@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { LEGAL_ENTITY } from '../legal/entity'
 import { seoPages } from '../data/seoPages'
 import { APP_URL } from '../data/site'
+import { PARTNER_PAGE_PATH } from '../data/partnerProgram'
 import { CONSENT_CONFIGURED, openCookieSettings } from '../consent/googleTag'
 
 const CONTACT_EMAIL = 'kontakt@allgrafika.pl'
@@ -72,6 +73,11 @@ export default function Footer() {
                 <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-white transition-colors">
                   Kontakt: {CONTACT_EMAIL}
                 </a>
+              </li>
+              <li>
+                <Link to={PARTNER_PAGE_PATH} className="hover:text-white transition-colors">
+                  Program partnerski
+                </Link>
               </li>
               <li>
                 <Link to="/polityka-prywatnosci" className="hover:text-white transition-colors">

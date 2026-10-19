@@ -61,6 +61,11 @@ const homeLastmod = [homeUpdated, newestPublished].filter(Boolean).sort().revers
 // ── Static pages ──────────────────────────────────────────────────────────────
 
 const seoSource = readFileSync(resolve(__dirname, '../src/data/seoPages.ts'), 'utf-8')
+// Spec 24 / AC-SEO-027: the partner programme page (description for partners, indexable).
+const partnerSource = readFileSync(resolve(__dirname, '../src/data/partnerProgram.ts'), 'utf-8')
+const partnerPath = partnerSource.match(/PARTNER_PAGE_PATH = '(\/[a-z0-9-]+)'/)?.[1]
+const partnerUpdated = partnerSource.match(/PARTNER_PAGE_UPDATED = '(\d{4}-\d{2}-\d{2})'/)?.[1]
+if (!partnerPath || !partnerUpdated) throw new Error('PARTNER_PAGE_PATH / PARTNER_PAGE_UPDATED not found in src/data/partnerProgram.ts')
 
 const staticPages = [
   { path: '/', lastmod: homeLastmod, priority: '1.0', changefreq: 'weekly' },
@@ -72,6 +77,7 @@ const staticPages = [
     priority: '0.9',
     changefreq: 'monthly',
   })),
+  { path: partnerPath, lastmod: partnerUpdated, priority: '0.5', changefreq: 'monthly' },
 ]
 
 // ── Build ─────────────────────────────────────────────────────────────────────

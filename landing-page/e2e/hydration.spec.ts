@@ -29,6 +29,7 @@ const ROUTES = [
   '/biale-tlo-zdjecie-produktu',
   '/zdjecia-produktowe-do-sklepu-internetowego',
   '/zdjecia-produktowe-vinted',
+  '/program-partnerski',
 ]
 
 for (const route of ROUTES) {

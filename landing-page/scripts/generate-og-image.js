@@ -125,9 +125,26 @@ async function ogImages() {
   const cards = landingCards()
   if (cards.length === 0) throw new Error('No landing pages parsed from src/data/seoPages.ts')
   for (const card of cards) await writeOg({ ...card, subtitle: 'Zdjęcia produktowe AI – produkt wierny oryginałowi' }, resolve(ogDir, `${card.slug}.png`), logo)
+  await partnerOg(logo)
+}
+
+/** Spec 24 / AC-SEO-027: the card of /program-partnerski. */
+async function partnerOg(logo) {
+  const ogDir = resolve(publicDir, 'og')
+  mkdirSync(ogDir, { recursive: true })
+  await writeOg(
+    { title: 'Program partnerski', accent: '10% rabatu dla czytelników, 20% prowizji dla Ciebie', subtitle: 'Prowizja od opłaconych zakupów przez 12 miesięcy' },
+    resolve(ogDir, 'program-partnerski.png'),
+    logo,
+  )
 }
 
 async function main() {
+  // `--og-partner` renders only the partner programme card (the other images stay byte-identical).
+  if (process.argv.includes('--og-partner')) {
+    await partnerOg(await sharp(logoPath).resize(160, 160, { fit: 'inside' }).png().toBuffer())
+    return
+  }
   await ogImages()
   // `--og` regenerates only the Open Graph images (the icons below are also copied into frontend/public).
   if (process.argv.includes('--og')) return

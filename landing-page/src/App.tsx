@@ -10,6 +10,8 @@ import CookieBanner from './consent/CookieBanner'
 import PageViewTracker from './consent/PageViewTracker'
 import SeoLanding from './pages/SeoLanding'
 import { seoPages } from './data/seoPages'
+import ProgramPartnerski from './pages/ProgramPartnerski'
+import { PARTNER_PAGE_PATH } from './data/partnerProgram'
 
 /** Route table shared by the browser app and the prerender (SSG) script. */
 export function AppRoutes() {
@@ -20,6 +22,7 @@ export function AppRoutes() {
       <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route path="/regulamin" element={<Regulamin />} />
       <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
+      <Route path={PARTNER_PAGE_PATH} element={<ProgramPartnerski />} />
       {seoPages.map((p) => (
         <Route key={p.path} path={p.path} element={<SeoLanding key={p.path} page={p} />} />
       ))}
