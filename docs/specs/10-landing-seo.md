@@ -43,6 +43,8 @@
   publikujemy ocen, opinii ani statystyk, których nie mamy.
 - Sitemapa ma jedno źródło (`scripts/generate-sitemap.js`); `lastmod` to data zmiany treści (strona główna – stała
   w kodzie aktualizowana przy zmianie treści, nie data buildu).
+- Po każdym udanym wdrożeniu produkcyjnym adresy dodane, zmienione (`lastmod`) i usunięte z sitemapy są zgłaszane do
+  IndexNow (Bing, Yandex, Seznam, Naver) – spec 26; klucz to plik `landing-page/public/<klucz>.txt` spoza sitemapy.
 - CSS strony jest wstawiany inline w prerenderowanym HTML (brak blokującego arkusza), a strona używa fontów systemowych
   zamiast pobierać Inter z Google Fonts (w symulacji Lighthouse mobile font opóźniał FCP o ok. 1,5 s).
 - Demo bez konta: e-mail + zdjęcie, 1 grafika; limity 1/e-mail, 2/IP/dzień, honeypot; wynik e-mailem;
