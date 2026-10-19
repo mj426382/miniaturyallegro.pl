@@ -7,7 +7,7 @@ export const APP_URL = 'https://app.allgrafika.pl'
 export const SITE_NAME = 'AllGrafika.pl'
 
 /** Sitemap <lastmod> of the home page (AC-SEO-018) – bump it when the home page copy changes, never per build. */
-export const HOME_UPDATED = '2026-10-17'
+export const HOME_UPDATED = '2026-10-19'
 
 /** Stable @id values that link the JSON-LD entities across pages (AC-SEO-015). */
 export const ORG_ID = `${SITE_URL}/#organization`

@@ -33,7 +33,15 @@ test('[AC-SEO-009] the brand suffix is added only when the whole title fits in 6
     expect(post.excerpt.length, `${post.slug}: meta description`).toBeLessThanOrEqual(160)
   }
 
-  const routes = ['/blog', '/regulamin', '/polityka-prywatnosci', '/program-partnerski', ...seoPages.map((p) => p.path), ...blogIndex.map((p) => `/blog/${p.slug}`)]
+  const routes = [
+    '/blog',
+    '/regulamin',
+    '/polityka-prywatnosci',
+    '/program-partnerski',
+    '/narzedzia/sprawdz-zdjecie-produktu',
+    ...seoPages.map((p) => p.path),
+    ...blogIndex.map((p) => `/blog/${p.slug}`),
+  ]
   for (const route of routes) {
     const res = await request.get(route)
     expect(res.status(), route).toBe(200)

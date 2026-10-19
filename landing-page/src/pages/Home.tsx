@@ -8,6 +8,7 @@ import PageHead from '../components/PageHead'
 import { blogIndex } from '../data/blogIndex'
 import { samplePairs } from '../data/samples'
 import { seoPages } from '../data/seoPages'
+import { PHOTO_CHECKER_LABEL, PHOTO_CHECKER_PATH } from '../data/photoChecker'
 import { FREE_GRAPHICS, HIGHEST_PRICE, packages, perCredit, plans } from '../data/pricing'
 import { APP_URL, ORG_ID, SITE_NAME, SITE_URL, SOFTWARE_ID, WEBSITE_ID } from '../data/site'
 import { track, trackCta } from '../services/analytics'
@@ -297,6 +298,13 @@ export default function Home() {
                 </Link>
               ))}
             </div>
+            <p className="mt-8 text-center text-gray-700">
+              Nie wiesz, czy Twoje zdjęcie spełnia wymagania platformy?{' '}
+              <Link to={PHOTO_CHECKER_PATH} className="font-semibold text-blue-700 underline underline-offset-2 hover:text-blue-900">
+                {PHOTO_CHECKER_LABEL} – darmowe narzędzie
+              </Link>{' '}
+              sprawdzi format, wymiary, wagę i tło bez wysyłania pliku.
+            </p>
           </div>
         </section>
 

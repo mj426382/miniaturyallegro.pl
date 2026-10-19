@@ -8,6 +8,7 @@ import { seoOgImage, seoPages } from '../src/data/seoPages'
 import { HOME_UPDATED } from '../src/data/site'
 import { topicClusters } from '../src/data/topicClusters'
 import { PARTNER_OG_IMAGE, PARTNER_PAGE_PATH } from '../src/data/partnerProgram'
+import { PHOTO_CHECKER_OG_IMAGE, PHOTO_CHECKER_PATH } from '../src/data/photoChecker'
 
 /**
  * Spec 10 (audit docs/seo/2026-10-ecommerce-seo-audit.md): structured data, prices, topic clusters and internal links,
@@ -24,8 +25,8 @@ test.beforeEach(() => {
 
 const landingPaths = seoPages.map((p) => p.path)
 const postPaths = blogIndex.map((p) => `/blog/${p.slug}`)
-// Spec 24 / AC-SEO-027: the partner programme page is indexable too.
-const INDEXABLE = ['/', '/blog', ...landingPaths, PARTNER_PAGE_PATH, ...postPaths]
+// Spec 24 / AC-SEO-027: the partner programme page is indexable too; spec 25: the free photo checker as well.
+const INDEXABLE = ['/', '/blog', ...landingPaths, PARTNER_PAGE_PATH, PHOTO_CHECKER_PATH, ...postPaths]
 const KNOWN_ROUTES = new Set([...INDEXABLE, '/regulamin', '/polityka-prywatnosci'])
 
 function jsonLd(html: string): Array<Record<string, any>> {
@@ -92,6 +93,9 @@ test('[AC-SEO-015] every indexable page has valid JSON-LD of the right types and
     } else if (route === PARTNER_PAGE_PATH) {
       // AC-SEO-027: a programme description – WebPage and BreadcrumbList, no FAQ
       expect(types).toEqual(expect.arrayContaining(['WebPage', 'BreadcrumbList']))
+    } else if (route === PHOTO_CHECKER_PATH) {
+      // AC-TOOL-006: a free web application with breadcrumbs and FAQ
+      expect(types).toEqual(expect.arrayContaining(['WebApplication', 'BreadcrumbList', 'FAQPage']))
     } else {
       expect(types).toEqual(expect.arrayContaining(['WebPage', 'BreadcrumbList', 'FAQPage']))
     }
@@ -235,6 +239,7 @@ test('[AC-SEO-019] Open Graph images, one H1, heading order and alt texts', asyn
     if (landing) expect(og).toBe(`${SITE}${seoOgImage(landing)}`)
     if (route === '/blog') expect(og).toBe(`${SITE}/og/blog.png`)
     if (route === PARTNER_PAGE_PATH) expect(og).toBe(`${SITE}${PARTNER_OG_IMAGE}`)
+    if (route === PHOTO_CHECKER_PATH) expect(og).toBe(`${SITE}${PHOTO_CHECKER_OG_IMAGE}`)
 
     const result = await inDom<{ h1: number; skips: string[]; noAlt: number }>(
       page,

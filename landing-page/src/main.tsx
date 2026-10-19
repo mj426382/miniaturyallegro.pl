@@ -9,6 +9,8 @@ import { loadPost } from './data/blogLoader'
 import { LEGAL_PATHS, loadLegal } from './data/legalLoader'
 import { loadSeoContent } from './data/seoContentLoader'
 import { findSeoPage, seoSlug } from './data/seoPages'
+import { PHOTO_CHECKER_PATH } from './data/photoChecker'
+import { loadPhotoChecker } from './data/photoCheckerLoader'
 
 initAnalytics()
 initGoogleTag()
@@ -23,7 +25,7 @@ const app = (
 )
 
 // Production pages are prerendered (SSG) – hydrate instead of re-rendering from scratch.
-// Article, landing and legal pages first fetch their content chunk so the hydrated tree equals the static HTML.
+// Article, landing, legal and tool pages first fetch their content chunk so the hydrated tree equals the static HTML.
 const path = window.location.pathname.replace(/\/$/, '') || '/'
 const articleSlug = path.match(/^\/blog\/([a-z0-9-]+)$/)?.[1]
 const legalDoc = LEGAL_PATHS[path]
@@ -34,7 +36,9 @@ const ready: Promise<unknown> = articleSlug
     ? loadSeoContent(seoSlug(seoPage)).catch(() => null)
     : legalDoc
       ? loadLegal(legalDoc).catch(() => null)
-      : Promise.resolve(null)
+      : path === PHOTO_CHECKER_PATH
+        ? loadPhotoChecker().catch(() => null)
+        : Promise.resolve(null)
 
 ready.then(() => {
   if (container.hasChildNodes()) {

@@ -126,6 +126,7 @@ async function ogImages() {
   if (cards.length === 0) throw new Error('No landing pages parsed from src/data/seoPages.ts')
   for (const card of cards) await writeOg({ ...card, subtitle: 'Zdjęcia produktowe AI – produkt wierny oryginałowi' }, resolve(ogDir, `${card.slug}.png`), logo)
   await partnerOg(logo)
+  await toolOg(logo)
 }
 
 /** Spec 24 / AC-SEO-027: the card of /program-partnerski. */
@@ -139,10 +140,26 @@ async function partnerOg(logo) {
   )
 }
 
+/** Spec 25: the card of /narzedzia/sprawdz-zdjecie-produktu. */
+async function toolOg(logo) {
+  const ogDir = resolve(publicDir, 'og')
+  mkdirSync(ogDir, { recursive: true })
+  await writeOg(
+    { title: 'Sprawdź zdjęcie produktu', accent: 'format, wymiary, waga i tło pod OLX, Vinted, eBay, Amazon i sklep', subtitle: 'Darmowe narzędzie – zdjęcie nie opuszcza przeglądarki' },
+    resolve(ogDir, 'sprawdz-zdjecie-produktu.png'),
+    logo,
+  )
+}
+
 async function main() {
   // `--og-partner` renders only the partner programme card (the other images stay byte-identical).
   if (process.argv.includes('--og-partner')) {
     await partnerOg(await sharp(logoPath).resize(160, 160, { fit: 'inside' }).png().toBuffer())
+    return
+  }
+  // `--og-tool` renders only the photo checker card.
+  if (process.argv.includes('--og-tool')) {
+    await toolOg(await sharp(logoPath).resize(160, 160, { fit: 'inside' }).png().toBuffer())
     return
   }
   await ogImages()

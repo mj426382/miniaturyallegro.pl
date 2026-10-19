@@ -9,10 +9,13 @@ import { primeSeoContentCache } from './data/seoContentLoader'
 import { allSeoContent } from './data/seoContent.server'
 import RegulaminContent from './legal/RegulaminContent'
 import PolitykaContent from './legal/PolitykaContent'
+import { primePhotoChecker } from './data/photoCheckerLoader'
+import PhotoCheckerPage from './pages/PhotoCheckerPage'
 
 primePostCache(allPosts)
 primeLegalCache({ regulamin: RegulaminContent, polityka: PolitykaContent })
 primeSeoContentCache(allSeoContent)
+primePhotoChecker(PhotoCheckerPage)
 
 export interface RenderResult {
   html: string

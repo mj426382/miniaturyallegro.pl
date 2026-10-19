@@ -18,7 +18,17 @@ test.beforeEach(() => {
 })
 
 test('[AC-SEO-011] no page, post or sitemap entry mentions Allegro and old Allegro URLs are 301s', async ({ page, request }) => {
-  const routes = ['/', '/blog', '/regulamin', '/polityka-prywatnosci', '/program-partnerski', '/nie-ma-takiej-strony', ...seoPages.map((p) => p.path), ...blogIndex.map((p) => `/blog/${p.slug}`)]
+  const routes = [
+    '/',
+    '/blog',
+    '/regulamin',
+    '/polityka-prywatnosci',
+    '/program-partnerski',
+    '/narzedzia/sprawdz-zdjecie-produktu',
+    '/nie-ma-takiej-strony',
+    ...seoPages.map((p) => p.path),
+    ...blogIndex.map((p) => `/blog/${p.slug}`),
+  ]
   for (const route of routes) {
     const html = await (await request.get(route)).text()
     expect(html.match(UNSUPPORTED)?.[0], route).toBeUndefined()

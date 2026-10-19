@@ -3,6 +3,7 @@ import { LEGAL_ENTITY } from '../legal/entity'
 import { seoPages } from '../data/seoPages'
 import { APP_URL } from '../data/site'
 import { PARTNER_PAGE_PATH } from '../data/partnerProgram'
+import { PHOTO_CHECKER_LABEL, PHOTO_CHECKER_PATH } from '../data/photoChecker'
 import { CONSENT_CONFIGURED, openCookieSettings } from '../consent/googleTag'
 
 const CONTACT_EMAIL = 'kontakt@allgrafika.pl'
@@ -56,6 +57,11 @@ export default function Footer() {
               <li>
                 <Link to="/blog" className="hover:text-white transition-colors">
                   Blog
+                </Link>
+              </li>
+              <li>
+                <Link to={PHOTO_CHECKER_PATH} className="hover:text-white transition-colors">
+                  {PHOTO_CHECKER_LABEL}
                 </Link>
               </li>
               <li>

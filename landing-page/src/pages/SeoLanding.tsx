@@ -13,6 +13,7 @@ import { getCachedSeoContent, loadSeoContent, type SeoContent } from '../data/se
 import { APP_URL, SITE_URL, SOFTWARE_ID, WEBSITE_ID, formatPlDate } from '../data/site'
 import { track, trackCta } from '../services/analytics'
 import { pageTitle } from '../utils/pageTitle'
+import { PHOTO_CHECKER_LABEL, PHOTO_CHECKER_LINKED_FROM, PHOTO_CHECKER_PATH } from '../data/photoChecker'
 import { plainText } from '../utils/richText'
 
 function structuredData(page: SeoPage, content: SeoContent, title: string) {
@@ -188,6 +189,15 @@ export default function SeoLanding({ page }: { page: SeoPage }) {
                   )}
                 </article>
               ))}
+              {PHOTO_CHECKER_LINKED_FROM.includes(page.path) && (
+                <p className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-gray-800" data-photo-checker-link="">
+                  Masz już zdjęcie? Sprawdź za darmo jego format, wymiary, wagę i tło –{' '}
+                  <Link to={PHOTO_CHECKER_PATH} className="font-semibold text-blue-700 underline underline-offset-2 hover:text-blue-900">
+                    {PHOTO_CHECKER_LABEL}
+                  </Link>{' '}
+                  działa w przeglądarce i nie wysyła pliku.
+                </p>
+              )}
             </div>
           </section>
         ) : (

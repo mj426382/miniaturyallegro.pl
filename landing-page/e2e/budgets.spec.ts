@@ -30,6 +30,46 @@ test('[AC-PERF-001] the home page loads at most 110 KB of gzipped JS and no axio
   }
 })
 
+/** Home page JS: the entry script plus everything it imports statically (Vite's modulepreload graph). */
+function homeScripts(): string[] {
+  const html = readFileSync(join(DIST, 'index.html'), 'utf-8')
+  const seen = new Set<string>()
+  const queue = [...html.matchAll(/<script[^>]+src="([^"]+\.js)"/g), ...html.matchAll(/<link[^>]+rel="modulepreload"[^>]+href="([^"]+\.js)"/g)].map((m) => m[1])
+  while (queue.length) {
+    const src = queue.shift()!
+    if (seen.has(src)) continue
+    seen.add(src)
+    const code = readFileSync(join(DIST, src), 'utf-8')
+    // static imports only: `import … from "./x.js"` / `import "./x.js"` (dynamic `import("./x.js")` is excluded)
+    for (const m of code.matchAll(/(?:^|[;\s}])import\s*(?:[\w${},*\s]+from\s*)?["'](\.\/[^"']+\.js)["']/g)) queue.push(`/assets/${m[1].slice(2)}`)
+  }
+  return [...seen]
+}
+
+test('[AC-TOOL-008] the photo checker is a lazy chunk that the home page neither loads nor preloads', async ({ page }) => {
+  const MARKER = 'data-photo-checker-tool'
+  const chunks = readdirSync(join(DIST, 'assets')).filter((f) => f.endsWith('.js') && readFileSync(join(DIST, 'assets', f), 'utf-8').includes(MARKER))
+  expect(chunks, 'exactly one chunk holds the tool').toHaveLength(1)
+  const tool = `/assets/${chunks[0]}`
+  const home = homeScripts()
+  expect(home, 'home JS graph').not.toContain(tool)
+  for (const src of home) expect(readFileSync(join(DIST, src), 'utf-8'), src).not.toContain(MARKER)
+  const total = home.reduce((sum, src) => sum + gzipSize(join(DIST, src)), 0)
+  expect(total, 'AC-PERF-001 budget still holds').toBeLessThanOrEqual(110 * KB)
+
+  // in the browser: / never fetches the chunk, the tool page does
+  const requested: string[] = []
+  page.on('request', (r) => requested.push(new URL(r.url()).pathname))
+  await page.goto('/')
+  await page.waitForLoadState('networkidle')
+  await page.mouse.move(200, 200)
+  await page.waitForTimeout(300)
+  expect(requested).not.toContain(tool)
+  await page.goto('/narzedzia/sprawdz-zdjecie-produktu')
+  await page.waitForLoadState('networkidle')
+  expect(requested).toContain(tool)
+})
+
 test('[AC-PERF-004] icons and logos stay small on the landing page and in the app', () => {
   for (const dir of [resolve(HERE, '../public'), resolve(HERE, '../../frontend/public')]) {
     expect(statSync(join(dir, 'favicon.ico')).size, `${dir}/favicon.ico`).toBeLessThanOrEqual(16 * KB)

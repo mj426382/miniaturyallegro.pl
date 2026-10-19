@@ -66,6 +66,11 @@ const partnerSource = readFileSync(resolve(__dirname, '../src/data/partnerProgra
 const partnerPath = partnerSource.match(/PARTNER_PAGE_PATH = '(\/[a-z0-9-]+)'/)?.[1]
 const partnerUpdated = partnerSource.match(/PARTNER_PAGE_UPDATED = '(\d{4}-\d{2}-\d{2})'/)?.[1]
 if (!partnerPath || !partnerUpdated) throw new Error('PARTNER_PAGE_PATH / PARTNER_PAGE_UPDATED not found in src/data/partnerProgram.ts')
+// Spec 25: the free photo checker tool.
+const toolSource = readFileSync(resolve(__dirname, '../src/data/photoChecker.ts'), 'utf-8')
+const toolPath = toolSource.match(/PHOTO_CHECKER_PATH = '(\/[a-z0-9/-]+)'/)?.[1]
+const toolUpdated = toolSource.match(/PHOTO_CHECKER_UPDATED = '(\d{4}-\d{2}-\d{2})'/)?.[1]
+if (!toolPath || !toolUpdated) throw new Error('PHOTO_CHECKER_PATH / PHOTO_CHECKER_UPDATED not found in src/data/photoChecker.ts')
 
 const staticPages = [
   { path: '/', lastmod: homeLastmod, priority: '1.0', changefreq: 'weekly' },
@@ -78,6 +83,7 @@ const staticPages = [
     changefreq: 'monthly',
   })),
   { path: partnerPath, lastmod: partnerUpdated, priority: '0.5', changefreq: 'monthly' },
+  { path: toolPath, lastmod: toolUpdated, priority: '0.8', changefreq: 'monthly' },
 ]
 
 // ── Build ─────────────────────────────────────────────────────────────────────

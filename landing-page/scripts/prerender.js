@@ -86,7 +86,11 @@ async function main() {
   const partnerPath = readFileSync(resolve(__dirname, '../src/data/partnerProgram.ts'), 'utf-8').match(/PARTNER_PAGE_PATH = '(\/[a-z0-9-]+)'/)?.[1]
   if (!partnerPath) throw new Error('PARTNER_PAGE_PATH not found in src/data/partnerProgram.ts')
 
-  const routes = ['/', '/blog', '/regulamin', '/polityka-prywatnosci', partnerPath, ...seoPaths, ...slugs.map((s) => `/blog/${s}`)]
+  // Spec 25: the free photo checker tool.
+  const toolPath = readFileSync(resolve(__dirname, '../src/data/photoChecker.ts'), 'utf-8').match(/PHOTO_CHECKER_PATH = '(\/[a-z0-9/-]+)'/)?.[1]
+  if (!toolPath) throw new Error('PHOTO_CHECKER_PATH not found in src/data/photoChecker.ts')
+
+  const routes = ['/', '/blog', '/regulamin', '/polityka-prywatnosci', partnerPath, toolPath, ...seoPaths, ...slugs.map((s) => `/blog/${s}`)]
   console.log(`\n🔄 Prerendering ${routes.length} routes…`)
 
   for (const route of routes) {
