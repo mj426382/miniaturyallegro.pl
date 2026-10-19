@@ -33,6 +33,7 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [22-google-analytics.md](22-google-analytics.md) | GA4 w tym samym tagu co Ads, zgoda per kategoria, migracja decyzji, zdarzenia i `purchase` |
 | [23-blog-bot.md](23-blog-bot.md) | Automatyczny bot bloga na landingu (allgrafika.pl) |
 | [24-partner-program.md](24-partner-program.md) | Program partnerski: partnerzy z kodami, przypisanie klientów, prowizja miesięczna, wypłaty, strona `/program-partnerski` |
+| [25-photo-checker.md](25-photo-checker.md) | Darmowe narzędzie „Sprawdź zdjęcie produktu”: analiza w przeglądarce, wymagania platform ze źródłami |
 | [adr/](adr/) | Architecture Decision Records – decyzje, których nie da się wyczytać z kodu |
 | [TEMPLATE-feature-spec.md](TEMPLATE-feature-spec.md) | Szablon nowej specyfikacji |
 | [glossary.md](glossary.md) | Słownik pojęć (Kredyt, Grafika, Opis oferty, Poprawka…) |

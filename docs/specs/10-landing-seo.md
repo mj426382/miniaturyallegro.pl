@@ -64,6 +64,11 @@
   zasadami head co strony docelowe (tytuł ≤ 60, opis, canonical, jedno H1, JSON-LD `WebPage` + `BreadcrumbList`, obraz OG),
   ale bez demo i bez FAQ. Liczby programu (10%, 20%, 12 miesięcy, 50 zł) pochodzą z jednego modułu danych landingu,
   zgodnego z domyślnymi wartościami backendu (test pilnuje zgodności).
+- Darmowe narzędzie „Sprawdź zdjęcie produktu” (2026-10-19, spec 25): strona `/narzedzia/sprawdz-zdjecie-produktu`
+  jest indeksowalna, w sitemapie, w stopce (kolumna „Produkt”), na stronie głównej i na stronach docelowych OLX, Vinted,
+  eBay, Amazon, sklepu internetowego i białego tła. Ma te same zasady head co strony docelowe oraz JSON-LD
+  `WebApplication` (darmowe, bez ocen), `BreadcrumbList` i `FAQPage`. Zdjęcia analizuje wyłącznie przeglądarka, a kod
+  narzędzia jest leniwym chunkiem spoza pakietu strony głównej. Hubu `/narzedzia` nie tworzymy, dopóki jest jedno narzędzie.
 
 ## 2. Kryteria akceptacji
 
