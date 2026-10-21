@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "111",
+    "slug": "black-friday-2026-przygotowania-sprzedawcy-checklista",
+    "title": "Black Friday 2026 – harmonogram przygotowań sprzedawcy",
+    "excerpt": "Black Friday 2026: harmonogram i checklista przygotowań dla sprzedawcy. Zadbaj o zdjęcia, logistykę i komunikację zgodnie z prawem.",
+    "publishedAt": "2026-10-21",
+    "modifiedAt": "2026-10-21",
+    "author": "AllGrafika.pl",
+    "readTime": 5,
+    "category": "E-commerce"
+  },
+  {
     "id": "110",
     "slug": "jak-fotografowac-buty-do-sprzedazy",
     "title": "Jak fotografować buty na sprzedaż – Vinted, OLX, sklep",
