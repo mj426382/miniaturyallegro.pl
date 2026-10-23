@@ -92,5 +92,12 @@
     "date": "2026-10-21",
     "cluster": "sezon-i-kampanie",
     "type": "seasonal"
+  },
+  {
+    "keyword": "omnibus najniższa cena z 30 dni",
+    "slug": "omnibus-najnizsza-cena-z-30-dni",
+    "date": "2026-10-23",
+    "cluster": "prawo-i-praktyka",
+    "type": "guide"
   }
 ]

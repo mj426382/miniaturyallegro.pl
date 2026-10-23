@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "112",
+    "slug": "omnibus-najnizsza-cena-z-30-dni",
+    "title": "Omnibus najniższa cena z 30 dni – jak pokazać obniżkę 2026",
+    "excerpt": "Omnibus najniższa cena z 30 dni: jak pokazać obniżkę w sklepie i na grafice zgodnie z UOKiK. Prosta instrukcja i przykłady. Sprawdź poradnik!",
+    "publishedAt": "2026-10-23",
+    "modifiedAt": "2026-10-23",
+    "author": "AllGrafika.pl",
+    "readTime": 5,
+    "category": "E-commerce"
+  },
+  {
     "id": "111",
     "slug": "black-friday-2026-przygotowania-sprzedawcy-checklista",
     "title": "Black Friday 2026 – harmonogram przygotowań sprzedawcy",
