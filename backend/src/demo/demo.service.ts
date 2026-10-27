@@ -178,8 +178,14 @@ export class DemoService implements OnModuleInit, OnModuleDestroy {
       const prepared = await prepareForAi(buffer, mimeType);
       const base64 = prepared.buffer.toString('base64');
 
-      const description = await this.gemini.generateImageDescription(base64, prepared.mimeType);
-      const prompt = await this.gemini.generatePromptForStyle(description, style);
+      // AC-DEMO-004: without the text model (e.g. no OpenAI credits) the demo uses the base style prompt.
+      let prompt = style.prompt;
+      try {
+        const description = await this.gemini.generateImageDescription(base64, prepared.mimeType);
+        prompt = await this.gemini.generatePromptForStyle(description, style);
+      } catch (error) {
+        this.logger.warn(`Demo ${id}: prompt preparation failed – using the base style prompt`, error);
+      }
       const generated = await this.gemini.generateImage(base64, prepared.mimeType, prompt);
 
       const { url: resultKey } = await this.storage.uploadFile(

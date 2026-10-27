@@ -23,6 +23,9 @@ export async function makeJpeg(size = 128): Promise<Buffer> {
 export class FakeGeminiService {
   failStyles = new Set<string>();
   failDescription = false;
+  /** Prompt-engineering calls (style, custom, rework) fail – AC-GEN-031. */
+  failPrompts = false;
+  failAllImages = false;
   failOfferCopy = false;
   /** The model answers, but with an empty title (spec 07, AC-DESC-016). */
   malformedOfferCopy = false;
@@ -39,20 +42,24 @@ export class FakeGeminiService {
 
   async generateAllStylePrompts(_description: string, styles: GenerationStyle[]): Promise<Map<string, string>> {
     this.calls.prompts++;
+    if (this.failPrompts) throw new Error('prompt model failed');
     return new Map(styles.map((s) => [s.id, `prompt-for-${s.id}`]));
   }
 
   async generatePromptForStyle(_d: string, style: GenerationStyle): Promise<string> {
+    if (this.failPrompts) throw new Error('prompt model failed');
     return `prompt-for-${style.id}`;
   }
 
   async generateCustomPrompt(_d: string, userPrompt: string): Promise<string> {
     this.calls.custom++;
+    if (this.failPrompts) throw new Error('prompt model failed');
     return `custom:${userPrompt}`;
   }
 
   async generateReworkPrompt(_d: string, userPrompt: string): Promise<string> {
     this.calls.rework++;
+    if (this.failPrompts) throw new Error('prompt model failed');
     return `rework:${userPrompt}`;
   }
 
@@ -80,6 +87,7 @@ export class FakeGeminiService {
   async generateImage(_b64: string, _mime: string, prompt: string): Promise<GeneratedImage> {
     this.calls.image++;
     if (this.delayMs) await new Promise((r) => setTimeout(r, this.delayMs));
+    if (this.failAllImages) throw new Error('simulated image model failure');
     for (const style of this.failStyles) {
       if (prompt.includes(style)) throw new Error(`simulated failure for ${style}`);
     }

@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI, Part } from '@google/generative-ai';
 import axios from 'axios';
 import { GenerationStyle } from './styles';
 import { Semaphore } from '../common/semaphore';
 import { getPlatformPreset, PlatformId } from './platform-presets';
+import { MailService } from '../mail/mail.service';
+import { parseAdminEmails } from '../admin/admin-emails';
 
 export { GENERATION_STYLES, GenerationStyle } from './styles';
 
@@ -93,6 +95,55 @@ export function buildOfferCopyPrompt(platform?: PlatformId | null): string {
   );
 }
 
+/** OpenAI or Gemini refused the call for billing reasons (no credits / quota) – retrying cannot help (AC-GEN-030/032). */
+export class AiBillingError extends Error {}
+
+/** AC-GEN-030: billing refusals vs. a plain rate limit (which is worth retrying). */
+export function isOpenAiBillingError(
+  status: number | undefined,
+  error: { code?: unknown; type?: unknown; message?: unknown } | undefined,
+): boolean {
+  if (status !== 429 && status !== 402) return false;
+  if (error?.code === 'insufficient_quota' || error?.type === 'insufficient_quota') return true;
+  return /quota|credits|billing/i.test(String(error?.message ?? ''));
+}
+
+/**
+ * AC-GEN-032: Gemini prepaid credits depleted or billing disabled (HTTP 402, e.g. "Your prepayment credits are
+ * depleted"). A 429 RESOURCE_EXHAUSTED per-minute rate limit is NOT billing and stays retryable.
+ */
+export function isGeminiBillingError(error: { status?: unknown; message?: unknown } | undefined): boolean {
+  if (error?.status === 402) return true;
+  return /\[402|prepayment credits|credits are depleted|billing/i.test(String(error?.message ?? ''));
+}
+
+/** AC-GEN-031: used when the text model cannot write the prompt – generateImage still appends the integrity rules. */
+export function fallbackCustomPrompt(userPrompt: string): string {
+  return (
+    `Place the product in the scene described by the user (in Polish): "${userPrompt.trim()}". ` +
+    'Change only the scene, never the product. Square composition with the product centred and large in frame, ' +
+    'photorealistic, sharp focus, no text, no watermark, no extra objects.'
+  );
+}
+
+/** AC-GEN-031: rework fallback – edit the first image, the second one is the product identity reference. */
+export function fallbackReworkPrompt(userPrompt: string): string {
+  return (
+    'Edit the FIRST image (an already generated graphic of the product); this is an edit, not a new generation. ' +
+    `Apply ONLY this change requested by the user (in Polish): "${userPrompt.trim()}". ` +
+    'Keep everything else – the product (identical to the SECOND image), framing and lighting – unchanged.'
+  );
+}
+
+const BILLING_ALERT_INTERVAL_MS = 6 * 60 * 60_000;
+
+type AiProvider = 'OpenAI' | 'Gemini';
+
+const BILLING_URLS: Record<AiProvider, string> = {
+  OpenAI: 'https://platform.openai.com/settings/organization/billing/',
+  Gemini: 'https://ai.studio/projects',
+};
+
 @Injectable()
 export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
@@ -113,7 +164,12 @@ export class GeminiService {
   /** Process-wide cap on concurrent image generations (all users). */
   private readonly imageSlots: Semaphore;
 
-  constructor(private configService: ConfigService) {
+  private readonly lastBillingAlertAt: Partial<Record<AiProvider, number>> = {};
+
+  constructor(
+    private configService: ConfigService,
+    @Optional() private readonly mail?: MailService,
+  ) {
     this.openaiApiKey = configService.get<string>('OPENAI_API_KEY');
     this.TEXT_MODEL = configService.get<string>('OPENAI_TEXT_MODEL') || 'gpt-4o-mini';
     this.IMAGE_MODEL = configService.get<string>('GEMINI_IMAGE_MODEL') || 'gemini-2.5-flash-image';
@@ -157,9 +213,14 @@ export class GeminiService {
         return response.data.choices[0].message.content;
       } catch (error: any) {
         const status = error?.response?.status;
-        const message = error?.response?.data?.error?.message || error?.message || '';
-        const isQuotaError = status === 429 && String(message).toLowerCase().includes('quota');
-        const isRetryable = (status === 429 && !isQuotaError) || status === 500 || status === 502 || status === 503;
+        const apiError = error?.response?.data?.error;
+        const message = apiError?.message || error?.message || '';
+        if (isOpenAiBillingError(status, apiError ?? { message })) {
+          this.logger.error(`[${label}] OpenAI billing error: ${message}`);
+          void this.alertBilling('OpenAI', label, String(message));
+          throw new AiBillingError(`[${label}] OpenAI API failed: ${message}`);
+        }
+        const isRetryable = status === 429 || status === 500 || status === 502 || status === 503;
 
         if (!isRetryable || attempt === this.MAX_RETRIES) {
           this.logger.error(`[${label}] OpenAI error: ${message}`);
@@ -174,6 +235,36 @@ export class GeminiService {
       }
     }
     throw new Error(`[${label}] All retries exhausted`);
+  }
+
+  /** AC-GEN-030/032: tell the operators (ADMIN_EMAILS) once per 6 h per provider and process. Best effort – never throws. */
+  private async alertBilling(provider: AiProvider, label: string, message: string): Promise<void> {
+    const now = Date.now();
+    if (now - (this.lastBillingAlertAt[provider] ?? -Infinity) < BILLING_ALERT_INTERVAL_MS) return;
+    this.lastBillingAlertAt[provider] = now;
+    const admins = [...parseAdminEmails(this.configService.get<string>('ADMIN_EMAILS'))];
+    if (!this.mail || !admins.length) {
+      this.logger.warn(`ADMIN_EMAILS not set – ${provider} billing alert not e-mailed`);
+      return;
+    }
+    const impact =
+      provider === 'OpenAI'
+        ? 'Grafiki powstają dalej z bazowych promptów, ale opisy ofert i analiza zdjęć nie działają.'
+        : 'Generowanie grafik (generator, masowe przesyłanie, demo) nie działa – kredyty za nieudane grafiki wracają do użytkowników.';
+    const lines = [
+      `${provider} odrzuca wywołania z powodów rozliczeniowych (zadanie: ${label}).`,
+      `Odpowiedź API: ${message.slice(0, 300)}`,
+      '',
+      impact,
+      `Doładuj konto: ${BILLING_URLS[provider]}`,
+    ];
+    for (const to of admins) {
+      try {
+        await this.mail.send({ to, subject: `[AllGrafika] Brak środków w ${provider}`, text: lines.join('\n') });
+      } catch (err: any) {
+        this.logger.error(`Could not e-mail the ${provider} billing alert to an administrator: ${err?.message}`);
+      }
+    }
   }
 
   private textCompletion(label: string, systemPrompt: string, userPrompt: string, json = false): Promise<string> {
@@ -195,6 +286,11 @@ export class GeminiService {
         return await fn();
       } catch (error: any) {
         const message = error?.message ?? '';
+        if (isGeminiBillingError(error)) {
+          this.logger.error(`[${label}] Gemini billing error: ${message.substring(0, 300)}`);
+          void this.alertBilling('Gemini', label, String(message));
+          throw new AiBillingError(`[${label}] Gemini API failed: ${message.substring(0, 300)}`);
+        }
         const isRetryable =
           message.includes('503') ||
           message.includes('429') ||

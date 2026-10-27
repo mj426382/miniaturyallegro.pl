@@ -14,7 +14,7 @@ import sharp from 'sharp';
 import * as http from 'http';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../images/storage.service';
-import { GeminiService } from './gemini.service';
+import { GeminiService, fallbackCustomPrompt, fallbackReworkPrompt } from './gemini.service';
 import { CreditsService, poolsOf } from './credits.service';
 import { ExportService, ExportOptions } from './export.service';
 import { InfographicOptions, InfographicService } from './infographic.service';
@@ -41,6 +41,11 @@ function extensionFor(mimeType: string): string {
   if (mimeType === 'image/png') return '.png';
   if (mimeType === 'image/webp') return '.webp';
   return '.jpg';
+}
+
+/** Short reason for the log line – the pino logger drops a second Error argument, so the cause must be in the message. */
+function errorReason(error: unknown): string {
+  return String((error as Error)?.message ?? error).slice(0, 300);
 }
 
 @Injectable()
@@ -390,17 +395,17 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
   private async processGenerations(imageId: string, originalUrl: string, generationIds: string[], basePrompt?: string) {
     let base64Image: string;
     let mimeType: string;
-    let description: string;
     try {
       const prepared = await this.prepareOriginal(originalUrl);
       base64Image = prepared.base64;
       mimeType = prepared.mimeType;
-      description = await this.getOrCreateDescription(imageId, base64Image, mimeType);
     } catch (error) {
-      this.logger.error('Failed to prepare image/description – failing whole batch', error);
+      this.logger.error(`Failed to prepare the original image – failing whole batch: ${errorReason(error)}`);
       await Promise.all(generationIds.map((id) => this.failGeneration(id)));
       return;
     }
+    // AC-GEN-007: without the text model (e.g. no OpenAI credits) the graphics are still made from the base prompts.
+    const description = await this.tryGetDescription(imageId, base64Image, mimeType);
 
     const generations = await this.prisma.generation.findMany({ where: { id: { in: generationIds } } });
     const genStyles = new Map<string, GenerationStyle>();
@@ -411,12 +416,13 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
     }
 
     const uniqueStyles = [...new Map([...genStyles.values()].map((s) => [s.id, s])).values()];
-    let allPrompts: Map<string, string>;
-    try {
-      allPrompts = await this.geminiService.generateAllStylePrompts(description, uniqueStyles, basePrompt);
-    } catch (error) {
-      this.logger.warn('Prompt generation failed – falling back to base style prompts', error);
-      allPrompts = new Map(uniqueStyles.map((s) => [s.id, s.prompt]));
+    let allPrompts = new Map(uniqueStyles.map((s) => [s.id, s.prompt]));
+    if (description !== null) {
+      try {
+        allPrompts = await this.geminiService.generateAllStylePrompts(description, uniqueStyles, basePrompt);
+      } catch (error) {
+        this.logger.warn('Prompt generation failed – falling back to base style prompts', error);
+      }
     }
 
     const ids = [...genStyles.keys()];
@@ -433,7 +439,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
             const url = await this.storeGenerated(generated.base64, generated.mimeType, `${style.id}.png`);
             await this.completeGeneration(generationId, optimizedPrompt, url);
           } catch (error) {
-            this.logger.error(`Failed to process generation ${generationId}`, error);
+            this.logger.error(`Failed to process generation ${generationId}: ${errorReason(error)}`);
             await this.failGeneration(generationId);
           }
         }),
@@ -457,7 +463,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       if (!(await this.claimForProcessing(generationId))) return;
 
       const original = await this.prepareOriginal(originalUrl);
-      const description = await this.getOrCreateDescription(imageId, original.base64, original.mimeType);
+      const description = await this.tryGetDescription(imageId, original.base64, original.mimeType);
 
       // Reference uploads are user-controlled – compressed & validated like the original before storing.
       const loaded = await loadReference();
@@ -468,9 +474,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       const primary = isRework && reference ? reference : original;
       const ref = isRework ? original : reference;
 
-      const optimizedPrompt = isRework
-        ? await this.geminiService.generateReworkPrompt(description, userPrompt)
-        : await this.geminiService.generateCustomPrompt(description, userPrompt);
+      const optimizedPrompt = await this.customPrompt(description, userPrompt, isRework);
 
       const generated = await this.geminiService.generateImage(
         primary.base64,
@@ -483,7 +487,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       const url = await this.storeGenerated(generated.base64, generated.mimeType, 'custom.png');
       await this.completeGeneration(generationId, optimizedPrompt, url);
     } catch (error) {
-      this.logger.error(`Custom generation ${generationId} failed`, error);
+      this.logger.error(`Custom generation ${generationId} failed: ${errorReason(error)}`);
       await this.failGeneration(generationId);
     }
   }
@@ -554,6 +558,30 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
 
   private async deleteQuietly(key: string, what: string) {
     await this.storageService.deleteFile(key).catch((err) => this.logger.error(`Could not delete ${what}`, err));
+  }
+
+  /** AC-GEN-007/031: the description, or null when the text model is unavailable (nothing is cached then). */
+  private async tryGetDescription(imageId: string, base64: string, mimeType: string): Promise<string | null> {
+    try {
+      return await this.getOrCreateDescription(imageId, base64, mimeType);
+    } catch (error) {
+      this.logger.warn(`Product analysis for image ${imageId} failed – generating from the fallback prompts`, error);
+      return null;
+    }
+  }
+
+  /** AC-GEN-031: the optimised custom/rework prompt, or a fixed English wrapper of the user's text. */
+  private async customPrompt(description: string | null, userPrompt: string, isRework: boolean): Promise<string> {
+    if (description !== null) {
+      try {
+        return isRework
+          ? await this.geminiService.generateReworkPrompt(description, userPrompt)
+          : await this.geminiService.generateCustomPrompt(description, userPrompt);
+      } catch (error) {
+        this.logger.warn('Custom prompt optimisation failed – using the fallback prompt', error);
+      }
+    }
+    return isRework ? fallbackReworkPrompt(userPrompt) : fallbackCustomPrompt(userPrompt);
   }
 
   /** The product description is generated once per uploaded image and reused. */

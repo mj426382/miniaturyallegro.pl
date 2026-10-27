@@ -88,7 +88,7 @@ describe('credit pools and reference images (integration)', () => {
     await expectBalanceMatchesLedger(ctx, user.userId, user.base);
   });
 
-  it('[AC-GEN-027] custom style, rework and a failed product analysis refund to the charged pool', async () => {
+  it('[AC-GEN-027] custom style, rework and a failed batch refund to the charged pool', async () => {
     const user = await account(10, 3); // only purchased credits
     ctx.gemini.failStyles = new Set(['FAILME']);
     const res = await custom(user.token, user.image.id, 'Scena FAILME na plaży').expect(201);
@@ -113,9 +113,10 @@ describe('credit pools and reference images (integration)', () => {
     );
     expect(await getCredits(ctx, user.userId)).toEqual({ freeCreditsUsed: 10, credits: 3 });
 
-    // Analysis failure fails the whole batch – mixed pools, each refunded to its own.
+    // A batch whose graphics all fail – mixed pools, each refunded to its own (a failed analysis alone
+    // no longer fails the batch, AC-GEN-007).
     const mixed = await account(9, 2);
-    ctx.gemini.failDescription = true;
+    ctx.gemini.failStyles = new Set(['white-bg', 'dark-luxury']);
     await start(mixed.token, mixed.image.id, ['white-bg', 'dark-luxury']).expect(201);
     await waitForGenerations(ctx, mixed.image.id);
     expect((await poolsOfImage(mixed.image.id)).map((r) => r[1])).toEqual(['free', 'paid']);

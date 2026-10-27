@@ -214,6 +214,31 @@ describe('Feedback, export, demo, subscriptions & platform presets (integration)
         .expect(429);
     });
 
+    it('[AC-DEMO-004] still generates and e-mails the sample when the text model is unavailable', async () => {
+      ctx.gemini.failDescription = true;
+      try {
+        const png = await makePng({ r: 4, g: 5, b: 6 }, 128);
+        const res = await ctx
+          .http()
+          .post('/api/demo')
+          .field('email', 'fallback@example.com')
+          .field('style', 'white-bg')
+          .attach('file', png, { filename: 'p.png', contentType: 'image/png' })
+          .expect(201);
+        let body: any = { status: 'PENDING' };
+        for (let i = 0; i < 100 && body.status !== 'COMPLETED' && body.status !== 'FAILED'; i++) {
+          await new Promise((r) => setTimeout(r, 50));
+          body = (await ctx.http().get(`/api/demo/${res.body.id}`).expect(200)).body;
+        }
+        expect(body.status).toBe('COMPLETED');
+        expect(ctx.gemini.calls.description).toBe(1);
+        expect(ctx.gemini.calls.image).toBe(1);
+        expect(ctx.mail.sent.map((m) => m.to)).toContain('fallback@example.com');
+      } finally {
+        ctx.gemini.failDescription = false;
+      }
+    });
+
     it('[AC-DEMO-002] rejects bots (honeypot), bad e-mails and non-images', async () => {
       const png = await makePng({ r: 1, g: 2, b: 3 }, 128);
       const bot = await ctx

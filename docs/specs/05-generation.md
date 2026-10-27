@@ -57,7 +57,7 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 - **AC-GEN-004** – Given równoległe starty, When suma generacji w toku przekroczyłaby 30, Then nadmiarowe dostają 429, a kredyty nie są pobierane.
 - **AC-GEN-005** – Given nieznany styl lub za długa wskazówka, When start, Then 400.
 - **AC-GEN-006** – Given za mało kredytów, When start, Then 402 i brak generacji.
-- **AC-GEN-007** – Given awaria analizy zdjęcia, When partia startuje, Then wszystkie generacje są nieudane, a kredyty zwrócone.
+- **AC-GEN-007** – Given awaria analizy zdjęcia (model tekstowy niedostępny, np. brak środków na koncie OpenAI), When partia startuje, Then grafiki powstają z bazowych promptów stylów (bez zapisywania opisu); dopiero gdy zawiedzie też przygotowanie zdjęcia albo generowanie obrazu, generacje są nieudane, a kredyty zwrócone.
 - **AC-GEN-008** – Given prompt i opcjonalna referencja, When własny styl, Then powstaje jedna generacja i kończy się sukcesem.
 - **AC-GEN-009** – Given za krótki prompt lub niepoprawna referencja, When własny styl, Then 400 bez pobrania kredytu.
 - **AC-GEN-010** – Given gotowa grafika, When ocena z powodem, Then jest zapisana i widoczna w agregacie per styl.
@@ -74,6 +74,9 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 - **AC-GEN-016** – Given model nie zwraca obrazu (np. blokada), When generacja, Then błąd ma czytelny opis.
 - **AC-GEN-017** – Given prompt stylu, When budowany, Then zawiera angielskie reguły integralności produktu i wymagania zdjęcia oferty na marketplace (bez napisów i znaków wodnych), bez nazwy konkretnego serwisu.
 - **AC-GEN-018** – Given błąd 503, When wywołanie, Then retry; przy błędzie limitu – brak retry.
+- **AC-GEN-030** – Given OpenAI odrzuca wywołanie z powodów rozliczeniowych (HTTP 429/402 z kodem `insufficient_quota` albo komunikatem o limicie, braku środków lub billingu), When dowolne zadanie tekstowe, Then nie ma ponowień, błąd ma typ `AiBillingError`, a administratorzy z `ADMIN_EMAILS` dostają e-mail „Brak środków w OpenAI” – najwyżej raz na 6 godzin na proces; zwykły 429 (rate limit) nadal jest ponawiany.
+- **AC-GEN-032** – Given Gemini odrzuca generowanie obrazu z powodów rozliczeniowych (HTTP 402, np. „prepayment credits are depleted”, albo komunikat o billingu), When generacja, Then nie ma ponowień, błąd ma typ `AiBillingError`, administratorzy dostają e-mail „Brak środków w Gemini” (najwyżej raz na 6 godzin na proces, niezależnie od alertu OpenAI), kredyt za grafikę wraca, a w logu jest przyczyna błędu; 429 `RESOURCE_EXHAUSTED` (limit na minutę) nadal jest ponawiany.
+- **AC-GEN-031** – Given własny styl albo przeróbka, When analiza zdjęcia lub optymalizacja promptu zawiedzie, Then grafika powstaje z zapasowego angielskiego promptu zawierającego tekst użytkownika (przeróbka: polecenie edycji pierwszego obrazu); gdy zawiedzie samo generowanie obrazu, kredyt wraca jak dotąd.
 - **AC-GEN-019** – Given semafor współbieżności, When zadanie rzuci wyjątek, Then slot jest zwalniany.
 - **AC-GEN-020** – (opt-in, prawdziwe API) Given klucze, When pełny pipeline, Then powstaje dekodowalny kwadratowy obraz.
 - **AC-GEN-021** – Given generator w UI, When użytkownik użyje własnego stylu, ponowi nieudaną grafikę i oceni gotową, Then wywołane są właściwe endpointy, a usuwanie zdjęcia jest zablokowane w trakcie generowania.

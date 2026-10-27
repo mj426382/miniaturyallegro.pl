@@ -11,6 +11,8 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { makePng } from './fakes';
+import { getStyle } from '../src/generation/styles';
+import { fallbackCustomPrompt, fallbackReworkPrompt } from '../src/generation/gemini.service';
 
 describe('Generation & credits (integration)', () => {
   let ctx: TestContext;
@@ -22,6 +24,8 @@ describe('Generation & credits (integration)', () => {
     await resetDatabase(ctx.prisma);
     ctx.gemini.failStyles.clear();
     ctx.gemini.failDescription = false;
+    ctx.gemini.failPrompts = false;
+    ctx.gemini.failAllImages = false;
     ctx.gemini.delayMs = 0;
     ctx.gemini.calls = { description: 0, prompts: 0, image: 0, custom: 0, rework: 0, offerCopy: 0 };
   });
@@ -201,7 +205,7 @@ describe('Generation & credits (integration)', () => {
     expect(await getCredits(ctx, userId)).toEqual({ credits: 0, freeCreditsUsed: 3 });
   });
 
-  it('[AC-GEN-007, AC-PRC-004] fails the whole batch and refunds everything when the product analysis fails', async () => {
+  it('[AC-GEN-007] generates from the base style prompts when the product analysis fails', async () => {
     const { token, userId } = await registerUser(ctx);
     const image = await uploadImage(ctx, token);
     ctx.gemini.failDescription = true;
@@ -213,9 +217,80 @@ describe('Generation & credits (integration)', () => {
       .send({})
       .expect(201);
     const rows = await waitForGenerations(ctx, image.id);
+    expect(rows.every((g) => g.status === 'COMPLETED' && g.url)).toBe(true);
+    // Base prompts from the catalogue, no prompt-engineering call and no cached description.
+    const whiteBg = rows.find((g) => g.style === 'white-bg')!;
+    expect(whiteBg.prompt).toBe(getStyle('white-bg')!.prompt);
+    expect(ctx.gemini.calls.prompts).toBe(0);
+    expect((await ctx.prisma.image.findUniqueOrThrow({ where: { id: image.id } })).description).toBeNull();
+    expect(await getCredits(ctx, userId)).toEqual({ credits: 0, freeCreditsUsed: 3 });
+  });
+
+  it('[AC-GEN-007, AC-PRC-004] refunds everything when the graphics themselves fail after a failed analysis', async () => {
+    const { token, userId } = await registerUser(ctx);
+    const image = await uploadImage(ctx, token);
+    ctx.gemini.failDescription = true;
+    ctx.gemini.failAllImages = true;
+
+    await ctx
+      .http()
+      .post(`/api/generation/${image.id}/start`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+      .expect(201);
+    const rows = await waitForGenerations(ctx, image.id);
     expect(rows.every((g) => g.status === 'FAILED')).toBe(true);
     await waitFor(async () => (await getCredits(ctx, userId)).freeCreditsUsed === 0);
     expect(await getCredits(ctx, userId)).toEqual({ credits: 0, freeCreditsUsed: 0 });
+  });
+
+  it('[AC-GEN-031] custom style and rework use the fallback prompt when the analysis or prompt model fails', async () => {
+    const { token, userId } = await registerUser(ctx);
+    const image = await uploadImage(ctx, token);
+    const reference = await makePng({ r: 0, g: 0, b: 255 }, 128);
+    ctx.gemini.failDescription = true;
+
+    await ctx
+      .http()
+      .post(`/api/generation/${image.id}/custom`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('userPrompt', 'na drewnianym stole w plenerze')
+      .expect(201);
+    let rows = await waitForGenerations(ctx, image.id);
+    expect(rows[0]).toMatchObject({
+      status: 'COMPLETED',
+      prompt: fallbackCustomPrompt('na drewnianym stole w plenerze'),
+    });
+    expect(ctx.gemini.calls.custom).toBe(0);
+
+    // Analysis works, but the prompt model fails – still the fallback, now for a rework.
+    ctx.gemini.failDescription = false;
+    ctx.gemini.failPrompts = true;
+    await ctx
+      .http()
+      .post(`/api/generation/${image.id}/custom`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('userPrompt', 'jaśniejsze tło')
+      .field('isRework', 'true')
+      .attach('reference', reference, { filename: 'ref.png', contentType: 'image/png' })
+      .expect(201);
+    rows = await waitForGenerations(ctx, image.id);
+    expect(rows.find((g) => g.prompt === fallbackReworkPrompt('jaśniejsze tło'))).toMatchObject({
+      status: 'COMPLETED',
+    });
+    expect(ctx.gemini.calls.rework).toBe(1);
+    expect(await getCredits(ctx, userId)).toEqual({ credits: 0, freeCreditsUsed: 2 });
+
+    // The image model itself failing still refunds the credit.
+    ctx.gemini.failStyles = new Set(['plaży']);
+    await ctx
+      .http()
+      .post(`/api/generation/${image.id}/custom`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('userPrompt', 'na plaży o zachodzie')
+      .expect(201);
+    await waitFor(async () => (await waitForGenerations(ctx, image.id)).some((g) => g.status === 'FAILED'));
+    await waitFor(async () => (await getCredits(ctx, userId)).freeCreditsUsed === 2);
   });
 
   it('[AC-GEN-008] generates a custom graphic from a prompt with an optional reference image', async () => {
