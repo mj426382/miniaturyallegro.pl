@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { imagesApi, generationApi } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 import { useGenerations, Generation, BatchSummary } from '../hooks/useGenerations'
+import { useUserStyles } from '../hooks/useUserStyles'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useConfirm } from '../hooks/useConfirm'
 import { track } from '../services/analytics'
@@ -56,6 +57,10 @@ export default function Generate() {
   const [pendingShare, setPendingShare] = useState<{ blob: Blob; name: string } | null>(null)
   /** Style picker collapses once results exist so they stay in view (phones especially). */
   const [pickerOpen, setPickerOpen] = useState(true)
+  /** Spec 27: saved user styles and the ones ticked in the picker. */
+  const userStyles = useUserStyles()
+  const [selectedUserStyles, setSelectedUserStyles] = useState<string[]>([])
+  const toggleUserStyle = (id: string) => setSelectedUserStyles((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
 
   const gens = useGenerations(imageId, {
     onBatchFinished: ({ completed, failed }: BatchSummary) => {
@@ -140,21 +145,37 @@ export default function Generate() {
   const scrollToResults = () => setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
 
   const startGeneration = async () => {
-    if (!selectedStyles.length || isStarting || hasActive) return
-    if (needsPaywall(selectedStyles.length)) return
+    const total = selectedStyles.length + selectedUserStyles.length
+    if (!total || isStarting || hasActive) return
+    if (needsPaywall(total)) return
     setIsStarting(true)
+    const placeholders: Generation[] = []
+    let started = 0
     try {
-      const { data } = await generationApi.startGeneration(imageId!, { styles: selectedStyles, basePrompt: basePrompt.trim() || undefined })
-      toast.success(`Generowanie ${data.count} ${data.count === 1 ? 'grafiki' : 'grafik'} rozpoczęte! To może potrwać kilka minut.`)
-      const placeholders: Generation[] = (data.generationIds as string[]).map((id, i) => ({ id, style: data.styles?.[i] || selectedStyles[i] || 'custom', status: 'PENDING', url: null }))
-      setGenerations((prev) => [...prev, ...placeholders])
-      restartPolling()
-      track('generation_start', { styles: data.count, mode: 'auto' })
+      if (selectedStyles.length) {
+        const { data } = await generationApi.startGeneration(imageId!, { styles: selectedStyles, basePrompt: basePrompt.trim() || undefined })
+        placeholders.push(...(data.generationIds as string[]).map((id, i) => ({ id, style: data.styles?.[i] || selectedStyles[i] || 'custom', status: 'PENDING', url: null })))
+        started += data.count
+      }
+      // Spec 27, AC-UST-009: one graphic per selected saved style.
+      for (const styleId of selectedUserStyles) {
+        const { data } = await generationApi.startUserStyleGeneration(imageId!, styleId)
+        const label = userStyles.styles.find((s) => s.id === styleId)?.name ?? null
+        placeholders.push({ id: data.generationId, style: 'custom', styleLabel: label, status: 'PENDING', url: null })
+        started += 1
+      }
+      setSelectedUserStyles([])
+      toast.success(`Generowanie ${started} ${started === 1 ? 'grafiki' : 'grafik'} rozpoczęte! To może potrwać kilka minut.`)
+      track('generation_start', { styles: started, mode: selectedUserStyles.length ? 'auto+saved' : 'auto' })
       scrollToResults()
-      refreshUser().catch(() => undefined)
     } catch (err: any) {
       handleCreditsError(err, 'Błąd generowania')
     } finally {
+      if (placeholders.length) {
+        setGenerations((prev) => [...prev, ...placeholders])
+        restartPolling()
+      }
+      refreshUser().catch(() => undefined)
       setIsStarting(false)
     }
   }
@@ -386,6 +407,9 @@ export default function Generate() {
             freeLeft={freeLeft}
             paidCredits={paidCredits}
             unlimited={unlimited}
+            userStyles={userStyles.styles}
+            selectedUserStyles={selectedUserStyles}
+            onToggleUserStyle={toggleUserStyle}
           />
         ) : (
           <CustomStyleForm

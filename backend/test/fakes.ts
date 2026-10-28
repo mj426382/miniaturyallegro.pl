@@ -32,6 +32,11 @@ export class FakeGeminiService {
   calls = { description: 0, prompts: 0, image: 0, custom: 0, rework: 0, offerCopy: 0 };
   lastOfferCopyInput: OfferCopyInput | null = null;
   delayMs = 0;
+  /** Spec 27 / AC-GEN-033: what the last custom prompt and image calls were told. */
+  lastCustomOptions: { hasStyleReference: boolean } | null = null;
+  lastCustomDescription: string | null = null;
+  lastImageOptions: { rework: boolean } | null = null;
+  lastReferenceMime: string | null = null;
   private png: Buffer | null = null;
 
   async generateImageDescription(): Promise<string> {
@@ -51,13 +56,20 @@ export class FakeGeminiService {
     return `prompt-for-${style.id}`;
   }
 
-  async generateCustomPrompt(_d: string, userPrompt: string): Promise<string> {
+  async generateCustomPrompt(
+    d: string,
+    userPrompt: string,
+    options: { hasStyleReference?: boolean } = {},
+  ): Promise<string> {
+    this.lastCustomOptions = { hasStyleReference: options.hasStyleReference === true };
+    this.lastCustomDescription = d;
     this.calls.custom++;
     if (this.failPrompts) throw new Error('prompt model failed');
     return `custom:${userPrompt}`;
   }
 
-  async generateReworkPrompt(_d: string, userPrompt: string): Promise<string> {
+  async generateReworkPrompt(d: string, userPrompt: string): Promise<string> {
+    this.lastCustomDescription = d;
     this.calls.rework++;
     if (this.failPrompts) throw new Error('prompt model failed');
     return `rework:${userPrompt}`;
@@ -84,7 +96,16 @@ export class FakeGeminiService {
     };
   }
 
-  async generateImage(_b64: string, _mime: string, prompt: string): Promise<GeneratedImage> {
+  async generateImage(
+    _b64: string,
+    _mime: string,
+    prompt: string,
+    _ref?: string,
+    refMime?: string,
+    options: { rework?: boolean } = {},
+  ): Promise<GeneratedImage> {
+    this.lastImageOptions = { rework: options.rework === true };
+    this.lastReferenceMime = refMime ?? null;
     this.calls.image++;
     if (this.delayMs) await new Promise((r) => setTimeout(r, this.delayMs));
     if (this.failAllImages) throw new Error('simulated image model failure');

@@ -55,7 +55,7 @@ export default function ResultCard({ generation: gen, styleName, onPrefetch, onD
       </div>
       <div className="p-3">
         <div className="flex items-center justify-between mb-2 gap-2">
-          <span className="text-xs font-medium text-gray-700 truncate">{gen.style === 'custom' ? '✨ Własny styl' : styleName}</span>
+          <span className="text-xs font-medium text-gray-700 truncate">{gen.style === 'custom' ? (gen.styleLabel ? `✨ Mój styl: ${gen.styleLabel}` : '✨ Własny styl') : styleName}</span>
           <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[gen.status]}`}>{STATUS_LABELS[gen.status]}</span>
         </div>
         {ready && (

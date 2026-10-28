@@ -12,6 +12,8 @@ import { BulkDescriptionsModal, PaywallModal } from '../components/lazyModals'
 import ModalFallback from '../components/ModalFallback'
 import { usePreloadOnInteraction } from '../hooks/usePreloadOnInteraction'
 import { useZipDownload } from '../hooks/useZipDownload'
+import { useUserStyles } from '../hooks/useUserStyles'
+import UserStyleGroup from '../components/generate/UserStyleGroup'
 import { groupStartsOpen, groupStyles } from '../utils/styles'
 import { countLabel, plural } from '../utils/plural'
 import FormAlert from '../components/FormAlert'
@@ -51,6 +53,12 @@ interface FileItem {
 
 const creditsWord = (n: number) => plural(n, 'kredyt', 'kredyty', 'kredytów')
 
+/** Spec 27: a saved style in a selection list of built-in style ids. */
+const USER_KEY = 'user:'
+const userKey = (id: string) => `${USER_KEY}${id}`
+const isUserKey = (key: string) => key.startsWith(USER_KEY)
+const fromUserKey = (key: string) => key.slice(USER_KEY.length)
+
 export default function BulkUpload() {
   usePageTitle('Masowe przesyłanie')
   usePreloadOnInteraction(PaywallModal.preload, BulkDescriptionsModal.preload)
@@ -67,6 +75,8 @@ export default function BulkUpload() {
   const zip = useZipDownload()
   /** Without the catalogue the shared/per-file modes are a dead end – show the error with a retry. */
   const [stylesFailed, setStylesFailed] = useState(false)
+  /** Spec 27, AC-UST-010: saved styles sit in the same selection lists as `user:<id>`. */
+  const userStyles = useUserStyles()
 
   const loadStyles = useCallback(() => {
     setStylesFailed(false)
@@ -118,14 +128,16 @@ export default function BulkUpload() {
   /** Styles a given file will be generated with in the current mode (empty = upload only). */
   const stylesFor = (item: FileItem): string[] => (mode === 'upload' ? [] : mode === 'shared' ? sharedStyles : item.styles)
   const orderedStyles = (ids: string[]) => styles.map((s) => s.id).filter((id) => ids.includes(id))
+  const orderedUserStyles = (ids: string[]) => userStyles.styles.map((s) => s.id).filter((id) => ids.includes(userKey(id)))
 
   const queued = files.filter((f) => f.status === 'queued')
-  const totalCredits = useMemo(() => queued.reduce((sum, f) => sum + stylesFor(f).length, 0), [queued, mode, sharedStyles]) // eslint-disable-line react-hooks/exhaustive-deps
+  const costOf = (item: FileItem) => orderedStyles(stylesFor(item)).length + orderedUserStyles(stylesFor(item)).length
+  const totalCredits = useMemo(() => queued.reduce((sum, f) => sum + costOf(f), 0), [queued, mode, sharedStyles, styles, userStyles.styles]) // eslint-disable-line react-hooks/exhaustive-deps
   const freeLeft = Math.max(0, (user?.freeCreditsLimit ?? 5) - (user?.freeCreditsUsed ?? 0))
   const paidCredits = user?.credits ?? 0
   const unlimited = Boolean(user?.unlimitedCredits)
   const canAfford = unlimited || totalCredits <= freeLeft + paidCredits
-  const missingStyles = mode !== 'upload' && queued.some((f) => stylesFor(f).length === 0)
+  const missingStyles = mode !== 'upload' && queued.some((f) => costOf(f) === 0)
 
   /** Spec 19, AC-MON-003: not enough credits opens the offer (with the welcome pack) instead of blocking. */
   const [paywallMissing, setPaywallMissing] = useState<number | null>(null)
@@ -148,6 +160,7 @@ export default function BulkUpload() {
     let limitHit = false
     for (const item of queued) {
       const chosen = orderedStyles(stylesFor(item))
+      const saved = orderedUserStyles(stylesFor(item))
       updateFile(item.id, { status: 'uploading', note: undefined })
       let imageId: string
       try {
@@ -168,7 +181,7 @@ export default function BulkUpload() {
         updateFile(item.id, { status: 'error', error: err.response?.data?.message || 'Błąd przesyłania' })
         continue
       }
-      if (!chosen.length) {
+      if (!chosen.length && !saved.length) {
         succeeded++
         updateFile(item.id, { status: 'done', imageId, error: undefined })
         continue
@@ -176,24 +189,37 @@ export default function BulkUpload() {
 
       // The backend caps in-flight generations per user – on 429 wait for a free slot and retry.
       updateFile(item.id, { status: 'generating', imageId, error: undefined })
-      for (let attempt = 0; attempt < MAX_START_RETRIES; attempt++) {
-        try {
-          await generationApi.startGeneration(imageId, { styles: chosen })
-          startedIds.push(imageId)
-          succeeded++
-          updateFile(item.id, { status: 'done', imageId, error: undefined })
-          break
-        } catch (err: any) {
-          if (err.response?.status === 429 && attempt < MAX_START_RETRIES - 1) {
-            updateFile(item.id, { status: 'generating', error: undefined, note: `Czekam na wolne miejsce w kolejce (${attempt + 1}/${MAX_START_RETRIES - 1})…` })
-            await new Promise((r) => setTimeout(r, RETRY_DELAY_MS))
-            continue
+      const withQueueRetry = async (start: () => Promise<unknown>): Promise<boolean> => {
+        for (let attempt = 0; attempt < MAX_START_RETRIES; attempt++) {
+          try {
+            await start()
+            return true
+          } catch (err: any) {
+            if (err.response?.status === 429 && attempt < MAX_START_RETRIES - 1) {
+              updateFile(item.id, { status: 'generating', error: undefined, note: `Czekam na wolne miejsce w kolejce (${attempt + 1}/${MAX_START_RETRIES - 1})…` })
+              await new Promise((r) => setTimeout(r, RETRY_DELAY_MS))
+              continue
+            }
+            // The photo is stored – it can still be generated from its own page.
+            updateFile(item.id, { status: 'error', error: err.response?.data?.message || 'Błąd generowania' })
+            return false
           }
-          failures++
-          // The photo is stored – it can still be generated from its own page.
-          updateFile(item.id, { status: 'error', error: err.response?.data?.message || 'Błąd generowania' })
-          break
         }
+        return false
+      }
+      let ok = true
+      if (chosen.length) ok = await withQueueRetry(() => generationApi.startGeneration(imageId, { styles: chosen }))
+      // AC-UST-010: after the built-in styles, one graphic per saved style of this photo.
+      for (const styleId of saved) {
+        if (!ok) break
+        ok = await withQueueRetry(() => generationApi.startUserStyleGeneration(imageId, styleId))
+      }
+      if (ok) {
+        startedIds.push(imageId)
+        succeeded++
+        updateFile(item.id, { status: 'done', imageId, error: undefined, note: undefined })
+      } else {
+        failures++
       }
     }
 
@@ -292,6 +318,7 @@ export default function BulkUpload() {
         <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm font-medium text-gray-700 mb-2">Style dla całej partii</p>
           <div className="space-y-3">
+            <UserStyleGroup styles={userStyles.styles} selected={sharedStyles.filter(isUserKey).map(fromUserKey)} onToggle={(id) => toggleShared(userKey(id))} locked={isRunning} />
             {groupStyles(styles).map((group) => {
               const grid = (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -385,7 +412,7 @@ export default function BulkUpload() {
                         )}
                         {item.status === 'queued' && mode !== 'upload' && (
                           <span className="text-xs text-gray-500">
-                            {stylesFor(item).length} {creditsWord(stylesFor(item).length)}
+                            {costOf(item)} {creditsWord(costOf(item))}
                           </span>
                         )}
                       </div>
@@ -404,6 +431,26 @@ export default function BulkUpload() {
                   </div>
                   {mode === 'perFile' && item.status === 'queued' && (
                     <div className="mt-2 pl-[60px] space-y-1.5">
+                      {userStyles.styles.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5" data-testid="file-user-styles">
+                          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 mr-1">Moje style</span>
+                          {userStyles.styles.map((s) => {
+                            const on = item.styles.includes(userKey(s.id))
+                            return (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => toggleFileStyle(item.id, userKey(s.id))}
+                                disabled={isRunning}
+                                aria-pressed={on}
+                                className={`text-xs px-2 py-1 rounded-full border transition-colors ${on ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                              >
+                                {s.name}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
                       {groupStyles(styles).map((group) => {
                         const chips = (
                           <div className="flex flex-wrap gap-1.5">

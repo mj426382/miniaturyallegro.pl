@@ -120,6 +120,8 @@ export interface MockOptions {
   editsUsedUp?: boolean
   /** Spec 19: the user already said yes or no to marketing e-mails. */
   marketingConsent?: boolean
+  /** Spec 27: saved user styles at page load (newest first). */
+  userStyles?: any[]
 }
 
 export async function mockApp(page: Page, options: MockOptions = {}) {
@@ -141,6 +143,12 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
     editPackCredits: 1,
   })
   let uploadCounter = 0
+  // Spec 27: saved user styles (newest first), multipart fields parsed from the raw body.
+  const userStyles: any[] = [...(options.userStyles ?? [])]
+  let userStyleCounter = 0
+  const userStyleGenerations: any[] = []
+  const formField = (raw: string | null, name: string) => raw?.match(new RegExp(`name="${name}"\\r\\n\\r\\n([\\s\\S]*?)\\r\\n--`))?.[1]
+  const hasFile = (raw: string | null) => Boolean(raw && /name="reference"; filename=/.test(raw))
   const adminEmails: any[] = []
   const adminGrants: any[] = []
   // Spec 16, AC-ADM-017/018: discount codes of the admin panel (newest first).
@@ -606,6 +614,56 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       loggedIn = false
       return json({ ok: true })
     }
+    if (path === '/user-styles' && req.method() === 'GET') return json(userStyles)
+    if (path === '/user-styles' && req.method() === 'POST') {
+      const raw = req.postData()
+      const name = formField(raw, 'name')?.trim() ?? ''
+      const prompt = formField(raw, 'prompt')?.trim() ?? ''
+      requests.push({ url: path, method: 'POST', body: { name, prompt, reference: hasFile(raw) } })
+      if (userStyles.some((s) => s.name.toLowerCase() === name.toLowerCase())) return json({ message: 'Masz już styl o tej nazwie.' }, 409)
+      const style = {
+        id: `us-${++userStyleCounter}`,
+        name,
+        prompt,
+        referenceUrl: hasFile(raw) ? '/api/uploads/user-styles/ref.png' : null,
+        createdAt: '2026-10-28T10:00:00.000Z',
+        updatedAt: '2026-10-28T10:00:00.000Z',
+      }
+      userStyles.unshift(style)
+      return json(style, 201)
+    }
+    if (/^\/user-styles\/[\w-]+$/.test(path) && (req.method() === 'PATCH' || req.method() === 'DELETE')) {
+      const id = path.split('/').pop()!
+      const i = userStyles.findIndex((s) => s.id === id)
+      if (i < 0) return json({ message: 'Nie znaleziono stylu' }, 404)
+      if (req.method() === 'DELETE') {
+        requests.push({ url: path, method: 'DELETE' })
+        userStyles.splice(i, 1)
+        return json({ ok: true })
+      }
+      const raw = req.postData()
+      const name = formField(raw, 'name')?.trim()
+      const prompt = formField(raw, 'prompt')?.trim()
+      const removeReference = formField(raw, 'removeReference') === 'true'
+      requests.push({ url: path, method: 'PATCH', body: { name, prompt, removeReference, reference: hasFile(raw) } })
+      if (name && userStyles.some((s, j) => j !== i && s.name.toLowerCase() === name.toLowerCase())) return json({ message: 'Masz już styl o tej nazwie.' }, 409)
+      userStyles[i] = {
+        ...userStyles[i],
+        ...(name ? { name } : {}),
+        ...(prompt ? { prompt } : {}),
+        referenceUrl: hasFile(raw) ? '/api/uploads/user-styles/new.png' : removeReference ? null : userStyles[i].referenceUrl,
+      }
+      return json(userStyles[i])
+    }
+    if (/^\/generation\/[\w-]+\/user-style\/[\w-]+$/.test(path)) {
+      requests.push({ url: path, method: 'POST' })
+      const [, , imageId, , styleId] = path.split('/')
+      const style = userStyles.find((s) => s.id === styleId)
+      if (!style) return json({ message: 'Nie znaleziono stylu' }, 404)
+      const gen = { id: `gen-${styleId}-${userStyleGenerations.length}`, imageId, style: 'custom', styleLabel: style.name, status: 'COMPLETED', url: '/api/uploads/generated/us.png', rating: null }
+      if (imageId === IMAGE.id) userStyleGenerations.push(gen)
+      return json({ generationId: gen.id }, 201)
+    }
     if (path === `/generation/${IMAGE.id}/custom`) {
       requests.push({ url: path, method: 'POST', body: req.postData() })
       return json({ generationId: 'gen-3' }, 201)
@@ -662,7 +720,7 @@ export async function mockApp(page: Page, options: MockOptions = {}) {
       return json({ message: 'Image deleted' })
     }
     if (path === `/images/${IMAGE.id}`) return json(IMAGE)
-    if (path === `/generation/${IMAGE.id}/results`) return json(IMAGE.generations)
+    if (path === `/generation/${IMAGE.id}/results`) return json([...IMAGE.generations, ...userStyleGenerations])
     const extra = images.find((i) => i.id !== IMAGE.id && (path === `/generation/${i.id}/results` || path === `/descriptions/${i.id}`))
     if (extra && path.endsWith('/results')) return json(extra.generations)
     if (extra && path.startsWith('/descriptions/') && req.method() === 'GET')

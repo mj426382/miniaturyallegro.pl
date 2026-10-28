@@ -248,7 +248,9 @@ describe('Generation & credits (integration)', () => {
     const { token, userId } = await registerUser(ctx);
     const image = await uploadImage(ctx, token);
     const reference = await makePng({ r: 0, g: 0, b: 255 }, 128);
+    // OpenAI down: neither the analysis nor the prompt optimiser answers (AC-GEN-033: the optimiser is tried).
     ctx.gemini.failDescription = true;
+    ctx.gemini.failPrompts = true;
 
     await ctx
       .http()
@@ -261,7 +263,7 @@ describe('Generation & credits (integration)', () => {
       status: 'COMPLETED',
       prompt: fallbackCustomPrompt('na drewnianym stole w plenerze'),
     });
-    expect(ctx.gemini.calls.custom).toBe(0);
+    expect(ctx.gemini.calls.custom).toBe(1);
 
     // Analysis works, but the prompt model fails – still the fallback, now for a rework.
     ctx.gemini.failDescription = false;
@@ -291,6 +293,43 @@ describe('Generation & credits (integration)', () => {
       .expect(201);
     await waitFor(async () => (await waitForGenerations(ctx, image.id)).some((g) => g.status === 'FAILED'));
     await waitFor(async () => (await getCredits(ctx, userId)).freeCreditsUsed === 2);
+  });
+
+  it('[AC-GEN-033] without the product analysis the prompt optimiser still writes the custom prompt, told about the reference', async () => {
+    const { token } = await registerUser(ctx);
+    const image = await uploadImage(ctx, token);
+    ctx.gemini.failDescription = true;
+    await ctx
+      .http()
+      .post(`/api/generation/${image.id}/custom`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('userPrompt', 'obok produktu siedzi pies')
+      .attach('reference', await makePng({ r: 5, g: 90, b: 5 }, 128), { filename: 'ref.png', contentType: 'image/png' })
+      .expect(201);
+    const rows = await waitForGenerations(ctx, image.id);
+    expect(rows[0]).toMatchObject({ status: 'COMPLETED', prompt: 'custom:obok produktu siedzi pies' });
+    expect(ctx.gemini.lastCustomDescription).toMatch(/^Not available/);
+    expect(ctx.gemini.lastCustomOptions).toEqual({ hasStyleReference: true });
+    expect(ctx.gemini.lastImageOptions).toEqual({ rework: false });
+  });
+
+  it('[AC-GEN-034] a rework tells the image model that the second image is the original product photo', async () => {
+    const { token } = await registerUser(ctx);
+    const image = await uploadImage(ctx, token);
+    await ctx
+      .http()
+      .post(`/api/generation/${image.id}/custom`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('userPrompt', 'dodaj psa albo kota')
+      .field('isRework', 'true')
+      .attach('reference', await makePng({ r: 250, g: 250, b: 250 }, 128), {
+        filename: 'graphic.png',
+        contentType: 'image/png',
+      })
+      .expect(201);
+    const rows = await waitForGenerations(ctx, image.id);
+    expect(rows[0]).toMatchObject({ status: 'COMPLETED', prompt: 'rework:dodaj psa albo kota' });
+    expect(ctx.gemini.lastImageOptions).toEqual({ rework: true });
   });
 
   it('[AC-GEN-008] generates a custom graphic from a prompt with an optional reference image', async () => {

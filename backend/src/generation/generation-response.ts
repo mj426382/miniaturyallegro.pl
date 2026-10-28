@@ -11,6 +11,8 @@ export const USER_GENERATION_FIELDS = [
   'imageId',
   'url',
   'style',
+  // Spec 27: caption "Mój styl: <nazwa>" – the user's own style name, not an internal prompt.
+  'styleLabel',
   'status',
   'rating',
   'ratingReason',

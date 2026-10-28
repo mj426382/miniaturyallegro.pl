@@ -15,12 +15,14 @@ import {
   XMarkIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
+  SwatchIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
   { name: 'Pulpit', href: '/', icon: HomeIcon },
   { name: 'Prześlij zdjęcie', href: '/upload', icon: ArrowUpTrayIcon },
   { name: 'Masowe przesyłanie', href: '/bulk-upload', icon: RectangleStackIcon },
+  { name: 'Moje style', href: '/styles', icon: SwatchIcon },
   { name: 'Galeria', href: '/gallery', icon: Squares2X2Icon },
   { name: 'Kredyty', href: '/credits', icon: CreditCardIcon },
   { name: 'Konto', href: '/account', icon: Cog6ToothIcon },

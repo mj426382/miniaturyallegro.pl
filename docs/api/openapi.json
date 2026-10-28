@@ -814,6 +814,43 @@
         ]
       }
     },
+    "/api/generation/{imageId}/user-style/{styleId}": {
+      "post": {
+        "operationId": "GenerationController_startUserStyleGeneration",
+        "parameters": [
+          {
+            "name": "imageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "styleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate one graphic from a saved user style (spec 27, costs 1 credit)",
+        "tags": [
+          "generation"
+        ]
+      }
+    },
     "/api/generation/retry/{id}": {
       "post": {
         "operationId": "GenerationController_retryGeneration",
@@ -1153,6 +1190,120 @@
         "summary": "Get a single generation result",
         "tags": [
           "generation"
+        ]
+      }
+    },
+    "/api/user-styles": {
+      "get": {
+        "operationId": "UserStylesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Saved styles of the current user, newest first",
+        "tags": [
+          "user-styles"
+        ]
+      },
+      "post": {
+        "operationId": "UserStylesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserStyleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save a style: name, Polish scene description and an optional reference photo",
+        "tags": [
+          "user-styles"
+        ]
+      }
+    },
+    "/api/user-styles/{id}": {
+      "patch": {
+        "operationId": "UserStylesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserStyleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Edit a saved style (name, description, replace or remove the reference photo)",
+        "tags": [
+          "user-styles"
+        ]
+      },
+      "delete": {
+        "operationId": "UserStylesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a saved style and its reference photo (finished graphics stay)",
+        "tags": [
+          "user-styles"
         ]
       }
     },
@@ -2582,6 +2733,42 @@
         "required": [
           "imageIds"
         ]
+      },
+      "CreateUserStyleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nazwa stylu (unikalna w koncie)",
+            "example": "Kuchnia z kotem"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Opis sceny po polsku",
+            "example": "Produkt na drewnianym stole w jasnej kuchni, obok siedzi kot"
+          }
+        },
+        "required": [
+          "name",
+          "prompt"
+        ]
+      },
+      "UpdateUserStyleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nowa nazwa stylu"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Nowy opis sceny"
+          },
+          "removeReference": {
+            "type": "boolean",
+            "description": "true = usuń zdjęcie wzoru"
+          }
+        }
       },
       "CreateDemoDto": {
         "type": "object",

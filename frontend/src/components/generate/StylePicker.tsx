@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CheckCircleIcon, CreditCardIcon, SparklesIcon } from '@heroicons/react/24/outline'
-import type { GenerationStyleInfo } from '../../services/api'
+import type { GenerationStyleInfo, UserStyle } from '../../services/api'
+import UserStyleGroup from './UserStyleGroup'
 import { groupStartsOpen, groupStyles } from '../../utils/styles'
 import { countLabel, plural } from '../../utils/plural'
 
@@ -22,6 +23,10 @@ interface Props {
   /** Spec 16: admin accounts are not limited by credits. */
   unlimited?: boolean
   paidCredits: number
+  /** Spec 27: saved user styles, shown first as „Moje style”. */
+  userStyles?: UserStyle[]
+  selectedUserStyles?: string[]
+  onToggleUserStyle?: (id: string) => void
 }
 
 const creditsWord = (n: number) => plural(n, 'kredyt', 'kredyty', 'kredytów')
@@ -43,8 +48,12 @@ export default function StylePicker({
   freeLeft,
   paidCredits,
   unlimited = false,
+  userStyles = [],
+  selectedUserStyles = [],
+  onToggleUserStyle,
 }: Props) {
-  const selectedCount = selectedStyles.length
+  // AC-UST-009: saved styles count towards the cost like built-in ones.
+  const selectedCount = selectedStyles.length + selectedUserStyles.length
   const costHint =
     selectedCount === 0
       ? 'Wybierz co najmniej jeden styl'
@@ -66,6 +75,7 @@ export default function StylePicker({
       </p>
 
       <div className="space-y-3 mb-4">
+        {onToggleUserStyle && <UserStyleGroup styles={userStyles} selected={selectedUserStyles} onToggle={onToggleUserStyle} locked={locked} />}
         {groupStyles(styles).map((group) => {
           const grid = (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">

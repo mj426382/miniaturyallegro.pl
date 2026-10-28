@@ -76,6 +76,17 @@ export class GenerationController {
     );
   }
 
+  @Post(':imageId/user-style/:styleId')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @ApiOperation({ summary: 'Generate one graphic from a saved user style (spec 27, costs 1 credit)' })
+  async startUserStyleGeneration(
+    @Param('imageId') imageId: string,
+    @Param('styleId') styleId: string,
+    @CurrentUser() user: SessionUser,
+  ) {
+    return this.generationService.startUserStyleGeneration(imageId, user.userId, styleId);
+  }
+
   @Post('retry/:id')
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Retry a failed generation (costs 1 credit)' })

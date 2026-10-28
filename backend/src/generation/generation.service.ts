@@ -37,13 +37,17 @@ const REFERENCE_FOLDER = 'references';
 
 type PreparedReference = { buffer: Buffer; mimeType: string };
 
-function extensionFor(mimeType: string): string {
+export function extensionFor(mimeType: string): string {
   if (mimeType === 'image/png') return '.png';
   if (mimeType === 'image/webp') return '.webp';
   return '.jpg';
 }
 
 /** Short reason for the log line – the pino logger drops a second Error argument, so the cause must be in the message. */
+/** AC-GEN-033: stands in for the product analysis when it is unavailable, so the prompt optimiser still runs. */
+const NO_PRODUCT_DESCRIPTION =
+  'Not available – describe the product only as "the product shown in the photo" and keep it exactly as it is.';
+
 function errorReason(error: unknown): string {
   return String((error as Error)?.message ?? error).slice(0, 300);
 }
@@ -197,6 +201,47 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       referenceKey = stored.url;
     }
 
+    return this.startCustomRow(image, userId, userPrompt, reference, referenceKey, isRework, null);
+  }
+
+  /**
+   * Spec 27 (AC-UST-006): a graphic from a saved user style – a custom generation with the style's description and a
+   * COPY of its reference photo (the generation's reference file is deleted after success, AC-GEN-028; the style's
+   * file must stay).
+   */
+  async startUserStyleGeneration(imageId: string, userId: string, styleId: string) {
+    const image = await this.getOwnedImage(imageId, userId);
+    const style = await this.prisma.userStyle.findFirst({ where: { id: styleId, userId } });
+    if (!style) throw new NotFoundException('Nie znaleziono stylu');
+
+    let reference: PreparedReference | undefined;
+    let referenceKey: string | null = null;
+    if (style.referenceKey) {
+      const { buffer, contentType } = await this.storageService.getFileBuffer(style.referenceKey);
+      // Object storage may return a generic type – fall back to the key's extension (as for retries, AC-GEN-028).
+      const mimeType = contentType.startsWith('image/') ? contentType : detectMimeTypeFromUrl(style.referenceKey);
+      reference = { buffer, mimeType };
+      const stored = await this.storageService.uploadFile(
+        buffer,
+        `reference${extensionFor(mimeType)}`,
+        mimeType,
+        REFERENCE_FOLDER,
+      );
+      referenceKey = stored.url;
+    }
+    return this.startCustomRow(image, userId, style.prompt, reference, referenceKey, false, style.name);
+  }
+
+  /** Charge 1 credit, create the custom row and start processing; the stored reference is removed when the charge fails. */
+  private async startCustomRow(
+    image: { id: string; originalUrl: string },
+    userId: string,
+    userPrompt: string,
+    reference: PreparedReference | undefined,
+    referenceKey: string | null,
+    isRework: boolean,
+    styleLabel: string | null,
+  ) {
     let generation: { id: string };
     try {
       const deduction = await this.credits.deduct(userId, 1, {
@@ -204,13 +249,14 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
         within: (tx, charge) =>
           tx.generation.create({
             data: {
-              imageId,
+              imageId: image.id,
               style: 'custom',
               prompt: userPrompt,
               status: 'PENDING',
               creditPool: poolsOf(charge, 1)[0],
               referenceKey,
               isRework,
+              styleLabel,
             },
             select: { id: true },
           }),
@@ -229,7 +275,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       userPrompt,
       isRework,
       async () => reference,
-    ).catch((err) => this.logger.error('Custom generation failed', err));
+    ).catch((err) => this.logger.error(`Custom generation failed: ${errorReason(err)}`));
 
     return { generationId: generation.id };
   }
@@ -474,7 +520,12 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
       const primary = isRework && reference ? reference : original;
       const ref = isRework ? original : reference;
 
-      const optimizedPrompt = await this.customPrompt(description, userPrompt, isRework);
+      const optimizedPrompt = await this.customPrompt(
+        description,
+        userPrompt,
+        isRework,
+        !isRework && Boolean(reference),
+      );
 
       const generated = await this.geminiService.generateImage(
         primary.base64,
@@ -482,6 +533,7 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
         optimizedPrompt,
         ref?.base64,
         ref?.mimeType,
+        { rework: isRework },
       );
 
       const url = await this.storeGenerated(generated.base64, generated.mimeType, 'custom.png');
@@ -571,15 +623,20 @@ export class GenerationService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** AC-GEN-031: the optimised custom/rework prompt, or a fixed English wrapper of the user's text. */
-  private async customPrompt(description: string | null, userPrompt: string, isRework: boolean): Promise<string> {
-    if (description !== null) {
-      try {
-        return isRework
-          ? await this.geminiService.generateReworkPrompt(description, userPrompt)
-          : await this.geminiService.generateCustomPrompt(description, userPrompt);
-      } catch (error) {
-        this.logger.warn('Custom prompt optimisation failed – using the fallback prompt', error);
-      }
+  private async customPrompt(
+    description: string | null,
+    userPrompt: string,
+    isRework: boolean,
+    hasStyleReference: boolean,
+  ): Promise<string> {
+    // AC-GEN-033: without the product analysis the optimiser still runs; the fallback is only for its own failure.
+    const product = description ?? NO_PRODUCT_DESCRIPTION;
+    try {
+      return isRework
+        ? await this.geminiService.generateReworkPrompt(product, userPrompt)
+        : await this.geminiService.generateCustomPrompt(product, userPrompt, { hasStyleReference });
+    } catch (error) {
+      this.logger.warn(`Custom prompt optimisation failed – using the fallback prompt: ${errorReason(error)}`);
     }
     return isRework ? fallbackReworkPrompt(userPrompt) : fallbackCustomPrompt(userPrompt);
   }

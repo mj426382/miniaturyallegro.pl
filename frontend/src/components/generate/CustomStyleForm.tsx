@@ -22,7 +22,11 @@ export default function CustomStyleForm({ prompt, onPromptChange, referencePrevi
     <div className="p-5">
       <p className="text-sm text-gray-500 mb-4">
         Opisz, jak ma wyglądać grafika (po polsku). Możesz dołączyć zdjęcie referencyjne stylu.
-        {isRework && <span className="block mt-1 text-purple-700 font-medium">Tryb przeróbki: opisz tylko to, co chcesz zmienić.</span>}
+        {isRework && (
+          <span className="block mt-1 text-purple-700 font-medium">
+            Tryb przeróbki: opisz, co zmienić – np. „dodaj psa obok produktu” albo „zmień tło na jasną kuchnię”. Produkt i jego napisy zostaną bez zmian.
+          </span>
+        )}
       </p>
 
       <div className="mb-4">

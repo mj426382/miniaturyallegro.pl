@@ -12,31 +12,31 @@ datasource db {
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
+  id                     String    @id @default(cuid())
+  email                  String    @unique
   /// Canonical mailbox (lower-case, no +alias, no Gmail dots) – one account per mailbox (spec 13).
   /// Legacy duplicates created before 2026-10-04 hold "<email>#legacy:<id>".
-  emailCanonical     String    @unique
+  emailCanonical         String    @unique
   /// Set when the owner clicked the verification link (or signed in with Google). Required to generate and pay.
-  emailVerifiedAt    DateTime?
+  emailVerifiedAt        DateTime?
   /// Spec 16: explicit opt-in to tips and reminders (marketing e-mail); null = no consent.
-  marketingConsentAt DateTime?
+  marketingConsentAt     DateTime?
   /// Spec 16: transactional "your bulk batch is ready" e-mail; on by default.
-  notifyBatchDone    Boolean   @default(true)
-  password           String?
-  name               String?
-  googleId           String?   @unique
-  credits            Int       @default(0)
-  freeCreditsUsed    Int       @default(0)
+  notifyBatchDone        Boolean   @default(true)
+  password               String?
+  name                   String?
+  googleId               String?   @unique
+  credits                Int       @default(0)
+  freeCreditsUsed        Int       @default(0)
   /// Spec 19: size of this account's free pool, fixed at sign-up (accounts before 2026-10-09: 10).
   /// The code always sets it from FREE_CREDITS_LIMIT; the column default matches production (AC-MON-009).
-  freeCreditsLimit   Int       @default(5)
+  freeCreditsLimit       Int       @default(5)
   /// Spec 20: random referral code (no personal data), created on first use.
-  referralCode       String?   @unique
+  referralCode           String?   @unique
   /// Spec 20: the account whose link was used at sign-up.
-  referredById       String?
+  referredById           String?
   /// Spec 20: when the referral bonus was paid (after the e-mail was confirmed) – paid once.
-  referralRewardedAt DateTime?
+  referralRewardedAt     DateTime?
   /// Spec 24: the partner whose code the customer first paid with (first attribution wins).
   partnerId              String?
   /// Spec 24: payment time of that first payment.
@@ -44,15 +44,16 @@ model User {
   /// Spec 24: payments before this moment earn the partner commission (attribution + the partner's period).
   partnerCommissionUntil DateTime?
   /// Timestamp of accepting the Terms of Service (regulamin) – required for audit (UŚUDE / RODO).
-  termsAcceptedAt    DateTime?
+  termsAcceptedAt        DateTime?
   /// Stripe customer id – created lazily on first checkout / subscription.
-  stripeCustomerId   String?   @unique
+  stripeCustomerId       String?   @unique
   /// JWTs issued before this moment are rejected (set on password reset).
-  passwordChangedAt  DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  passwordChangedAt      DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   images                  Image[]
+  userStyles              UserStyle[]
   transactions            PaymentTransaction[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
@@ -71,13 +72,13 @@ model User {
 }
 
 model Image {
-  id             String   @id @default(cuid())
-  userId         String
-  originalUrl    String
-  filename       String
+  id          String   @id @default(cuid())
+  userId      String
+  originalUrl String
+  filename    String
   /// Cached AI product description (generated once, reused by every generation of this image).
-  description    String?
-  createdAt      DateTime @default(now())
+  description String?
+  createdAt   DateTime @default(now())
 
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   generations      Generation[]
@@ -132,13 +133,31 @@ model Generation {
   /// is finished so a retry uses the same reference; deleted with the photo and the account (spec 03).
   referenceKey String?
   /// Rework of an earlier graphic (the reference is the graphic being edited).
-  isRework     Boolean          @default(false)
+  isRework     Boolean @default(false)
+  /// Spec 27: name of the saved user style the graphic was made from (caption only; the prompt is copied).
+  styleLabel   String?
 
   image Image @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
   @@index([imageId])
   @@index([status, createdAt])
   @@map("generations")
+}
+
+/// Spec 27: a saved style – the Polish scene description and an optional reference photo, chosen like a built-in style.
+model UserStyle {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  prompt       String
+  /// Storage key of the compressed reference photo (folder user-styles), copied per generation.
+  referenceKey String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("user_styles")
 }
 
 enum GenerationStatus {
@@ -164,26 +183,26 @@ model PaymentTransaction {
   // ── Refunds, disputes and the welcome pack (spec 09 AC-PAY-016..022, spec 19 AC-MON-008) ──
   /// Pack bought (credits_5, welcome_5...); null for subscriptions and rows before 2026-10-18.
   /// A partial unique index allows one live welcome_5 row per account (migration 20261018120000).
-  packageId             String?
+  packageId                String?
   /// PaymentIntent of the payment – matches charge.refunded / charge.dispute.* to this row.
-  stripePaymentIntentId String?   @unique
+  stripePaymentIntentId    String?   @unique
   /// When the credits were added (null = not fulfilled yet).
-  completedAt           DateTime?
+  completedAt              DateTime?
   /// Cumulative amount refunded in Stripe (grosze).
-  amountRefunded        Int       @default(0)
+  amountRefunded           Int       @default(0)
   /// Amount held by an open or lost dispute (grosze); 0 when there is none or it was won.
-  disputeAmount         Int       @default(0)
+  disputeAmount            Int       @default(0)
   /// open | won | lost
-  disputeStatus         String?
+  disputeStatus            String?
   /// Credits taken back because of refunds and disputes (proportional to the amount).
-  creditsReversed       Int       @default(0)
+  creditsReversed          Int       @default(0)
   /// Part of creditsReversed that could not be removed – the buyer had already spent it.
-  creditsShortfall      Int       @default(0)
+  creditsShortfall         Int       @default(0)
   // ── Discount codes (spec 09 AC-PAY-027, migration 20261018150000) ──
   /// Discount applied at checkout (grosze, total_details.amount_discount); amountPln is what was really paid.
-  amountDiscount        Int       @default(0)
+  amountDiscount           Int       @default(0)
   /// Human-readable Stripe promotion code (e.g. PARTNER-10); null without a code or when Stripe could not tell.
-  promotionCode         String?
+  promotionCode            String?
   // ── Partner programme (spec 24, migration 20261019090000) ──
   /// Partner this payment earns commission for (set once at fulfilment, within the customer's commission period).
   partnerId                String?

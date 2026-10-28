@@ -9,6 +9,8 @@ export interface Generation {
   status: string
   url: string | null
   rating?: number | null
+  /** Spec 27: name of the saved user style the graphic was made from. */
+  styleLabel?: string | null
 }
 
 export interface ImageDetails {

@@ -20,6 +20,7 @@ const ForgotPassword = lazyPage(() => import('./pages/ForgotPassword'))
 const Dashboard = lazyPage(() => import('./pages/Dashboard'))
 const Upload = lazyPage(() => import('./pages/Upload'))
 const BulkUpload = lazyPage(() => import('./pages/BulkUpload'))
+const Styles = lazyPage(() => import('./pages/Styles'))
 const Generate = lazyPage(() => import('./pages/Generate'))
 const Gallery = lazyPage(() => import('./pages/Gallery'))
 const Credits = lazyPage(() => import('./pages/Credits'))
@@ -78,6 +79,7 @@ export default function App() {
                     <Route index element={<Dashboard />} />
                     <Route path="upload" element={<Upload />} />
                     <Route path="bulk-upload" element={<BulkUpload />} />
+                    <Route path="styles" element={<Styles />} />
                     <Route path="generate/:imageId" element={<Generate />} />
                     <Route path="gallery" element={<Gallery />} />
                     <Route path="credits" element={<Credits />} />

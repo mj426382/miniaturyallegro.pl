@@ -35,6 +35,7 @@ zaktualizowanej specyfikacji i testu, który ją dowodzi.
 | [24-partner-program.md](24-partner-program.md) | Program partnerski: partnerzy z kodami, przypisanie klientów, prowizja miesięczna, wypłaty, strona `/program-partnerski` |
 | [25-photo-checker.md](25-photo-checker.md) | Darmowe narzędzie „Sprawdź zdjęcie produktu”: analiza w przeglądarce, wymagania platform ze źródłami |
 | [26-indexnow.md](26-indexnow.md) | IndexNow: zgłaszanie zmienionych adresów landingu (Bing, Yandex, Seznam, Naver) po każdym wdrożeniu produkcyjnym |
+| [27-user-styles.md](27-user-styles.md) | Moje style: zapisane style użytkownika (nazwa, opis sceny, wzór) do wyboru w generatorze i masowym przesyłaniu |
 | [adr/](adr/) | Architecture Decision Records – decyzje, których nie da się wyczytać z kodu |
 | [TEMPLATE-feature-spec.md](TEMPLATE-feature-spec.md) | Szablon nowej specyfikacji |
 | [glossary.md](glossary.md) | Słownik pojęć (Kredyt, Grafika, Opis oferty, Poprawka…) |

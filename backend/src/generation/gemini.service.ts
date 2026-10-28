@@ -40,6 +40,11 @@ The product shown in the FIRST image is LOCKED. You MUST reproduce it with:
 - do NOT add other products, duplicates of the product or people's faces
 `.trim();
 
+/** AC-GEN-034: in a rework the SECOND image is the original product photo, not a style reference. */
+export const REWORK_REFERENCE_INSTRUCTION =
+  'The SECOND image is the ORIGINAL PRODUCT PHOTO. Use it only to keep the product identical (shape, colours, ' +
+  'packaging, label and every printed text); do NOT take its background or framing. Edit the FIRST image.';
+
 export const REFERENCE_IMAGE_INSTRUCTION =
   'The SECOND image is a STYLE REFERENCE only (background, mood, lighting, composition). Use it as visual ' +
   'inspiration for the environment. Do NOT copy, transfer or merge any product or object from it into the result. ' +
@@ -445,37 +450,56 @@ Return ONLY a JSON object whose keys are the style ids and whose values are the 
     return prompts.get(style.id) || style.prompt;
   }
 
-  /** Prompt for a free-form scene described by the user (Polish → English). */
-  async generateCustomPrompt(productDescription: string, userPrompt: string): Promise<string> {
+  /** Prompt for a free-form scene described by the user (Polish → English), AC-GEN-033. */
+  async generateCustomPrompt(
+    productDescription: string,
+    userPrompt: string,
+    options: { hasStyleReference?: boolean } = {},
+  ): Promise<string> {
+    const reference = options.hasStyleReference
+      ? `The model ALSO receives a STYLE REFERENCE photo from the user (mood, background, lighting, composition) – ` +
+        `say "in the style of the reference image" and blend it with the description; never copy objects from it ` +
+        `into the result except what the user asked for.`
+      : 'There is no style reference image – build the scene from the description alone.';
     return this.textCompletion(
       'generateCustomPrompt',
       PROMPT_ENGINEER_SYSTEM,
-      `Product description:\n${productDescription}
+      `Product description:
+${productDescription}
 
-The user (writing in Polish) wants the product placed in this scene/style: "${userPrompt}"
+The user (writing in Polish) describes the NEW SCENE for this product: "${userPrompt}"
+${reference}
 
-Write ONE image-generation prompt in English that realises the user's wish while keeping the product exactly as ` +
-        `described. Translate the user's intent faithfully; if the wish asks to change the product itself (colour, ` +
-        `shape, text), ignore that part and only change the scene. Mention a square composition with the product ` +
-        `centred and large in frame. End with "photorealistic, sharp focus, no text, no watermark, no extra objects". ` +
-        `Return only the prompt text.`,
+Write ONE image-generation prompt in English that builds that scene AROUND the product: background, surroundings, ` +
+        `props, people's hands, animals (e.g. a dog or a cat next to the product) and lighting exactly as the user ` +
+        `asked – a plain white or empty background is WRONG unless the user asked for it. Translate the intent ` +
+        `faithfully and make it concrete and visual. The product itself must stay exactly as in the photo: never ` +
+        `change its shape, colours, packaging, label design or ANY printed text, and never add text – if the wish ` +
+        `asks to change the product or its text, ignore that part and only change the scene. Mention a square ` +
+        `composition with the product clearly visible and large in frame. End with "photorealistic, sharp focus, ` +
+        `no added text, no watermark". Return only the prompt text.`,
     );
   }
 
-  /** Prompt for editing an already generated graphic with minimal changes. */
+  /** Prompt for editing an already generated graphic, AC-GEN-034: scene requests change the scene, never the product. */
   async generateReworkPrompt(productDescription: string, userPrompt: string): Promise<string> {
     return this.textCompletion(
       'generateReworkPrompt',
       PROMPT_ENGINEER_SYSTEM,
-      `Product description:\n${productDescription}
+      `Product description:
+${productDescription}
 
 The FIRST image the model will receive is an ALREADY GENERATED graphic of this product; the SECOND image is the ` +
-        `original product photo (reference for product identity). The user (writing in Polish) requests this change: ` +
-        `"${userPrompt}"
+        `original product photo (reference for the product's exact look). The user (writing in Polish) requests this ` +
+        `change: "${userPrompt}"
 
-Write ONE image-EDITING prompt in English that instructs the model to start from the first image and apply ONLY ` +
-        `the requested change, keeping everything else (product, framing, lighting) identical. Be explicit that this is ` +
-        `an edit, not a new generation. Return only the prompt text.`,
+Write ONE image-EDITING prompt in English that starts from the first image and applies the requested change. If ` +
+        `the request is about the scene – adding animals (e.g. a dog or a cat), people's hands, props, another ` +
+        `background, interior or outdoor setting, season, mood or lighting – then CHANGE the background and ` +
+        `surroundings accordingly; do not keep a plain or white background in that case. Keep everything the user ` +
+        `did not mention (framing, product position and size) as it is. The product itself is locked: never change ` +
+        `its shape, colours, packaging, label design or ANY printed text, and never add text, even if the request ` +
+        `seems to ask for it. Return only the prompt text.`,
     );
   }
 
@@ -487,6 +511,7 @@ Write ONE image-EDITING prompt in English that instructs the model to start from
     prompt: string,
     referenceImageBase64?: string,
     referenceImageMimeType?: string,
+    options: { rework?: boolean } = {},
   ): Promise<GeneratedImage> {
     // The SDK has no default timeout – a hung request would block a generation slot for ever.
     const model = this.genAI.getGenerativeModel({ model: this.IMAGE_MODEL }, { timeout: 180_000 });
@@ -497,7 +522,7 @@ Write ONE image-EDITING prompt in English that instructs the model to start from
       parts.push({
         inlineData: { data: referenceImageBase64, mimeType: referenceImageMimeType as GeminiImageMimeType },
       });
-      parts.push({ text: REFERENCE_IMAGE_INSTRUCTION });
+      parts.push({ text: options.rework ? REWORK_REFERENCE_INSTRUCTION : REFERENCE_IMAGE_INSTRUCTION });
     }
 
     parts.push({ text: buildImagePrompt(prompt) });

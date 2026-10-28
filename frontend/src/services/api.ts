@@ -72,6 +72,18 @@ export interface CreditPackageInfo {
   welcome?: boolean
 }
 
+/** Spec 27: a saved user style ("Moje style"). */
+export interface UserStyle {
+  id: string
+  name: string
+  prompt: string
+  referenceUrl: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export const USER_STYLE_LIMITS = { nameMin: 2, nameMax: 60, promptMin: 3, promptMax: 500, maxStyles: 20 } as const
+
 export interface StylesResponse {
   styles: GenerationStyleInfo[]
   defaultStyleIds: string[]
@@ -164,12 +176,31 @@ export const generationApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
+  /** Spec 27: one graphic from a saved user style (1 credit). */
+  startUserStyleGeneration: (imageId: string, styleId: string) => api.post<{ generationId: string }>(`/generation/${imageId}/user-style/${styleId}`),
   getResults: (imageId: string) => api.get(`/generation/${imageId}/results`),
   getById: (id: string) => api.get(`/generation/result/${id}`),
   retryGeneration: (id: string) => api.post(`/generation/retry/${id}`),
   downloadGeneration: (id: string) => api.get(`/generation/download/${id}`, { responseType: 'blob' }),
   /** Finished graphics + offer descriptions of the given photos as one ZIP (spec 15). */
   downloadZip: (imageIds: string[]) => api.post<Blob>('/generation/zip', { imageIds }, { responseType: 'blob' }),
+}
+
+// Saved user styles (spec 27)
+const userStyleForm = (fields: { name?: string; prompt?: string; reference?: File | null; removeReference?: boolean }) => {
+  const form = new FormData()
+  if (fields.name !== undefined) form.append('name', fields.name)
+  if (fields.prompt !== undefined) form.append('prompt', fields.prompt)
+  if (fields.reference) form.append('reference', fields.reference)
+  if (fields.removeReference) form.append('removeReference', 'true')
+  return form
+}
+export const userStylesApi = {
+  list: () => api.get<UserStyle[]>('/user-styles'),
+  create: (fields: { name: string; prompt: string; reference?: File | null }) => api.post<UserStyle>('/user-styles', userStyleForm(fields), { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id: string, fields: { name?: string; prompt?: string; reference?: File | null; removeReference?: boolean }) =>
+    api.patch<UserStyle>(`/user-styles/${id}`, userStyleForm(fields), { headers: { 'Content-Type': 'multipart/form-data' } }),
+  remove: (id: string) => api.delete<{ ok: true }>(`/user-styles/${id}`),
 }
 
 // Infographics (spec 14)

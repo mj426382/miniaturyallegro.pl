@@ -102,7 +102,11 @@ export class UsersService {
   async deleteAccount(id: string, confirmEmail: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { images: { include: { generations: { select: { url: true, referenceKey: true } } } } },
+      include: {
+        images: { include: { generations: { select: { url: true, referenceKey: true } } } },
+        // Spec 27, AC-UST-005: reference photos of saved styles (rows go with the account – cascade).
+        userStyles: { select: { referenceKey: true } },
+      },
     });
     if (!user) throw new NotFoundException('User not found');
     if (user.email.toLowerCase() !== confirmEmail.toLowerCase()) {
@@ -118,6 +122,8 @@ export class UsersService {
         if (g.referenceKey) keys.push(g.referenceKey);
       }
     }
+
+    for (const style of user.userStyles) if (style.referenceKey) keys.push(style.referenceKey);
 
     // Spec 03, AC-AUTH-026: landing demo requests of the same mailbox (e-mail + photo) go too.
     const demos = await this.prisma.demoRequest.findMany({

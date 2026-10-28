@@ -45,7 +45,7 @@
 ## 2. API
 
 `GET /generation/styles`, `POST /generation/:imageId/start {styles?, basePrompt?}`,
-`POST /generation/:imageId/custom (multipart prompt, reference?, rework?)`, `POST /generation/retry/:id`,
+`POST /generation/:imageId/custom (multipart prompt, reference?, rework?)`, `POST /generation/:imageId/user-style/:styleId` (spec 27), `POST /generation/retry/:id`,
 `POST /generation/feedback/:id`, `GET /generation/:imageId/results`, `GET /generation/result/:id`.
 Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 
@@ -76,6 +76,8 @@ Admin: `GET /admin/overview|feedback-stats|withdrawal-quote`.
 - **AC-GEN-018** – Given błąd 503, When wywołanie, Then retry; przy błędzie limitu – brak retry.
 - **AC-GEN-030** – Given OpenAI odrzuca wywołanie z powodów rozliczeniowych (HTTP 429/402 z kodem `insufficient_quota` albo komunikatem o limicie, braku środków lub billingu), When dowolne zadanie tekstowe, Then nie ma ponowień, błąd ma typ `AiBillingError`, a administratorzy z `ADMIN_EMAILS` dostają e-mail „Brak środków w OpenAI” – najwyżej raz na 6 godzin na proces; zwykły 429 (rate limit) nadal jest ponawiany.
 - **AC-GEN-032** – Given Gemini odrzuca generowanie obrazu z powodów rozliczeniowych (HTTP 402, np. „prepayment credits are depleted”, albo komunikat o billingu), When generacja, Then nie ma ponowień, błąd ma typ `AiBillingError`, administratorzy dostają e-mail „Brak środków w Gemini” (najwyżej raz na 6 godzin na proces, niezależnie od alertu OpenAI), kredyt za grafikę wraca, a w logu jest przyczyna błędu; 429 `RESOURCE_EXHAUSTED` (limit na minutę) nadal jest ponawiany.
+- **AC-GEN-033** – Given własny styl (także zapisany, spec 27) z opisem sceny i opcjonalnym zdjęciem wzoru, When optymalizator promptu pisze polecenie dla modelu obrazu, Then dostaje informację, czy jest zdjęcie wzoru, polecenie każe zbudować nową scenę z opisu (tło, otoczenie, rekwizyty, zwierzęta) i zakazuje zmiany produktu, jego napisów i etykiet; gdy brak analizy zdjęcia, optymalizator i tak działa (opis zastępczy), a polecenie zapasowe (AC-GEN-031) jest tylko na wypadek błędu optymalizatora.
+- **AC-GEN-034** – Given przeróbka gotowej grafiki, When prośba dotyczy sceny (np. „dodaj psa albo kota”, „zmień tło na kuchnię”), Then polecenie edycji zmienia tło i otoczenie zgodnie z prośbą zamiast zostawiać je bez zmian, nie zmienia produktu ani jego napisów, a model obrazu dostaje opis drugiego zdjęcia jako oryginału produktu (wzorca wyglądu produktu), nie jako wzoru stylu.
 - **AC-GEN-031** – Given własny styl albo przeróbka, When analiza zdjęcia lub optymalizacja promptu zawiedzie, Then grafika powstaje z zapasowego angielskiego promptu zawierającego tekst użytkownika (przeróbka: polecenie edycji pierwszego obrazu); gdy zawiedzie samo generowanie obrazu, kredyt wraca jak dotąd.
 - **AC-GEN-019** – Given semafor współbieżności, When zadanie rzuci wyjątek, Then slot jest zwalniany.
 - **AC-GEN-020** – (opt-in, prawdziwe API) Given klucze, When pełny pipeline, Then powstaje dekodowalny kwadratowy obraz.

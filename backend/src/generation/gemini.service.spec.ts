@@ -10,6 +10,8 @@ import {
   isGeminiBillingError,
   isOpenAiBillingError,
   PRODUCT_INTEGRITY_CONSTRAINTS,
+  REFERENCE_IMAGE_INSTRUCTION,
+  REWORK_REFERENCE_INSTRUCTION,
 } from './gemini.service';
 import { MailService } from '../mail/mail.service';
 import { GENERATION_STYLES } from './styles';
@@ -333,6 +335,59 @@ describe('GeminiService', () => {
       });
       expect(generateContent).toHaveBeenCalledTimes(2);
       expect(mail.send).not.toHaveBeenCalled();
+      generateContent.mockReset();
+    });
+  });
+
+  describe('custom and rework prompts (AC-GEN-033, AC-GEN-034)', () => {
+    const sentPrompt = () => (mockedAxios.post.mock.calls.at(-1)![1] as any).messages[1].content as string;
+
+    it('[AC-GEN-033] the custom prompt builds a new scene, says whether a style reference exists and locks the product text', async () => {
+      mockedAxios.post.mockResolvedValue(openaiReply('scene'));
+      await service.generateCustomPrompt('A pet food pouch', 'wizualizacja z psem lub kotem', {
+        hasStyleReference: true,
+      });
+      const withRef = sentPrompt();
+      expect(withRef).toContain('"wizualizacja z psem lub kotem"');
+      expect(withRef).toContain('STYLE REFERENCE photo');
+      expect(withRef).toMatch(/animals \(e\.g\. a dog or a cat/);
+      expect(withRef).toMatch(/plain white or empty background is WRONG/);
+      expect(withRef).toMatch(/never\s+change its shape, colours, packaging, label design or ANY printed text/);
+
+      await service.generateCustomPrompt('A pet food pouch', 'na trawie');
+      expect(sentPrompt()).toContain('There is no style reference image');
+      mockedAxios.post.mockReset();
+    });
+
+    it('[AC-GEN-034] the rework prompt changes the scene for scene requests and never the product or its text', async () => {
+      mockedAxios.post.mockResolvedValue(openaiReply('edit'));
+      await service.generateReworkPrompt('A pet food pouch', 'dodaj psa albo kota');
+      const prompt = sentPrompt();
+      expect(prompt).toContain('"dodaj psa albo kota"');
+      expect(prompt).toMatch(/CHANGE the background and\s+surroundings/);
+      expect(prompt).toMatch(/do not keep a plain or white background/);
+      expect(prompt).toMatch(/never change\s+its shape, colours, packaging, label design or ANY printed text/);
+      expect(prompt).not.toMatch(/apply ONLY the requested change, keeping everything else/);
+      mockedAxios.post.mockReset();
+    });
+
+    it('[AC-GEN-034] the image model gets the rework instruction for the second image, the style instruction otherwise', async () => {
+      const ok = {
+        response: {
+          candidates: [
+            { finishReason: 'STOP', content: { parts: [{ inlineData: { data: 'AAAA', mimeType: 'image/png' } }] } },
+          ],
+        },
+      };
+      generateContent.mockResolvedValue(ok);
+      await service.generateImage('b64', 'image/png', 'edit', 'ref', 'image/png', { rework: true });
+      const reworkParts = generateContent.mock.calls.at(-1)[0].contents[0].parts;
+      expect(reworkParts.map((p: any) => p.text).filter(Boolean)).toContain(REWORK_REFERENCE_INSTRUCTION);
+      expect(reworkParts.map((p: any) => p.text)).not.toContain(REFERENCE_IMAGE_INSTRUCTION);
+
+      await service.generateImage('b64', 'image/png', 'scene', 'ref', 'image/png');
+      const styleParts = generateContent.mock.calls.at(-1)[0].contents[0].parts;
+      expect(styleParts.map((p: any) => p.text)).toContain(REFERENCE_IMAGE_INSTRUCTION);
       generateContent.mockReset();
     });
   });
