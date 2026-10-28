@@ -41,6 +41,12 @@ function python(args: string[], env: Record<string, string | undefined> = {}) {
   return { status: r.status, stdout: r.stdout ?? '', stderr: r.stderr ?? '' }
 }
 
+/** The bot's ledger as it stood on `today` – the plan tests replay a fixed date, later publications must not shift it. */
+function ledgerAsOf(today: string): unknown[] {
+  const ledger = JSON.parse(readFileSync(resolve(scripts, 'blog-keywords-used.json'), 'utf-8')) as { date?: string }[]
+  return ledger.filter((e) => !e.date || e.date <= today)
+}
+
 function nextTopics(today: string, n: number, ledger?: unknown[]): Topic[] {
   const args = [planScript, '--next', String(n), '--today', today]
   if (ledger) args.push('--ledger', tmpFile('ledger.json', ledger))
@@ -92,7 +98,7 @@ test.describe('blog bot (spec 23)', () => {
   })
 
   test('[AC-BOT-002] the next 30 articles rotate clusters and types, include pillar guides and follow the Mon/Wed/Fri schedule', () => {
-    const topics = nextTopics('2026-10-17', 30)
+    const topics = nextTopics('2026-10-17', 30, ledgerAsOf('2026-10-17'))
     expect(topics).toHaveLength(30)
     for (let i = 1; i < topics.length; i++) {
       expect(topics[i].cluster, `${topics[i - 1].keyword} → ${topics[i].keyword}`).not.toBe(topics[i - 1].cluster)
@@ -109,19 +115,24 @@ test.describe('blog bot (spec 23)', () => {
 
   test('[AC-BOT-003] seasonal topics are written 6 to 3 weeks before the event and never outside that window', () => {
     // 2026-10-19 (Monday) is 39 days before Black Friday 2026 (27 November).
-    const [first] = nextTopics('2026-10-17', 1)
+    const [first] = nextTopics('2026-10-17', 1, ledgerAsOf('2026-10-17'))
     expect(first).toMatchObject({ date: '2026-10-19', keyword: 'black friday 2026', season: 'black-friday', days_before: 39 })
 
     // A whole year of the schedule: every seasonal topic lands inside its window.
-    const year = nextTopics('2026-07-01', plan.entries.length)
+    const year = nextTopics('2026-07-01', plan.entries.length, ledgerAsOf('2026-10-17'))
     const seasonal = year.filter((t) => t.season)
-    expect(seasonal.length).toBe(plan.entries.filter((e) => e.season).length)
+    // Topics published after the frozen ledger date may now be skipped as covered by a live post.
+    const publishedLater = new Set(
+      (JSON.parse(readFileSync(resolve(scripts, 'blog-keywords-used.json'), 'utf-8')) as { keyword: string; date?: string }[]).filter((e) => e.date && e.date > '2026-10-17').map((e) => e.keyword),
+    )
+    expect(seasonal.length).toBeGreaterThanOrEqual(plan.entries.filter((e) => e.season && !publishedLater.has(e.keyword)).length)
+    expect(seasonal.length).toBeLessThanOrEqual(plan.entries.filter((e) => e.season).length)
     for (const t of seasonal) {
       expect(t.days_before, t.keyword).toBeGreaterThanOrEqual(21)
       expect(t.days_before, t.keyword).toBeLessThanOrEqual(42)
     }
     // From 1 July the first weeks bring no Black Friday or Christmas topic.
-    const july = nextTopics('2026-07-01', 6)
+    const july = nextTopics('2026-07-01', 6, ledgerAsOf('2026-10-17'))
     expect(july.some((t) => t.season === 'black-friday' || t.season === 'boze-narodzenie')).toBe(false)
   })
 

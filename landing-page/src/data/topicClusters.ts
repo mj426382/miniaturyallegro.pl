@@ -4,6 +4,9 @@
  * fresh post from the daily bot) are listed under "Pozostałe poradniki" until someone assigns them here.
  * Keyword → URL map: docs/seo/2026-10-ecommerce-seo-audit.md.
  */
+import botLedger from '../../scripts/blog-keywords-used.json' with { type: 'json' }
+import { blogIndex } from './blogIndex'
+
 export interface TopicCluster {
   id: string
   /** H2 of the hub section on /blog. */
@@ -15,7 +18,7 @@ export interface TopicCluster {
   posts: string[]
 }
 
-export const topicClusters: TopicCluster[] = [
+const curatedClusters: TopicCluster[] = [
   {
     id: 'zdjecia-produktowe-ai',
     name: 'Zdjęcia produktowe AI',
@@ -121,6 +124,36 @@ export const topicClusters: TopicCluster[] = [
     ],
   },
 ]
+
+/**
+ * AC-SEO-037: the blog bot (spec 23) plans topics in its own clusters (scripts/blog-keywords.json). A bot post that no
+ * one placed above joins the blog cluster its plan cluster maps to, so it is never an orphan in "Podobne wpisy".
+ */
+export const PLAN_TO_BLOG_CLUSTER: Record<string, string> = {
+  'fotografia-produktowa': 'fotografia-produktowa',
+  'zdjecia-wg-kategorii': 'fotografia-produktowa',
+  'sprzedaz-i-konwersja': 'sprzedaz-i-konwersja',
+  'seo-sklepu': 'sklep-internetowy',
+  'kanaly-sprzedazy': 'marketplace',
+  'sezon-i-kampanie': 'sklep-internetowy',
+  'ai-w-ecommerce': 'zdjecia-produktowe-ai',
+  'prawo-i-praktyka': 'sklep-internetowy',
+}
+
+function withBotPosts(clusters: TopicCluster[]): TopicCluster[] {
+  const placed = new Set(clusters.flatMap((c) => c.posts))
+  const live = new Set(blogIndex.map((p) => p.slug))
+  const extra = new Map<string, string[]>()
+  for (const entry of botLedger as Array<{ slug?: string; cluster?: string }>) {
+    const target = entry.cluster ? PLAN_TO_BLOG_CLUSTER[entry.cluster] : undefined
+    if (!entry.slug || !target || placed.has(entry.slug) || !live.has(entry.slug)) continue
+    placed.add(entry.slug)
+    extra.set(target, [...(extra.get(target) ?? []), entry.slug])
+  }
+  return clusters.map((c) => ({ ...c, posts: [...c.posts, ...(extra.get(c.id) ?? [])] }))
+}
+
+export const topicClusters: TopicCluster[] = withBotPosts(curatedClusters)
 
 export function clusterOfPost(slug: string): TopicCluster | undefined {
   return topicClusters.find((c) => c.posts.includes(slug))

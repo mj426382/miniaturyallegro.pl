@@ -57,11 +57,9 @@ describe('credit pools and reference images (integration)', () => {
   }
 
   const poolsOfImage = async (imageId: string) =>
-    (await ctx.prisma.generation.findMany({ where: { imageId }, orderBy: { createdAt: 'asc' } })).map((g) => [
-      g.style,
-      g.creditPool,
-      g.status,
-    ]);
+    (await ctx.prisma.generation.findMany({ where: { imageId }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] })).map(
+      (g) => [g.style, g.creditPool, g.status],
+    );
 
   it('[AC-GEN-027] a batch charged from both pools refunds each failed graphic to its own pool', async () => {
     const user = await account(9, 5); // 1 free credit left, 5 purchased

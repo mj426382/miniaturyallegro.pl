@@ -6,7 +6,7 @@ import { blogIndex } from '../src/data/blogIndex'
 import { FREE_GRAPHICS, packages, plans } from '../src/data/pricing'
 import { seoOgImage, seoPages } from '../src/data/seoPages'
 import { HOME_UPDATED } from '../src/data/site'
-import { topicClusters } from '../src/data/topicClusters'
+import { PLAN_TO_BLOG_CLUSTER, topicClusters } from '../src/data/topicClusters'
 import { PARTNER_OG_IMAGE, PARTNER_PAGE_PATH } from '../src/data/partnerProgram'
 import { PHOTO_CHECKER_OG_IMAGE, PHOTO_CHECKER_PATH } from '../src/data/photoChecker'
 
@@ -145,6 +145,36 @@ test('[AC-SEO-025] related posts rotate inside the cluster – every post is lin
   }
   const weak = [...inbound].filter(([, from]) => from.size < 3).map(([slug, from]) => `${slug} (${from.size})`)
   expect(weak, 'posts linked from fewer than 3 related sections').toEqual([])
+})
+
+test('[AC-SEO-037] bot posts nobody placed join the blog cluster of their plan cluster, never „Pozostałe poradniki”', async ({ request }) => {
+  const plan = JSON.parse(readFileSync(resolve(HERE, '../scripts/blog-keywords.json'), 'utf-8')) as { clusters: Record<string, unknown> }
+  const ledger = JSON.parse(readFileSync(resolve(HERE, '../scripts/blog-keywords-used.json'), 'utf-8')) as { slug?: string; cluster?: string }[]
+  const clusterIds = topicClusters.map((c) => c.id)
+  // Every plan cluster has a target, and every target is a real blog cluster.
+  expect(Object.keys(PLAN_TO_BLOG_CLUSTER).sort()).toEqual(Object.keys(plan.clusters).sort())
+  for (const target of Object.values(PLAN_TO_BLOG_CLUSTER)) expect(clusterIds).toContain(target)
+
+  // A post sits in exactly one cluster, and every cluster post is a live post.
+  const all = topicClusters.flatMap((c) => c.posts)
+  expect(new Set(all).size, 'no post in two clusters').toBe(all.length)
+  const live = new Set(blogIndex.map((p) => p.slug))
+  for (const slug of all) expect(live.has(slug), `${slug} is a live post`).toBe(true)
+
+  // Every live bot post is in a cluster; one only the bot knows lands in its mapped cluster, at the end.
+  const html = await (await request.get('/blog')).text()
+  const others = html.match(/<section[^>]*id="pozostale"[\s\S]*?<\/section>/)?.[0] ?? ''
+  for (const entry of ledger) {
+    if (!entry.slug || !live.has(entry.slug)) continue
+    const cluster = topicClusters.find((c) => c.posts.includes(entry.slug!))
+    expect(cluster, `${entry.slug} belongs to a blog cluster`).toBeDefined()
+    expect(others, `${entry.slug} is not under „Pozostałe poradniki”`).not.toContain(`/blog/${entry.slug}"`)
+  }
+  for (const slug of ['black-friday-2026-przygotowania-sprzedawcy-checklista', 'omnibus-najnizsza-cena-z-30-dni']) {
+    if (!live.has(slug)) continue
+    const target = PLAN_TO_BLOG_CLUSTER[ledger.find((e) => e.slug === slug)!.cluster!]
+    expect(topicClusters.find((c) => c.posts.includes(slug))?.id, slug).toBe(target)
+  }
 })
 
 test('[AC-SEO-017] /blog hubs, cluster links and same-tab internal links in posts', async ({ page, request }) => {
