@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "113",
+    "slug": "ai-w-e-commerce-przewodnik-2026",
+    "title": "AI w e-commerce: przewodnik 2026 – zdjęcia, opisy, obsługa",
+    "excerpt": "AI w e-commerce: jak realnie pomaga sklepowi w 2026 roku? Przewodnik po zastosowaniach, ryzykach i praktykach. Sprawdź, gdzie AI ma sens.",
+    "publishedAt": "2026-11-04",
+    "modifiedAt": "2026-11-04",
+    "author": "AllGrafika.pl",
+    "readTime": 9,
+    "category": "Technologia"
+  },
+  {
     "id": "112",
     "slug": "omnibus-najnizsza-cena-z-30-dni",
     "title": "Omnibus najniższa cena z 30 dni – jak pokazać obniżkę 2026",

@@ -99,5 +99,12 @@
     "date": "2026-10-23",
     "cluster": "prawo-i-praktyka",
     "type": "guide"
+  },
+  {
+    "keyword": "ai w e-commerce",
+    "slug": "ai-w-e-commerce-przewodnik-2026",
+    "date": "2026-11-04",
+    "cluster": "ai-w-ecommerce",
+    "type": "pillar"
   }
 ]
