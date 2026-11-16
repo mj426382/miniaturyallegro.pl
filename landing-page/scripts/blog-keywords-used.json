@@ -106,5 +106,12 @@
     "date": "2026-11-04",
     "cluster": "ai-w-ecommerce",
     "type": "pillar"
+  },
+  {
+    "keyword": "kampania świąteczna w sklepie internetowym",
+    "slug": "kampania-swiateczna-w-sklepie-internetowym",
+    "date": "2026-11-16",
+    "cluster": "sezon-i-kampanie",
+    "type": "seasonal"
   }
 ]

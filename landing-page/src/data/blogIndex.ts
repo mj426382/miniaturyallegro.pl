@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "114",
+    "slug": "kampania-swiateczna-w-sklepie-internetowym",
+    "title": "Kampania świąteczna w sklepie internetowym – plan 2026",
+    "excerpt": "Kampania świąteczna w sklepie internetowym: harmonogram, zdjęcia, zestawy i zwroty. Sprawdź checklistę i przygotuj sklep na Boże Narodzenie 2026!",
+    "publishedAt": "2026-11-16",
+    "modifiedAt": "2026-11-16",
+    "author": "AllGrafika.pl",
+    "readTime": 5,
+    "category": "E-commerce"
+  },
+  {
     "id": "113",
     "slug": "ai-w-e-commerce-przewodnik-2026",
     "title": "AI w e-commerce: przewodnik 2026 – zdjęcia, opisy, obsługa",
