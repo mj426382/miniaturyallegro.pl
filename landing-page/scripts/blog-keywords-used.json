@@ -113,5 +113,12 @@
     "date": "2026-11-16",
     "cluster": "sezon-i-kampanie",
     "type": "seasonal"
+  },
+  {
+    "keyword": "seo sklepu internetowego",
+    "slug": "seo-sklepu-internetowego-przewodnik-2026",
+    "date": "2026-11-18",
+    "cluster": "seo-sklepu",
+    "type": "pillar"
   }
 ]

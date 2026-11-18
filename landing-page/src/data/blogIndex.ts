@@ -14,6 +14,17 @@ export interface BlogPostMeta {
 
 export const blogIndex: BlogPostMeta[] = [
   {
+    "id": "115",
+    "slug": "seo-sklepu-internetowego-przewodnik-2026",
+    "title": "SEO sklepu internetowego: kompletny przewodnik krok po kroku",
+    "excerpt": "SEO sklepu internetowego – jak zoptymalizować sklep, kategorie i zdjęcia, by zwiększyć sprzedaż. Sprawdź praktyczny przewodnik i checklisty.",
+    "publishedAt": "2026-11-18",
+    "modifiedAt": "2026-11-18",
+    "author": "AllGrafika.pl",
+    "readTime": 9,
+    "category": "Optymalizacja"
+  },
+  {
     "id": "114",
     "slug": "kampania-swiateczna-w-sklepie-internetowym",
     "title": "Kampania świąteczna w sklepie internetowym – plan 2026",
